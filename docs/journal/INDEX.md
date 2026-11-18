@@ -42,3 +42,4 @@ Written from `docs/journal/` by `scripts/journal_index.py`; do not edit by hand.
 | J-036 | The goal written down: five areas under one click | direction | `J-000-099.md` |
 | J-037 | The pass's cold gate caught three survivors in the scaffold's write | failure-caught | `J-000-099.md` |
 | J-038 | Mutation testing leaves the gate: its own script, run nightly (SP-012) | decision | `J-000-099.md` |
+| J-039 | Tune-up pass 5: the last cold gate with mutation in it; the warm gate is 0.80 min without | measurement | `J-000-099.md` |

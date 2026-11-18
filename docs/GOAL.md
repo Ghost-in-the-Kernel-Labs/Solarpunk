@@ -31,6 +31,21 @@ document control, and ISO requirement traceability.
 Availability, performance ratio, energy yield, MTBF, MTTR, maintenance backlog, recurring faults, contractor
 performance, and quality trends. More importantly, relationships between these metrics.
 
+## What to watch out for
+
+Ghost, 2026-11-18, in his words. In practice, ISO 55000 prevents two common value-destroying mistakes in solar
+portfolios:
+
+1. **Over-maintaining (excess cost).** Sending crews to wash panels or inspect trackers on a rigid calendar schedule
+   when telemetry shows negligible soiling loss: burning O&M margin without lifting energy yield.
+2. **Under-maintaining (uncontrolled risk).** Deferring preventive thermal imaging on combiner boxes or skipping
+   transformer oil dissolved-gas analysis (DGA), leading to catastrophic step-up transformer failure with a
+   12-to-18-month replacement lead time.
+
+What this asks of the platform: maintenance (area 3) is decided from what telemetry and condition show (areas 1 and
+2), and reporting (area 5) can show both mistakes: work done that moved no number, and risk carried because work was
+deferred. Neither is built yet; preventive work orders exist, with no schedule and no link to a condition.
+
 ## Where the repository stands today
 
 A first slice of each area exists, built in Phases 1 to 5; the rest is unplanned and Ghost's to place on the roadmap.

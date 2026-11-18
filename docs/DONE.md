@@ -142,3 +142,7 @@ Done 2026-11-18 (J-033). Check: `solarpunk.cmd` in the repository root: `solarpu
 ### 5.2 The help list
 
 Done 2026-11-18 (J-035). Check: `python3 -m solarpunk.cli help` prints every command with one line of what it does, the window's four first (`solarpunk`, `solarpunk --demo`, `solarpunk --db PATH`, `solarpunk --help`), and opens no store; `solarpunk.cmd` sends `--help`, `-h` and `help` to it; `test/solarpunk/test_cli_tests.py` holds the list to the parser (every command exactly one line, no line for a command the parser lacks) and `test/test_launcher.py` the launcher's flags. ✓ fast loop 908 tests green, ruff clean; not run on Windows from here.
+
+### 5.3 Tune-up pass 5
+
+Done 2026-11-18 (J-039). Check: `docs/when/tune-up.md` followed in full; the metrics table written; the navigation log's "Last review" set. ✓ cold gate 9.95 min over 4,910 mutants (the last with mutation in the gate; the first cold run refused on three survivors, killed by J-037's test), warm 0.80 min on the gate without mutation (SP-012), fast loop 23.1 s; the one debrief reviewed; the log's header line restored.

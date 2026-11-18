@@ -2,27 +2,37 @@
 
 Read `CLAUDE.md` first, then this. `TODO.md` is the chain in order; `docs/DONE.md` is what is finished.
 
-## Where the project stands (2026-11-18, 05:00, the morning hand-back)
+## Where the project stands (2026-11-18, after Tune-up pass 5)
 
-Phases 0 to 3 are closed in one night: 31 commits on `main`, each landed through the gate and authored as Ghost.
-**The demo is `python -m solarpunk.ui --demo`; `DEMO.md` has the Windows commands, what to click and the talk track.**
-Under xvfb here it prints the simulator's port, `demo: store demo.db rebuilt`, `demo: run - 9 green, 1 yellow, 1 red`
-and opens the window; it has not been run on Windows (this session has none, F-03), so run it once before the meeting,
-from a fresh clone, and read DEMO.md's "If something goes wrong".
+Phases 0 to 5 are closed. Phases 0 to 4 were one night's work; Phase 5 was built with Ghost in the chat after he ran
+the demo on Windows: `solarpunk.cmd` (`solarpunk` opens the window, `solarpunk --demo` the demo, `solarpunk --help`
+lists every command) and the CLI's `help`, `test list`, `test run` and `test add` (J-033, J-035). `docs/GOAL.md` is
+Ghost's statement of where the product is going: five areas under one click (J-036). Mutation left the gate for its
+own nightly regime (SP-012, J-038; the section below). Tune-up pass 5: cold gate 9.95 min, warm 0.80 min, fast loop
+23.1 s (J-039).
+
+**The first open item is 6.1, the network-security design pass** (`TODO.md`): a document and proposed decisions,
+no code, Ghost's to rule on. A fresh session starts there unless Ghost says otherwise.
 
 What exists: the fleet registry, the fault ledger over a closed catalogue, synthetic SCADA with gaps as data, the KPI
 engine with its blind mirror (contractual availability, performance ratio, energy yield, MTBF/MTTR), the clause register
-and `scripts/clauses.py` (9001: 7 held, 1 open; 55000: 4 held), the orchestrator and CLI; the asset maintenance list,
-the feed by IP and port with a simulator, standalone remote tests with a registry, the receiver, cron and Task Scheduler
-from one job, the mailer over SMTP, the scheduled run; the tkinter fleet window with the status glyphs, the asset window
-with Save and Cancel, the add-asset window with the type dropdown, the demo; and Phase 4's work-order ledger with root-cause codes, so every row of the clause register is held (9001
-eight, 55000 four). 487 product tests and 385 template tests; 4,720 mutants, every survivor killed or explained.
-Phase 5 is Ghost's of 2026-11-18: 5.1 the one-word `solarpunk` command and the `test list|run|add` commands (J-033)
-and 5.2 the help list behind `solarpunk --help` (J-035), both done; 5.3 the pass; Phase 6 is the network's security, 6.1 its
-design pass (a document and proposed decisions first, Ghost's to rule on), 6.2 its pass. Other candidates, Ghost's to plan: the asset window listing open
-work orders and closing one with a cause; the receiver and the clock exercised end to end in the demo; `tracker_moving`,
-`energy_monotonic`, `irradiance_in_range` and `night_power_near_zero` as remote tests; a SOL-13 for root causes; the
-structure-half candidates of J-024; a Windows run of the demo recorded as a journal trial.
+and `scripts/clauses.py` (9001 eight held, 55000 four), the orchestrator and CLI; the asset maintenance list, the feed
+by IP and port with a simulator, standalone remote tests with a registry and a scaffold for a new one, the receiver,
+cron and Task Scheduler from one job, the mailer over SMTP, the scheduled run; the tkinter fleet, asset and add-asset
+windows, the demo; the work-order ledger with root-cause codes; the one-word launcher. 912 tests in the fast loop;
+4,910 mutants, every survivor killed or explained.
+
+Not verified, said plainly: `solarpunk.cmd` was written and read against the parser by a test, but no Windows shell
+ran it in the session that wrote it; Ghost's first run of `solarpunk --help` and `solarpunk test run --db demo.db` on
+his machine is its trial. "Add a test suite" was read as scaffolding one remote test (`test add`); Ghost has not
+confirmed that reading. Some test file leaves a store unclosed (a ResourceWarning that lands in whatever test runs when
+garbage is collected, J-033); it is not found.
+
+Candidates Ghost has not placed: the asset window listing open work orders and closing one with a cause; the receiver
+and the clock exercised end to end in the demo; `tracker_moving`, `energy_monotonic`, `irradiance_in_range` and
+`night_power_near_zero` as remote tests (`solarpunk test add <name> --clause <id>` scaffolds each); a SOL-13 for root
+causes; a product workpath for the routing table; whether a tune-up pass still needs a cold and a warm gate run now
+that no step keeps a cache.
 
 ## The nightly mutation run (SP-012)
 

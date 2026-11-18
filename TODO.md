@@ -34,11 +34,7 @@ Lanes (P-15): 4.1 alone, then 4.2 the pass.
 
 ## Phase 5: one word to run it
 
-Lanes (P-15): 5.1 and 5.2 in order (done), then 5.3 the pass.
-
-### 5.3 Tune-up pass 5
-
-Check: `docs/when/tune-up.md` followed in full; the metrics table written; the navigation log's "Last review" set.
+Lanes (P-15): 5.1 and 5.2 in order, then 5.3 the pass.
 
 ## Phase 6: the network's security
 
