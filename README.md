@@ -41,7 +41,8 @@ moving only once origin takes it (SP-014), and the full `scripts/gate.sh` runs a
 - Phase 5, one word to run it (`solarpunk`, `solarpunk --help`, the `test` commands): done.
 - Phase 6, reports and diagnostics: in progress; the power-output report, four inverter diagnostics, the reports
   window and the diagnostics in the asset window are done; its tune-up pass is next.
-- Phase 7, the network's security: not started; a design pass first.
+- Phase 7, faults suggested by tests, assigned by engineers: not started (SP-015).
+- Phase 8, the network's security: not started; a design pass first.
 
 `docs/ROADMAP.md` holds the plan, `TODO.md` the open items in order, `docs/DONE.md` what is finished;
 `test/test_readme.py` holds each line above to those two files.

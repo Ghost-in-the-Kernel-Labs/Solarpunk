@@ -59,3 +59,10 @@ An entry is `### <date> · <task> · <agent>` and four lines: **Task**, **Opened
 - **Opened**: `solarpunk/project/surface.py`, `solarpunk/ui/asset_window.py`, `solarpunk/remote/results.py`, `solarpunk/remote/registry.py`, `test/solarpunk/test_ui_asset.py`.
 - **Complaints**: none new for finding my way: the surface and window split made this two files and a test; the UI's xvfb recipe was already in hand from 6.3. Reading a window is best done by a screenshot, and nothing says so: both of this phase's UI bugs were found by looking.
 - **Suggestions**: a line in the UI rule: render the changed window under xvfb and read the screenshot before landing.
+
+### 2026-11-18 · SP-015 and Phase 7 planned · Claude
+
+- **Task**: Ghost's fault-assignment direction as a decision, three questions put, the phase written.
+- **Opened**: `solarpunk/leaf/faults.py`, `solarpunk/leaf/codes.py` (the catalogue), `solarpunk/receiver/server.py`, `theGhost.md` (SP-008, the supersession template), `docs/ROADMAP.md`, `TODO.md`.
+- **Complaints**: renumbering a phase touches four files by hand (ROADMAP, TODO, README, HANDOFF) and nothing points at all four; the decision template's partial-supersession pattern was found by grep, not by the header.
+- **Suggestions**: a line in the process workpath's "The plan" row naming the four files a renumbering touches.

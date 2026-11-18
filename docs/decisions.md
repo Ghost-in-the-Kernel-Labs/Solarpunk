@@ -58,3 +58,4 @@ Written by `scripts/decisions_index.py` from `theGhost.md`; do not edit here. Se
 | SP-012 | Mutation testing leaves the gate for its own nightly regime | in force | mutation |
 | SP-013 | Reports and diagnostics before the network's security; power output is a contracted number | in force | plan |
 | SP-014 | A landing pushes main before main moves | in force | gates |
+| SP-015 | Tests suggest a fault; only an engineer assigns one | in force | fault assignment |

@@ -49,3 +49,4 @@ Written from `docs/journal/` by `scripts/journal_index.py`; do not edit by hand.
 | J-043 | 6.3: the reports window, and a curve that drew a gap as a fall in output | feature | `J-000-099.md` |
 | J-044 | The README's roadmap had fallen behind the chain; a test now holds it | failure-caught | `J-000-099.md` |
 | J-045 | 6.4: the diagnostics in the asset window, and a pass over nothing | feature | `J-000-099.md` |
+| J-046 | Faults are suggested by tests and assigned by engineers: Phase 7 planned (SP-015) | decision | `J-000-099.md` |

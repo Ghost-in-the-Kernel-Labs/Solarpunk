@@ -535,7 +535,7 @@ The core decisions above are inherited (Core C-001 to C-040); this project's beg
 - **Held by:** `docs/ROADMAP.md` Phase 2; the lane's refusal tests when built.
 - **Source:** Ghost, 2026-11-17, in chat; in force by his word of 2026-11-17 23:25 ("keep the agents busy all night, clear as much of the roadmap as possible"), C-040.
 - **Status:** in force
-- **See also:** SP-006, SOL-04
+- **See also:** SP-006, SOL-04, SP-015 (a pushed code is now a suggestion, not a fault)
 - **subject:** receiver
 
 ### SP-009: Mail goes out by SMTP from the standard library, one code path for Outlook and Linux
@@ -591,3 +591,13 @@ The core decisions above are inherited (Core C-001 to C-040); this project's beg
 - **Status:** in force
 - **See also:** C-037, C-040, SP-013
 - **subject:** gates
+
+### SP-015: Tests suggest a fault; only an engineer assigns one
+- **Decision:** a fault is assigned by an engineer, and the record says which. Every fault carries `assigned_by`, an engineer address the fleet holds (any known engineer; the record shows when it is not the asset's own chain of asset, parent and site, so cover is allowed and visible), and `recorded_by`, the operator who entered it on the engineer's word when it was called in, or none when the engineer entered it. Nothing else assigns a fault: a failing remote test, by its rule table, raises a suggestion (the asset, the likely catalogue code, the test, its reason and the run), and a code an asset pushes to the receiver is a suggestion marked as pushed by the device. An engineer accepts a suggestion into a fault, linked to it, or dismisses it with a reason, and either is recorded with who. A suggestion counts in status alone: it keeps the asset yellow (as its failing test already does) and is listed for the engineer; only an engineer-assigned fault turns an asset red or counts in availability, MTBF and MTTR (SOL-07, SOL-10).
+- **Why:** Ghost, 2026-11-18: "For fault assignment, we need to have a system where tests assign the fault. A developer should not be the one that assigns the fault without examination of the system manually. The tests are better than the software operator, because they can operate on rules, and the rules can assign a likely fault. However, an engineer is the one who actually assigns the fault, and replaces the part. The fault assignment can be done, but it should be marked as assigned by the engineer, not the operator. The engineer can call the assignment fault in and the operator can update it." His three rulings the same day: suggestions count in status only; a pushed code is a suggestion; any known engineer may assign.
+- **Supersedes:** SP-008, in part: "assigns the fault in the ledger and sets the asset's status at once". A pushed code now raises a suggestion that keeps the asset yellow until an engineer acts. The rest of SP-008 (the receiver, its line, its refusals) stands, so its Status stays `in force` and its See also names SP-015.
+- **Held by:** `docs/ROADMAP.md` Phase 7 and `TODO.md` 7.1 to 7.3, their tests when built. The network's security, Phase 7 by SP-013, becomes Phase 8 (8.1, 8.2) to make room.
+- **Source:** Ghost, in chat, 2026-11-18.
+- **Status:** in force
+- **See also:** SP-008, SP-006, SOL-04, SOL-07, SOL-10
+- **subject:** fault assignment

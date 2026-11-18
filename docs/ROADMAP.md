@@ -288,12 +288,37 @@ SCADA analytics (2), and joins them to the asset view (1).
   remote test that runs on its kind, failing first, each with its reason and the threshold it names.
 - **6.5 Tune-up pass 6.**
 
-### Phase 7: the network's security
+### Phase 7: faults suggested by tests, assigned by engineers
+
+Ghost's direction of 2026-11-18 (SP-015): a remote test's rules name a likely fault, and an engineer, the one who
+examines the asset and replaces the part, assigns it; the record says which engineer, and which operator entered it
+when it was called in. It adds to `docs/GOAL.md`'s quality management (4: who decided is a record) and maintenance (3).
+
+- **7.1 Who assigned it (`solarpunk/leaf/faults.py`, `solarpunk/faults/`, `solarpunk/project/`, `solarpunk/cli/`,
+  `solarpunk/ui/asset_window.py`).** A fault carries `assigned_by` (an engineer address the fleet holds) and
+  `recorded_by` (the operator who entered it on the engineer's word, or none); `project.assign_fault` refuses an
+  address the fleet does not hold and reports when the engineer is not the asset's own chain (cover); a store made
+  before gains the two columns on opening, its old faults read `assigned_by` "unrecorded". `solarpunk fault assign`
+  takes `--by ENGINEER` (required) and `--recorded-by OPERATOR`; the asset window's Assign takes the engineer from a
+  dropdown of known engineers; the demo's faults name an engineer; `fault list` prints who.
+- **7.2 Suggestions from the tests (`solarpunk/remote/`, `solarpunk/project/`, `solarpunk/receiver/`).** Each remote
+  test names the likely catalogue code for a failure on each kind it runs on (`SUGGESTS`, a rule table Ghost reviews:
+  `reachable` on an inverter suggests INV-001, a frozen power suggests no code until the catalogue has one); the
+  scheduled run stores a suggestion for every failing test with a code (asset, code, test, reason, run); a code pushed
+  to the receiver is a suggestion marked as pushed by the device (SP-008 in part superseded). An engineer accepts a
+  suggestion into a fault linked to it, or dismisses it with a reason; both record who. An open suggestion keeps the
+  asset yellow; only a fault turns it red or counts in a KPI.
+- **7.3 Suggestions in the asset window and on the command line (`solarpunk/ui/asset_window.py`, `solarpunk/cli/`).**
+  The asset window lists open suggestions (the device's first, then by run) with Accept and Dismiss, each taking the
+  engineer and, for a call-in, the operator; `solarpunk fault suggestions|accept|dismiss`.
+- **7.4 Tune-up pass 7.**
+
+### Phase 8: the network's security
 
 Ghost's item of 2026-11-18: the demonstration's network is not a production one. Moved after reports and
-diagnostics by SP-013.
+diagnostics by SP-013, and after fault assignment by SP-015.
 
-- **7.1 Network security: an engineering pass over the feed and the receiver.** Both speak plain TCP with no device
+- **8.1 Network security: an engineering pass over the feed and the receiver.** Both speak plain TCP with no device
   identity; the receiver defaults to localhost, which suits the demonstration alone. The pass is a document first
   (the wire today, the threats, a proposed decision for each of: authenticated asset connections, transport
   encryption, authorization of fault submissions, replay protection, network segmentation and deployment
@@ -304,4 +329,4 @@ diagnostics by SP-013.
   historian); the security references are Modbus/TCP Security (mutual TLS on 802), IEC 62351, IEC 62443 zones and
   conduits, and NERC CIP-003 for a large US plant. It adds a sixth threat to the five: the feed client trusts whatever
   answers at the host and port (spoofed telemetry).
-- **7.2 Tune-up pass 7.**
+- **8.2 Tune-up pass 8.**
