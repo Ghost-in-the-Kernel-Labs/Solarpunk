@@ -57,3 +57,4 @@ Written from `docs/journal/` by `scripts/journal_index.py`; do not edit by hand.
 | J-051 | 7.2: the gate on a frozen copy, every step timed, lint and the windows at every landing | feature | `J-000-099.md` |
 | J-052 | 7.3: the counts follow the registry; a scaffold in a scratch copy found two more assumptions | feature | `J-000-099.md` |
 | J-053 | 7.4: failing tests and pushed codes raise suggestions; a Tk abort the change exposed | feature | `J-000-099.md` |
+| J-054 | 7.5: suggested faults in the asset window and on the command line | feature | `J-000-099.md` |

@@ -17,7 +17,9 @@ from solarpunk.leaf.telemetry import Sample
 from solarpunk.project.orchestrator import asset_status, fleet_assets, is_cover, known
 from solarpunk.remote import results as result_table
 from solarpunk.remote.registry import tests_for
+from solarpunk.remote import suggestions as suggestion_table
 from solarpunk.remote.results import Recorded
+from solarpunk.remote.suggestions import Suggestion
 from solarpunk.workorders import ledger as work_ledger
 from solarpunk.workorders.ledger import WorkOrder
 
@@ -49,7 +51,7 @@ class AssetDetail:
     its engineer chain, its status and its open work orders (4.1, last with a default so 3.2's window keeps working):
     for OAHE-INV-003 with an open INV-001 and a work order on it, open_faults is ((that fault, "Inverter offline: …"),),
     status RED and open_orders (that order,); cover lines up with open_faults, True where the fault's engineer is not
-    the asset's own chain (SP-015)."""
+    the asset's own chain (SP-015); suggestions are its open suggestions, a device's first, then the newest (7.5)."""
 
     asset: Asset
     open_faults: tuple[tuple[Fault, str], ...]
@@ -59,6 +61,7 @@ class AssetDetail:
     open_orders: tuple[WorkOrder, ...] = ()
     diagnostics: tuple["Diagnostic", ...] = ()
     cover: tuple[bool, ...] = ()
+    suggestions: tuple[Suggestion, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -102,6 +105,7 @@ def asset_detail(conn: sqlite3.Connection, asset_id: str) -> AssetDetail:
         open_orders=tuple(order for order in work_ledger.by_asset(conn, asset_id) if order.closed is None),
         diagnostics=diagnostics_of(conn, asset),
         cover=tuple(is_cover(conn, fault) for fault, _ in faults),
+        suggestions=suggestion_table.open_suggestions(conn, asset_id),
     )
 
 

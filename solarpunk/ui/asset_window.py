@@ -1,6 +1,7 @@
 """The asset window (3.2, SP-007): one asset's fields and status, its open faults with their meanings, its diagnostics
-(6.4: every remote test of its kind with its latest result, failing first, then never run, then passing), a form to
-assign a catalogue code, and the engineer with Save and Cancel. Every string and colour it shows comes from a pure
+(6.4: every remote test of its kind with its latest result, failing first, then never run, then passing), its
+suggested faults with Accept and Dismiss (7.5, SP-015: the tests or the device suggest, the engineer chosen under
+"Assigned by" decides), a form to assign a catalogue code, and the engineer with Save and Cancel. Every string and colour it shows comes from a pure
 function below over one project call, so the tests check them without a display; the AssetWindow class only lays them
 out (SP-010: it imports project and the leaf alone)."""
 import sqlite3
@@ -11,7 +12,7 @@ from tkinter import ttk
 
 from solarpunk import project
 from solarpunk.leaf.assets import Asset
-from solarpunk.leaf.codes import AssetStatus, FaultCode
+from solarpunk.leaf.codes import AssetStatus, FaultCode, lookup
 
 # The words and colours the window shows live here, at module level, where mutmut does not reach (J-008, J-014).
 NONE_WORD = "none"
@@ -47,9 +48,19 @@ SAVE_TEXT = "Save"
 CANCEL_TEXT = "Cancel"
 CHOOSE_CODE = "Choose a code to assign."
 CHOOSE_ENGINEER = "Choose the engineer who assigned it: only an engineer assigns a fault (SP-015)."
+SUGGESTED_TITLE = "Suggested faults (the tests' and the devices', for an engineer to accept or dismiss)"
+SUGGESTION_COLUMNS = ("code", "meaning", "source", "reason", "raised")
+SUGGESTION_HEADINGS = ("Code", "Meaning", "From", "Why", "Raised")
+SUGGESTION_WIDTHS = (70, 190, 110, 255, 165)
+ACCEPT_TEXT = "Accept"
+DISMISS_TEXT = "Dismiss"
+REASON_TITLE = "Reason (to dismiss)"
+CHOOSE_SUGGESTION = "Choose a suggested fault first."
+GIVE_REASON = "Give the reason it is dismissed: a dismissal is a decision that says why (SP-015)."
 ASSIGNED_BY_TITLE = "Assigned by"
 ENTERED_BY_TITLE = "Entered by (operator, if called in)"
-REFUSALS = (project.LedgerError, project.RegistryError, project.UnknownAsset, project.UnknownEngineer, ValueError)
+REFUSALS = (project.LedgerError, project.RegistryError, project.UnknownAsset, project.UnknownEngineer,
+            project.SuggestionError, ValueError)
 
 
 def shown(value: object) -> str:
@@ -119,6 +130,14 @@ def result_lines(detail: project.AssetDetail) -> tuple[tuple[str, str, str], ...
     return tuple((found.test_name, STATE_WORDS[found.state], found.reason) for found in detail.diagnostics)
 
 
+def suggestion_lines(detail: project.AssetDetail) -> tuple[tuple[str, str, str, str, str], ...]:
+    """The suggested-faults rows (code, meaning, from, why, raised) in the detail's order, a device's first: OAHE-SEN-001's
+    gives (("SEN-001", "Irradiance sensor out of range: …", "reachable", "127.0.0.1:9 is unreachable",
+    "2026-06-01 13:00 UTC"),); none gives ()."""
+    return tuple((found.code, lookup(found.code).meaning, found.source, found.reason,
+                  found.raised_at.strftime(OPENED_FORMAT)) for found in detail.suggestions)
+
+
 def row_tags(line: tuple[str, str, str]) -> tuple[str, ...]:
     """The tags a diagnostics row carries: ("failing",) for a FAIL row, drawn red; ("notrun",) for a test never run,
     drawn grey; () for a pass row."""
@@ -171,6 +190,10 @@ class AssetWindow(tk.Toplevel):
         self.result_tree.tag_configure(NOT_RUN_TAG, foreground=GREY_TEXT)
         for column, width in zip(RESULT_COLUMNS, RESULT_WIDTHS):
             self.result_tree.column(column, width=width, stretch=column == RESULT_COLUMNS[-1])
+        self.suggestion_tree = self.tree(SUGGESTED_TITLE, SUGGESTION_COLUMNS, SUGGESTION_HEADINGS, height=3)
+        for column, width in zip(SUGGESTION_COLUMNS, SUGGESTION_WIDTHS):
+            self.suggestion_tree.column(column, width=width, stretch=column == "reason")
+        self.build_decide()
         self.build_assign()
         self.build_engineer()
         self.message = tk.Label(self, anchor="w", foreground=RED_TEXT)
@@ -186,6 +209,19 @@ class AssetWindow(tk.Toplevel):
             tree.heading(column, text=heading)
         tree.pack(fill="both", expand=True, padx=8, pady=2)
         return tree
+
+    def build_decide(self) -> None:
+        """The row under the suggested faults: Accept, Dismiss and the dismissal's reason (7.5); who decides is the
+        "Assigned by" engineer below, with the "Entered by" operator for a call-in."""
+        row = ttk.Frame(self)
+        row.pack(fill="x", padx=8, pady=2)
+        self.accept_button = ttk.Button(row, text=ACCEPT_TEXT, command=self.accept)
+        self.accept_button.pack(side="left")
+        self.dismiss_button = ttk.Button(row, text=DISMISS_TEXT, command=self.dismiss)
+        self.dismiss_button.pack(side="left", padx=4)
+        ttk.Label(row, text=REASON_TITLE).pack(side="left")
+        self.reason_box = ttk.Entry(row, width=50)
+        self.reason_box.pack(side="left", padx=4)
 
     def build_assign(self) -> None:
         """The "Assign a fault" row: a read-only dropdown of the kind's codes and the Assign button."""
@@ -230,6 +266,9 @@ class AssetWindow(tk.Toplevel):
         self.result_tree.delete(*self.result_tree.get_children())
         for result_row in result_lines(detail):
             self.result_tree.insert("", "end", values=result_row, tags=row_tags(result_row))
+        self.suggestion_tree.delete(*self.suggestion_tree.get_children())
+        for found, line in zip(detail.suggestions, suggestion_lines(detail)):
+            self.suggestion_tree.insert("", "end", iid=str(found.suggestion_id), values=line)
         self.engineer_box.set(detail.asset.engineer_email or "")
 
     def assign(self) -> None:
@@ -253,6 +292,50 @@ class AssetWindow(tk.Toplevel):
         self.message.configure(text="")
         self.fill(project.asset_detail(self.conn, self.asset_id))
         self.on_change()
+
+    def chosen(self) -> tuple[int, str] | None:
+        """The selected suggestion's id and the chosen engineer, or None with the message saying which is missing."""
+        selected = self.suggestion_tree.selection()
+        if not selected:
+            self.message.configure(text=CHOOSE_SUGGESTION)
+            return None
+        engineer = self.assigned_by_box.get()
+        if not engineer:
+            self.message.configure(text=CHOOSE_ENGINEER)
+            return None
+        return int(selected[0]), engineer
+
+    def decided(self, act: Callable[[], object]) -> None:
+        """Runs an accept or a dismiss; a refusal shows in the message line and changes nothing, a decision rereads the
+        window and calls on_change."""
+        try:
+            act()
+        except REFUSALS as refusal:
+            self.message.configure(text=refusal_text(refusal))
+            return
+        self.message.configure(text="")
+        self.fill(project.asset_detail(self.conn, self.asset_id))
+        self.on_change()
+
+    def accept(self) -> None:
+        """Accepts the selected suggestion as the chosen engineer, entered by the operator typed (SP-015): the fault opens,
+        the suggestion leaves the list and the fault appears under Open faults."""
+        picked = self.chosen()
+        if picked is not None:
+            suggestion_id, engineer = picked
+            self.decided(lambda: project.accept_suggestion(self.conn, suggestion_id, engineer,
+                                                           self.entered_by_box.get() or None))
+
+    def dismiss(self) -> None:
+        """Dismisses the selected suggestion as the chosen engineer, with the reason typed; no reason is refused here."""
+        picked = self.chosen()
+        if picked is None:
+            return
+        if not self.reason_box.get().strip():
+            self.message.configure(text=GIVE_REASON)
+            return
+        suggestion_id, engineer = picked
+        self.decided(lambda: project.dismiss_suggestion(self.conn, suggestion_id, engineer, self.reason_box.get()))
 
     def save(self) -> None:
         """Saves the engineer box's text as the asset's engineer, calls on_change and closes; a refusal ("not-an-email")

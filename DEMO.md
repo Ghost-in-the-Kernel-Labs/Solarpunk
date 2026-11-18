@@ -68,11 +68,15 @@ derate on OAHE-INV-001 (10:00 to 10:45). The run is stamped 2026-06-01 13:00 UTC
    INV-001: the fleet row turns red at once (the asset window refreshes the fleet window; Refresh does the same by
    hand). OAHE-INV-002's open outage shows who assigned it: inverter@oahe.example, entered by the operator, marked
    cover, since that engineer is not INV-002's own.
-4. **The engineer.** In the same window type an address into Engineer and press Save, or Cancel to leave it.
-5. **Add asset** (the button above the list). The Type dropdown is read from the asset maintenance list. Fill an
+4. **A suggested fault (SP-015).** Close it and click OAHE-SEN-001, the yellow weather station. Its `reachable` failed,
+   and the test's rule suggests SEN-001 (readings unreliable) under "Suggested faults": the tests propose, they do not
+   assign. Select it, choose site@oahe.example under "Assigned by" and press Accept: the fault opens as that engineer.
+   Or give a reason and press Dismiss. `solarpunk fault suggestions` lists the same on the command line.
+5. **The engineer.** In the same window type an address into Engineer and press Save, or Cancel to leave it.
+6. **Add asset** (the button above the list). The Type dropdown is read from the asset maintenance list. Fill an
    id such as OAHE-INV-005, a parent, the IP address 127.0.0.1 and a port, press Save: the new row appears in the
    fleet window. Then press **Ping**: with nothing listening on that port it says so, plainly.
-6. **Reports** (beside Add asset). The power-output report for OAHE over the demo day: the site's row first (1591.6 kWh,
+7. **Reports** (beside Add asset). The power-output report for OAHE over the demo day: the site's row first (1591.6 kWh,
    peak 187.2 kW, 7.96 kWh per kW of rating, capacity factor 0.33), then each inverter's, each with its records and
    gaps, and the site's power curve over the day in UTC. The line breaks where an inverter has a gap, never dropping to
    the other's share. **Save as CSV** writes the same file as `solarpunk report OAHE <start> <end> --csv`. Swap the

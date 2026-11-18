@@ -38,6 +38,9 @@ The fleet and its faults
   fault assign ID CODE OPENED --by ENGINEER    open a fault as its engineer [--recorded-by OPERATOR]
   fault close FAULT_ID CLOSED                  close a fault
   fault list [--open]                          the faults, or the open ones alone
+  fault suggestions [--asset ID]               the faults the tests and the devices suggest, waiting
+  fault accept ID --by ENGINEER                accept a suggestion into a fault [--recorded-by OPERATOR]
+  fault dismiss ID --by ENGINEER --reason WHY  dismiss a suggestion, saying why
 
 The numbers
   telemetry generate SITE DAY --seed N         store a day of synthetic telemetry
@@ -99,6 +102,33 @@ def fault_list(conn: sqlite3.Connection, args: argparse.Namespace, out: TextIO) 
     """fault list [--open]: one fault_line per fault in fault_id order, the open ones alone with --open."""
     for fault in project.faults_listing(conn, args.open):
         out.write(fault_line(fault, project.is_cover(conn, fault)) + "\n")
+
+
+def suggestion_line(found: project.Suggestion) -> str:
+    """One suggestion as a line (SP-015): "1 OAHE-SEN-001 SEN-001 from reachable at 2026-06-01T13:00:00+00:00:
+    127.0.0.1:9 is unreachable"; a pushed one reads "from device"."""
+    return (f"{found.suggestion_id} {found.asset_id} {found.code} from {found.source} at {found.raised_at.isoformat()}:"
+            f" {found.reason}")
+
+
+def fault_suggestions(conn: sqlite3.Connection, args: argparse.Namespace, out: TextIO) -> None:
+    """fault suggestions [--asset ID]: one suggestion_line per open suggestion, of one asset (a device's first) or all."""
+    for found in project.open_suggestions(conn, args.asset):
+        out.write(suggestion_line(found) + "\n")
+
+
+def fault_accept(conn: sqlite3.Connection, args: argparse.Namespace, out: TextIO) -> None:
+    """fault accept 1 --by site@oahe.example [--recorded-by OPERATOR]: opens the suggested fault as the engineer and
+    prints its fault_line, "1 OAHE-SEN-001 SEN-001 2026-06-01T13:00:00+00:00 open by site@oahe.example"."""
+    fault = project.accept_suggestion(conn, args.suggestion_id, args.by, args.recorded_by)
+    out.write(fault_line(fault, project.is_cover(conn, fault)) + "\n")
+
+
+def fault_dismiss(conn: sqlite3.Connection, args: argparse.Namespace, out: TextIO) -> None:
+    """fault dismiss 1 --by site@oahe.example --reason "fibre repaired" prints "dismissed 1 by site@oahe.example:
+    fibre repaired"."""
+    found = project.dismiss_suggestion(conn, args.suggestion_id, args.by, args.reason)
+    out.write(f"dismissed {found.suggestion_id} by {found.decided_by}: {found.dismissal}\n")
 
 
 def telemetry_generate(conn: sqlite3.Connection, args: argparse.Namespace, out: TextIO) -> None:
@@ -223,6 +253,24 @@ def add_fleet_and_faults(commands: argparse._SubParsersAction) -> None:
     faults = fault.add_parser("list")
     faults.add_argument("--open", action="store_true")
     faults.set_defaults(handler=fault_list)
+    add_suggestion_commands(fault)
+
+
+def add_suggestion_commands(fault: argparse._SubParsersAction) -> None:
+    """The suggestion subcommands of fault (7.5): "fault accept 1 --by x@y" parses to fault_accept with suggestion_id 1."""
+    suggested = fault.add_parser("suggestions")
+    suggested.add_argument("--asset")
+    suggested.set_defaults(handler=fault_suggestions)
+    accept = fault.add_parser("accept")
+    accept.add_argument("suggestion_id", type=int)
+    accept.add_argument("--by", required=True)
+    accept.add_argument("--recorded-by")
+    accept.set_defaults(handler=fault_accept)
+    dismiss = fault.add_parser("dismiss")
+    dismiss.add_argument("suggestion_id", type=int)
+    dismiss.add_argument("--by", required=True)
+    dismiss.add_argument("--reason", required=True)
+    dismiss.set_defaults(handler=fault_dismiss)
 
 
 def add_the_rest(commands: argparse._SubParsersAction) -> None:

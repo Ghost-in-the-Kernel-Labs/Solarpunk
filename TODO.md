@@ -44,12 +44,6 @@ Lanes (P-15): 6.1 and 6.2 in parallel, landed in that order (done, J-041); 6.3 a
 
 Lanes (P-15): 7.1 (done, J-050), then 7.2 and 7.3 (SP-017, put ahead by Ghost), then 7.4 (it needs 7.1's `assigned_by`), then 7.5, then 7.6 the pass. Ghost's direction, SP-015.
 
-### 7.5 Suggestions in the asset window and on the command line
-
-The engineer's view of what the tests suggest, where the asset is, and the same on the command line (SP-015).
-
-Check: the asset window lists the asset's open suggestions (the device's first, then by run, newest first) with code, meaning, source and reason, and Accept and Dismiss, each taking the engineer from the known-engineer dropdown and an optional operator, Dismiss a reason; `solarpunk fault suggestions [--asset ID]`, `fault accept ID --by ENGINEER [--recorded-by OPERATOR]`, `fault dismiss ID --by ENGINEER --reason TEXT`; `test/solarpunk/test_ui_asset.py` and the CLI tests cover each; a screenshot of the demo's asset window read back under xvfb; the fast loop green.
-
 ### 7.6 Tune-up pass 7
 
 Check: `docs/when/tune-up.md` followed in full; the metrics table written; the navigation log's "Last review" set.

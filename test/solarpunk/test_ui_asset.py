@@ -201,7 +201,7 @@ class WindowTest(unittest.TestCase):
     def test_layout_holds_its_parts(self) -> None:
         window = self.window
         titles = [child.cget("text") for child in window.winfo_children() if child.winfo_class() == "TLabel"]
-        self.assertEqual(titles, ["Open faults", "Diagnostics"])
+        self.assertEqual(titles, ["Open faults", "Diagnostics", asset_window.SUGGESTED_TITLE])  # 7.5
         self.assertEqual([window.fault_tree.heading(c, "text") for c in ("code", "meaning", "opened", "by")],
                          ["Code", "Meaning", "Opened", "Assigned by"])
         self.assertEqual([window.result_tree.heading(c, "text") for c in ("test", "result", "reason")],

@@ -45,3 +45,10 @@ An entry is `### <date> · <task> · <agent>` and four lines: **Task**, **Opened
 - **Opened**: `docs/paths/product.md` (the remote-test and feed rows), `solarpunk/remote/registry.py`, `solarpunk/remote/results.py`, `solarpunk/remote/run.py`, `solarpunk/project/run.py`, `solarpunk/project/orchestrator.py`, `solarpunk/receiver/server.py`, `solarpunk/remote/scaffold.py`.
 - **Complaints**: `git stash` does not stash files marked intent-to-add, so comparing against the last commit by stashing silently compared nothing; a worktree of HEAD was the way. The Tk rule (a window freed off the main thread aborts the run) was known to one test file's setUp and written nowhere a window test's author would read.
 - **Suggestions**: the product workpath's window row to name `test/solarpunk/conftest.py` and the reason; "compare with a worktree of HEAD, never a stash" in the process workpath.
+
+### 2026-11-18 · 7.5, suggestions in the window and on the command line · Claude
+
+- **Task**: Accept and Dismiss in the asset window, three CLI commands, their tests.
+- **Opened**: `docs/paths/product.md` (the window and command rows), `solarpunk/ui/asset_window.py`, `solarpunk/project/surface.py`, `solarpunk/cli/main.py`.
+- **Complaints**: none for finding my way: the product rows named each file; the window and command rows' recipes (xvfb, the screenshot, one help line per command) held.
+- **Suggestions**: none.
