@@ -29,3 +29,4 @@ Written from `docs/journal/` by `scripts/journal_index.py`; do not edit by hand.
 | J-023 | 2.7: the scheduled run and the UI's surface landed; the three colours are one function | feature | `J-000-099.md` |
 | J-024 | Tune-up pass 2: two armed metrics regressed and were brought back; the cold run's target is Ghost's question | measurement | `J-000-099.md` |
 | J-025 | 3.1: the fleet window landed; a UI lane must survive a missing tkinter, not only a missing display | feature | `J-000-099.md` |
+| J-026 | 3.2: the asset window landed; mutmut's verdicts under xvfb are not to be trusted | failure-caught | `J-000-099.md` |

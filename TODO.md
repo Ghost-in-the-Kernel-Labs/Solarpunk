@@ -28,10 +28,6 @@ Lanes (P-15): 2.1 first (the list every other lane reads), then 2.2 to 2.6 in pa
 
 Lanes (P-15): 3.1 to 3.3 in parallel after 2.7, landed in this order; 3.4 after them.
 
-### 3.2 The asset window
-
-Check: `solarpunk/ui/asset_window.py` (`AssetWindow(parent, conn, asset_id)`: the asset's fields; its open faults with code, meaning and opened instant; the remote tests of the last run, the failing one first with its reason; a form to assign a catalogue code (a dropdown of `CATALOGUE` for the asset's kind, an Assign button); the engineer: a dropdown of the fleet's known engineer emails plus a text field, and two buttons reading exactly `Save` and `Cancel` — Save calls `fleet.assign_engineer` and closes, Cancel closes and changes nothing); `test/solarpunk/test_ui_asset.py` green under a display, skipping without one; every mutant killed or explained.
-
 ### 3.3 The add-asset window
 
 Check: `solarpunk/ui/add_asset.py` (`AddAssetWindow(parent, conn)`: id, name, site, parent (a dropdown of the site's assets), a type dropdown read from `solarpunk.leaf.asset_types.kinds()`, rated kW, location, engineer email, IP address and port; a Ping button that calls `feed.ping` and shows the first record or the `FeedError`; `Save` registers through `project` and closes, `Cancel` closes); the refusals of the fleet shown in the window, never swallowed; `test/solarpunk/test_ui_add.py` green under a display, skipping without one; every mutant killed or explained.
