@@ -22,3 +22,4 @@ Written from `docs/journal/` by `scripts/journal_index.py`; do not edit by hand.
 | J-016 | 2.1: the asset maintenance list landed; what the dropdown, the feed and the remote tests read | feature | `J-000-099.md` |
 | J-017 | 2.4: the receiver landed; a SQLite connection is per thread | ambiguity | `J-000-099.md` |
 | J-018 | 2.5: the clock landed; one job, two renderings, two host-touching functions no test runs | feature | `J-000-099.md` |
+| J-019 | 2.6: the mailer landed; one SMTP path, the credential never shown | feature | `J-000-099.md` |
