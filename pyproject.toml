@@ -1,0 +1,24 @@
+# Tool configuration only: this project is not a package to install (Neon Rain R-001, R-017).
+# STAMP: replace PROJECT with the product package's folder (docs/modules.json's package).
+
+[tool.pytest.ini_options]
+testpaths = ["test"]
+pythonpath = ["."]
+addopts = "-q -m 'not slow'"
+markers = ["slow: its own budget; the gate runs it"]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 120
+
+[tool.ruff.lint]
+# The readability rules a linter can say: type hints on every function (ANN), no bare except (E722), the common
+# bug patterns (B). The rest is scripts/checks/readability.py.
+select = ["E4", "E7", "E9", "F", "ANN", "B"]
+# B905 (zip without strict=) is off: mutmut flips strict= to its default, a mutant no test can tell apart.
+ignore = ["B905"]
+
+[tool.mutmut]
+source_paths = ["scripts/checks/", "PROJECT/"]
+process_isolation = "forkserver"
+also_copy = ["docs/", "theGhost.md", "TODO.md", "CLAUDE.md", "README.md", "requirements.lock"]

@@ -1,0 +1,8 @@
+# The direct dependencies, one line of reason each (C-034 rule 1). The lock is compiled from this file with hashes and
+# a seven-day cooldown, and nothing is installed except from the lock:
+#   uv pip compile --generate-hashes --python-version 3.12 --exclude-newer "$(date -u -d '7 days ago' +%F)" requirements.in -o requirements.lock
+#   python3.12 -m venv .venv && .venv/bin/pip install --only-binary :all: --require-hashes -r requirements.lock
+# uv is a session tool, not a dependency. A dependency not yet needed stays commented out until the phase that first imports it.
+pytest   # the test runner
+ruff     # the linter the readability rules lean on
+mutmut   # mutation testing (C-018)
