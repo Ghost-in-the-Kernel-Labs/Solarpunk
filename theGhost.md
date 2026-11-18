@@ -564,3 +564,12 @@ The core decisions above are inherited (Core C-001 to C-040); this project's beg
 - **Status:** in force
 - **See also:** SP-003, SP-010, SOL-04
 - **subject:** work-orders
+
+### SP-012: Mutation testing leaves the gate for its own nightly regime
+- **Decision:** mutmut is no longer a step of the Python stack's gate (`stacks/python/gate.sh`), cold or warm. It is its own regime, `stacks/python/mutate.sh` (`--cold` starts from nothing), run nightly by a scheduled Claude cloud session from a fresh clone, and by hand by anyone. C-018 stands as it is for this project in every other word: every survivor gets a test that kills it or a line in `docs/MUTATION.md` naming it, and `scripts/survivors.py` refuses any other. A survivor the nightly run finds is a fix-forward item for the next session, never a blocked landing. The gate's two runs at a tune-up pass stay; with no cache left in any step, they measure the same thing.
+- **Why:** Ghost, 2026-11-18: "Lets move mutation testing out of the gate, and into its seperate mutant testing regime. For suite builder, mutant testing moved to a nightly run." The cold gate was ten to fifteen minutes of mutmut against a ten-minute target through five passes (J-024, J-034), and its minutes grew with every phase; the fast checks already land every commit without it (C-040), so the gate paid for mutation only at passes while a survivor waited up to eight commits to be seen. Nightly sees it within a day.
+- **Held by:** `stacks/python/gate.sh`, `stacks/python/mutate.sh`, `test/test_mutate.py`, `stacks/python/README.md`'s Mutation row, the scheduled task named in `docs/HANDOFF.md`.
+- **Source:** Ghost, in chat, 2026-11-18; the nightly schedule by a Claude cloud task his choice of three ("Option 1, a scheduled Claude cloud task nightly").
+- **Status:** in force
+- **See also:** C-018, C-024, C-040, SP-002
+- **subject:** mutation

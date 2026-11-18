@@ -24,6 +24,16 @@ work orders and closing one with a cause; the receiver and the clock exercised e
 `energy_monotonic`, `irradiance_in_range` and `night_power_near_zero` as remote tests; a SOL-13 for root causes; the
 structure-half candidates of J-024; a Windows run of the demo recorded as a journal trial.
 
+## The nightly mutation run (SP-012)
+
+Mutation is not a gate step: `stacks/python/mutate.sh` is its own regime. A scheduled Claude cloud task, "Solarpunk
+nightly mutation run", fires a fresh session each night at 02:17 America/Chicago (the zone read from Ghost's commits,
+not confirmed by him): it clones `main`, makes the venv from the lock, runs `stacks/python/mutate.sh --cold` and
+reports the verdict line; on an unexplained survivor it writes the killing test on a session branch and names the
+branch, never landing on `main`. The task was created with no repository source and no connectors attached, so its
+first run (the night of 2026-11-18) is the trial of whether a fresh session can reach the repository: read its report
+before trusting the schedule. Ghost changes or stops it in claude.ai's scheduled tasks.
+
 ## Settled by Ghost (2026-11-17, in chat)
 
 Python stack, prefix SP, floor mid; the five-lane shape of Phase 1 and the seven modules (SP-003); SQLite from the

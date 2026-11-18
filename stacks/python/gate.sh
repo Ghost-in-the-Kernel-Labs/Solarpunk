@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # The Python stack's gate, run by scripts/gate.sh when stacks/python/PRESENT exists: pytest, ruff, the readability
-# and lockfile checks, mutmut with every survivor explained (its cache warm, except on the cold run).
+# and lockfile checks. Mutation is not a step here (SP-012): it is stacks/python/mutate.sh, its own regime, run nightly.
 # With --fast (the fast checks, C-040) it stops after the fast loop and says `python gate: fast checks passed`.
 set -euo pipefail
 cd "$(dirname "$0")/../.."
@@ -14,10 +14,4 @@ $bin/pytest -q || { echo "python gate: the fast loop"; exit 1; }
 $bin/ruff check . || { echo "python gate: ruff"; exit 1; }
 $bin/python -I scripts/checks/readability.py || { echo "python gate: readability (stacks/python/README.md)"; exit 1; }
 $bin/python -I scripts/checks/imports.py || { echo "python gate: an import not in requirements.lock"; exit 1; }
-# The cache: mutmut is incremental and keeps its results under mutants/; the warm gate reuses them and re-tests only what
-# changed, the cold run (GHOST_COLD=1, each tune-up pass) starts from nothing (Core's ruling of 2026-11-07: warm cache
-# per push, cache-off run at each pass; Solarpunk J-024, where a cache deleted every run made the gate 29 min).
-[ "${GHOST_COLD:-}" != 1 ] || rm -rf mutants
-$bin/mutmut run > build/mutmut.log 2>&1 || { echo "python gate: mutmut run (build/mutmut.log)"; exit 1; }
-$bin/mutmut results | $bin/python -I scripts/survivors.py || { echo "python gate: a surviving mutant with no line in docs/MUTATION.md"; exit 1; }
 echo "python gate: passed"
