@@ -28,3 +28,9 @@ Done 2026-11-17 (J-005). Check: `theGhost.md` holds Ghost's founding decisions f
 ### 0.6 Tune-up pass 0
 
 Done 2026-11-17 (J-006). Check: `docs/when/tune-up.md` followed in full; the metrics table written; the navigation log's "Last review" set. ✓ Cold gate 0.72 min, warm gate 0.70 min, fast loop 18.7 s; Core unchanged since the stamp (same commit); one fix from the notes (coordinate.md, landing one item at a time).
+
+## Phase 1: the fleet, its faults, its numbers
+
+### 1.1 The asset registry
+
+Done 2026-11-17 (J-007). Check: `solarpunk/fleet/` with `schema`, `register`, `load_fleet`, `get`, `by_site`, `by_kind`, `children`; `test/solarpunk/test_fleet.py` green, with a refusal test for each of a malformed id (SOL-05), a kind disagreeing with the id, a missing or foreign-site parent, and a duplicate; the OAHE fixture (the site and ten assets) in the test file; every mutant killed or explained (`stacks/python/gate.sh`). ✓ 35 tests; 136 of 136 fleet mutants killed; two leaf PRAGMA-case survivors explained in `docs/MUTATION.md`.

@@ -10,3 +10,4 @@ Written from `docs/journal/` by `scripts/journal_index.py`; do not edit by hand.
 | J-004 | 0.4: the KPI contract, SOL-01 to SOL-12, and the leaf the lanes share | feature | `J-000-099.md` |
 | J-005 | 0.5: the founding decisions from Ghost's rulings of the evening | decision | `J-000-099.md` |
 | J-006 | Tune-up pass 0: the first measure, one landing lesson | measurement | `J-000-099.md` |
+| J-007 | 1.1: the asset registry landed; the venv symlink and the leaf's missing tests | feature | `J-000-099.md` |

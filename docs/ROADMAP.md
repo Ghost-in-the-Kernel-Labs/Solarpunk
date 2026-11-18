@@ -111,7 +111,7 @@ here; its check is copied into `TODO.md`.
   `engineers_for(conn, asset_id)` (the asset's engineer, then its parent's, then its site's: who is written to); `register(conn, asset)`
   refuses a malformed id (SOL-05), a kind that disagrees with the id's prefix, a parent that does not exist or
   whose site differs, and a duplicate; `by_site`, `by_kind`, `children`, `get` return leaf `Asset`s in id order;
-  `load_fleet(conn, assets)` registers a tuple in order. A ten-asset example fleet (one site OAHE, two inverters,
+  `load_fleet(conn, assets)` registers a tuple in order. An eleven-row example fleet (the site OAHE and ten assets at it: two inverters,
   four strings, two trackers, a meter, a sensor) is a fixture the other lanes' tests may copy, never import.
 - **1.2 The fault ledger (`solarpunk/faults/`, `test/solarpunk/test_faults.py`).** `schema()` returns the `faults`
   table (fault_id integer primary key, asset_id text, code, opened, closed nullable; no foreign key to assets,
@@ -157,7 +157,10 @@ here; its check is copied into `TODO.md`.
 - **1.7 The thin CLI (`solarpunk/cli/`, `test/solarpunk/test_cli.py`).** `python3 -m solarpunk.cli fleet load|list`,
   `fault assign|close|list`, `telemetry generate`, `kpi <site> <start> <end>`, `clauses`: argument parsing and
   one call into project each; no logic (MOD-02).
-- **1.8 Tune-up pass 1.**
+- **1.8 The leaf's own tests (`test/solarpunk/test_leaf.py`).** The leaf's refusals and numbers tested directly, so its
+  mutants are killed in the leaf's own file and no lane inherits survivors it may not fix (every Phase 1 lane reported
+  them, J-007).
+- **1.9 Tune-up pass 1.**
 
 ### Phase 2: the feed, the remote tests, the clock
 

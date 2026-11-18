@@ -1,5 +1,5 @@
 # Anchored (EE J-023: an unanchored entry silently dropped fixtures). Nothing a run produced enters git (C-033).
-/.venv/
+/.venv
 /__pycache__/
 /**/__pycache__/
 /build/
