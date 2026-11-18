@@ -8,3 +8,5 @@
 # Python stack output (mutmut, pytest, ruff; the gate logs go under build/)
 /.pytest_cache/
 /.ruff_cache/
+# The demo rebuilds this store in the folder it runs from (3.4)
+/demo.db

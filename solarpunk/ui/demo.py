@@ -36,7 +36,7 @@ DB_NAME = "demo.db"
 # The faults: (asset, code, opened hour, opened minute, closed hour, closed minute), None for still open.
 CLOSED_FAULTS = (
     (SITE_ID, "SIT-002", 12, 0, 13, 0),
-    (FED, "INV-002", 10, 0, 10, 45),
+    (FED, "INV-002", 10, 5, 10, 45),
 )
 OPEN_OUTAGE = (DOWN, "INV-001", 11, 30)
 NO_FEED_KINDS = (AssetKind.TRACKER, AssetKind.METER)
@@ -85,7 +85,7 @@ def start_simulator(samples: tuple[Sample, ...]) -> tuple[socketserver.TCPServer
 
 
 def add_faults(conn: sqlite3.Connection) -> None:
-    """The demo's ledger: SIT-002 on the site 12:00 to 13:00 and INV-002 on OAHE-INV-001 10:00 to 10:45, both closed,
+    """The demo's ledger: SIT-002 on the site 12:00 to 13:00 and INV-002 on OAHE-INV-001 10:05 to 10:45, both closed,
     then INV-001 on OAHE-INV-002 from 11:30, open; afterwards faults_listing(conn, True) is that one outage."""
     for asset_id, code, opened_h, opened_m, closed_h, closed_m in CLOSED_FAULTS:
         fault = project.assign_fault(conn, asset_id, code, at(2026, 6, 1, opened_h, opened_m))

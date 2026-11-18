@@ -8,6 +8,7 @@ import io
 import os
 import sqlite3
 import tempfile
+import threading
 import unittest
 from contextlib import closing
 from pathlib import Path
@@ -16,6 +17,8 @@ from solarpunk import project
 from solarpunk.leaf.clock import at
 from solarpunk.leaf.codes import AssetKind, AssetStatus
 from solarpunk.remote import results
+from solarpunk.telemetry import generate as generator
+from solarpunk.telemetry import samples as sample_table
 from solarpunk.ui import demo
 
 HAS_TKINTER = importlib.util.find_spec("tkinter") is not None
@@ -97,10 +100,24 @@ class TheDemoStore(DemoFixture):
         faults = project.faults_listing(conn, False)
         self.assertEqual([(f.asset_id, f.code, f.opened, f.closed) for f in faults], [
             ("OAHE-SIT-001", "SIT-002", at(2026, 6, 1, 12), at(2026, 6, 1, 13)),
-            (INV1, "INV-002", at(2026, 6, 1, 10), at(2026, 6, 1, 10, 45)),
+            (INV1, "INV-002", at(2026, 6, 1, 10, 5), at(2026, 6, 1, 10, 45)),
             (INV2, "INV-001", at(2026, 6, 1, 11, 30), None),
         ])
         self.assertEqual(conn.execute("SELECT count(*) FROM samples").fetchone()[0], 576)
+        inverters = tuple(a for a in demo.demo_assets(self.port) if a.kind is AssetKind.INVERTER)
+        seeded = generator.generate(inverters, project.day_period(demo.DAY), 7)
+        stored = tuple(s for a in inverters for s in sample_table.in_period(conn, a.asset_id, project.day_period(demo.DAY)))
+        self.assertEqual(stored, seeded)
+
+    def test_the_simulator_runs_in_a_daemon_thread_on_its_own_free_port(self) -> None:
+        before = set(threading.enumerate())
+        server, port = demo.start_simulator(demo.simulator_samples())
+        self.addCleanup(server.server_close)
+        self.addCleanup(server.shutdown)
+        started = [thread for thread in threading.enumerate() if thread not in before]
+        self.assertEqual([thread.daemon for thread in started], [True])
+        self.assertNotEqual(port, self.port)
+        self.assertEqual(server.server_address, ("127.0.0.1", port))
 
     def test_the_endpoints(self) -> None:
         assets = {asset.asset_id: asset for asset in demo.demo_assets(self.port)}
