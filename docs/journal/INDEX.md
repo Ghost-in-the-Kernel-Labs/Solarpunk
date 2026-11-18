@@ -23,3 +23,5 @@ Written from `docs/journal/` by `scripts/journal_index.py`; do not edit by hand.
 | J-017 | 2.4: the receiver landed; a SQLite connection is per thread | ambiguity | `J-000-099.md` |
 | J-018 | 2.5: the clock landed; one job, two renderings, two host-touching functions no test runs | feature | `J-000-099.md` |
 | J-019 | 2.6: the mailer landed; one SMTP path, the credential never shown | feature | `J-000-099.md` |
+| J-020 | A dataclass decorator on an Enum made every AssetStatus equal | failure-caught | `J-000-099.md` |
+| J-021 | 2.2: the feed and its simulator landed; the simulator is telemetry on the wire | contradiction | `J-000-099.md` |

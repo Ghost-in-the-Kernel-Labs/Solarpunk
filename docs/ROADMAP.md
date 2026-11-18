@@ -208,7 +208,13 @@ What Ghost set on 2026-11-17; the lanes, 2.1 first and the rest in parallel (P-1
   ledger and sets the asset's status at once (SP-008), so degradation reaches the fleet view in real time, between
   scheduled runs.
 
-- **2.7 Tune-up pass 2**, which also writes J-010's six readings into the contract as sentences.
+- **2.7 The scheduled run and the UI's project surface (`solarpunk/project/`).** The job the clock runs: ping every asset
+  with an endpoint, store the samples, run the remote suite with the ledger's open-outage flags, stamp each status, mail
+  the engineers of every RED or YELLOW asset when a settings path is given; `asset_status` becomes the three-colour rule
+  (RED an open outage, YELLOW a failing latest result, GREEN otherwise). And the one surface the three Phase 3 windows
+  call, so the UI lanes never edit the orchestrator: rows for the fleet window, a detail for the asset window, the
+  engineers, the kinds and codes for the dropdowns, register and ping for the add-asset window.
+- **2.8 Tune-up pass 2**, which also writes J-010's six readings into the contract as sentences.
 
 ### Phase 3: the native front end
 

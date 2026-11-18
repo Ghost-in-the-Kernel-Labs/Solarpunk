@@ -48,7 +48,7 @@
     },
     {
       "id": "MOD-05",
-      "rule": "No module imports another lane's module: fleet, faults, telemetry, kpi, feed, remote, schedule and mailer import the leaf alone, and reach each other's data only as leaf types project hands them.",
+      "rule": "No module imports another lane's module: fleet, faults, telemetry, kpi, remote, schedule and mailer import the leaf alone, and reach each other's data only as leaf types project hands them; feed also imports telemetry, whose generated day its simulator serves (J-021).",
       "source": "SP-005 (lanes built in parallel cannot depend on each other's unfinished code)"
     },
     {
@@ -123,9 +123,10 @@
     },
     "feed": {
       "folder": "solarpunk/feed",
-      "purpose": "The data feed: ping an asset's host and port, read its JSON-lines records as leaf Samples against the maintenance list; the simulator that serves the generator's day (2.2).",
+      "purpose": "The data feed: ping an asset's host and port, read its JSON-lines records as leaf Samples against the maintenance list; the simulator that serves the generator's day over a socket, the one lane that imports another (telemetry) because it is that lane's output on the wire (2.2, J-021).",
       "mayImport": [
-        "leaf"
+        "leaf",
+        "telemetry"
       ],
       "entryPoints": []
     },

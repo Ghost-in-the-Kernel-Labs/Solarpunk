@@ -22,17 +22,17 @@ Lanes (P-15): 1.1 to 1.5 are built in parallel by separate workers and landed in
 
 ## Phase 2: the feed, the remote tests, the clock
 
-Lanes (P-15): 2.1 first (the list every other lane reads), then 2.2 to 2.6 in parallel, landed in this order; 2.7 after them.
-
-### 2.2 The feed and its simulator
-
-Check: `solarpunk/feed/` with `ping(asset, timeout_s) -> tuple[Sample, ...]` (opens `asset.host:asset.port` over TCP, reads newline-delimited JSON records `{"asset_id", "at", "irradiance_w_m2", "power_kw", "gap"}` until the server closes, refuses a record whose fields are outside the maintenance list's ranges or whose `at` is off the grid, SOL-06), `FeedError(ValueError)` for an unreachable, slow or malformed feed, and `simulate.py` (`python3 -m solarpunk.feed.simulate OAHE-INV-001 --port 5020 --seed 7 --day 2026-06-01` serves the generator's samples for that day, one record per line, then closes; `--once` answers one connection and exits); `test/solarpunk/test_feed.py` starts the simulator on an ephemeral port in a thread and pings it, and covers each refusal; every mutant killed or explained.
+Lanes (P-15): 2.1 first (the list every other lane reads), then 2.2 to 2.6 in parallel, landed in this order; 2.7 after them (it joins them in project); 2.8 the pass.
 
 ### 2.3 The remote tests and their registry
 
 Check: `solarpunk/remote/` with `registry.py` (`discover()` finds every module under `solarpunk/remote/tests/` and returns its `KINDS`, `CLAUSES`, `run`; refuses a module missing one), `results.py` (`schema()` the `results` table: test_name, asset_id, run_at, passed, reason; `record`, `latest_for(asset_id)`, `last_run_at()`), `run.py` (`run_test(name, asset, samples) -> Result`; `run_suite(conn, assets, samples_by_asset, run_at)` runs every discovered test against every asset of its kinds, records each result, and returns the per-asset `AssetStatus`: RED when the asset carries an open OUTAGE fault, YELLOW when a result in this run failed, GREEN otherwise), and three standalone tests under `solarpunk/remote/tests/`: `reachable.py` (INVERTER, METER, SENSOR, TRACKER: the feed answered at least one record), `on_grid.py` (every kind with a feed: every record's instant on the grid and inside the maintenance list's ranges), `power_under_rated.py` (INVERTER: no record's power exceeds `rated_kw`), each with `KINDS`, `CLAUSES` (naming register clauses) and `run`; `python3 -m solarpunk.remote.run <test> <asset-id>` runs one against one asset's stored samples and prints pass or fail with the reason; `test/solarpunk/test_remote.py` green, with a test per remote test's pass and fail; every mutant killed or explained.
 
-### 2.7 Tune-up pass 2
+### 2.7 The scheduled run and the UI's project surface
+
+Check: `solarpunk/project/` gains `scheduled_run(conn, run_at, settings_path=None) -> RunReport` (for every asset with an endpoint: `feed.ping` and store its samples, a `FeedError` recorded as a failing `reachable` result; then `remote.run_suite` over every asset with the open-outage flags from the ledger; a `Mail` composed and sent for each asset whose status is RED or YELLOW when a settings path is given, recorded in the `mails` table; the report: assets pinged, records stored, results written, statuses per asset, mails sent) and `asset_status` now reading RED on an open OUTAGE fault, YELLOW when the asset's latest results hold a failure, GREEN otherwise; the surface every Phase 3 window calls, so no UI lane touches `orchestrator.py`: `asset_rows(conn)` (id, name, kind, status, last run instant, failing test or `—`), `asset_detail(conn, asset_id)` (the asset, its open faults with meanings, the latest results failing first, the engineer chain), `known_engineers(conn)`, `register_asset(conn, asset)`, `codes_for_kind(kind)`, `kinds()`, `ping_asset(conn, asset_id)`, and `LedgerError` re-exported; `test/solarpunk/test_project.py` extended (a scheduled run over the OAHE fixture with a simulator on an ephemeral port gives one asset YELLOW on a planted failure and one RED on an open outage; `open_or_create` reopens a file store); every mutant killed or explained.
+
+### 2.8 Tune-up pass 2
 
 Check: `docs/when/tune-up.md` followed in full; the six readings of J-010 written into `docs/CONTRACT.md` SOL-07 to SOL-10 as sentences (a tune-up may not change invariants' meaning: the sentences say what the code already does, with the worked examples unchanged — anything that would change a number is a question for Ghost instead); the metrics table written; the navigation log's "Last review" set.
 

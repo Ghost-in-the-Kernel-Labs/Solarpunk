@@ -298,3 +298,15 @@ class TheStore(unittest.TestCase):
         store.apply(conn, ())
         self.assertEqual(conn.execute("SELECT count(*) FROM sqlite_master").fetchone()[0], 0)
         self.assertEqual(store.MEMORY, ":memory:")
+
+
+class TheAssetStatus(unittest.TestCase):
+    def test_the_three_colours_are_distinct_members(self) -> None:
+        """A dataclass decorator once sat on this Enum and made every member equal (J-020): the colours differ."""
+        from solarpunk.leaf.codes import AssetStatus
+        self.assertIsNot(AssetStatus.RED, AssetStatus.GREEN)
+        self.assertNotEqual(AssetStatus.RED, AssetStatus.GREEN)
+        self.assertNotEqual(AssetStatus.YELLOW, AssetStatus.GREEN)
+        self.assertEqual(len({AssetStatus.RED, AssetStatus.YELLOW, AssetStatus.GREEN}), 3)
+        self.assertEqual([s.value for s in AssetStatus], ["green", "yellow", "red"])
+        self.assertEqual(repr(AssetStatus.RED), "<AssetStatus.RED: 'red'>")
