@@ -625,8 +625,8 @@ The core decisions above are inherited (Core C-001 to C-040); this project's beg
 - **Why:** Ghost, 2026-11-18: "an engineer should be able to email the cause, the email should be scanned for keywords and if it contains a word that lists a cause, it updates to that", and "The email should be appended as the cause of the update of the cause." His rulings the same day: the mail closes the work order with a root cause; one match applies, none or several go to review, an explicit line wins; after Phase 7's pass, before the tests' record. Email over a phone app: the engineer's phone already reads the mailer's mail, and a reply needs no app and no dependency.
 - **Held by:** `docs/ROADMAP.md` Phase 8 and `TODO.md` 8.1 to 8.4, their tests when built. The tests' record (SP-016) becomes Phase 9 and the network's security Phase 10.
 - **Source:** Ghost, in chat, 2026-11-18.
-- **Status:** in force
-- **See also:** SP-015, SP-009, SP-011, SP-016
+- **Status:** superseded by SP-021
+- **See also:** SP-015, SP-009, SP-011, SP-016, SP-021
 - **subject:** email causes
 
 ### SP-019: A remote test has a written contract, and tests are run in named suites from a suites folder
@@ -647,3 +647,14 @@ The core decisions above are inherited (Core C-001 to C-040); this project's beg
 - **Status:** in force
 - **See also:** SP-019, SP-015, SP-010
 - **subject:** test suites
+
+### SP-021: Email that updates tickets is withdrawn; issues go to a proper ticketing system, to be chosen
+- **Decision:** SP-018's cause by email (a reply scanned for a root cause's word that closes the work order) is withdrawn before any of it landed, and Phase 8's items with it; the outbound mailer of 2.6 (SP-009) stays. Issues are to be tracked in a proper ticketing system reached by its API, Jira or another, which a phase of its own will plan once Ghost has weighed an advisor's feedback and brainstorm; until then Phase 8's number is held for it, empty, so the later phases keep theirs. The draft of 8.1's token module is kept on the branch `claude/hold-8.1-token`, landed nowhere.
+- **Why:** Ghost, 2026-11-18: "We will need a proper ticketing system for issues. Not just simple emails. lets scrap everything involving email updating tickets from the roadmap. … I think we need API access to an internal ticketing system. That internal ticketing system is going to either need to be jira or something else. But regardless, the simple updates is a bit too simplistic."
+- **Supersedes:** SP-018, whole, before any of it landed.
+- **Held by:** `docs/ROADMAP.md` and `TODO.md` (Phase 8 held empty), `docs/HANDOFF.md`.
+- **Source:** Ghost, in chat, 2026-11-18.
+- **Status:** in force
+- **See also:** SP-018, SP-009, SP-015
+- **subject:** ticketing
+

@@ -318,27 +318,11 @@ when it was called in. It adds to `docs/GOAL.md`'s quality management (4: who de
   engineer and, for a call-in, the operator; `solarpunk fault suggestions|accept|dismiss`.
 - **7.6 Tune-up pass 7.**
 
-### Phase 8: the cause by email
+### Phase 8: held for the ticketing system
 
-Ghost's direction of 2026-11-18 (SP-018): an engineer replies to the mailer's mail with the cause; the reply is scanned,
-and when it names exactly one root cause the fault's work order closes with it, the mail kept as the closure's evidence.
-It joins maintenance execution (3: closeout evidence) to quality management (4: root cause, ISO 9001 10.2).
-
-- **8.1 The reply token (`solarpunk/mailer/`).** Each mail about a fault carries a token in its subject, an HMAC of the
-  fault's id under a key in the settings file (`hmac` from the standard library), and asks for a reply with the cause,
-  a `CAUSE: <word>` line read first; a token is checked without the store, and a forged or altered one refused.
-- **8.2 The mailbox reader (`solarpunk/mailer/`, `solarpunk/project/`).** `imaplib` reads the unseen mail of the
-  settings' mailbox at each scheduled run; every mail is stored whole in an `inbound_mails` table and never deleted; the
-  tests use a local fake IMAP server, as the mailer's use a fake SMTP one.
-- **8.3 The cause scan and its review queue (`solarpunk/leaf/root_causes.py`, `solarpunk/project/`).** The synonyms of
-  each root cause in the leaf (a closed list, as the causes are); a mail with a good token from an engineer the fleet
-  holds: `CAUSE: <word>` wins, else exactly one cause named closes the fault's corrective work order with it (opening
-  the order first when the fault has none), decided by that engineer, the mail linked as its evidence; none, several, a
-  bad token or a stranger's address go to the review queue, and the engineer is mailed back asking which.
-- **8.4 The cause in the windows and on the command line (`solarpunk/ui/`, `solarpunk/cli/`).** The asset window shows
-  a closed order's cause with its mail; a review queue an operator resolves on the engineer's word (recorded as such);
-  `solarpunk mail read` runs the reader once.
-- **8.5 Tune-up pass 8.**
+SP-018's cause by email was planned here and withdrawn before any of it landed (SP-021): issues are to go to a proper
+ticketing system reached by its API, Jira or another. The phase that integrates it takes this number once Ghost has
+weighed the advisor's feedback; until then it holds no items.
 
 ### Phase 9: the tests' record, at the root and per asset
 

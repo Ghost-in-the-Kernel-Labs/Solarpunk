@@ -61,6 +61,7 @@ Written by `scripts/decisions_index.py` from `theGhost.md`; do not edit here. Se
 | SP-015 | Tests suggest a fault; only an engineer assigns one | in force | fault assignment |
 | SP-016 | The tests' record is shown, at the root and per asset, and kept whole | in force | test record |
 | SP-017 | The gate runs on a frozen copy, every step times out, lint and the windows are in the fast checks | in force | gates |
-| SP-018 | An engineer emails the cause; the mail is the evidence of the closure | in force | email causes |
+| SP-018 | An engineer emails the cause; the mail is the evidence of the closure | superseded by SP-021 | email causes |
 | SP-019 | A remote test has a written contract, and tests are run in named suites from a suites folder | in force | test suites |
 | SP-020 | Suites are Python modules of declarations; a test may acquire its own reads; reactions are a closed vocabulary | in force | test suites |
+| SP-021 | Email that updates tickets is withdrawn; issues go to a proper ticketing system, to be chosen | in force | ticketing |

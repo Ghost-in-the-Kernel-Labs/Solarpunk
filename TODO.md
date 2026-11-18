@@ -44,40 +44,10 @@ Lanes (P-15): 6.1 and 6.2 in parallel, landed in that order (done, J-041); 6.3 a
 
 Lanes (P-15): 7.1 (done, J-050), then 7.2 and 7.3 (SP-017, put ahead by Ghost), then 7.4 (it needs 7.1's `assigned_by`), then 7.5, then 7.6 the pass. Ghost's direction, SP-015.
 
-## Phase 8: the cause by email
+## Phase 8: held for the ticketing system
 
-Lanes (P-15): 8.1 and 8.2 in parallel, then 8.3 (it needs both), then 8.4, then 8.5 the pass. Ghost's direction, SP-018.
-
-### 8.1 The reply token
-
-The mailer's mail about a fault carries a token that binds a reply to that fault, unforgeable without the settings'
-key (SP-018).
-
-Check: `solarpunk/mailer/` makes a token for a fault id from a key in the settings file (`hmac`, SHA-256, a short hex digest) and checks one, refusing a forged, altered or other fault's token; a mail about a fault carries `[Solarpunk F<id>-<token>]` in its subject and asks for a reply with the cause, a `CAUSE: <word>` line read first; no key is in the repository and the tests build theirs at runtime (the binding rules); the fast loop green.
-
-### 8.2 The mailbox reader
-
-Every mail an engineer sends back is read and kept whole, never deleted (SP-018).
-
-Check: `solarpunk/mailer/` reads the unseen mail of the mailbox the settings name, by `imaplib` over TLS, and returns each (sender, date, subject, message id, text, the text part of a multipart mail); project stores each in an `inbound_mails` table, a message id once only, nothing deleted; the scheduled run reads the mailbox when the settings name one; the tests use a local fake IMAP server and never the settings file; the fast loop green.
-
-### 8.3 The cause scan and its review queue
-
-A good reply naming exactly one root cause closes the fault's work order with it, the mail its evidence; anything else
-waits for review (SP-018).
-
-Check: the leaf lists each root cause's synonyms beside its code (a closed list, held by a test that no synonym names two causes); `project` scans a stored mail: a bad token or a sender the fleet does not hold as an engineer goes to review; a `CAUSE: <word>` line wins; else exactly one cause named closes the fault's corrective work order with it (opening one from the fault first when it has none), decided by the sender, the mail linked to the closure as its evidence, which closes the fault (4.1); none or several go to review and the sender is mailed back asking which; the review queue is a query; each case a test, "not the firmware, it was the grid" among them (two causes: review); the fast loop green.
-
-### 8.4 The cause in the windows and on the command line
-
-The closure's cause and its mail where the asset is, and the review queue an operator resolves on the engineer's word
-(SP-018, SP-015).
-
-Check: the asset window shows a closed work order's root cause, who decided it and the mail that carried it; the review queue in a window from the fleet window, an operator resolving a mail by choosing the cause on the engineer's word (recorded as entered by the operator); `solarpunk mail read` runs the reader once, and `solarpunk mail review` lists the queue; a screenshot read back under xvfb; the fast loop green.
-
-### 8.5 Tune-up pass 8
-
-Check: `docs/when/tune-up.md` followed in full; the metrics table written; the navigation log's "Last review" set.
+Withdrawn with SP-018 by SP-021: the cause by email is off the roadmap. This number is held, with no items, for the
+ticketing phase Ghost will plan.
 
 ## Phase 9: the tests' record, at the root and per asset
 
