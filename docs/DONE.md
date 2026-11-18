@@ -38,3 +38,7 @@ Done 2026-11-17 (J-007). Check: `solarpunk/fleet/` with `schema`, `register`, `l
 ### 1.2 The fault ledger
 
 Done 2026-11-17 (J-008). Check: `solarpunk/faults/` with `schema`, `assign`, `close`, `open_faults`, `by_asset`, `by_code`, `in_period`, `repeated`; `test/solarpunk/test_faults.py` green, with a refusal test for each of an unknown code (SOL-04), a naive instant (SOL-06), a second open fault of one code on one asset, a close before open and a double close; instants round-trip as aware UTC; every mutant killed or explained. ✓ 20 tests; every ledger mutant killed or explained (18 SQL letter-case survivors in `docs/MUTATION.md`).
+
+### 1.3 Synthetic SCADA
+
+Done 2026-11-17 (J-009). Check: `solarpunk/telemetry/` with `generate`, `schema`, `store`, `in_period`; `python3 -m solarpunk.telemetry.generate --seed 7` writes the one-day golden `test/solarpunk/goldens/telemetry-seed7.txt` byte-identically on two runs (SOL-02); `test/solarpunk/test_telemetry.py` green: every expected instant present (SOL-06), gaps carried as `gap()` samples, irradiance zero at night and 1000 at the peak; every mutant killed or explained. ✓ 34 tests; the seed-7 golden identical on two runs (288 lines, 9 gaps, 1000.0 at 13:00); nine telemetry survivors explained (SQL case; a `<` to `<=` on a draw that can never equal 0.02).

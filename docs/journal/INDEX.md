@@ -12,3 +12,4 @@ Written from `docs/journal/` by `scripts/journal_index.py`; do not edit by hand.
 | J-006 | Tune-up pass 0: the first measure, one landing lesson | measurement | `J-000-099.md` |
 | J-007 | 1.1: the asset registry landed; the venv symlink and the leaf's missing tests | feature | `J-000-099.md` |
 | J-008 | 1.2: the fault ledger landed | feature | `J-000-099.md` |
+| J-009 | 1.3: synthetic SCADA landed; the generator's constants are simulation parameters | feature | `J-000-099.md` |

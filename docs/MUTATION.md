@@ -23,3 +23,12 @@ for a mutant that is truly equivalent.
 - solarpunk.faults.ledger.x_by_asset__mutmut_9: " WHERE ASSET_ID = ?" upper-cased; the same rows.
 - solarpunk.faults.ledger.x_by_code__mutmut_9: " where code = ?" lower-cased; the same rows.
 - solarpunk.faults.ledger.x_by_code__mutmut_10: " WHERE CODE = ?" upper-cased; the same rows.
+- solarpunk.telemetry.samples.x_schema__mutmut_2: lowercases `CREATE TABLE samples (`; SQL keywords and SQLite identifiers are case-insensitive, the table is the same.
+- solarpunk.telemetry.samples.x_schema__mutmut_5: lowercases `asset_id TEXT NOT NULL`; SQLite reads the type and constraint case-insensitively and reports the type as TEXT either way.
+- solarpunk.telemetry.samples.x_schema__mutmut_8: lowercases `at TEXT NOT NULL`; the same column, as above.
+- solarpunk.telemetry.samples.x_schema__mutmut_11: lowercases `irradiance_w_m2 REAL NULL`; the same column, as above.
+- solarpunk.telemetry.samples.x_schema__mutmut_14: lowercases `power_kw REAL NULL`; the same column, as above.
+- solarpunk.telemetry.samples.x_schema__mutmut_17: lowercases `gap INTEGER NOT NULL`; the same column, as above.
+- solarpunk.telemetry.samples.x_schema__mutmut_20: lowercases `PRIMARY KEY (asset_id, at)`; the same key.
+- solarpunk.telemetry.samples.x_schema__mutmut_21: uppercases the key's column names; SQLite column names are case-insensitive, the same key.
+- solarpunk.telemetry.generate.x_reading__mutmut_2: `rng.random() < 0.02` to `<=`; random() returns multiples of 2**-53 and the double 0.02 is not one, so equality never happens.
