@@ -20,3 +20,4 @@ Written from `docs/journal/` by `scripts/journal_index.py`; do not edit by hand.
 | J-014 | 1.7: the thin CLI landed; Phases 2 and 3 planned as lanes; SP-006 to SP-010 in force | failure-caught | `J-000-099.md` |
 | J-015 | Tune-up pass 1: eight debriefs converge on four things a brief must say | measurement | `J-000-099.md` |
 | J-016 | 2.1: the asset maintenance list landed; what the dropdown, the feed and the remote tests read | feature | `J-000-099.md` |
+| J-017 | 2.4: the receiver landed; a SQLite connection is per thread | ambiguity | `J-000-099.md` |
