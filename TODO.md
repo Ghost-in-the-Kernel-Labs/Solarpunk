@@ -24,10 +24,6 @@ Lanes (P-15): 1.1 to 1.5 are built in parallel by separate workers and landed in
 
 Lanes (P-15): 2.1 first (the list every other lane reads), then 2.2 to 2.6 in parallel, landed in this order; 2.7 after them (it joins them in project); 2.8 the pass.
 
-### 2.7 The scheduled run and the UI's project surface
-
-Check: `solarpunk/project/` gains `scheduled_run(conn, run_at, settings_path=None) -> RunReport` (for every asset with an endpoint: `feed.ping` and store its samples, a `FeedError` recorded as a failing `reachable` result; then `remote.run_suite` over every asset with the open-outage flags from the ledger; a `Mail` composed and sent for each asset whose status is RED or YELLOW when a settings path is given, recorded in the `mails` table; the report: assets pinged, records stored, results written, statuses per asset, mails sent) and `asset_status` now reading RED on an open OUTAGE fault, YELLOW when the asset's latest results hold a failure, GREEN otherwise; the surface every Phase 3 window calls, so no UI lane touches `orchestrator.py`: `asset_rows(conn)` (id, name, kind, status, last run instant, failing test or `—`), `asset_detail(conn, asset_id)` (the asset, its open faults with meanings, the latest results failing first, the engineer chain), `known_engineers(conn)`, `register_asset(conn, asset)`, `codes_for_kind(kind)`, `kinds()`, `ping_asset(conn, asset_id)`, and `LedgerError` re-exported; `test/solarpunk/test_project.py` extended (a scheduled run over the OAHE fixture with a simulator on an ephemeral port gives one asset YELLOW on a planted failure and one RED on an open outage; `open_or_create` reopens a file store); every mutant killed or explained.
-
 ### 2.8 Tune-up pass 2
 
 Check: `docs/when/tune-up.md` followed in full; the six readings of J-010 written into `docs/CONTRACT.md` SOL-07 to SOL-10 as sentences (a tune-up may not change invariants' meaning: the sentences say what the code already does, with the worked examples unchanged — anything that would change a number is a question for Ghost instead); the metrics table written; the navigation log's "Last review" set.

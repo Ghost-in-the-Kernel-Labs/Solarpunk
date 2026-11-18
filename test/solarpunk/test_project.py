@@ -8,10 +8,14 @@ from pathlib import Path
 
 from solarpunk import project
 from solarpunk.faults import ledger
+from solarpunk.fleet import registry
+from solarpunk.leaf import store
 from solarpunk.leaf.assets import Asset
 from solarpunk.leaf.clock import Period, at
 from solarpunk.leaf.codes import AssetKind, AssetStatus
 from solarpunk.project import UnknownAsset
+from solarpunk.remote import results
+from solarpunk.telemetry import samples
 
 SITE_EMAIL = "site@oahe.example"
 INVERTER_EMAIL = "inverter@oahe.example"
@@ -68,7 +72,7 @@ class TheStore(Store):
     def test_it_holds_every_modules_table_in_order(self) -> None:
         conn = self.fresh()
         names = [row[0] for row in conn.execute("SELECT name FROM sqlite_master WHERE type = 'table' ORDER BY rowid")]
-        self.assertEqual(names, ["assets", "faults", "samples"])
+        self.assertEqual(names, ["assets", "faults", "samples", "results", "mails"])
         self.assertEqual(conn.execute("PRAGMA foreign_keys").fetchone()[0], 1)
 
     def test_it_opens_a_file_and_keeps_its_rows(self) -> None:
@@ -92,6 +96,70 @@ class TheStore(Store):
         conn = self.fresh()
         project.load_fleet(conn, OAHE + BIGS)
         self.assertEqual(project.generate_and_store(conn, "BIGS", DAY, 7), 288)
+
+    def test_generating_for_a_site_the_fleet_lacks_is_refused_and_stores_nothing(self) -> None:
+        conn = self.fresh()
+        project.load_fleet(conn, OAHE)
+        with self.assertRaises(UnknownAsset) as caught:
+            project.generate_and_store(conn, "NOPE", DAY, 7)
+        self.assertIn("NOPE-SIT-001", str(caught.exception))
+        self.assertEqual(count(conn, "samples"), 0)
+
+
+class Reopening(unittest.TestCase):
+    """open_or_create over a file store: reopened with its rows, an old three-table store gains the later tables."""
+
+    def path(self) -> Path:
+        """A store path in a folder removed when the test ends: self.path().name is "fleet.db"."""
+        folder = tempfile.TemporaryDirectory()
+        self.addCleanup(folder.cleanup)
+        return Path(folder.name) / "fleet.db"
+
+    def tables(self, conn: sqlite3.Connection) -> list[str]:
+        """The store's tables in creation order: ["assets", "faults", "samples", "results", "mails"] for a new store."""
+        return [row[0] for row in conn.execute("SELECT name FROM sqlite_master WHERE type = 'table' ORDER BY rowid")]
+
+    def test_a_file_store_reopens_with_its_rows(self) -> None:
+        path = self.path()
+        conn = project.open_or_create(path)
+        project.load_fleet(conn, OAHE)
+        conn.close()
+        again = project.open_or_create(path)
+        self.addCleanup(again.close)
+        self.assertEqual(count(again, "assets"), 11)
+        self.assertEqual(self.tables(again), ["assets", "faults", "samples", "results", "mails"])
+
+    def test_an_old_store_of_three_tables_gains_results_and_mails_and_keeps_its_rows(self) -> None:
+        path = self.path()
+        old = store.connect(path)
+        for statements in (registry.schema(), ledger.schema(), samples.schema()):
+            store.apply(old, statements)
+        project.load_fleet(old, OAHE)
+        old.close()
+        conn = project.open_or_create(path)
+        self.addCleanup(conn.close)
+        self.assertEqual(self.tables(conn), ["assets", "faults", "samples", "results", "mails"])
+        self.assertEqual(count(conn, "assets"), 11)
+        self.assertEqual((count(conn, "results"), count(conn, "mails")), (0, 0))
+
+    def test_a_store_missing_one_later_table_gains_that_one_alone(self) -> None:
+        path = self.path()
+        old = store.connect(path)
+        for statements in (registry.schema(), ledger.schema(), samples.schema(), results.schema()):
+            store.apply(old, statements)
+        old.close()
+        conn = project.open_or_create(path)
+        self.addCleanup(conn.close)
+        self.assertEqual(self.tables(conn), ["assets", "faults", "samples", "results", "mails"])
+
+    def test_a_file_holding_some_of_the_first_tables_is_refused(self) -> None:
+        path = self.path()
+        old = store.connect(path)
+        store.apply(old, registry.schema())
+        store.apply(old, ledger.schema())
+        old.close()
+        with self.assertRaisesRegex(sqlite3.OperationalError, "table assets already exists"):
+            project.open_or_create(path)
 
 
 class AssigningAFault(Store):
@@ -134,6 +202,30 @@ class TheStatus(Store):
         project.close_fault(conn, first.fault_id, at(2026, 6, 1, 11))
         project.assign_fault(conn, INV1, "INV-003", at(2026, 6, 1, 12))
         self.assertIs(project.asset_status(conn, INV1), AssetStatus.RED)
+
+    def test_a_failing_latest_result_is_yellow_and_a_passing_rerun_green(self) -> None:
+        conn = self.oahe_day()
+        results.record(conn, "reachable", INV2, at(2026, 6, 1, 10), results.Result(False, "no records"))
+        results.record(conn, "on_grid", INV2, at(2026, 6, 1, 10), results.Result(True, "0 records"))
+        self.assertIs(project.asset_status(conn, INV2), AssetStatus.YELLOW)
+        self.assertIs(project.asset_status(conn, INV1), AssetStatus.GREEN)
+        results.record(conn, "reachable", INV2, at(2026, 6, 1, 11), results.Result(True, "3 records"))
+        self.assertIs(project.asset_status(conn, INV2), AssetStatus.GREEN)
+
+    def test_an_open_outage_outranks_a_failing_result(self) -> None:
+        conn = self.oahe_day()
+        results.record(conn, "reachable", INV1, at(2026, 6, 1, 10), results.Result(False, "no records"))
+        project.assign_fault(conn, INV1, "INV-001", at(2026, 6, 1, 12))
+        self.assertIs(project.asset_status(conn, INV1), AssetStatus.RED)
+
+    def test_open_outages_holds_each_assets_first_open_outage_alone(self) -> None:
+        conn = self.oahe_day()
+        closed = project.assign_fault(conn, INV1, "INV-003", at(2026, 6, 1, 9))
+        project.close_fault(conn, closed.fault_id, at(2026, 6, 1, 10))
+        first = project.assign_fault(conn, INV2, "INV-001", at(2026, 6, 1, 12))
+        project.assign_fault(conn, INV2, "INV-003", at(2026, 6, 1, 12))
+        project.assign_fault(conn, INV1, "INV-002", at(2026, 6, 1, 12))
+        self.assertEqual(project.open_outages(conn), {INV2: first})
 
     def test_an_asset_the_fleet_lacks_has_no_status(self) -> None:
         with self.assertRaises(UnknownAsset):

@@ -1,6 +1,7 @@
 """The orchestrator: one store holding every module's tables, and the joins no lane may make (MOD-05). It checks an
 asset against the fleet before the ledger takes a fault, and reads the fleet, the faults and the samples to hand the
-KPI engine leaf types (Invariants: SOL-04, SOL-05, SOL-07 to SOL-10)."""
+KPI engine leaf types (Invariants: SOL-04, SOL-05, SOL-07 to SOL-10); an asset's status is the three-colour rule over
+the ledger and the remote results (SP-006, SP-007). The scheduled run is in run.py, the windows' surface in surface.py."""
 import sqlite3
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta
@@ -15,6 +16,8 @@ from solarpunk.leaf.clock import Period, at
 from solarpunk.leaf.codes import AssetKind, AssetStatus, Severity
 from solarpunk.leaf.faults import Fault
 from solarpunk.leaf.telemetry import Sample
+from solarpunk.mailer import mail as mail_table
+from solarpunk.remote import results as result_table
 from solarpunk.telemetry import generate as generator
 from solarpunk.telemetry import samples as sample_table
 
@@ -22,6 +25,12 @@ from solarpunk.telemetry import samples as sample_table
 SITE_EMAIL = "site@oahe.example"
 INVERTER_EMAIL = "inverter@oahe.example"
 STORE_TABLES = ("assets", "faults", "samples")
+# The tables Phase 2 added, by name, each with its schema: a store made before them gains them on reopening.
+LATER_TABLES: tuple[tuple[str, tuple[str, ...]], ...] = (
+    ("results", result_table.schema()),
+    ("mails", mail_table.schema()),
+)
+TABLE_NAMES = "SELECT name FROM sqlite_master WHERE type = 'table'"
 
 
 class UnknownAsset(ValueError):
@@ -42,26 +51,31 @@ class SiteKpis:
 
 
 def open_store(path: str | Path = store.MEMORY) -> sqlite3.Connection:
-    """A store holding the fleet's, the ledger's and the samples' tables, applied in that order: open_store() is an
-    in-memory store where "SELECT count(*) FROM faults" gives 0."""
+    """A store holding the fleet's, the ledger's, the samples', the remote results' and the mails' tables, applied in
+    that order: open_store() is an in-memory store where "SELECT count(*) FROM faults" gives 0."""
     conn = store.connect(path)
     store.apply(conn, registry.schema())
     store.apply(conn, ledger.schema())
     store.apply(conn, sample_table.schema())
+    for _name, statements in LATER_TABLES:
+        store.apply(conn, statements)
     return conn
 
 
 def open_or_create(path: str | Path) -> sqlite3.Connection:
     """The store at a path, its tables made only when it has none (the CLI's store, which outlives one call):
-    open_or_create("fleet.db") on a new file is open_store("fleet.db"); on a file holding all three tables it opens
-    it again with its rows, where open_store would raise "table assets already exists"."""
+    open_or_create("fleet.db") on a new file is open_store("fleet.db"); on a file holding the three first tables it
+    opens it again with its rows, adding results and mails where it lacks them, where open_store would raise
+    "table assets already exists"; a file holding some of the three first is handed to open_store, which refuses it."""
     conn = store.connect(path)
-    marks = ",".join("?" for _ in STORE_TABLES)
-    query = f"SELECT count(*) FROM sqlite_master WHERE type = 'table' AND name IN ({marks})"
-    if conn.execute(query, STORE_TABLES).fetchone()[0] == len(STORE_TABLES):
-        return conn
-    conn.close()
-    return open_store(path)
+    present = {row[0] for row in conn.execute(TABLE_NAMES)}
+    if not set(STORE_TABLES) <= present:
+        conn.close()
+        return open_store(path)
+    for name, statements in LATER_TABLES:
+        if name not in present:
+            store.apply(conn, statements)
+    return conn
 
 
 def demo_fleet() -> tuple[Asset, ...]:
@@ -152,22 +166,36 @@ def day_period(day: date) -> Period:
 
 def generate_and_store(conn: sqlite3.Connection, site: str, period: Period, seed: int) -> int:
     """Generates the site's inverters' samples over the period from the seed, stores them, and returns how many:
-    generate_and_store(conn, "OAHE", 2026-06-01's day, 7) is 576 for OAHE's two inverters, gaps included."""
+    generate_and_store(conn, "OAHE", 2026-06-01's day, 7) is 576 for OAHE's two inverters, gaps included; a site the
+    fleet lacks raises UnknownAsset and stores nothing (J-014)."""
     # Invariant: SOL-02 (one seed, the same samples); SOL-06 (gaps stored, never dropped)
+    known(conn, site_id(site))
     made = generator.generate(registry.by_site(conn, site), period, seed)
     sample_table.store(conn, made)
     return len(made)
 
 
+def open_outages(conn: sqlite3.Connection) -> dict[str, Fault]:
+    """Each asset carrying an open fault whose catalogue severity is OUTAGE, with its first such fault: with an open
+    INV-001 (fault 2) and INV-003 (fault 3) on OAHE-INV-003 and an open INV-002 on OAHE-INV-001, {"OAHE-INV-003": fault 2}."""
+    # Invariant: SOL-11 (a derate is not an outage)
+    found: dict[str, Fault] = {}
+    for fault in ledger.open_faults(conn):
+        if fault.catalogue_row().severity is Severity.OUTAGE:
+            found.setdefault(fault.asset_id, fault)
+    return found
+
+
 def asset_status(conn: sqlite3.Connection, asset_id: str) -> AssetStatus:
-    """RED while the asset carries an open fault whose catalogue severity is OUTAGE, else GREEN; YELLOW (a failing remote
-    test) comes with the remote tests in Phase 2: with an open INV-001 on OAHE-INV-001 its status is RED, with only an
-    open INV-002 (a derate) GREEN; an id the fleet lacks raises UnknownAsset."""
+    """The three-colour rule (SP-007): RED while the asset carries an open OUTAGE fault, else YELLOW when its latest
+    remote results hold a failure, else GREEN: with an open INV-001 on OAHE-INV-001 its status is RED, with only an open
+    INV-002 (a derate) GREEN, with a failing latest reachable YELLOW; an id the fleet lacks raises UnknownAsset."""
     # Invariant: SOL-11 (a derate is not an outage)
     known(conn, asset_id)
-    for fault in ledger.by_asset(conn, asset_id):
-        if fault.closed is None and fault.catalogue_row().severity is Severity.OUTAGE:
-            return AssetStatus.RED
+    if asset_id in open_outages(conn):
+        return AssetStatus.RED
+    if any(not result.passed for result in result_table.latest_for(conn, asset_id)):
+        return AssetStatus.YELLOW
     return AssetStatus.GREEN
 
 

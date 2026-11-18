@@ -26,3 +26,4 @@ Written from `docs/journal/` by `scripts/journal_index.py`; do not edit by hand.
 | J-020 | A dataclass decorator on an Enum made every AssetStatus equal | failure-caught | `J-000-099.md` |
 | J-021 | 2.2: the feed and its simulator landed; the simulator is telemetry on the wire | contradiction | `J-000-099.md` |
 | J-022 | 2.3: the remote tests and their registry landed; the list now names on_grid for every kind with a feed | feature | `J-000-099.md` |
+| J-023 | 2.7: the scheduled run and the UI's surface landed; the three colours are one function | feature | `J-000-099.md` |
