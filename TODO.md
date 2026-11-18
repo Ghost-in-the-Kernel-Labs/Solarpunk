@@ -49,13 +49,6 @@ Lanes (P-15): 7.1 (done, J-050), then 7.2 and 7.3 (SP-017, put ahead by Ghost), 
 Lanes (P-15): 8.1 first (the contract), then 8.2, then 8.3, then 8.4, then 8.5 the pass. Ghost's direction, SP-021 and
 SP-022.
 
-### 8.1 The ticket contract
-
-What a ticket is, written before the code (SP-022): its statuses and moves, its priority, its targets, and which
-fields a remote tracker could ever own.
-
-Check: `docs/CONTRACT.md` gains a ticket section: the statuses (open, acknowledged, in progress, resolved, closed) and every allowed move between them; priority from the fault's severity (OUTAGE, DERATE, INFO); for each priority an acknowledgement and a response target, Ghost's to set (Claude's proposal written beside them, marked as such), with a worked example of a ticket meeting one target and breaching the other; the fields a remote tracker would own (the working assignee, comments, scheduling) and those Solarpunk keeps (the code, who assigned, the root cause, the open and close instants the KPIs read); the leaf holds the statuses, the moves and the targets, tested against the section; the fast loop green.
-
 ### 8.2 The ticket ledger
 
 A work order grows into a ticket, opened when an engineer assigns a fault (SP-022).

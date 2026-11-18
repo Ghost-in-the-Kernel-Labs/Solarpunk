@@ -11,7 +11,7 @@ Ghost's statement of where the product is going: five areas under one click (J-0
 own nightly regime (SP-012, J-038; the section below). Tune-up pass 5: cold gate 9.95 min, warm 0.80 min, fast loop
 23.1 s (J-039).
 
-**The first open item is 8.1, the ticket contract** (`TODO.md`; SP-022: local tickets, then accounts and auth, then the
+**The first open item is 8.2, the ticket ledger** (`TODO.md`; 8.1, the ticket contract SOL-14, landed in J-061; SP-022: local tickets, then accounts and auth, then the
 tests' record, the security pass, and a central server; Phase 8's cause by email was withdrawn by SP-021; Phase 7 closed by its pass, J-056; 7.5, the suggestions in the window and on the command line,
 landed in J-054; 7.4, the suggestions themselves, in J-053; SP-017's 7.2 and 7.3 in J-051 and J-052; 7.1, who assigned a fault, landed in J-050; until 7.4 the receiver holds every good push for an engineer and stores nothing): Phase 7 is Ghost's
 fault assignment (SP-015): tests
@@ -88,6 +88,8 @@ email on the asset, a mailer to those engineers on degradation, and the Save/Can
    which rules to change and whether the catalogue gains the two codes.
 7. Settled 2026-11-18 (SP-020): a suite is a Python module of declarations; a test may acquire its own reads; reactions
    are a closed vocabulary, nothing commanding equipment.
+8. The ticket targets (SOL-14, J-061) are Claude's proposal, in force for the code until you set yours: OUTAGE (P1)
+   acknowledged within 1 h and worked on within 4 h; DERATE (P2) 4 h and 24 h; INFO (P3) 24 h and 72 h.
 
 ## Advisories under the gate's threshold (Tune-up pass 6; unchanged since pass 0)
 

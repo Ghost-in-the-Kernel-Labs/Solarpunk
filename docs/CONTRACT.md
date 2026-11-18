@@ -172,3 +172,68 @@ never kept. Worked example: over
 `rated_kw = 150`, `peak_kw = max(60 + 30, 90 + 45, 42) = 135.0`, `specific_yield = 22.25 / 150 = 0.1483`,
 `capacity_factor = 22.25 / 37.5 = 0.5933` (four decimals), records 5, gaps 1. Held by `solarpunk/kpi/output.py` and
 `test/solarpunk/test_output.py`'s golden.
+
+## SOL-14 A ticket moves through five statuses, against two targets set by its priority
+
+A ticket (SP-022) is the work an engineer-assigned fault needs; it opens when the fault is assigned, never from a
+suggestion. Its statuses are `open`, `acknowledged` (someone has taken it), `in progress` (work has started: the
+response), `resolved` (the work is done, awaiting closure) and `closed` (closed with a root cause from the closed list,
+which closes the fault, 4.1). Only these moves are allowed; any other is refused:
+
+| From | To |
+| --- | --- |
+| open | acknowledged |
+| open | in progress |
+| acknowledged | in progress |
+| in progress | resolved |
+| resolved | in progress |
+| resolved | closed |
+
+A move from `open` straight to `in progress` acknowledges and responds at the same instant. `resolved` back to
+`in progress` is a fix that did not hold; `closed` is final. The acknowledged instant is the first move out of `open`,
+the responded instant the first move into `in progress`; neither is ever moved again.
+
+Its priority follows the fault's severity, and each priority has two targets measured from the ticket's opening: to be
+acknowledged within, and to be responded to (work started) within. Acknowledgement and response are the times a
+contractor can guarantee; resolution often is not in its hands, so it has no target here (SolarPower Europe's O&M
+guidelines draw the same line, J-060). **The targets are Ghost's to set: the hours below are Claude's proposal, in
+force for the code until he sets his own.**
+
+| Severity | Priority | Acknowledge within | Respond within |
+| --- | --- | --- | --- |
+| OUTAGE | P1 | 1 h | 4 h |
+| DERATE | P2 | 4 h | 24 h |
+| INFO | P3 | 24 h | 72 h |
+
+Each target, at an instant, is in one of four states:
+
+    due        = opened + target
+    met        when it happened at or before due
+    late       when it happened after due
+    pending    when it has not happened and the instant is at or before due
+    overdue    when it has not happened and the instant is after due
+
+Worked example: an INV-001 outage (P1) is assigned and its ticket opened at 10:00 UTC; it is acknowledged at 10:40 and
+put in progress at 14:30. Acknowledgement is due at 11:00 and happened at 10:40: `met`. Response is due at 14:00 and
+happened at 14:30: `late`, by 30 minutes. At 13:00, before the response, the response target was `pending`; at 14:15 it
+was `overdue`. A DERATE ticket (P2) opened at 10:00 and still open at 15:00 has its acknowledgement `overdue` (due 14:00)
+and its response `pending` (due 10:00 the next day).
+
+When a remote tracker is joined behind an adapter (8.3), each field has one owner, and the other side's copy is for
+display only:
+
+| Field | Owner |
+| --- | --- |
+| fault code | Solarpunk |
+| assigned by | Solarpunk |
+| root cause | Solarpunk |
+| opened and closed instants | Solarpunk |
+| status | Solarpunk |
+| working assignee | tracker |
+| comments | tracker |
+| scheduling | tracker |
+
+Solarpunk keeps what the KPIs and the clause register read; a tracker's change to a field Solarpunk owns is a proposal
+Solarpunk's rules accept or refuse, never a write. Held by `solarpunk/leaf/tickets.py` (the statuses, the moves, the
+priorities, the targets, the four states) and `test/solarpunk/test_tickets_contract.py`, which reads the three tables
+above and the leaf and refuses any difference.

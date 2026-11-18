@@ -17,3 +17,9 @@ Last review: c1a43dd (2026-11-18, Tune-up pass 7)
 
 An entry is `### <date> · <task> · <agent>` and four lines: **Task**, **Opened** (files, in order), **Complaints**,
 **Suggestions**.
+
+### 2026-11-18 · 8.1 the ticket contract · Claude
+- **Task**: SOL-14, the ticket contract, and the leaf module that holds it.
+- **Opened**: `docs/paths/product.md`, `docs/CONTRACT.md`, `solarpunk/leaf/codes.py`, `solarpunk/leaf/clock.py`, `test/solarpunk/test_kpi.py`.
+- **Complaints**: product.md has no row for "a new contract section and its leaf types"; the KPI row came closest.
+- **Suggestions**: a row "A contract section held to the leaf" pointing at `docs/CONTRACT.md` and `test/solarpunk/test_tickets_contract.py` as the shape of a table-reading test.

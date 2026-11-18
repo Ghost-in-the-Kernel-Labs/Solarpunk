@@ -194,3 +194,9 @@ Done 2026-11-18 (J-054). Check: the asset window lists the asset's open suggesti
 ### 7.6 Tune-up pass 7
 
 Done 2026-11-18 (J-056). Check: `docs/when/tune-up.md` followed in full; the metrics table written; the navigation log's "Last review" set. ✓ cold gate 1.02 min, warm 1.02 min, fast loop 26.9 s (the first pass run on 7.2's frozen copy, with the window tests and ruff in it), 9 of 9 metrics, none regressed; five debriefs reviewed; two facts written into the product workpath (what one run stores per asset; the Tk rule and `conftest.py`).
+
+## Phase 8: local tickets
+
+### 8.1 The ticket contract
+
+Done 2026-11-18 (J-061). Check: `docs/CONTRACT.md` gains a ticket section: the statuses (open, acknowledged, in progress, resolved, closed) and every allowed move between them; priority from the fault's severity (OUTAGE, DERATE, INFO); for each priority an acknowledgement and a response target, Ghost's to set (Claude's proposal written beside them, marked as such), with a worked example of a ticket meeting one target and breaching the other; the fields a remote tracker would own (the working assignee, comments, scheduling) and those Solarpunk keeps (the code, who assigned, the root cause, the open and close instants the KPIs read); the leaf holds the statuses, the moves and the targets, tested against the section; the fast loop green. ✓ SOL-14: six moves, P1 1 h / 4 h, P2 4 h / 24 h, P3 24 h / 72 h (Claude's proposal, marked), four target states (met, late, pending, overdue) with the worked example as a golden; `solarpunk/leaf/tickets.py`; `test/solarpunk/test_tickets_contract.py` reads the contract's three tables against the leaf, with a planted break; status is Solarpunk's field, the tracker's change to it a proposal.
