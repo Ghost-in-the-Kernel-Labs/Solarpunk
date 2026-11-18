@@ -628,3 +628,12 @@ The core decisions above are inherited (Core C-001 to C-040); this project's beg
 - **Status:** in force
 - **See also:** SP-015, SP-009, SP-011, SP-016
 - **subject:** email causes
+
+### SP-019: A remote test has a written contract, and tests are run in named suites from a suites folder
+- **Decision:** what a remote test is gets written down as a contract (its module's fields, what `run` may and may not do, the shape of its reason, its thresholds as named constants, its docstring's cases, its line in the asset maintenance list), and a check holds every module under `solarpunk/remote/tests/` to it. Tests are run in suites: a suite is a file in a suites folder naming its tests, the kinds or sites it runs against and its cadence, and the scheduled run runs the suites due; `solarpunk suite list|run|add` manage them; what the run does today becomes the default suite, `all`. These are the first two items of Phase 9, the tests' record, ahead of its windows, so the Tests window shows the suites.
+- **Why:** Ghost, 2026-11-18: "Lets add a todo. The test suite management system. Adding a suite folder, and defining what a test looks like." The architecture review of J-041 found the remote test's interface written only in the registry's docstring (no contract), and a suite gives a test a cadence other than every run.
+- **Held by:** `docs/ROADMAP.md` and `TODO.md` 9.1 and 9.2, their checks when built.
+- **Source:** Ghost, in chat, 2026-11-18.
+- **Status:** in force
+- **See also:** SP-010, SP-016, SP-017
+- **subject:** test suites

@@ -60,3 +60,4 @@ Written from `docs/journal/` by `scripts/journal_index.py`; do not edit by hand.
 | J-054 | 7.5: suggested faults in the asset window and on the command line | feature | `J-000-099.md` |
 | J-055 | The cause by email planned (SP-018): a reply closes the work order, the mail its evidence | decision | `J-000-099.md` |
 | J-056 | Tune-up pass 7: the first pass on the frozen copy; the fast loop back under its target | measurement | `J-000-099.md` |
+| J-057 | What a test looks like, and suites to run them in: 9.1 and 9.2 planned (SP-019) | decision | `J-000-099.md` |

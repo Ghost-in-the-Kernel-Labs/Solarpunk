@@ -342,24 +342,33 @@ It joins maintenance execution (3: closeout evidence) to quality management (4: 
 
 ### Phase 9: the tests' record, at the root and per asset
 
-Ghost's direction of 2026-11-18 (SP-016): the tests that run against the fleet are shown with what they have done, at
+Ghost's directions of 2026-11-18 (SP-016, SP-019): what a test is and the suites it runs in, then the tests that run against the fleet are shown with what they have done, at
 the root of the window and on each asset, the last 100 runs reviewable, an asset's history searchable and graphed; every
 result kept. It adds to `docs/GOAL.md`'s SCADA analytics (2) and quality management (4: audit evidence).
 
-- **9.1 The record's surface and the timing (`solarpunk/remote/`, `solarpunk/project/`).** Each test's run is timed and
+- **9.1 What a test looks like (`docs/REMOTE-TESTS.md`, `scripts/checks/remote_tests.py`; SP-019).** The contract of a remote
+  test: its module's fields (`KINDS`, `CLAUSES`, `SUGGESTS`, `run`), that `run` reads only the asset and samples it is
+  given (no store, no network, no clock), the shape of its reason (the first offending record, or a count), its
+  thresholds as named constants with why, its docstring's pass and fail cases, its line in the maintenance list; a check
+  holds every module in the folder to it, with a planted break.
+- **9.2 The suites folder (`solarpunk/remote/suites/`, `solarpunk/remote/`, `solarpunk/project/`, `solarpunk/cli/`; SP-019).** A
+  suite is a file naming its tests, the kinds or sites it runs against and its cadence; the scheduled run runs the
+  suites due; `solarpunk suite list|run|add`; the default suite `all` is today's run. Open for Ghost: a suite file's
+  format (JSON, read by the standard library, or a Python module like a test).
+- **9.3 The record's surface and the timing (`solarpunk/remote/`, `solarpunk/project/`).** Each test's run is timed and
   its duration stored beside its result (a `duration_ms` column a store made before gains, empty for its old rows);
   project gives `tests_overview` (each test: kinds, assets it runs on, last run, last duration, passes and failures),
   `test_log(name, limit=100)` (its newest runs across the fleet) and `asset_log(asset_id, limit=100, search=None)` (the
   asset's newest results, filtered by test, result and words in the reason). Nothing is deleted.
-- **9.2 Last run in the asset window (`solarpunk/ui/asset_window.py`).** The diagnostics table gains each test's last-run
+- **9.4 Last run in the asset window (`solarpunk/ui/asset_window.py`).** The diagnostics table gains each test's last-run
   instant (and duration); a test never run reads "never".
-- **9.3 The Tests window (`solarpunk/ui/tests_window.py`).** "Tests" beside "Reports" in the fleet window: every remote
+- **9.5 The Tests window (`solarpunk/ui/tests_window.py`).** "Tests" beside "Reports" in the fleet window: every remote
   test with its kinds, asset count, last run, duration and pass/fail counts; selecting one shows its last 100 runs
   (asset, instant, result, reason, duration), failures red.
-- **9.4 The asset's history (`solarpunk/ui/history.py`).** From the asset window, "History": the asset's last 100 results
+- **9.6 The asset's history (`solarpunk/ui/history.py`).** From the asset window, "History": the asset's last 100 results
   in a table with a search box (test, result, words in the reason), and a timeline drawn on a canvas, one row per test,
   one mark per run, green a pass and red a failure, its time axis in UTC; the pure half headless, as `chart.py` is.
-- **9.5 Tune-up pass 9.**
+- **9.7 Tune-up pass 9.**
 
 ### Phase 10: the network's security
 
