@@ -20,10 +20,6 @@ question a later item depends on is copied into that item's text, so the item re
 
 Lanes (P-15): 1.1 to 1.5 are built in parallel by separate workers and landed in this order; 1.6 and 1.8 in parallel after them, then 1.7.
 
-### 1.6 The orchestrator and the mirror
-
-Check: `solarpunk/project/` with `open_store`, `assign_fault` (refuses an asset the fleet lacks), `kpis_for`; `test/solarpunk/test_project.py` green over the OAHE fixture end to end; `test/solarpunk/test_mirror.py`, written from `docs/CONTRACT.md` alone by a worker whose brief forbids `solarpunk/kpi/`, agrees with the engine on all four worked examples; every mutant killed or explained.
-
 ### 1.7 The thin CLI
 
 Check: `python3 -m solarpunk.cli` with `fleet`, `fault`, `telemetry`, `kpi`, `clauses` subcommands, each one call into project; `test/solarpunk/test_cli.py` green; `solarpunk/cli/` imports project alone (MOD-02, `test/test_modules.py`).

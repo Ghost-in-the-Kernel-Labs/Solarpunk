@@ -8,6 +8,9 @@ from solarpunk.leaf import codes
 from solarpunk.leaf.clock import at
 from solarpunk.leaf.codes import CATALOGUE, Severity, UnknownFaultCode
 from solarpunk.leaf.faults import Fault
+from solarpunk.leaf.clock import Period
+from solarpunk.leaf.telemetry import Sample, gap
+from solarpunk.kpi import availability
 
 ROOT = Path(__file__).resolve().parents[3]
 ENTRY = re.compile(r"^### ([A-Z]{1,3}-\d{3}): .*?(?=^### |^## |\Z)", re.MULTILINE | re.DOTALL)
@@ -28,6 +31,17 @@ def sections_with_a_formula(contract: str) -> dict[str, str]:
 
 
 class Iso9001(unittest.TestCase):
+    def test_a_kpi_reports_its_gaps_beside_the_number(self) -> None:
+        """Clause: 9001-9.1.3
+        A KPI says how many of its expected samples were missing: the contract's SOL-07 example, with one gap at 10:40,
+        reports gaps 1 beside availability 0.7, never the number alone."""
+        period = Period(at(2026, 6, 1, 10), at(2026, 6, 1, 11))
+        faults = (Fault(1, "OAHE-SIT-001", "SIT-002", at(2026, 6, 1, 10, 5), at(2026, 6, 1, 10, 15)),
+                  Fault(2, "OAHE-INV-001", "INV-001", at(2026, 6, 1, 10, 10), at(2026, 6, 1, 10, 30)))
+        samples: tuple[Sample, ...] = (gap("OAHE-INV-001", at(2026, 6, 1, 10, 40)),)
+        result = availability(period, faults, samples)
+        self.assertEqual((result.value, result.gaps), (0.7, 1))
+
     def test_every_decision_has_a_why_and_a_holder(self) -> None:
         """Clause: 9001-7.5.2
         Each entry in theGhost.md carries a non-empty Why and Held by line."""
