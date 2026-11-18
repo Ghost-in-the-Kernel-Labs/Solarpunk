@@ -39,3 +39,4 @@ Written from `docs/journal/` by `scripts/journal_index.py`; do not edit by hand.
 | J-033 | 5.1: one word on Windows, and the remote tests listed, run and scaffolded from the command line | feature | `J-000-099.md` |
 | J-034 | The cold gate: a refused cold run is fine; the warm gate is the one that counts | decision | `J-000-099.md` |
 | J-035 | 5.2: the help list behind `solarpunk --help` | feature | `J-000-099.md` |
+| J-036 | The goal written down: five areas under one click | direction | `J-000-099.md` |

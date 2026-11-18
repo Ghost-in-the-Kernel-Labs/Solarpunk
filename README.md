@@ -42,5 +42,5 @@ check before a landing (`scripts/commit.sh`), `scripts/ship.sh` the only push to
 
 ## Where to read next
 
-An agent starts at `CLAUDE.md`. The numbers, their invariants and their hand-checkable examples are in
+An agent starts at `CLAUDE.md`. Where the product is going, in Ghost's words, is `docs/GOAL.md`. The numbers, their invariants and their hand-checkable examples are in
 `docs/CONTRACT.md`.
