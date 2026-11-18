@@ -1,0 +1,8 @@
+[
+  {"kind": "SITE", "description": "d", "fields": {}, "tests": [], "passing": "p"},
+  {"kind": "INVERTER", "description": "d", "fields": {"power_kw": {"unit": "kW", "min": 0, "max": null}},
+   "tests": ["reachable"], "passing": "p"},
+  {"kind": "STRING", "description": "d", "fields": {}, "tests": [], "passing": "p"},
+  {"kind": "TRACKER", "description": "d", "fields": {}, "tests": ["reachable"], "passing": "p"},
+  {"kind": "SENSOR", "description": "d", "fields": {}, "tests": [], "passing": "p"}
+]

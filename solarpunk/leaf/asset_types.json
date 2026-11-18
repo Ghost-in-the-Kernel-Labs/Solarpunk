@@ -1,0 +1,55 @@
+[
+  {
+    "kind": "SITE",
+    "description": "A solar plant: the point of interconnection and everything behind it. It has no feed of its own; its numbers are the sum of its assets'.",
+    "fields": {},
+    "tests": [],
+    "passing": "A site has no remote test of its own; its status is its assets' statuses."
+  },
+  {
+    "kind": "INVERTER",
+    "description": "Turns its strings' direct current into grid alternating current; the asset whose output the KPIs count.",
+    "fields": {
+      "irradiance_w_m2": {"unit": "W/m2", "min": 0, "max": 1500},
+      "power_kw": {"unit": "kW", "min": 0, "max": null},
+      "temperature_c": {"unit": "°C", "min": -40, "max": 90}
+    },
+    "tests": ["reachable", "on_grid", "irradiance_in_range", "power_under_rated", "night_power_near_zero"],
+    "passing": "The endpoint answers within the timeout with a sample whose every field is in range, power at or under the inverter's rated_kw and near zero at night."
+  },
+  {
+    "kind": "STRING",
+    "description": "A series chain of panels feeding one inverter input. It has no feed of its own; its current is read through its inverter.",
+    "fields": {},
+    "tests": [],
+    "passing": "A string has no remote test of its own; a fault on it is raised from its inverter's data."
+  },
+  {
+    "kind": "TRACKER",
+    "description": "A single-axis tracker turning a row of panels to follow the sun, stowing flat in high wind.",
+    "fields": {
+      "angle_deg": {"unit": "deg", "min": -60, "max": 60}
+    },
+    "tests": ["reachable", "tracker_moving"],
+    "passing": "The endpoint answers within the timeout with an angle in range that changes over the day."
+  },
+  {
+    "kind": "METER",
+    "description": "The revenue meter at the point of interconnection: the energy the plant is paid for.",
+    "fields": {
+      "energy_kwh": {"unit": "kWh", "min": 0, "max": null}
+    },
+    "tests": ["reachable", "energy_monotonic"],
+    "passing": "The endpoint answers within the timeout with an energy count at or above zero that never falls from one sample to the next."
+  },
+  {
+    "kind": "SENSOR",
+    "description": "A weather station: plane-of-array irradiance and temperature, the denominator of the performance ratio.",
+    "fields": {
+      "irradiance_w_m2": {"unit": "W/m2", "min": 0, "max": 1500},
+      "temperature_c": {"unit": "°C", "min": -40, "max": 90}
+    },
+    "tests": ["reachable", "irradiance_in_range"],
+    "passing": "The endpoint answers within the timeout with irradiance and temperature both in range."
+  }
+]

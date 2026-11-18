@@ -66,3 +66,9 @@ Done 2026-11-18 (J-014). Check: `python3 -m solarpunk.cli` with `fleet`, `fault`
 ### 1.9 Tune-up pass 1
 
 Done 2026-11-18 (J-015). Check: `docs/when/tune-up.md` followed in full: the full gate twice, the navigation log reviewed and its "Last review" set, the metrics table written, the stamped TypeScript-only tests under `test/test_stacks.py` pruned or their skip explained. ✓ cold gate 2.35 min, warm 2.45 min, fast loop 21.3 s; eight debriefs reviewed, four converging complaints fixed in the stack README, the brief rules, process.md and long-run.md; the 19 TypeScript-only skips explained in HANDOFF (a Core fix, not a pruning here).
+
+## Phase 2: the feed, the remote tests, the clock
+
+### 2.1 The asset maintenance list
+
+Done 2026-11-18 (J-016). Check: `docs/ASSET-MAINTENANCE-LIST.md` with one section per `AssetKind` (what the asset is; the fields its feed answers with and each field's expected range; the remote tests that apply; what a passing response is) and `solarpunk/leaf/asset_types.json` holding the same as data (`kind`, `description`, `fields` as name → {unit, min, max}, `tests`); `solarpunk/leaf/asset_types.py` loads it (`asset_type(kind)`, `kinds()`, `fields_of(kind)`) and refuses a kind the list lacks; `scripts/checks/asset_types.py` holds document and JSON together (every kind in both, every field named in the document present in the JSON) with a planted break under `test/fixtures/broken/asset_types/` rejected by `test/test_asset_types.py` (C-013); `test/solarpunk/test_asset_types.py` green; every mutant killed or explained. ✓ six kinds in document and JSON, the check both ways with its two planted breaks; the loader refuses an unknown kind or field (SOL-03); no new survivor.

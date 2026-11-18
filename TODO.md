@@ -24,10 +24,6 @@ Lanes (P-15): 1.1 to 1.5 are built in parallel by separate workers and landed in
 
 Lanes (P-15): 2.1 first (the list every other lane reads), then 2.2 to 2.6 in parallel, landed in this order; 2.7 after them.
 
-### 2.1 The asset maintenance list
-
-Check: `docs/ASSET-MAINTENANCE-LIST.md` with one section per `AssetKind` (what the asset is; the fields its feed answers with and each field's expected range; the remote tests that apply; what a passing response is) and `solarpunk/leaf/asset_types.json` holding the same as data (`kind`, `description`, `fields` as name → {unit, min, max}, `tests`); `solarpunk/leaf/asset_types.py` loads it (`asset_type(kind)`, `kinds()`, `fields_of(kind)`) and refuses a kind the list lacks; `scripts/checks/asset_types.py` holds document and JSON together (every kind in both, every field named in the document present in the JSON) with a planted break under `test/fixtures/broken/asset_types/` rejected by `test/test_asset_types.py` (C-013); `test/solarpunk/test_asset_types.py` green; every mutant killed or explained.
-
 ### 2.2 The feed and its simulator
 
 Check: `solarpunk/feed/` with `ping(asset, timeout_s) -> tuple[Sample, ...]` (opens `asset.host:asset.port` over TCP, reads newline-delimited JSON records `{"asset_id", "at", "irradiance_w_m2", "power_kw", "gap"}` until the server closes, refuses a record whose fields are outside the maintenance list's ranges or whose `at` is off the grid, SOL-06), `FeedError(ValueError)` for an unreachable, slow or malformed feed, and `simulate.py` (`python3 -m solarpunk.feed.simulate OAHE-INV-001 --port 5020 --seed 7 --day 2026-06-01` serves the generator's samples for that day, one record per line, then closes; `--once` answers one connection and exits); `test/solarpunk/test_feed.py` starts the simulator on an ephemeral port in a thread and pings it, and covers each refusal; every mutant killed or explained.
