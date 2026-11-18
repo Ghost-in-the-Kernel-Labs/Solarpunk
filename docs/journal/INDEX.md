@@ -30,3 +30,4 @@ Written from `docs/journal/` by `scripts/journal_index.py`; do not edit by hand.
 | J-024 | Tune-up pass 2: two armed metrics regressed and were brought back; the cold run's target is Ghost's question | measurement | `J-000-099.md` |
 | J-025 | 3.1: the fleet window landed; a UI lane must survive a missing tkinter, not only a missing display | feature | `J-000-099.md` |
 | J-026 | 3.2: the asset window landed; mutmut's verdicts under xvfb are not to be trusted | failure-caught | `J-000-099.md` |
+| J-027 | 3.3: the add-asset window landed; the type dropdown reads the maintenance list | feature | `J-000-099.md` |
