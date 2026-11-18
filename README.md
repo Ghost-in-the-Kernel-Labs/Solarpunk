@@ -41,10 +41,12 @@ moving only once origin takes it (SP-014), and the full `scripts/gate.sh` runs a
 - Phase 5, one word to run it (`solarpunk`, `solarpunk --help`, the `test` commands): done.
 - Phase 6, reports and diagnostics (the power-output report, four inverter diagnostics, their windows): done.
 - Phase 7, faults suggested by tests, assigned by engineers (and the gate hardened): done.
-- Phase 8, held for a ticketing system reached by its API (Jira or another), to be planned (SP-021).
-- Phase 9, the tests and their record (what a test is, suites, a Tests window, each asset's history): not started
-  (SP-016, SP-019).
-- Phase 10, the network's security: not started; a design pass first.
+- Phase 8, local tickets (status flow, priorities, response targets, behind an adapter): not started (SP-022).
+- Phase 9, accounts and authentication (every act attributed to a signed-in account): not started (SP-022).
+- Phase 10, the tests and their record (what a test is, suites, a Tests window, each asset's history): not started
+  (SP-016, SP-019, SP-020).
+- Phase 11, the network's security (the feed, the receiver, and the central server's design): not started.
+- Phase 12, the network (a central server with many clients, planned from Phase 11's decisions): not started.
 
 `docs/ROADMAP.md` holds the plan, `TODO.md` the open items in order, `docs/DONE.md` what is finished;
 `test/test_readme.py` holds each line above to those two files.

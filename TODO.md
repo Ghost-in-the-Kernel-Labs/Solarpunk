@@ -44,87 +44,167 @@ Lanes (P-15): 6.1 and 6.2 in parallel, landed in that order (done, J-041); 6.3 a
 
 Lanes (P-15): 7.1 (done, J-050), then 7.2 and 7.3 (SP-017, put ahead by Ghost), then 7.4 (it needs 7.1's `assigned_by`), then 7.5, then 7.6 the pass. Ghost's direction, SP-015.
 
-## Phase 8: held for the ticketing system
+## Phase 8: local tickets
 
-Withdrawn with SP-018 by SP-021: the cause by email is off the roadmap. This number is held, with no items, for the
-ticketing phase Ghost will plan.
+Lanes (P-15): 8.1 first (the contract), then 8.2, then 8.3, then 8.4, then 8.5 the pass. Ghost's direction, SP-021 and
+SP-022.
 
-## Phase 9: the tests' record, at the root and per asset
+### 8.1 The ticket contract
 
-Lanes (P-15): 9.1 and 9.2 first (SP-019: what a test is, and the suites), then 9.3 (a test's own reads) and 9.4 (reactions, which need suites; SP-020), then 9.5 (the surface every window reads), then 9.6, 9.7 and 9.8 in parallel, then 9.9 the pass. Moved after Phase 8 by SP-018. Ghost's direction, SP-016.
+What a ticket is, written before the code (SP-022): its statuses and moves, its priority, its targets, and which
+fields a remote tracker could ever own.
 
-### 9.1 What a test looks like
+Check: `docs/CONTRACT.md` gains a ticket section: the statuses (open, acknowledged, in progress, resolved, closed) and every allowed move between them; priority from the fault's severity (OUTAGE, DERATE, INFO); for each priority an acknowledgement and a response target, Ghost's to set (Claude's proposal written beside them, marked as such), with a worked example of a ticket meeting one target and breaching the other; the fields a remote tracker would own (the working assignee, comments, scheduling) and those Solarpunk keeps (the code, who assigned, the root cause, the open and close instants the KPIs read); the leaf holds the statuses, the moves and the targets, tested against the section; the fast loop green.
+
+### 8.2 The ticket ledger
+
+A work order grows into a ticket, opened when an engineer assigns a fault (SP-022).
+
+Check: `solarpunk/workorders/` stores a ticket's status, priority, working assignee, acknowledged and responded instants, comments (each with its author and instant, never edited or deleted) and closeout evidence; a store made before gains the columns on opening; `project.assign_fault` opens the fault's corrective ticket in the same call, a suggestion never opens one; a move the contract forbids is refused; closing needs a root cause from the closed list and closes the fault (4.1); a ticket past a target is reported by a query; the KPIs are unchanged (the ISO and KPI tests unchanged); the fast loop green.
+
+### 8.3 The adapter and the local tracker
+
+The ticket ledger behind an interface every tracker implements, the local one first (SP-022).
+
+Check: the module entry for the adapters approved by Ghost in `docs/modules.json` before any code; a sink (create, update, comment, transition) and a source (changes since a cursor) interface; an outbox table written in the same transaction as the ledger change and drained by the scheduled run, so a tracker that is down never blocks the ledger; the local adapter; a contract suite of tests every adapter must pass, run against the local one; the fast loop green.
+
+### 8.4 Tickets in the windows and on the command line
+
+The tickets where people work (SP-022).
+
+Check: a Tickets window opened from the fleet window lists the open tickets ordered by the nearest target, a breach in red; the asset window shows its asset's ticket with Acknowledge, Comment and Resolve (Resolve taking a root cause from the closed list); `solarpunk ticket list|ack|comment|resolve`; each window's screenshot read back under xvfb; the fast loop green.
+
+### 8.5 Tune-up pass 8
+
+Check: `docs/when/tune-up.md` followed in full; the metrics table written; the navigation log's "Last review" set.
+
+## Phase 9: accounts and authentication
+
+Lanes (P-15): 9.1, then 9.2 and 9.4 in parallel, then 9.3, then 9.5 the pass. Ghost's direction, SP-022.
+
+### 9.1 Accounts
+
+Who may act, stored without ever storing a password (SP-022).
+
+Check: the module entry for accounts approved by Ghost in `docs/modules.json` before any code; an accounts table (email, name, role engineer, operator or admin, active, created) and a password check by `hashlib.scrypt` with a per-account salt and its parameters stored beside the hash; no password or hash in any log line, message, mail or test literal (a test's password assembled at runtime); an engineer address the fleet names with no engineer account is flagged by a query; the fast loop green.
+
+### 9.2 Signing in
+
+The windows and the command line know who is at them (SP-022).
+
+Check: the windows open on a sign-in dialog and refuse to open the fleet window without a good one; the command line asks with `getpass` for a command that acts; a failed sign-in is recorded with its account and instant, never its password; the scheduled run acts as no person and attributes nothing to one; the window tests sign in a test account; the fast loop green.
+
+### 9.3 Attribution from the account
+
+Every act carries the signed-in account (SP-022, SP-015).
+
+Check: assigning a fault, accepting or dismissing a suggestion and every ticket action take the signed-in account in place of a chosen address: an engineer acts as themself, an operator enters on a named engineer's word (recorded as entered by the operator), an admin who is not an engineer assigns nothing; the "Assigned by" dropdown is gone from the window; the CLI's `--by` is the signed-in account; a fault and a ticket record the account; the fast loop green.
+
+### 9.4 Account administration
+
+Accounts are made, reset and stopped, never deleted (SP-022).
+
+Check: an admin creates an account, resets a password and deactivates an account (records keep its name; it cannot sign in); the first admin is made by `solarpunk account init` on the machine, once; `solarpunk account add|reset|deactivate|list`; the fast loop green.
+
+### 9.5 Tune-up pass 9
+
+Check: `docs/when/tune-up.md` followed in full; the metrics table written; the navigation log's "Last review" set.
+
+## Phase 10: the tests' record, at the root and per asset
+
+Lanes (P-15): 10.1 and 10.2 first (SP-019: what a test is, and the suites), then 10.3 (a test's own reads) and 10.4 (reactions, which need suites; SP-020), then 10.5 (the surface every window reads), then 10.6, 10.7 and 10.8 in parallel, then 10.9 the pass. Moved after Phases 8 and 9 by SP-022. Moved after Phase 8 by SP-018. Ghost's direction, SP-016.
+
+### 10.1 What a test looks like
 
 A remote test's contract written down and held by a check (SP-019), so a test is written to a page, not copied from
 its neighbour.
 
 Check: `docs/REMOTE-TESTS.md` states a remote test's contract: its module's fields (`KINDS`, `CLAUSES`, `SUGGESTS`, `run`) and what each must hold; that `run(asset, samples)` reads only what it is given (no store, no network, no clock) and returns a `Result`; the reason's shape (the first offending record with its instant, or a count when it passes); every threshold a named module constant with a comment saying why; a docstring with at least one passing and one failing case; its name in the asset maintenance list's `Tests:` line for each of its kinds; `scripts/checks/remote_tests.py` holds every module in `solarpunk/remote/tests/` to what a check can see (the fields, the docstring's cases, the maintenance-list lines, no import of a store, network or clock module), with a planted break under `test/fixtures/broken/remote_tests/`; `solarpunk test add`'s scaffold meets it but for `run`; the fast loop green.
 
-### 9.2 The suites folder
+### 10.2 The suites folder
 
 Tests run in named suites, each with its own reach and cadence (SP-019); a suite is a Python module of declarations
 (SP-020).
 
 Check: a suite is a module in `solarpunk/remote/suites/` declaring `TESTS` (names the registry holds), `KINDS` and `SITES` (its reach) and `CADENCE` (a value of a closed set: every run, hourly, daily at an hour), and nothing else of its own; the registry finds every suite as it finds every test, refusing one with a test, kind or cadence it lacks, or with a function of its own; the scheduled run runs each suite due at its instant and stores its results as today, a result carrying its suite; `solarpunk suite list` prints each suite with its tests and cadence, `suite run NAME [--db PATH]` runs one now, `suite add NAME --test T [--kind K] [--cadence C]` writes one; the default suite `all` runs every test on every run, so a store with no other suite behaves as before; the fast loop green.
 
-### 9.3 A test's own reads
+### 10.3 A test's own reads
 
 A test that needs readings the stored samples cannot give (power once a second for a minute) declares them, and the
 runner takes them; the test itself stays a pure judgement (SP-020).
 
 Check: a test may declare `ACQUIRE`, a value of a closed set (`Burst(field, every_s, for_s)` first), held by the registry; the feed (`solarpunk/feed/`) gains a live-read mode answering one current reading per request, and the simulator serves it from its day; the runner, for a test with `ACQUIRE`, takes the reads through the feed (each read's instant kept) and hands them to `run`, which reads nothing else; a test without `ACQUIRE` judges the stored samples as today; a first burst test (power ripple over a minute) with its threshold and why; the tests use the simulator, never a real asset, and a burst's duration is shortened in them by a parameter, never by sleeping a minute; the fast loop green.
 
-### 9.4 Reactions
+### 10.4 Reactions
 
 What a failure does is declared per test from a closed vocabulary, checked at load, and printed (SP-020).
 
 Check: a test declares `REACTIONS`, per kind a tuple of actions from a closed set (`Suggest(code)`, `Mail()`, `RunSuite(name)`, `OpenPreventive(note)`), replacing `SUGGESTS` (each test's rule becomes a `Suggest`, results unchanged); the registry refuses an unknown action, a code not of the kind's, a suite the folder lacks, and a chain where a suite started by a reaction would start itself, directly or through another, or run deeper than a stated limit; the scheduled run carries out each failing test's reactions, recording each; `solarpunk test list` prints each test's reactions; no action commands equipment; the fast loop green.
 
-### 9.5 The record's surface and the timing
+### 10.5 The record's surface and the timing
 
 The scheduled run times each test, and project gives the three views the windows read; every result is kept (SP-016).
 
 Check: the results table gains `duration_ms` (a store made before gains the column on opening, its old rows empty); the scheduled run and `solarpunk test run` store each test's duration; `project.tests_overview(conn)`, `project.test_log(conn, name, limit=100)` and `project.asset_log(conn, asset_id, limit=100, search=None)` (search matching the test name, "pass"/"fail" and words in the reason) are tested over a store holding more than 100 runs, newest first, nothing deleted; a result with no duration reads None, never 0; the fast loop green.
 
-### 9.6 Last run in the asset window
+### 10.6 Last run in the asset window
 
 Each test in the asset's diagnostics shows when it last ran and how long it took (SP-016).
 
 Check: `solarpunk/ui/asset_window.py`'s diagnostics table has columns for the last-run instant and the duration, "never" for a test never run on the asset, "—" for a duration not recorded; `test/solarpunk/test_ui_asset.py` holds both; a screenshot read back under xvfb; the fast loop green.
 
-### 9.7 The Tests window
+### 10.7 The Tests window
 
 The master list from the root of the window: every test, its run time, and its last 100 runs (SP-016).
 
 Check: `solarpunk/ui/tests_window.py` opens from a "Tests" button in the fleet window; it lists `project.tests_overview` (name, kinds, assets, last run, duration, passes, failures) and, for the selected test, `project.test_log` (asset, instant, result, reason, duration), failures red; `test/solarpunk/test_ui_tests.py` builds it under xvfb over the demo store with its pure half headless; a screenshot read back; the fast loop green.
 
-### 9.8 The asset's history
+### 10.8 The asset's history
 
 The asset's last 100 results, searchable and graphed (SP-016).
 
 Check: `solarpunk/ui/history.py` opens from a "History" button in the asset window; a table of `project.asset_log` with a search box that narrows it; a canvas timeline, one row per test, one mark per run, green a pass and red a failure, the time axis in UTC, its geometry pure functions tested headless (as `solarpunk/ui/chart.py`'s are); `test/solarpunk/test_ui_history.py` under xvfb over a store with more than 100 runs of an asset; a screenshot read back; the fast loop green.
 
-### 9.9 Tune-up pass 9
+### 10.9 Tune-up pass 10
 
 Check: `docs/when/tune-up.md` followed in full; the metrics table written; the navigation log's "Last review" set.
 
-## Phase 10: the network's security
+## Phase 11: the network's security
 
-Lanes (P-15): 10.1 alone, then the items its decisions call for, then the pass. Moved after Phase 6 by SP-013, after Phase 7 by SP-015 after Phase 8 by SP-016 and after Phase 9 by SP-018.
+Lanes (P-15): 11.1 alone, then the items its decisions call for, then the pass. Moved after Phase 6 by SP-013, after Phase 7 by SP-015 after the tests' record by SP-016, and after tickets and accounts by SP-022.
 
-### 10.1 Network security: an engineering pass over the feed and the receiver
+### 11.1 Network security: an engineering pass over the feed and the receiver
 
 The feed and the receiver use plain TCP. The receiver accepts asset identifiers and fault codes, but the implementation
 establishes neither an authenticated device identity nor an encrypted transport; it also defaults to localhost. That is
 reasonable for the demonstration. A production deployment needs: authenticated asset connections; transport
 encryption; authorization of fault submissions; replay protection; network segmentation and deployment controls. The
-2026-11-18 advisor's research is the pass's starting point (`docs/ROADMAP.md` 10.1): the industry's addressing (host,
+2026-11-18 advisor's research is the pass's starting point (`docs/ROADMAP.md` 11.1): the industry's addressing (host,
 port, protocol, unit id, register map; Modbus TCP and SunSpec at the device), its security references (Modbus/TCP
 Security, IEC 62351, IEC 62443, NERC CIP-003), and a sixth threat, spoofed telemetry from whatever answers at a feed's
-host and port.
+host and port. Since SP-022 the pass also designs Phase 12's central server: its authenticated API, the accounts
+and tokens on the wire, TLS, and whether the server may use a vetted dependency (Python's `http.server` is not for
+production), with Phase 9's accounts as the identities.
 
 Check: `docs/NETWORK-SECURITY.md` holds the pass: what the feed (`solarpunk/feed/`) and the receiver (`solarpunk/receiver/`) do on the wire today, a threat model for each, and for each of the five needs (authenticated asset connections, transport encryption, authorization of fault submissions, replay protection, network segmentation and deployment controls) a proposed decision in `docs/decisions.md` with the options weighed, what the standard library alone can carry and what would need a dependency (Ghost's approval, C-034); the items that build each decision Ghost puts in force are added to this phase before its pass (the pass renumbered to the phase's end). No code changes in this item: the design is Ghost's to rule on first.
 
-### 10.2 Tune-up pass 10
+### 11.2 Tune-up pass 11
 
 Check: `docs/when/tune-up.md` followed in full; the metrics table written; the navigation log's "Last review" set.
+
+## Phase 12: the network
+
+Lanes (P-15): 12.1, then the items it writes, then the pass. Ghost's direction, SP-022: a central server with many
+clients, planned from Phase 11's decisions.
+
+### 12.1 The server's plan
+
+One Solarpunk server holds the store; the desktop windows on many machines and a future phone app are its clients over
+one authenticated API (SP-022). Its items wait on Phase 11's decisions, so this item writes them.
+
+Check: from the decisions Phase 11 puts in force, the items that build the server, its API, the desktop as its client and the app's surface are written into `docs/ROADMAP.md` and this phase, each with its check, before this phase's pass (renumbered to the phase's end); no code in this item.
+
+### 12.2 Tune-up pass 12
+
+Check: `docs/when/tune-up.md` followed in full; the metrics table written; the navigation log's "Last review" set.
+

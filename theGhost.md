@@ -526,7 +526,7 @@ The core decisions above are inherited (Core C-001 to C-040); this project's beg
 - **Held by:** `docs/ROADMAP.md` Phase 3, §4.
 - **Source:** Ghost, 2026-11-17, in chat; the toolkit is the coordinator's proposal, in force by Ghost's word of 2026-11-17 23:25 to clear the roadmap (C-040); Ghost may still refuse it by a superseding decision.
 - **Status:** in force
-- **See also:** SP-004, SP-006
+- **See also:** SP-004, SP-006, SP-022 (a central server after the security pass; the UI stays native)
 - **subject:** front end
 
 ### SP-008: Assets push their own error codes to the central receiver
@@ -658,3 +658,13 @@ The core decisions above are inherited (Core C-001 to C-040); this project's beg
 - **See also:** SP-018, SP-009, SP-015
 - **subject:** ticketing
 
+
+### SP-022: Local tickets first; then accounts and auth; then, after the security pass, a central server with many clients
+- **Decision:** issues are tracked in Solarpunk's own ticket ledger first (Phase 8): a work order grows into a ticket with a status flow, a priority, a working assignee, acknowledgement and response timers, comments and closeout evidence, behind an adapter interface whose first implementation is local, so a tracker such as Jira can be added later as one adapter, held by a contract suite both pass. A ticket is opened when an engineer assigns a fault, never from a suggestion. Then accounts and authentication on one machine (Phase 9): users with roles (engineer, operator, admin), passwords hashed with `hashlib.scrypt` and never stored or shown, the windows and the command line signed in, and every assignment, acceptance, dismissal and closure attributed to the signed-in account (an operator entering on an engineer's word recorded as such, SP-015), so attribution is authenticated, not chosen from a dropdown. Then the tests' record (Phase 10, was 9), the network's security pass expanded to cover a central server, its API, accounts on the wire, tokens and TLS (Phase 11, was 10), which also decides whether the server may use a vetted dependency (Python documents its own `http.server` as not for production), and last the central server holding the store, the desktop windows on many machines and a future phone app its clients over one authenticated API (Phase 12), planned from Phase 11's decisions. The UI stays native; nothing a browser opens.
+- **Why:** Ghost, 2026-11-18, of the advisor's ticketing report (J-060): "go with local for now then. However we will need to implement network, account and auth." His rulings the same day: network first means a central server with many clients; the order tickets, accounts, the tests' record, security, then the network; a server's dependency decided at the security pass. The dropdown of SP-015 lets anyone at the keyboard choose any engineer; an account with a password makes the record's "who" true.
+- **Supersedes:** SP-007, in part: its "No web server" and ROADMAP §4's "a REST service", for Phase 12's server, which follows the security pass. The rest of SP-007 (the native tkinter UI, nothing a browser opens) stands, so its Status stays `in force` and its See also names SP-022.
+- **Held by:** `docs/ROADMAP.md` §4 and Phases 8, 9, 11, 12; `TODO.md`.
+- **Source:** Ghost, in chat, 2026-11-18.
+- **Status:** in force
+- **See also:** SP-007, SP-015, SP-021, SP-011
+- **subject:** tickets and accounts
