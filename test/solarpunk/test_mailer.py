@@ -134,7 +134,7 @@ class WithFakeServer(unittest.TestCase):
     def setUp(self) -> None:
         """A running fake: self.server.commands is [] until a client speaks."""
         self.server = FakeSmtpServer(self.auth_reply)
-        threading.Thread(target=self.server.serve_forever, daemon=True).start()
+        threading.Thread(target=self.server.serve_forever, kwargs={"poll_interval": 0.02}, daemon=True).start()
         self.addCleanup(self.server.server_close)
         self.addCleanup(self.server.shutdown)
 

@@ -26,7 +26,10 @@ task: `docs/when/handoff.md`.
   before the checks read them; `docs/AGENT.md` (the metrics table) and `docs/MUTATION.md` are the coordinator's at
   landing, so a red `test_metrics` on the lane's own tree is expected; whether mutation runs over the whole tree, and
   that survivors in another module are not the lane's; and that TODO.md, DONE.md, the journal and the navigation log
-  are the coordinator's, the debrief riding in the report (SP-005).
+  are the coordinator's, the debrief riding in the report (SP-005). When the lane's design changes what another lane's
+  test pins (a table list, a count), the brief says so and gives the deselect recipe (`PYTEST_ADDOPTS="--deselect
+  <file>::<test>"` for the mutation run), and the coordinator updates the pin at landing (J-023); the modules check reads
+  indented and `__main__` imports too, so an import under `if __name__` is not exempt (J-021).
 - The working set is the Start-here files of the routing row the item matches, plus the files the
   item names; nothing else. Say explicitly what the agent may and may not do: agents read silence
   literally.

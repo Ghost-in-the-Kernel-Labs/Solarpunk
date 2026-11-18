@@ -84,7 +84,8 @@ Worked example, twelve intervals (one hour), one inverter: a grid curtailment `S
 intervals 1 and 2 (10:05, 10:10); the inverter carries `INV-001` (OUTAGE) over intervals 2 to 5
 (10:10 to 10:25 inclusive); interval 8 is a gap. `expected = 12`, `excluded = 2` (1, 2),
 `contractual = 10`, `down = 3` (3, 4, 5: interval 2 is excluded first), `availability = 7/10 = 0.7`,
-`gaps = 1`. Held by `solarpunk/leaf/kpi_defs.py` (`EXCLUDED_CODES`) and lane 1.4's golden.
+`gaps = 1`. `gaps` counts every gap sample handed to the KPI (J-010). Held by `solarpunk/leaf/kpi_defs.py`
+(`EXCLUDED_CODES`) and `test/solarpunk/test_kpi.py`'s golden.
 
 ## SOL-08 Performance ratio is yield over reference yield
 
@@ -100,27 +101,36 @@ counted in `unreliable`. `STC_IRRADIANCE_W_M2` is 1000.0. A period whose site ca
 intervals' count, never without. Worked example: one inverter rated 100 kW, three samples at
 irradiance 500, 1000, 0 W/m² producing 45, 92, 0 kW: `energy_kwh = (45 + 92 + 0) × 5/60 = 11.4167`,
 `reference_kwh = 100 × (0.5 + 1.0 + 0.0) × 5/60 = 12.5`, `performance_ratio = 0.9133` (four
-decimals). Held by `solarpunk/leaf/kpi_defs.py` (`STC_IRRADIANCE_W_M2`) and lane 1.4's golden.
+decimals). A sample enters both sums only with both an irradiance and a power; otherwise, a gap included, it is left out
+and counted once in `unreliable`, and the intervals a `SEN-001` fault covers are added to `unreliable` as distinct
+instants, so an instant both missing its irradiance and covered counts twice (J-010; a union is a later decision). A
+sample whose asset is unknown to the fleet passed, or whose asset has no `rated_kw`, is refused (SOL-03), never read as
+zero. Held by `solarpunk/leaf/kpi_defs.py` (`STC_IRRADIANCE_W_M2`) and `test/solarpunk/test_kpi.py`'s golden.
 
 ## SOL-09 Energy yield is metered first, estimated second
 
 A site's energy yield over a period is the revenue meter's energy where the meter carried no
 `MTR-001` over the period, and the sum of its inverters' `energy_kwh` (SOL-08) where it did; the
-KPI reports which (`source` is `meter` or `inverters`), never a number alone. Held by lane 1.4's
-golden and its two-source test.
+KPI reports which (`source` is `meter` or `inverters`), never a number alone. With no meter reading given the
+source is `inverters`, 0.0 kWh when there are no samples (J-012); the meter is lost when any `MTR-001` fault on the
+site's meter overlaps the span from the first sample to the last plus one interval; `site` selects the samples and the
+faults by the site part of their asset ids (J-010). Held by `test/solarpunk/test_kpi.py`'s golden and its two-source
+test.
 
 ## SOL-10 MTBF and MTTR are per asset kind, from closed faults
 
 Over a period and one asset kind, from faults whose code's severity is OUTAGE and whose
-`[opened, closed)` lies within the period:
+`[opened, closed)` lies within the period (`opened` at or after the start and `closed` at or before the end: an
+outage that crosses either edge is left out whole, not clipped, J-010):
 
     mttr_h = Σ (closed − opened) / count                    (None when count is 0)
     mtbf_h = (assets × period_hours − Σ (closed − opened)) / count
 
 where `assets` is the number of assets of that kind in the fleet. An open fault (no `closed`) is
-excluded from both and counted in `open`. Worked example: two inverters, a 24-hour period, two
-closed outages of 2 h and 4 h: `mttr_h = 3.0`, `mtbf_h = (48 − 6) / 2 = 21.0`. Held by lane 1.4's
-golden.
+excluded from both and counted in `open` when it opened inside the period; `assets` counts the assets of that kind in
+the fleet handed to the KPI, and a fault on an asset not among them is ignored. Worked example: two inverters, a
+24-hour period, two closed outages of 2 h and 4 h: `mttr_h = 3.0`, `mtbf_h = (48 − 6) / 2 = 21.0`. Held by
+`test/solarpunk/test_kpi.py`'s golden.
 
 ## SOL-11 A derate is not an outage
 

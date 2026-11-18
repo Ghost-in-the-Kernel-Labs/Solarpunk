@@ -2,12 +2,12 @@
 
 Read `CLAUDE.md` first, then this. `TODO.md` is the chain in order; `docs/DONE.md` is what is finished.
 
-## Where the project stands (2026-11-17, late)
+## Where the project stands (2026-11-18, 03:00)
 
-Phase 0 is through 0.5: the ghost named, the stack wired (full gate green, mutation 19/19), the roadmap written as
-parallel lanes, the KPI contract SOL-01 to SOL-12 with the leaf in code, and SP-002 to SP-008 recorded. 0.6 (Tune-up
-pass 0) is next in the chain. Phase 1's lanes 1.1 to 1.5 are briefed to parallel workers on `agent/<lane>` branches
-(SP-005); the coordinator lands them in order after 0.6.
+Phases 0, 1 and 2 are closed: the fleet, the ledger, synthetic SCADA, the KPI engine with its blind mirror, the clause
+register with its coverage report, the orchestrator and CLI; the asset maintenance list, the feed and its simulator, the
+remote tests and their registry, the receiver, the clock, the mailer, the scheduled run and the UI's surface. Phase 3
+(the tkinter front end and the demo) is next: 3.1 to 3.3 as parallel lanes, 3.4 the demo and DEMO.md, 3.5 the pass.
 
 ## Settled by Ghost (2026-11-17, in chat)
 
@@ -21,6 +21,11 @@ ISO 9001 and ISO 55000 coverage from the test suite as one report; an asset's lo
 email on the asset, a mailer to those engineers on degradation, and the Save/Cancel engineer-assignment window.
 
 ## For Ghost: waiting on you
+
+0. The cold gate (cache-off mutation over 3,195 mutants, each tune-up pass) takes 12.7 min against the 10 min target and
+   `scripts/gate.sh` refuses it at the metrics step by design; the warm gate is 1.5 min. Your word: exempt the cold run's
+   minutes from the target, give the cold run a target of its own (15?), or accept a refused cold run as the pass's
+   measurement. Until then each pass ends with a refused cold run and a passed warm one (J-024).
 
 1. SP-006 to SP-009 are `proposed`: say "in force" (or change them) and the coordinator lands the status.
    The two choices inside them that are the coordinator's, not yours: tkinter as the toolkit (SP-007) and SMTP as

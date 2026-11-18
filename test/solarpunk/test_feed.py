@@ -114,7 +114,7 @@ class ThePing(unittest.TestCase):
     def test_the_simulator_serves_a_day_and_ping_reads_it_whole(self) -> None:
         day = gen.generate((INVERTER,), DAY, 7)
         server = simulate.make_server(day, "127.0.0.1", 0)
-        thread = threading.Thread(target=server.serve_forever)
+        thread = threading.Thread(target=server.serve_forever, kwargs={"poll_interval": 0.02})
         thread.start()
         try:
             asset = replace(INVERTER, port=server.server_address[1])

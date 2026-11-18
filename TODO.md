@@ -24,10 +24,6 @@ Lanes (P-15): 1.1 to 1.5 are built in parallel by separate workers and landed in
 
 Lanes (P-15): 2.1 first (the list every other lane reads), then 2.2 to 2.6 in parallel, landed in this order; 2.7 after them (it joins them in project); 2.8 the pass.
 
-### 2.8 Tune-up pass 2
-
-Check: `docs/when/tune-up.md` followed in full; the six readings of J-010 written into `docs/CONTRACT.md` SOL-07 to SOL-10 as sentences (a tune-up may not change invariants' meaning: the sentences say what the code already does, with the worked examples unchanged — anything that would change a number is a question for Ghost instead); the metrics table written; the navigation log's "Last review" set.
-
 ## Phase 3: the native front end
 
 Lanes (P-15): 3.1 to 3.3 in parallel after 2.7, landed in this order; 3.4 after them.

@@ -108,7 +108,7 @@ class RunFixture(unittest.TestCase):
         """The simulator running and the fleet loaded: self.fed is the 24 samples the simulator serves."""
         self.fed = generator.generate((INVERTER_1,), FED, 7)
         self.feed = simulate.make_server(self.fed, LOCAL, 0)
-        threading.Thread(target=self.feed.serve_forever, daemon=True).start()
+        threading.Thread(target=self.feed.serve_forever, kwargs={"poll_interval": 0.02}, daemon=True).start()
         self.addCleanup(self.feed.server_close)
         self.addCleanup(self.feed.shutdown)
         self.conn = project.open_store()
@@ -126,7 +126,7 @@ class RunFixture(unittest.TestCase):
     def smtp(self) -> FakeSmtp:
         """A running fake SMTP server, stopped when the test ends: self.smtp().data is []."""
         server = FakeSmtp()
-        threading.Thread(target=server.serve_forever, daemon=True).start()
+        threading.Thread(target=server.serve_forever, kwargs={"poll_interval": 0.02}, daemon=True).start()
         self.addCleanup(server.server_close)
         self.addCleanup(server.shutdown)
         return server
@@ -274,7 +274,7 @@ class TheHelpers(unittest.TestCase):
         fleet = []
         for inverter in (INVERTER_1, INVERTER_2):
             server = simulate.make_server(generator.generate((inverter,), FED, 7), LOCAL, 0)
-            threading.Thread(target=server.serve_forever, daemon=True).start()
+            threading.Thread(target=server.serve_forever, kwargs={"poll_interval": 0.02}, daemon=True).start()
             self.addCleanup(server.server_close)
             self.addCleanup(server.shutdown)
             fleet.append(replace(inverter, port=server.server_address[1]))
