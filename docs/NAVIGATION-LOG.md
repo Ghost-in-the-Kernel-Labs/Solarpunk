@@ -52,3 +52,10 @@ An entry is `### <date> · <task> · <agent>` and four lines: **Task**, **Opened
 - **Opened**: `README.md`, `TODO.md`, `docs/DONE.md`, `test/solarpunk/test_mirror.py` (to check the mirror's claim).
 - **Complaints**: the README is the one document a visitor reads first and the only one in the meta-architecture table (`docs/ROADMAP.md` §5) with no test; the handoff's list of what a landing updates does not name it.
 - **Suggestions**: a README row in §5's table naming `test/test_readme.py`, at the next tune-up.
+
+### 2026-11-18 · 6.4, the diagnostics in the asset window · Claude
+
+- **Task**: every remote test of an asset's kind in the asset window, with its latest result, failing first.
+- **Opened**: `solarpunk/project/surface.py`, `solarpunk/ui/asset_window.py`, `solarpunk/remote/results.py`, `solarpunk/remote/registry.py`, `test/solarpunk/test_ui_asset.py`.
+- **Complaints**: none new for finding my way: the surface and window split made this two files and a test; the UI's xvfb recipe was already in hand from 6.3. Reading a window is best done by a screenshot, and nothing says so: both of this phase's UI bugs were found by looking.
+- **Suggestions**: a line in the UI rule: render the changed window under xvfb and read the screenshot before landing.

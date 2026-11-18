@@ -48,3 +48,4 @@ Written from `docs/journal/` by `scripts/journal_index.py`; do not edit by hand.
 | J-042 | A landing pushes main before main moves: the end-of-turn hook's misfire closed | failure-caught | `J-000-099.md` |
 | J-043 | 6.3: the reports window, and a curve that drew a gap as a fall in output | feature | `J-000-099.md` |
 | J-044 | The README's roadmap had fallen behind the chain; a test now holds it | failure-caught | `J-000-099.md` |
+| J-045 | 6.4: the diagnostics in the asset window, and a pass over nothing | feature | `J-000-099.md` |

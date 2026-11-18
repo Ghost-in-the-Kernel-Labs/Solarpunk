@@ -38,17 +38,7 @@ Lanes (P-15): 5.1 and 5.2 in order, then 5.3 the pass.
 
 ## Phase 6: reports and diagnostics
 
-Lanes (P-15): 6.1 and 6.2 in parallel, landed in that order (done, J-041); 6.3 after 6.1 (done, J-043) and 6.4 after 6.2; 6.5 the pass.
-
-### 6.4 The diagnostics in the asset window
-
-The asset window shows the latest result of every remote test that runs on the asset's kind, failing first, each with
-its reason, so the diagnostics of 6.2 are read where the asset is (SP-013).
-
-Check: `solarpunk/ui/asset_window.py` lists, for the asset's kind, every remote test the registry holds with its latest
-result (pass, fail or not yet run) and reason, failing first, from one project call the tests make headless;
-`test/solarpunk/test_ui_asset.py` asserts the demo's OAHE-INV-001 shows all seven inverter tests passing and OAHE-SEN-001
-its failing `reachable` first; the fast loop green.
+Lanes (P-15): 6.1 and 6.2 in parallel, landed in that order (done, J-041); 6.3 after 6.1 (done, J-043) and 6.4 after 6.2 (done, J-045); 6.5 the pass.
 
 ### 6.5 Tune-up pass 6
 

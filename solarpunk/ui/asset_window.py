@@ -1,7 +1,8 @@
-"""The asset window (3.2, SP-007): one asset's fields and status, its open faults with their meanings, the last run's
-remote tests failing first, a form to assign a catalogue code, and the engineer with Save and Cancel. Every string and
-colour it shows comes from a pure function below over one project call, so the tests check them without a display;
-the AssetWindow class only lays them out (SP-010: it imports project and the leaf alone)."""
+"""The asset window (3.2, SP-007): one asset's fields and status, its open faults with their meanings, its diagnostics
+(6.4: every remote test of its kind with its latest result, failing first, then never run, then passing), a form to
+assign a catalogue code, and the engineer with Save and Cancel. Every string and colour it shows comes from a pure
+function below over one project call, so the tests check them without a display; the AssetWindow class only lays them
+out (SP-010: it imports project and the leaf alone)."""
 import sqlite3
 import tkinter as tk
 from collections.abc import Callable
@@ -16,8 +17,13 @@ from solarpunk.leaf.codes import AssetStatus, FaultCode
 NONE_WORD = "none"
 PASS_WORD = "pass"
 FAIL_WORD = "FAIL"
+NOT_RUN_WORD = "not run"
 FAILING_TAG = "failing"
+NOT_RUN_TAG = "notrun"
 RED_TEXT = "#c0392b"
+GREY_TEXT = "#808080"
+# The surface's states (project.Diagnostic.state) in the window's words: a failure shouts, the rest do not.
+STATE_WORDS = {"fail": FAIL_WORD, "not run": NOT_RUN_WORD, "pass": PASS_WORD}
 OPENED_FORMAT = "%Y-%m-%d %H:%M UTC"
 COLOURS: dict[AssetStatus, str] = {
     AssetStatus.GREEN: "#2e8b57",
@@ -28,8 +34,10 @@ FAULT_COLUMNS = ("code", "meaning", "opened")
 FAULT_HEADINGS = ("Code", "Meaning", "Opened")
 RESULT_COLUMNS = ("test", "result", "reason")
 RESULT_HEADINGS = ("Test", "Result", "Reason")
+# The diagnostics' column widths in px: the reason is the column a reader needs whole (6.4).
+RESULT_WIDTHS = (190, 70, 480)
 OPEN_FAULTS_TITLE = "Open faults"
-LAST_RUN_TITLE = "Last run"
+DIAGNOSTICS_TITLE = "Diagnostics"
 ASSIGN_TITLE = "Assign a fault"
 ASSIGN_TEXT = "Assign"
 ENGINEER_TITLE = "Engineer"
@@ -91,14 +99,18 @@ def fault_lines(detail: project.AssetDetail) -> tuple[tuple[str, str, str], ...]
 
 
 def result_lines(detail: project.AssetDetail) -> tuple[tuple[str, str, str], ...]:
-    """The last run's rows (test, result, reason) in the detail's order, failing first: a failed on_grid and a passed
-    reachable give (("on_grid", "FAIL", "10:05: off the grid"), ("reachable", "pass", "3 records"))."""
-    return tuple((found.test_name, PASS_WORD if found.passed else FAIL_WORD, found.reason) for found in detail.latest)
+    """The diagnostics' rows (test, result, reason) in the detail's order (6.4): every remote test of the asset's kind,
+    failing first, then never run, then passing: a failed on_grid, five tests never run and a passed reachable give
+    ("on_grid", "FAIL", "10:05: off the grid") first and ("reachable", "pass", "3 records") last."""
+    return tuple((found.test_name, STATE_WORDS[found.state], found.reason) for found in detail.diagnostics)
 
 
 def row_tags(line: tuple[str, str, str]) -> tuple[str, ...]:
-    """The tags a last-run row carries: ("failing",) for a FAIL row, which the tree draws red; () for a pass row."""
-    return (FAILING_TAG,) if line[1] == FAIL_WORD else ()
+    """The tags a diagnostics row carries: ("failing",) for a FAIL row, drawn red; ("notrun",) for a test never run,
+    drawn grey; () for a pass row."""
+    if line[1] == FAIL_WORD:
+        return (FAILING_TAG,)
+    return (NOT_RUN_TAG,) if line[1] == NOT_RUN_WORD else ()
 
 
 def code_labels(codes: tuple[FaultCode, ...]) -> tuple[str, ...]:
@@ -138,18 +150,22 @@ class AssetWindow(tk.Toplevel):
         self.status_label = tk.Label(self, anchor="w")
         self.status_label.pack(fill="x", padx=8)
         self.fault_tree = self.tree(OPEN_FAULTS_TITLE, FAULT_COLUMNS, FAULT_HEADINGS)
-        self.result_tree = self.tree(LAST_RUN_TITLE, RESULT_COLUMNS, RESULT_HEADINGS)
+        self.result_tree = self.tree(DIAGNOSTICS_TITLE, RESULT_COLUMNS, RESULT_HEADINGS, height=7)
         self.result_tree.tag_configure(FAILING_TAG, foreground=RED_TEXT)
+        self.result_tree.tag_configure(NOT_RUN_TAG, foreground=GREY_TEXT)
+        for column, width in zip(RESULT_COLUMNS, RESULT_WIDTHS):
+            self.result_tree.column(column, width=width, stretch=column == RESULT_COLUMNS[-1])
         self.build_assign()
         self.build_engineer()
         self.message = tk.Label(self, anchor="w", foreground=RED_TEXT)
         self.message.pack(fill="x", padx=8, pady=4)
         self.fill(detail)
 
-    def tree(self, title: str, columns: tuple[str, ...], headings: tuple[str, ...]) -> ttk.Treeview:
-        """A titled Treeview of named columns: tree("Last run", ("test", …), ("Test", …)) shows the headings only."""
+    def tree(self, title: str, columns: tuple[str, ...], headings: tuple[str, ...], height: int = 4) -> ttk.Treeview:
+        """A titled Treeview of named columns, height rows tall: tree("Diagnostics", ("test", …), ("Test", …), 7) shows
+        the headings only."""
         ttk.Label(self, text=title).pack(fill="x", padx=8)
-        tree = ttk.Treeview(self, columns=columns, show="headings", height=4)
+        tree = ttk.Treeview(self, columns=columns, show="headings", height=height)
         for column, heading in zip(columns, headings):
             tree.heading(column, text=heading)
         tree.pack(fill="both", expand=True, padx=8, pady=2)

@@ -11,8 +11,8 @@ Ghost's statement of where the product is going: five areas under one click (J-0
 own nightly regime (SP-012, J-038; the section below). Tune-up pass 5: cold gate 9.95 min, warm 0.80 min, fast loop
 23.1 s (J-039).
 
-**The first open item is 6.4, the diagnostics in the asset window** (`TODO.md`), then the pass. 6.3, the reports
-window, landed (J-043): "Reports" beside "Add asset" in the fleet window. Phase 6 is reports and diagnostics, put ahead of the network's security by Ghost (SP-013, J-041): 6.1 (the
+**The first open item is 6.5, Tune-up pass 6** (`TODO.md`). 6.3, the reports window, landed (J-043): "Reports" beside
+"Add asset" in the fleet window; 6.4, the diagnostics in the asset window, landed (J-045). Phase 6 is reports and diagnostics, put ahead of the network's security by Ghost (SP-013, J-041): 6.1 (the
 power-output report, `solarpunk report`, SOL-13) and 6.2 (four inverter diagnostics) are done. The security design pass
 is now 7.1, with an advisor's research on industry addressing and security copied into it. An architecture review
 (J-041) is Ghost's to place: no product workpath, entry points declared nowhere, `project` and the CLI as hotspots.
@@ -72,6 +72,11 @@ email on the asset, a mailer to those engineers on degradation, and the Save/Can
 2. Phase 2's open question: does the scheduled job run `python3 -m solarpunk.cli`, or a frozen entry point?
 3. The clause numbers in `docs/CLAUSE-REGISTER.md` (ISO 9001:2015 7.5.2, 7.5.3, 8.7.1, 8.7.2, 9.1.1, 9.1.3, 10.2.1, 10.2.2; ISO 55001:2014 6.2.1, 6.2.2, 7.5, 9.1) are from the worker's knowledge of the standards' numbering: confirm them against your copies.
 4. Ghost-Core owes the fixes for F-001 to F-004 (`docs/FINDINGS.md`); this project carries them locally.
+5. A remote test with no records passes (J-045): the demo's OAHE-SEN-001 does not answer, its `reachable` fails, and
+   its `on_grid` and `irradiance_in_range` read "pass" over 0 readings in the asset window's diagnostics. The colour is
+   right (yellow, from `reachable`); the passes are vacuous. The proposal: a third result, "no data", for a test that
+   had nothing to check, shown grey like "not run" and never counted as a pass. It changes `Result` and every remote
+   test, so it is your ruling first.
 
 ## Advisories under the gate's threshold (Tune-up pass 0)
 

@@ -1,6 +1,7 @@
 """The one surface the Phase 3 windows call (2.7, SP-007, MOD-06): rows for the fleet window, a detail for the asset
-window, the engineers, the kinds and codes for the dropdowns, register and ping for the add-asset window. Each
-function is one call a window makes and a headless test makes too, so no UI lane edits the orchestrator."""
+window with every remote test of the asset's kind and its latest result (6.4), the engineers, the kinds and codes for
+the dropdowns, register and ping for the add-asset window. Each function is one call a window makes and a headless test
+makes too, so no UI lane edits the orchestrator."""
 import sqlite3
 from dataclasses import dataclass
 from datetime import datetime
@@ -15,11 +16,18 @@ from solarpunk.leaf.faults import Fault
 from solarpunk.leaf.telemetry import Sample
 from solarpunk.project.orchestrator import asset_status, fleet_assets, known
 from solarpunk.remote import results as result_table
+from solarpunk.remote.registry import tests_for
 from solarpunk.remote.results import Recorded
 from solarpunk.workorders import ledger as work_ledger
 from solarpunk.workorders.ledger import WorkOrder
 
 NO_FAILURE = "—"
+FAILED = "fail"
+NOT_RUN = "not run"
+PASSED = "pass"
+# The order the diagnostics are read in: what failed, then what has never been run, then what passed (6.4).
+STATE_ORDER = (FAILED, NOT_RUN, PASSED)
+NEVER_RUN_REASON = "no result yet: the scheduled run has not tested this asset"
 
 
 @dataclass(frozen=True)
@@ -48,6 +56,19 @@ class AssetDetail:
     engineers: tuple[str, ...]
     status: AssetStatus
     open_orders: tuple[WorkOrder, ...] = ()
+    diagnostics: tuple["Diagnostic", ...] = ()
+
+
+@dataclass(frozen=True)
+class Diagnostic:
+    """One remote test as the asset window reads it (6.4): its name, "fail", "not run" or "pass", the reason, and the
+    run it came from: Diagnostic("on_grid", "fail", "10:05: off the grid", 2026-06-01T12:00Z); a test the registry
+    holds for the kind and the store has no result of is Diagnostic(name, "not run", NEVER_RUN_REASON, None)."""
+
+    test_name: str
+    state: str
+    reason: str
+    run_at: datetime | None
 
 
 def row_of(conn: sqlite3.Connection, asset: Asset) -> AssetRow:
@@ -77,7 +98,25 @@ def asset_detail(conn: sqlite3.Connection, asset_id: str) -> AssetDetail:
         engineers=registry.engineers_for(conn, asset_id),
         status=asset_status(conn, asset_id),
         open_orders=tuple(order for order in work_ledger.by_asset(conn, asset_id) if order.closed is None),
+        diagnostics=diagnostics_of(conn, asset),
     )
+
+
+def diagnostics_of(conn: sqlite3.Connection, asset: Asset) -> tuple[Diagnostic, ...]:
+    """Every remote test the registry holds for the asset's kind, with its result from the asset's latest run, failing
+    first, then never run, then passing, each group by name; a stored result of a test the folder no longer holds is
+    kept, so nothing the run recorded is hidden: an inverter whose last run failed on_grid and passed reachable gives
+    on_grid "fail", the five other inverter tests "not run", reachable "pass"; a string, which no test runs on, ()."""
+    latest = {found.test_name: found for found in result_table.latest_for(conn, asset.asset_id)}
+    names = sorted({test.name for test in tests_for(asset.kind)} | set(latest))
+    found = []
+    for name in names:
+        result = latest.get(name)
+        if result is None:
+            found.append(Diagnostic(name, NOT_RUN, NEVER_RUN_REASON, None))
+        else:
+            found.append(Diagnostic(name, PASSED if result.passed else FAILED, result.reason, result.run_at))
+    return tuple(sorted(found, key=lambda diagnostic: STATE_ORDER.index(diagnostic.state)))
 
 
 def open_faults_of(conn: sqlite3.Connection, asset_id: str) -> tuple[Fault, ...]:

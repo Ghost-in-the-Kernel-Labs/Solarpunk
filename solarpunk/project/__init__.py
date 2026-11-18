@@ -45,6 +45,7 @@ from solarpunk.project.run import RunReport, add_remote_test, remote_tests, sche
 from solarpunk.project.surface import (
     AssetDetail,
     AssetRow,
+    Diagnostic,
     asset_detail,
     asset_rows,
     assign_engineer,
@@ -59,6 +60,7 @@ from solarpunk.workorders.ledger import WorkOrder, WorkOrderError
 __all__ = [
     "AssetDetail",
     "AssetRow",
+    "Diagnostic",
     "Fault",
     "FeedError",
     "LedgerError",

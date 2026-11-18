@@ -39,8 +39,8 @@ moving only once origin takes it (SP-014), and the full `scripts/gate.sh` runs a
 - Phase 3, the native front end (the fleet, asset and add-asset windows, the demo): done.
 - Phase 4, the work-order ledger: done.
 - Phase 5, one word to run it (`solarpunk`, `solarpunk --help`, the `test` commands): done.
-- Phase 6, reports and diagnostics: in progress; the power-output report, four inverter diagnostics and the reports
-  window are done, the diagnostics in the asset window are next, then a tune-up.
+- Phase 6, reports and diagnostics: in progress; the power-output report, four inverter diagnostics, the reports
+  window and the diagnostics in the asset window are done; its tune-up pass is next.
 - Phase 7, the network's security: not started; a design pass first.
 
 `docs/ROADMAP.md` holds the plan, `TODO.md` the open items in order, `docs/DONE.md` what is finished;

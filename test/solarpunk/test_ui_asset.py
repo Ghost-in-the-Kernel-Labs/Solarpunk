@@ -2,14 +2,17 @@
 with "no display" without one. The store holds a site and an inverter with an open INV-001 and a last run whose
 on_grid failed, built as test_project_run.py builds its results."""
 import sqlite3
+import tempfile
 import unittest
 from datetime import timedelta
+from pathlib import Path
 
 from solarpunk import project
 from solarpunk.leaf.assets import Asset
 from solarpunk.leaf.clock import at
 from solarpunk.leaf.codes import AssetKind, AssetStatus, codes_for
 from solarpunk.remote import results
+from solarpunk.ui import demo
 
 try:
     import tkinter
@@ -35,6 +38,17 @@ RUN_AT = at(2026, 6, 1, 12)
 # An inverter nobody services, so its engineer box starts empty.
 UNSERVICED = Asset(INV2, AssetKind.INVERTER, "OAHE", SITE_ID, "Inverter 2", 100.0)
 OFF_GRID = "10:05: off the grid"
+NEVER = "no result yet: the scheduled run has not tested this asset"
+# The inverter's diagnostics (6.4): its last run failed on_grid and passed reachable; the other five never ran on it.
+DIAGNOSTIC_ROWS = (
+    ("on_grid", "FAIL", OFF_GRID),
+    ("irradiance_in_range", "not run", NEVER),
+    ("night_power_near_zero", "not run", NEVER),
+    ("performance_above_floor", "not run", NEVER),
+    ("power_not_frozen", "not run", NEVER),
+    ("power_under_rated", "not run", NEVER),
+    ("reachable", "pass", "3 records"),
+)
 
 
 def display_available() -> bool:
@@ -108,12 +122,12 @@ class PureTest(unittest.TestCase):
     def test_fault_lines_empty(self) -> None:
         self.assertEqual(asset_window.fault_lines(project.asset_detail(self.conn, SITE_ID)), ())
 
-    def test_result_lines_failing_first(self) -> None:
-        self.assertEqual(asset_window.result_lines(self.detail), (
-            ("on_grid", "FAIL", OFF_GRID), ("reachable", "pass", "3 records")))
+    def test_result_lines_failing_then_never_run_then_passing(self) -> None:
+        self.assertEqual(asset_window.result_lines(self.detail), DIAGNOSTIC_ROWS)
 
     def test_row_tags(self) -> None:
         self.assertEqual(asset_window.row_tags(("on_grid", "FAIL", OFF_GRID)), ("failing",))
+        self.assertEqual(asset_window.row_tags(("power_not_frozen", "not run", NEVER)), ("notrun",))
         self.assertEqual(asset_window.row_tags(("reachable", "pass", "3 records")), ())
 
     def test_code_labels(self) -> None:
@@ -166,11 +180,11 @@ class WindowTest(unittest.TestCase):
         self.assertEqual(self.window.status_label.cget("text"), "Status: red")
         self.assertEqual(str(self.window.status_label.cget("foreground")), "#c0392b")
         self.assertEqual([row[0] for row in self.rows(self.window.fault_tree)], ["INV-001"])
-        self.assertEqual(self.rows(self.window.result_tree), [("on_grid", "FAIL", OFF_GRID),
-                                                              ("reachable", "pass", "3 records")])
-        first, second = self.window.result_tree.get_children()
-        self.assertEqual(tuple(self.window.result_tree.item(first, "tags")), ("failing",))
-        self.assertEqual(self.window.result_tree.item(second, "tags"), "")
+        self.assertEqual(self.rows(self.window.result_tree), list(DIAGNOSTIC_ROWS))
+        items = self.window.result_tree.get_children()
+        self.assertEqual(tuple(self.window.result_tree.item(items[0], "tags")), ("failing",))
+        self.assertEqual(tuple(self.window.result_tree.item(items[1], "tags")), ("notrun",))
+        self.assertEqual(self.window.result_tree.item(items[-1], "tags"), "")
         self.assertEqual(self.window.engineer_box.get(), INVERTER_EMAIL)
         self.assertEqual(tuple(self.window.engineer_box.cget("values")), (INVERTER_EMAIL, SITE_EMAIL))
 
@@ -182,12 +196,15 @@ class WindowTest(unittest.TestCase):
     def test_layout_holds_its_parts(self) -> None:
         window = self.window
         titles = [child.cget("text") for child in window.winfo_children() if child.winfo_class() == "TLabel"]
-        self.assertEqual(titles, ["Open faults", "Last run"])
+        self.assertEqual(titles, ["Open faults", "Diagnostics"])
         self.assertEqual([window.fault_tree.heading(c, "text") for c in ("code", "meaning", "opened")],
                          ["Code", "Meaning", "Opened"])
         self.assertEqual([window.result_tree.heading(c, "text") for c in ("test", "result", "reason")],
                          ["Test", "Result", "Reason"])
         self.assertEqual(str(window.result_tree.tag_configure("failing", "foreground")), "#c0392b")
+        self.assertEqual(str(window.result_tree.tag_configure("notrun", "foreground")), "#808080")
+        self.assertEqual([window.result_tree.column(c, "width") for c in ("test", "result")], [190, 70])
+        self.assertGreaterEqual(window.result_tree.column("reason", "width"), 480)  # it stretches to the window
         self.assertEqual(str(window.message.cget("foreground")), "#c0392b")
         for widget in (window.fields, window.status_label, window.code_box, window.assign_button,
                        window.engineer_box, window.save_button, window.cancel_button, window.message):
@@ -253,6 +270,37 @@ class WindowTest(unittest.TestCase):
     def test_unknown_asset_draws_nothing(self) -> None:
         with self.assertRaises(project.UnknownAsset):
             asset_window.AssetWindow(self.root, self.conn, "OAHE-INV-009")
+
+
+class TheDemosDiagnostics(unittest.TestCase):
+    """6.4's check over the demo store, headless: the asset window's diagnostics are project.asset_detail's."""
+
+    def setUp(self) -> None:
+        """The demo store built in a temporary folder with its simulator running, then opened."""
+        server, port = demo.start_simulator(demo.simulator_samples())
+        self.addCleanup(server.server_close)
+        self.addCleanup(server.shutdown)
+        folder = tempfile.TemporaryDirectory()
+        self.addCleanup(folder.cleanup)
+        demo.build_demo_store(Path(folder.name) / demo.DB_NAME, port)
+        self.conn = project.open_or_create(Path(folder.name) / demo.DB_NAME)
+        self.addCleanup(self.conn.close)
+
+    def test_the_fed_inverter_passes_all_seven(self) -> None:
+        found = project.asset_detail(self.conn, demo.FED).diagnostics
+        self.assertEqual(len(found), 7)
+        self.assertEqual({diagnostic.state for diagnostic in found}, {"pass"}, found)
+
+    def test_the_sensors_failing_reachable_comes_first(self) -> None:
+        found = project.asset_detail(self.conn, demo.SENSOR).diagnostics
+        self.assertEqual((found[0].test_name, found[0].state), ("reachable", "fail"))
+        self.assertEqual([d.test_name for d in found], ["reachable", "irradiance_in_range", "on_grid"])
+
+    def test_a_tracker_with_no_feed_shows_its_tests_never_run_and_a_string_shows_none(self) -> None:
+        found = project.asset_detail(self.conn, "OAHE-TRK-001").diagnostics
+        self.assertEqual([(d.test_name, d.state) for d in found], [("on_grid", "not run"), ("reachable", "not run")])
+        self.assertEqual(project.asset_detail(self.conn, "OAHE-STR-001").diagnostics, ())
+
 
 
 if __name__ == "__main__":
