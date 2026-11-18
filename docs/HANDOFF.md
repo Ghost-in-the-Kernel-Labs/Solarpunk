@@ -15,8 +15,12 @@ engine with its blind mirror (contractual availability, performance ratio, energ
 and `scripts/clauses.py` (9001: 7 held, 1 open; 55000: 4 held), the orchestrator and CLI; the asset maintenance list,
 the feed by IP and port with a simulator, standalone remote tests with a registry, the receiver, cron and Task Scheduler
 from one job, the mailer over SMTP, the scheduled run; the tkinter fleet window with the status glyphs, the asset window
-with Save and Cancel, the add-asset window with the type dropdown, the demo. 479 product tests and 385 template tests;
-4,499 mutants, every survivor killed or explained. Phase 4 (the work-order ledger) is planned, not built.
+with Save and Cancel, the add-asset window with the type dropdown, the demo; and Phase 4's work-order ledger with root-cause codes, so every row of the clause register is held (9001
+eight, 55000 four). 487 product tests and 385 template tests; 4,720 mutants, every survivor killed or explained.
+`TODO.md` is empty: the four phases are built. Candidates for Phase 5, Ghost's to plan: the asset window listing open
+work orders and closing one with a cause; the receiver and the clock exercised end to end in the demo; `tracker_moving`,
+`energy_monotonic`, `irradiance_in_range` and `night_power_near_zero` as remote tests; a SOL-13 for root causes; the
+structure-half candidates of J-024; a Windows run of the demo recorded as a journal trial.
 
 ## Settled by Ghost (2026-11-17, in chat)
 

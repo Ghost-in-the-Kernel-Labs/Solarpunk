@@ -31,7 +31,3 @@ Lanes (P-15): 3.1 to 3.3 in parallel after 2.7, landed in this order; 3.4 after 
 ## Phase 4: the work-order ledger
 
 Lanes (P-15): 4.1 alone, then 4.2 the pass.
-
-### 4.2 Tune-up pass 4
-
-Check: `docs/when/tune-up.md` followed in full; the metrics table written; the navigation log's "Last review" set.

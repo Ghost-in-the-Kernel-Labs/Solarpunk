@@ -32,7 +32,9 @@ task: `docs/when/handoff.md`.
   indented and `__main__` imports too, so an import under `if __name__` is not exempt (J-021). A UI lane's brief says
   the fast loop's interpreter may lack tkinter (not only a display), names the earlier lane's placeholder test it will
   invalidate, and never settles an import the modules map forbids: read `docs/modules.json` before writing the design
-  (J-025 to J-028).
+  (J-025 to J-028). A brief whose lane changes a shared shape (the store's table list, a result type) says "grep test/
+  for the old shape" and names the armed metrics a lane can trip: the largest source file under 400 lines, the fast loop
+  under 30 s (`docs/AGENT.md`; J-031).
 - The working set is the Start-here files of the routing row the item matches, plus the files the
   item names; nothing else. Say explicitly what the agent may and may not do: agents read silence
   literally.

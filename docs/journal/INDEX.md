@@ -35,3 +35,4 @@ Written from `docs/journal/` by `scripts/journal_index.py`; do not edit by hand.
 | J-029 | Windows console safety before the morning: a plain hyphen on the console line, UTF-8 named on the settings read | failure-caught | `J-000-099.md` |
 | J-030 | Tune-up pass 3: the front end's lessons; Phase 3 closed the night Ghost asked for | measurement | `J-000-099.md` |
 | J-031 | 4.1: the work-order ledger landed; every row of the clause register is held | feature | `J-000-099.md` |
+| J-032 | Tune-up pass 4: the night's last pass; four phases closed, the chain empty | measurement | `J-000-099.md` |
