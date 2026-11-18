@@ -23,7 +23,7 @@ The terminal prints one line per step:
 
     demo: simulator on 127.0.0.1:<a free port>
     demo: store demo.db rebuilt
-    demo: run — 9 green, 1 yellow, 1 red
+    demo: run - 9 green, 1 yellow, 1 red
 
 `demo.db` is made in the folder you ran from, removed and rebuilt every run. The window, titled "Solarpunk fleet —
 demo (OAHE, 2026-06-01)", lists the eleven assets of the Oahe site near Pierre:

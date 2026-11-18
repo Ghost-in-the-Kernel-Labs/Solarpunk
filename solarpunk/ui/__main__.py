@@ -26,7 +26,7 @@ DEMO_TITLE = "Solarpunk fleet — demo (OAHE, 2026-06-01)"
 ADD_ASSET = "Add asset"
 STORE_LINE = "demo: store {name} rebuilt\n"
 SIMULATOR_LINE = "demo: simulator on 127.0.0.1:{port}\n"
-RUN_LINE = "demo: run — {green} green, {yellow} yellow, {red} red\n"
+RUN_LINE = "demo: run - {green} green, {yellow} yellow, {red} red\n"
 
 
 def parse(argv: list[str]) -> argparse.Namespace:
@@ -45,7 +45,7 @@ def loop(root: tkinter.Tk) -> None:
 
 def run_line(report: project.RunReport) -> str:
     """The terminal's line for a run: statuses of eight GREEN, one YELLOW and one RED give
-    "demo: run — 8 green, 1 yellow, 1 red\\n"."""
+    "demo: run - 8 green, 1 yellow, 1 red\\n"."""
     found = list(report.statuses.values())
     return RUN_LINE.format(green=found.count(AssetStatus.GREEN), yellow=found.count(AssetStatus.YELLOW),
                            red=found.count(AssetStatus.RED))
@@ -67,7 +67,7 @@ def open_fleet(root: tkinter.Tk, conn: sqlite3.Connection) -> FleetWindow:
 def run_demo(root: tkinter.Tk, out: TextIO) -> sqlite3.Connection:
     """Starts the simulator, rebuilds demo.db in the current directory, opens the fleet window on it titled "Solarpunk
     fleet — demo (OAHE, 2026-06-01)" and returns the open store; writes "demo: simulator on 127.0.0.1:<port>", "demo:
-    store demo.db rebuilt" and "demo: run — 8 green, 1 yellow, 1 red", one line each, as it goes."""
+    store demo.db rebuilt" and "demo: run - 8 green, 1 yellow, 1 red", one line each, as it goes."""
     _server, port = demo.start_simulator(demo.simulator_samples())
     out.write(SIMULATOR_LINE.format(port=port))
     state = demo.build_demo_store(Path.cwd() / demo.DB_NAME, port)

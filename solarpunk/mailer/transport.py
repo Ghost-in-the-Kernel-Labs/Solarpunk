@@ -71,7 +71,7 @@ def load_settings(path: Path) -> Settings:
     "password_variable": null, "username": null} gives Settings("127.0.0.1", 25, "ops@x.org", False, None, None); every
     key is required (null where allowed); a missing file or one that is not a JSON object raises BadSettings naming the path."""
     try:
-        raw = json.loads(path.read_text())
+        raw = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, ValueError):
         raise BadSettings(UNREADABLE.format(path=path)) from None
     if not isinstance(raw, dict):

@@ -132,7 +132,7 @@ class TheRunLine(unittest.TestCase):
     def test_the_counts(self) -> None:
         statuses = {"A": AssetStatus.GREEN, "B": AssetStatus.GREEN, "C": AssetStatus.YELLOW, "D": AssetStatus.RED}
         report = project.RunReport(0, 0, 0, statuses, 0, ())
-        self.assertEqual(entry.run_line(report), "demo: run — 2 green, 1 yellow, 1 red\n")
+        self.assertEqual(entry.run_line(report), "demo: run - 2 green, 1 yellow, 1 red\n")
 
 
 @unittest.skipUnless(display_available(), "no display")
@@ -160,7 +160,7 @@ class TheDemoWindow(DemoFixture):
         self.assertEqual(seen, [("Solarpunk fleet — demo (OAHE, 2026-06-01)", "11 assets: 9 green, 1 yellow, 1 red")])
         lines = out.getvalue().splitlines()
         self.assertRegex(lines[0], r"^demo: simulator on 127\.0\.0\.1:\d+$")
-        self.assertEqual(lines[1:], ["demo: store demo.db rebuilt", "demo: run — 9 green, 1 yellow, 1 red"])
+        self.assertEqual(lines[1:], ["demo: store demo.db rebuilt", "demo: run - 9 green, 1 yellow, 1 red"])
         self.assertTrue((self.folder / demo.DB_NAME).is_file())
 
     def test_a_click_opens_the_asset_window_and_add_asset_the_add_window(self) -> None:
