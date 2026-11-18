@@ -26,7 +26,8 @@ email on the asset, a mailer to those engineers on degradation, and the Save/Can
    The two choices inside them that are the coordinator's, not yours: tkinter as the toolkit (SP-007) and SMTP as
    the one mail path (SP-009).
 2. Phase 2's open question: does the scheduled job run `python3 -m solarpunk.cli`, or a frozen entry point?
-3. Ghost-Core owes the fixes for F-001 to F-004 (`docs/FINDINGS.md`); this project carries them locally.
+3. The clause numbers in `docs/CLAUSE-REGISTER.md` (ISO 9001:2015 7.5.2, 7.5.3, 8.7.1, 8.7.2, 9.1.1, 9.1.3, 10.2.1, 10.2.2; ISO 55001:2014 6.2.1, 6.2.2, 7.5, 9.1) are from the worker's knowledge of the standards' numbering: confirm them against your copies.
+4. Ghost-Core owes the fixes for F-001 to F-004 (`docs/FINDINGS.md`); this project carries them locally.
 
 ## Advisories under the gate's threshold (Tune-up pass 0)
 
