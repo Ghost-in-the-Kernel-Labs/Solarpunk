@@ -106,7 +106,9 @@ here; its check is copied into `TODO.md`.
 ### Phase 1: the fleet, its faults, its numbers
 
 - **1.1 The asset registry (`solarpunk/fleet/`, `test/solarpunk/test_fleet.py`).** `schema()` returns the `assets`
-  table (asset_id primary key, kind, site, parent_id referencing assets, name, rated_kw); `register(conn, asset)`
+  table (asset_id primary key, kind, site, parent_id referencing assets, name, rated_kw, host, port, location,
+  engineer_email: every field of the leaf's `Asset`); `assign_engineer(conn, asset_id, email)` and
+  `engineers_for(conn, asset_id)` (the asset's engineer, then its parent's, then its site's: who is written to); `register(conn, asset)`
   refuses a malformed id (SOL-05), a kind that disagrees with the id's prefix, a parent that does not exist or
   whose site differs, and a duplicate; `by_site`, `by_kind`, `children`, `get` return leaf `Asset`s in id order;
   `load_fleet(conn, assets)` registers a tuple in order. A ten-asset example fleet (one site OAHE, two inverters,
@@ -185,11 +187,23 @@ What Ghost set on 2026-11-17, planned in full when Phase 1 closes:
   evidence beside the repository's tagged tests, so ISO 9001 and ISO 55000 coverage is one report over both
   (`scripts/clauses.py`). The leaf's `AssetStatus` rule: RED when the asset carries an open OUTAGE fault, YELLOW when
   the latest run has a failing remote test, GREEN otherwise.
+- **The mailer (`solarpunk/mailer/`).** On a new OUTAGE fault, a pushed error code or a failing remote test, one mail
+  to the engineers `engineers_for` names, saying the asset, its location, the code or test and the instant, sent by
+  `smtplib` from the standard library over the account's SMTP server (Outlook's own through Microsoft 365's SMTP, any
+  SMTP host on Linux: one code path, SP-009); the server, port and sender live in a settings file the tests never
+  read, and the tests use a local `smtpd`-style fake. A mail is also a row in a `mails` table, so what was sent and to
+  whom is a query.
 - **The clock (`solarpunk/schedule/`).** One `Job` (name, command, cadence) rendered to a crontab line on Linux and a
   `schtasks /Create` command on Windows, each against a golden; `install` and `remove` run the platform's tool and
   are the only functions that touch the host, so the tests never do; a Windows run is a by-hand Actions job (C-032).
-  The scheduled job pings every asset with a feed, runs its remote tests, stores the results and recomputes the
-  site's KPIs. Open for Ghost: whether the job runs `python3 -m solarpunk.cli` or a frozen entry point.
+  The scheduled job pings every asset with a feed, runs the whole remote-test suite (each test against every asset
+  of its kinds), stores the results, stamps each asset's last status and the run's instant (`last_status`,
+  `last_run_at` on the asset, shown on mouseover in Phase 3), and recomputes the site's KPIs. Open for Ghost: whether
+  the job runs `python3 -m solarpunk.cli` or a frozen entry point.
+- **The receiver (`solarpunk/receiver/`).** The one inbound surface: an asset pushes a line `<asset-id> <fault-code>`
+  to the central server; the receiver refuses an unknown asset or code (SOL-04, SOL-05), assigns the fault in the
+  ledger and sets the asset's status at once (SP-008), so degradation reaches the fleet view in real time, between
+  scheduled runs.
 
 ### Phase 3: the native front end
 
@@ -199,7 +213,9 @@ drawn on a canvas in the asset's `AssetStatus` colour (green passed the last sch
 failed on it, red an active OUTAGE fault) beside the asset's id and name; clicking a row opens the asset: its open
 faults, the remote tests of its last run with the failing one named and its reason first, and a form to assign a
 catalogue code or add a remote test. A second screen adds an asset: its id, its type from a dropdown read from the asset maintenance list, its IP address and port, and pings it.
-The UI calls project alone (its own MOD row when planned); every screen's data is a project call the tests exercise
+Clicking an asset's icon opens its window, which also assigns its engineer: a dropdown of known engineer emails
+plus a text field for a new one, and two buttons that read Save and Cancel; Save writes `assign_engineer`, Cancel
+changes nothing. The UI calls project alone (its own MOD row when planned); every screen's data is a project call the tests exercise
 headless, and the widgets are tested under a virtual display where the session has one, by hand on Windows where
 it does not. Planned when Phase 2 closes.
 

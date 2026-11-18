@@ -7,6 +7,7 @@ from solarpunk.leaf.codes import AssetKind
 
 ASSET_ID_SHAPE = re.compile(r"^(?P<site>[A-Z0-9]{2,6})-(?P<kind>[A-Z]{3})-(?P<number>\d{3})$")
 KIND_BY_PREFIX: dict[str, AssetKind] = {kind.value: kind for kind in AssetKind}
+EMAIL_SHAPE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
 
 class MalformedAssetId(ValueError):
@@ -17,7 +18,8 @@ class MalformedAssetId(ValueError):
 class Asset:
     """One asset: Asset("OAHE-INV-003", AssetKind.INVERTER, "OAHE", None, "Inverter 3", 100.0, "10.0.0.3", 5020).
     rated_kw is None for an asset that produces nothing (a sensor, a meter, a tracker, a site); host and port are the
-    endpoint its data feed is read from (Phase 2), None for an asset with no feed (a site, a string)."""
+    endpoint its data feed is read from (Phase 2), None for an asset with no feed (a site, a string); location is where
+    the asset physically is, in words; engineer_email is who services it and whom the mailer writes to (Phase 2)."""
 
     asset_id: str
     kind: AssetKind
@@ -27,6 +29,8 @@ class Asset:
     rated_kw: float | None
     host: str | None = None
     port: int | None = None
+    location: str | None = None
+    engineer_email: str | None = None
 
     def __post_init__(self) -> None:
         """A port is 1 to 65535 and comes with a host: Asset(…, host="10.0.0.3", port=0) raises ValueError."""
@@ -34,6 +38,8 @@ class Asset:
             raise ValueError(f"{self.asset_id}: host and port come together")
         if self.port is not None and not 1 <= self.port <= 65535:
             raise ValueError(f"{self.asset_id}: port {self.port} is not 1 to 65535")
+        if self.engineer_email is not None and not EMAIL_SHAPE.match(self.engineer_email):
+            raise ValueError(f"{self.asset_id}: {self.engineer_email!r} is not an email address")
 
 
 def parse_asset_id(asset_id: str) -> tuple[str, AssetKind, int]:

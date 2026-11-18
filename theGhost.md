@@ -483,3 +483,66 @@ The core decisions above are inherited (Core C-001 to C-040); this project's beg
 - **Status:** in force
 - **See also:** Core C-018, Core C-016
 - **subject:** mutation
+
+### SP-003: Seven modules; Phase 1's lanes are the five below the leaf
+- **Decision:** `docs/modules.json` holds leaf, fleet, faults, telemetry, kpi, project and cli. fleet, faults, telemetry and kpi import the leaf alone (MOD-05); project is the only module that joins them; cli imports project alone. A new module is a decision here first.
+- **Why:** a lane that imports another lane's unfinished code cannot be built in parallel with it; the leaf is finished before the lanes start, and project is built after them. The set follows the ghost's mechanisms one to one: the registry, the ledger, the gaps-as-data telemetry, the contract's numbers.
+- **Held by:** `docs/modules.json`, `test/test_modules.py`.
+- **Source:** Ghost, 2026-11-17, in chat (the module set approved as proposed); J-003.
+- **Status:** in force
+- **See also:** Core C-012, SP-005
+- **subject:** modules
+
+### SP-004: The database is SQLite from the standard library; no runtime dependency until a phase needs one
+- **Decision:** every table lives in one SQLite database opened by `solarpunk/leaf/store.py` with foreign keys on; each module owns its tables and offers them as schema statements that project applies. The product imports the standard library alone; `requirements.lock` holds tools. A runtime dependency enters by a decision that names the phase that needs it and a review (C-034, C-035).
+- **Why:** `sqlite3` ships with CPython on Windows and Linux, so the fleet and its error codes are a file a user can carry and a test can make in memory; a dependency is a supply-chain surface and a review cost, and nothing in Phases 1 to 3 (SQLite, tkinter, `datetime`, `math`, `random`) needs one.
+- **Held by:** `scripts/checks/imports.py`, `solarpunk/leaf/store.py`, `requirements.in`.
+- **Source:** Ghost, 2026-11-17, in chat ("assign assets error codes to a database"; the stdlib shape approved with SP-003).
+- **Status:** in force
+- **See also:** Core C-034, SP-003
+- **subject:** dependencies
+
+### SP-005: Lanes are built in parallel and landed in number order
+- **Decision:** a phase's items are lanes: each names one module folder and one test file, no two lanes of a phase name the same file, and no lane edits `TODO.md`, `docs/DONE.md`, the journal or the navigation log (the coordinator writes those from the worker's report). Workers build at once, each on its own `agent/<name>` branch saved by `scripts/save.sh`; the coordinator lands them in the chain's order, each through `scripts/gate.sh --fast` and `scripts/commit.sh` on the combined tree (C-029, C-031, C-040). The chain's order (C-016) is the landing order, not the building order.
+- **Why:** Ghost wants the work parallelised and the roadmap possible to run in parallel; C-016's order exists so an item is never built on an item not yet proven, which the landing order keeps while the building runs wide. Shared files edited by two workers are the collision C-029 forbids, so the registers are the coordinator's.
+- **Held by:** `docs/ROADMAP.md` §6 (P-15), `docs/modules.json` MOD-05, `docs/when/coordinate.md`.
+- **Source:** Ghost, 2026-11-17, in chat; J-003.
+- **Status:** in force
+- **See also:** Core C-016, Core C-029, SP-003
+- **subject:** lanes
+
+### SP-006: Jobs are scheduled by cron on Linux and Task Scheduler on Windows from one job definition
+- **Decision:** `solarpunk/schedule/` (Phase 2) renders a `Job` to a crontab line and to a `schtasks /Create` command, each compared with a golden; only `install` and `remove` touch the host and the tests never call them. A scheduled run executes the whole remote-test suite, each test against every asset of its kinds, stamps each asset's last status and the run's instant, and recomputes KPIs. A Windows run is a by-hand Actions job (C-032).
+- **Why:** Ghost's direction: the ability to schedule jobs on both Windows and Linux; the session has no Windows (F-03), so what can be proven here is the rendered artefact, and the host step is kept to two functions.
+- **Held by:** `docs/ROADMAP.md` Phase 2; the lane's goldens when built.
+- **Source:** Ghost, 2026-11-17, in chat.
+- **Status:** proposed
+- **See also:** Core C-032, SP-007
+- **subject:** scheduling
+
+### SP-007: The front end is native, tkinter, on Windows and Linux; nothing a browser opens
+- **Decision:** `solarpunk/ui/` (Phase 3) is tkinter from the standard library: a scrollable list of assets, each with a solar-panel glyph in its `AssetStatus` colour (green: the last scheduled run's remote tests passed; yellow: one failed; red: an open OUTAGE fault), the last status and the run's instant on mouseover, click-through to the failing remote test and its reason, a form to add an asset with its type from a dropdown read from the asset maintenance list and its IP address and port. No web server, no browser, no web hook. The UI calls project alone.
+- **Why:** Ghost's direction: native Windows and Linux UIs, not web; tkinter is the one toolkit CPython ships on both, so P-17 holds. Open: whether tkinter's look suffices or a toolkit (a dependency, SP-004) is wanted later.
+- **Held by:** `docs/ROADMAP.md` Phase 3, §4.
+- **Source:** Ghost, 2026-11-17, in chat; the toolkit is the coordinator's proposal for Ghost's word.
+- **Status:** proposed
+- **See also:** SP-004, SP-006
+- **subject:** front end
+
+### SP-008: Assets push their own error codes to the central receiver
+- **Decision:** beside the scheduled pull (SP-006), an asset may push a line `<asset-id> <fault-code>` to the central receiver (`solarpunk/receiver/`, Phase 2), which refuses an unknown asset or code (SOL-04, SOL-05), assigns the fault in the ledger and sets the asset's status at once, so degradation is seen in real time, not at the next run.
+- **Why:** Ghost's direction: assets ping the server with their id and error code. The receiver is the one inbound surface, so it is small, refuses first, and stores nothing it cannot name.
+- **Held by:** `docs/ROADMAP.md` Phase 2; the lane's refusal tests when built.
+- **Source:** Ghost, 2026-11-17, in chat.
+- **Status:** proposed
+- **See also:** SP-006, SOL-04
+- **subject:** receiver
+
+### SP-009: Mail goes out by SMTP from the standard library, one code path for Outlook and Linux
+- **Decision:** the mailer (Phase 2) sends through `smtplib` to the account's SMTP server: Outlook and Microsoft 365 by their SMTP endpoint, any SMTP host on Linux; no Outlook desktop automation (COM, which needs a dependency and a Windows session) and no mail library. The server, port, sender and credential reference live outside the repository (a settings file the tests never read; a credential is read from one named environment variable and never printed, the supply-chain rules); the tests send to a local fake.
+- **Why:** Ghost's direction: mailer integration to Outlook and comparable services on Linux, on asset degradation or a bad flag. SMTP is the one protocol both sides speak that CPython ships; a second path per platform is a second thing to test and to break. Open: if Outlook's desktop client itself must send (not the account), that is a dependency and a decision (SP-004).
+- **Held by:** `docs/ROADMAP.md` Phase 2; the lane's fake-server tests when built.
+- **Source:** Ghost, 2026-11-17, in chat; the SMTP shape is the coordinator's proposal for Ghost's word.
+- **Status:** proposed
+- **See also:** SP-004, SP-006, SP-008
+- **subject:** mail

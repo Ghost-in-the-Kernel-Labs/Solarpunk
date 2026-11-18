@@ -2,18 +2,31 @@
 
 Read `CLAUDE.md` first, then this. `TODO.md` is the chain in order; `docs/DONE.md` is what is finished.
 
-## Where the project stands (2026-11-17)
+## Where the project stands (2026-11-17, late)
 
-Stamped from Ghost-Core today. Nothing of Solarpunk's own is built; the template's documents, checks and
-gates are in place and green.
+Phase 0 is through 0.5: the ghost named, the stack wired (full gate green, mutation 19/19), the roadmap written as
+parallel lanes, the KPI contract SOL-01 to SOL-12 with the leaf in code, and SP-002 to SP-008 recorded. 0.6 (Tune-up
+pass 0) is next in the chain. Phase 1's lanes 1.1 to 1.5 are briefed to parallel workers on `agent/<lane>` branches
+(SP-005); the coordinator lands them in order after 0.6.
+
+## Settled by Ghost (2026-11-17, in chat)
+
+Python stack, prefix SP, floor mid; the five-lane shape of Phase 1 and the seven modules (SP-003); SQLite from the
+standard library (SP-004); lanes built in parallel, landed in order (SP-005); the leaf's first code pulled into 0.2
+(SP-002). Directions placed in Phases 2 and 3 (`docs/ROADMAP.md`): cron and Task Scheduler; a native UI, not web;
+the scrollable asset list with the green/yellow/red panel glyph, mouseover last status and time, click-through to the
+failing remote test; assets added by IP and port and pinged for a feed; standalone remote tests per asset type, each
+its own lane; the asset maintenance list behind the type dropdown; assets pushing id and error code to the receiver;
+ISO 9001 and ISO 55000 coverage from the test suite as one report; an asset's location and responsible engineer's
+email on the asset, a mailer to those engineers on degradation, and the Save/Cancel engineer-assignment window.
 
 ## For Ghost: waiting on you
 
-1. Name this project's ghost (`docs/GHOST-IN-THE-KERNEL.md`, TODO 0.1).
-2. Pin the stack's image digest and dependencies; wire mutation (TODO 0.2); every `STAMP` marker in the tree is a line to fill (`grep -rn STAMP .`).
-3. Write the roadmap's §1 to §6 and Phase 1's items in `TODO.md` (TODO 0.3).
-4. Write the first invariants of the contract and set `docs/modules.json` (TODO 0.4).
-5. Write the founding decisions in `theGhost.md`, a decision for each core decision this project refuses among them (TODO 0.5): agents cannot author them.
+1. SP-006 to SP-009 are `proposed`: say "in force" (or change them) and the coordinator lands the status.
+   The two choices inside them that are the coordinator's, not yours: tkinter as the toolkit (SP-007) and SMTP as
+   the one mail path (SP-009).
+2. Phase 2's open question: does the scheduled job run `python3 -m solarpunk.cli`, or a frozen entry point?
+3. Ghost-Core owes the fixes for F-001 to F-004 (`docs/FINDINGS.md`); this project carries them locally.
 
 ## Trials: questions settled by a run, not an argument
 
@@ -21,6 +34,6 @@ gates are in place and green.
 
 ## What to distrust
 
-- The stack's gate has not run under its image until TODO 0.2 is done.
-- Until TODO 0.2 lands the gate refuses at the stack (`stacks/python/gate.sh`), so only `scripts/commit.sh --docs-only` commits are open: 0.1 lands that way, touching `docs/` alone, and its move from `TODO.md` to `docs/DONE.md` rides in 0.2's commit.
+- The Python stack's "image" is a venv made per session (`stacks/python/README.md`), not a Docker image; the gate has run under it here.
+- 19 tests under `test/test_stacks.py` skip as "no TypeScript stack in this tree": stamp residue, pruned or explained at 1.8.
 - `docs/AGENT.md`'s Fast loop and Gate cells are Ghost-Core's numbers until Tune-up pass 0 re-measures them here.

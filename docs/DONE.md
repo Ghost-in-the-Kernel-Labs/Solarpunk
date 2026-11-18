@@ -20,3 +20,7 @@ Done 2026-11-17 (J-003). Check: `docs/ROADMAP.md` §1 to §6 written for Solarpu
 ### 0.4 The contract and the leaf module
 
 Done 2026-11-17 (J-004). Check: `docs/CONTRACT.md` renamed and its first invariants written; `docs/modules.json`'s package and modules set; `test/test_contract.py` and `test/test_modules.py` green on the real folders. ✓ The file keeps its name (`test/test_contract.py` reads it by name) and is titled the KPI contract, prefix SOL-.
+
+### 0.5 The founding decisions
+
+Done 2026-11-17 (J-005). Check: `theGhost.md` holds Ghost's founding decisions for Solarpunk, a decision for each core decision it refuses among them, each with Ghost as its Source. Agents cannot author Ghost's decisions: an agent drafts the questions for Ghost in `docs/HANDOFF.md`, and a builder that reports "waiting on Ghost" has done its job. ✓ SP-002 to SP-005 in force by Ghost's word in chat; SP-006 to SP-009 proposed from Ghost's directions, waiting on his word (`docs/HANDOFF.md`); no core decision refused.

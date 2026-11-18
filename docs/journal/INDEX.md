@@ -8,3 +8,4 @@ Written from `docs/journal/` by `scripts/journal_index.py`; do not edit by hand.
 | J-002 | 0.2: the python stack wired, the leaf's first code pulled forward | decision | `J-000-099.md` |
 | J-003 | 0.3: the roadmap as parallel lanes; Phases 2 and 3 from Ghost's directions | direction | `J-000-099.md` |
 | J-004 | 0.4: the KPI contract, SOL-01 to SOL-12, and the leaf the lanes share | feature | `J-000-099.md` |
+| J-005 | 0.5: the founding decisions from Ghost's rulings of the evening | decision | `J-000-099.md` |
