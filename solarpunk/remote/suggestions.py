@@ -1,0 +1,128 @@
+"""The suggestions table (7.4, SP-015): a likely fault a failing remote test's rules name, or a code an asset pushed,
+waiting for an engineer. A suggestion is never a fault: an engineer accepts it (project opens the fault, through the one
+door that requires an engineer, and the suggestion keeps its id) or dismisses it with a reason, and either is recorded
+with who. One open suggestion per asset and code: raising the same one again returns the open one. The module offers
+its schema; project applies it. It imports the leaf alone (MOD-05)."""
+import sqlite3
+from dataclasses import dataclass
+from datetime import datetime
+
+from solarpunk.leaf.clock import utc
+from solarpunk.leaf.codes import lookup
+
+DEVICE = "device"
+OPEN = "open"
+ACCEPTED = "accepted"
+DISMISSED = "dismissed"
+# The SQL lives here, at module level, where mutmut does not reach (docs/MUTATION.md, J-008).
+SCHEMA = (
+    "CREATE TABLE suggestions ("
+    " suggestion_id INTEGER PRIMARY KEY,"
+    " asset_id TEXT NOT NULL,"
+    " code TEXT NOT NULL,"
+    " source TEXT NOT NULL,"
+    " reason TEXT NOT NULL,"
+    " raised_at TEXT NOT NULL,"
+    " state TEXT NOT NULL DEFAULT 'open',"
+    " decided_by TEXT NULL,"
+    " fault_id INTEGER NULL,"
+    " dismissal TEXT NULL)",
+)
+COLUMNS = "suggestion_id, asset_id, code, source, reason, raised_at, state, decided_by, fault_id, dismissal"
+INSERT = "INSERT INTO suggestions (asset_id, code, source, reason, raised_at) VALUES (?, ?, ?, ?, ?)"
+BY_ID = f"SELECT {COLUMNS} FROM suggestions WHERE suggestion_id = ?"
+OPEN_OF = f"SELECT {COLUMNS} FROM suggestions WHERE state = 'open' AND asset_id = ? AND code = ?"
+OPEN_ALL = f"SELECT {COLUMNS} FROM suggestions WHERE state = 'open' ORDER BY asset_id, source != 'device', raised_at DESC, suggestion_id"
+OPEN_FOR = (f"SELECT {COLUMNS} FROM suggestions WHERE state = 'open' AND asset_id = ?"
+            " ORDER BY source != 'device', raised_at DESC, suggestion_id")
+ACCEPT = "UPDATE suggestions SET state = 'accepted', decided_by = ?, fault_id = ? WHERE suggestion_id = ? AND state = 'open'"
+DISMISS = "UPDATE suggestions SET state = 'dismissed', decided_by = ?, dismissal = ? WHERE suggestion_id = ? AND state = 'open'"
+
+
+class SuggestionError(ValueError):
+    """Raised for a suggestion the table does not hold or that is no longer open, or a dismissal with no reason:
+    SuggestionError("suggestion 9 is not in the table")."""
+
+
+@dataclass(frozen=True)
+class Suggestion:
+    """One suggestion: Suggestion(1, "OAHE-SEN-001", "SEN-001", "reachable", "127.0.0.1:9 is unreachable", 13:00 UTC,
+    "open", None, None, None); source is the test that raised it, or "device" for a pushed code; decided_by, fault_id and
+    dismissal are set when an engineer acts."""
+
+    suggestion_id: int
+    asset_id: str
+    code: str
+    source: str
+    reason: str
+    raised_at: datetime
+    state: str
+    decided_by: str | None
+    fault_id: int | None
+    dismissal: str | None
+
+
+def schema() -> tuple[str, ...]:
+    """The statements that make the suggestions table: schema()[0] starts with "CREATE TABLE suggestions"."""
+    return SCHEMA
+
+
+def _row(row: tuple) -> Suggestion:
+    """A stored row as a Suggestion, its instant aware: the raised_at text "2026-06-01T13:00:00+00:00" reads 13:00 UTC."""
+    return Suggestion(row[0], row[1], row[2], row[3], row[4], datetime.fromisoformat(row[5]), *row[6:])
+
+
+def get(conn: sqlite3.Connection, suggestion_id: int) -> Suggestion:
+    """The suggestion with this id: get(conn, 1).code is "SEN-001"; an id the table lacks raises SuggestionError."""
+    row = conn.execute(BY_ID, (suggestion_id,)).fetchone()
+    if row is None:
+        raise SuggestionError(f"suggestion {suggestion_id} is not in the table")
+    return _row(row)
+
+
+def raise_suggestion(conn: sqlite3.Connection, asset_id: str, code: str, source: str, reason: str,
+                     raised_at: datetime) -> Suggestion:
+    """Stores an open suggestion and returns it, or returns the open one of the same asset and code, unchanged (never
+    two open of one code on one asset): raise_suggestion(conn, "OAHE-SEN-001", "SEN-001", "reachable", "…", 13:00 UTC)
+    twice gives the same suggestion_id. A code the catalogue lacks raises UnknownFaultCode; a naive instant NotUtc."""
+    # Decision: SP-015 (a test or a device suggests; nothing here opens a fault)
+    lookup(code)
+    stamp = utc(raised_at).isoformat()
+    existing = conn.execute(OPEN_OF, (asset_id, code)).fetchone()
+    if existing is not None:
+        return _row(existing)
+    cursor = conn.execute(INSERT, (asset_id, code, source, reason, stamp))
+    conn.commit()
+    return get(conn, cursor.lastrowid)
+
+
+def open_suggestions(conn: sqlite3.Connection, asset_id: str | None = None) -> tuple[Suggestion, ...]:
+    """The open suggestions, of one asset or of all by asset, a device's first, then the newest: after a pushed SEN-001
+    and a run's suggestion on OAHE-SEN-001, open_suggestions(conn, "OAHE-SEN-001")[0].source is "device"."""
+    rows = conn.execute(OPEN_ALL).fetchall() if asset_id is None else conn.execute(OPEN_FOR, (asset_id,)).fetchall()
+    return tuple(_row(row) for row in rows)
+
+
+def _decide(conn: sqlite3.Connection, statement: str, values: tuple, suggestion_id: int) -> Suggestion:
+    """Applies an accept or a dismiss to an open suggestion and returns it; one no longer open raises SuggestionError
+    naming its state, and changes nothing."""
+    current = get(conn, suggestion_id)
+    if current.state != OPEN:
+        raise SuggestionError(f"suggestion {suggestion_id} is already {current.state}")
+    conn.execute(statement, values)
+    conn.commit()
+    return get(conn, suggestion_id)
+
+
+def mark_accepted(conn: sqlite3.Connection, suggestion_id: int, engineer: str, fault_id: int) -> Suggestion:
+    """Records that an engineer accepted the suggestion into the fault named: mark_accepted(conn, 1, "a@x", 3).state is
+    "accepted" and .fault_id 3. Whether the engineer may, and the fault itself, are project's (SP-015)."""
+    return _decide(conn, ACCEPT, (engineer, fault_id, suggestion_id), suggestion_id)
+
+
+def mark_dismissed(conn: sqlite3.Connection, suggestion_id: int, engineer: str, reason: str) -> Suggestion:
+    """Records that an engineer dismissed the suggestion, and why: mark_dismissed(conn, 1, "a@x", "sensor cleaned").state
+    is "dismissed"; a blank reason raises SuggestionError, since a dismissal is a decision that says why."""
+    if not reason.strip():
+        raise SuggestionError(f"suggestion {suggestion_id}: a dismissal needs a reason")
+    return _decide(conn, DISMISS, (engineer, reason.strip(), suggestion_id), suggestion_id)

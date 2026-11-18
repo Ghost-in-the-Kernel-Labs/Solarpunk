@@ -20,8 +20,9 @@ RUN_AT = "2026-06-01T13:00:00+00:00"
 LOCAL = "127.0.0.1"
 SITE = Asset("OAHE-SIT-001", AssetKind.SITE, "OAHE", None, "Oahe", None)
 # What `test list` prints, one line per test in the folder, from the registry (SP-017): adding a remote test adds a
-# line here with no edit, and the shape of the line ("name  KINDS  CLAUSES") is still held.
+# line here with no edit, and the shape of the line ("name  KINDS  CLAUSES  suggests …", SP-015) is still held.
 TEST_LIST = [f"{test.name}  {','.join(kind.value for kind in test.kinds)}  {','.join(test.clauses)}"
+             f"  suggests {','.join(f'{k.value}:{c}' for k, c in test.suggests.items() if c) or 'nothing'}"
              for test in remote_registry.discover().values()]
 
 
@@ -83,6 +84,8 @@ class ListAndAdd(TestCommands):
         code, out, err = self.run_cli(["--db", self.db, "test", "list"])
         self.assertEqual((code, out.splitlines(), err), (0, TEST_LIST, ""))
         self.assertFalse(Path(self.db).exists())
+        # The rule table Ghost reviews, held as written (SP-015): an unreachable asset suggests its kind's fault.
+        self.assertIn("reachable  INV,MTR,SEN,TRK  55000-9.1  suggests INV:INV-001,MTR:MTR-001,SEN:SEN-001", out.splitlines())
 
     def test_add_calls_project_and_says_what_it_wrote(self) -> None:
         with mock.patch.object(cli.project, "add_remote_test", return_value=Path("tests/tracker_moving.py")) as add:

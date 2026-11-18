@@ -11,8 +11,8 @@ Ghost's statement of where the product is going: five areas under one click (J-0
 own nightly regime (SP-012, J-038; the section below). Tune-up pass 5: cold gate 9.95 min, warm 0.80 min, fast loop
 23.1 s (J-039).
 
-**The first open item is 7.4, suggestions from the tests** (`TODO.md`; SP-017's 7.2, the gate's reliability, and 7.3,
-counts that follow the registry, landed in J-051 and J-052; 7.1, who assigned a fault, landed in J-050; until 7.4 the receiver holds every good push for an engineer and stores nothing): Phase 7 is Ghost's
+**The first open item is 7.5, suggestions in the asset window and on the command line** (`TODO.md`; 7.4, the
+suggestions themselves, landed in J-053; SP-017's 7.2 and 7.3 in J-051 and J-052; 7.1, who assigned a fault, landed in J-050; until 7.4 the receiver holds every good push for an engineer and stores nothing): Phase 7 is Ghost's
 fault assignment (SP-015): tests
 suggest a likely fault, only an engineer assigns one, and the record says which; then Phase 8, the tests' record (SP-016): a Tests window at
 the root, each asset's last 100 results searchable and graphed. Network security is now Phase 9. 6.3, the reports window, landed (J-043): "Reports" beside
@@ -81,6 +81,11 @@ email on the asset, a mailer to those engineers on degradation, and the Save/Can
    right (yellow, from `reachable`); the passes are vacuous. The proposal: a third result, "no data", for a test that
    had nothing to check, shown grey like "not run" and never counted as a pass. It changes `Result` and every remote
    test, so it is your ruling first.
+6. The rule table (7.4, J-053) is Claude's proposal, `solarpunk test list` prints it: an unreachable inverter suggests
+   INV-001, a meter MTR-001, a weather station SEN-001 (as does its irradiance out of range); a tracker, and every
+   data-quality failure, suggest nothing. Two gaps in the catalogue keep two diagnostics silent: no inverter code for
+   output under the performance floor (soiling, a string down) and none for a logger replaying its last value. Say
+   which rules to change and whether the catalogue gains the two codes.
 
 ## Advisories under the gate's threshold (Tune-up pass 6; unchanged since pass 0)
 

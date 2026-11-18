@@ -25,6 +25,8 @@ from solarpunk.remote.results import Result
 
 KINDS = (AssetKind.METER, AssetKind.INVERTER,)
 CLAUSES = ("9001-9.1.1", "55000-9.1",)
+# SP-015's rule table: for each kind, the catalogue code a failure suggests to an engineer, or None; say here why.
+SUGGESTS = {kind: None for kind in KINDS}
 
 
 def run(asset: Asset, samples: tuple[Sample, ...]) -> Result:

@@ -44,13 +44,6 @@ Lanes (P-15): 6.1 and 6.2 in parallel, landed in that order (done, J-041); 6.3 a
 
 Lanes (P-15): 7.1 (done, J-050), then 7.2 and 7.3 (SP-017, put ahead by Ghost), then 7.4 (it needs 7.1's `assigned_by`), then 7.5, then 7.6 the pass. Ghost's direction, SP-015.
 
-### 7.4 Suggestions from the tests
-
-A failing remote test raises a suggestion of a likely fault by its rule table, and a code an asset pushes is a
-suggestion from the device; an engineer accepts or dismisses each, recorded with who (SP-015).
-
-Check: each module under `solarpunk/remote/tests/` declares `SUGGESTS` (a mapping from each of its `KINDS` to a catalogue code or None), held by the registry; a `suggestions` table (asset, code, source test or "device", reason, run, state open/accepted/dismissed, by whom, fault id when accepted, dismissal reason); the scheduled run stores one open suggestion per failing test with a code, never two open of the same code on one asset; the receiver stores a pushed code as a suggestion from the device; `project.accept_suggestion(conn, id, engineer, recorded_by=None)` opens the fault through 7.1's `assign_fault`, linked, and `project.dismiss_suggestion(conn, id, engineer, reason)`; an open suggestion keeps the asset yellow and never red, and no KPI reads it; the rule table printed by `solarpunk test list`; the tests of each, and the fast loop green.
-
 ### 7.5 Suggestions in the asset window and on the command line
 
 The engineer's view of what the tests suggest, where the asset is, and the same on the command line (SP-015).

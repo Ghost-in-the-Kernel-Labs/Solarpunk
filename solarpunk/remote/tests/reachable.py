@@ -8,6 +8,11 @@ from solarpunk.remote.results import Result
 
 KINDS = (AssetKind.INVERTER, AssetKind.METER, AssetKind.SENSOR, AssetKind.TRACKER)
 CLAUSES = ("55000-9.1",)
+# SP-015's rule table: an asset that does not answer suggests the fault its kind's catalogue names for that, for an
+# engineer to confirm. An inverter that does not answer is most likely offline; a meter's lost link is MTR-001; a
+# weather station that does not answer leaves the performance ratio unreliable, SEN-001's effect. A tracker's catalogue
+# has no code for it (TRK-001 is a stalled tracker, which silence does not show).
+SUGGESTS = {AssetKind.INVERTER: "INV-001", AssetKind.METER: "MTR-001", AssetKind.SENSOR: "SEN-001", AssetKind.TRACKER: None}
 
 
 def run(asset: Asset, samples: tuple[Sample, ...]) -> Result:

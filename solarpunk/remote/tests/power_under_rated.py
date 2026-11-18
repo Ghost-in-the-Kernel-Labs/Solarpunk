@@ -8,6 +8,8 @@ from solarpunk.remote.results import Result
 
 KINDS = (AssetKind.INVERTER,)
 CLAUSES = ("9001-9.1.1",)
+# SP-015's rule table: power over the rating is a bad reading or a bad rating, neither a catalogue fault: no code.
+SUGGESTS = {AssetKind.INVERTER: None}
 
 
 def run(asset: Asset, samples: tuple[Sample, ...]) -> Result:

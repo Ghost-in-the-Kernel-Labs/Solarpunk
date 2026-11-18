@@ -28,7 +28,7 @@ The window
   solarpunk --help                             this list
 
 The remote tests
-  test list                                    each remote test with its asset kinds and clauses
+  test list                                    each remote test, its kinds, clauses and the fault it suggests
   test run [--db PATH] [--at INSTANT]          run every remote test over every asset of the store, once
   test add NAME --clause ID [--kind KIND]      scaffold a new remote test; it fails until its run is written
 
@@ -154,11 +154,19 @@ def show_help(args: argparse.Namespace, out: TextIO) -> None:
     out.write(HELP)
 
 
+def rules_text(test: project.RemoteTest) -> str:
+    """A test's rule table in words (SP-015): reachable's is "suggests INV:INV-001,MTR:MTR-001,SEN:SEN-001", a kind with
+    no code left out; a test that suggests nothing reads "suggests nothing"."""
+    pairs = [f"{kind.value}:{code}" for kind, code in test.suggests.items() if code is not None]
+    return "suggests " + (",".join(pairs) if pairs else "nothing")
+
+
 def test_list(args: argparse.Namespace, out: TextIO) -> None:
-    """test list: one line per remote test with its kinds and clauses, "reachable  INV,MTR,SEN,TRK  55000-9.1"."""
+    """test list: one line per remote test with its kinds, clauses and rule table,
+    "reachable  INV,MTR,SEN,TRK  55000-9.1  suggests INV:INV-001,MTR:MTR-001,SEN:SEN-001"."""
     for test in project.remote_tests():
         kinds = ",".join(kind.value for kind in test.kinds)
-        out.write(f"{test.name}  {kinds}  {','.join(test.clauses)}\n")
+        out.write(f"{test.name}  {kinds}  {','.join(test.clauses)}  {rules_text(test)}\n")
 
 
 def test_add(args: argparse.Namespace, out: TextIO) -> None:

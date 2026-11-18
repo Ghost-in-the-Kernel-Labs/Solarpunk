@@ -11,6 +11,8 @@ from solarpunk.remote.results import Result
 
 KINDS = (AssetKind.INVERTER, AssetKind.SENSOR)
 CLAUSES = ("9001-9.1.3", "55000-7.5")
+# SP-015's rule table: a weather station reading out of range is SEN-001; an inverter's irradiance channel has no code.
+SUGGESTS = {AssetKind.INVERTER: None, AssetKind.SENSOR: "SEN-001"}
 FIELD = "irradiance_w_m2"
 
 

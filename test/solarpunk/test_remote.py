@@ -121,9 +121,10 @@ class TheRegistry(unittest.TestCase):
 
     def test_a_module_missing_a_field_is_refused_by_name(self) -> None:
         cases = {
-            "CLAUSES = ()\ndef run(a, s): pass\n": "KINDS",
-            "KINDS = ()\ndef run(a, s): pass\n": "CLAUSES",
-            "KINDS = ()\nCLAUSES = ()\n": "run",
+            "CLAUSES = ()\nSUGGESTS = {}\ndef run(a, s): pass\n": "KINDS",
+            "KINDS = ()\nSUGGESTS = {}\ndef run(a, s): pass\n": "CLAUSES",
+            "KINDS = ()\nCLAUSES = ()\ndef run(a, s): pass\n": "SUGGESTS",
+            "KINDS = ()\nCLAUSES = ()\nSUGGESTS = {}\n": "run",
         }
         for body, field in cases.items():
             with self.subTest(field=field), self.assertRaises(BadRemoteTest) as caught:
@@ -132,16 +133,32 @@ class TheRegistry(unittest.TestCase):
 
     def test_kinds_must_be_a_tuple_of_asset_kinds(self) -> None:
         for kinds in ("['INV']", "('INV',)", "[]"):
-            body = f"from solarpunk.leaf.codes import AssetKind\nKINDS = {kinds}\nCLAUSES = ()\ndef run(a, s): pass\n"
+            body = (f"from solarpunk.leaf.codes import AssetKind\nKINDS = {kinds}\nCLAUSES = ()\nSUGGESTS = {{}}\n"
+                    "def run(a, s): pass\n")
             with self.subTest(kinds=kinds), self.assertRaises(BadRemoteTest) as caught:
                 self.load_broken(body)
             self.assertEqual(str(caught.exception), f"{BROKEN_PACKAGE}.broken: KINDS is not a tuple of AssetKind")
 
     def test_a_good_fixture_module_loads(self) -> None:
         found = self.load_broken("from solarpunk.leaf.codes import AssetKind\n"
-                                 "KINDS = (AssetKind.METER,)\nCLAUSES = ('x',)\ndef run(a, s): pass\n")
+                                 "KINDS = (AssetKind.METER,)\nCLAUSES = ('x',)\nSUGGESTS = {AssetKind.METER: 'MTR-001'}\n"
+                                 "def run(a, s): pass\n")
         self.assertEqual(list(found), ["broken"])
         self.assertEqual(found["broken"].kinds, (AssetKind.METER,))
+        self.assertEqual(found["broken"].suggestion(AssetKind.METER), "MTR-001")
+
+    def test_a_rule_table_is_held_to_the_kinds_and_the_catalogue(self) -> None:
+        """SP-015: a rule for every kind and no other, each code one of that kind's."""
+        head = "from solarpunk.leaf.codes import AssetKind\nKINDS = (AssetKind.METER,)\nCLAUSES = ()\ndef run(a, s): pass\n"
+        cases = {
+            "SUGGESTS = {}": "SUGGESTS must give one rule for each of its KINDS",
+            "SUGGESTS = {AssetKind.METER: None, AssetKind.SENSOR: None}": "SUGGESTS must give one rule for each of its KINDS",
+            "SUGGESTS = {AssetKind.METER: 'INV-001'}": "SUGGESTS names INV-001, which is no METER code",
+        }
+        for rules, said in cases.items():
+            with self.subTest(rules=rules), self.assertRaises(BadRemoteTest) as caught:
+                self.load_broken(head + rules + "\n")
+            self.assertEqual(str(caught.exception), f"{BROKEN_PACKAGE}.broken: {said}")
 
 
 class Reachable(unittest.TestCase):

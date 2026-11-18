@@ -10,6 +10,8 @@ from solarpunk.remote.results import Result
 
 KINDS = tuple(kind for kind in kinds() if fields_of(kind))
 CLAUSES = ("55000-7.5", "9001-9.1.3")
+# SP-015's rule table: a record off the grid or out of range is the data's fault, not the equipment's: no code.
+SUGGESTS = {kind: None for kind in KINDS}
 SAMPLE_FIELDS = ("irradiance_w_m2", "power_kw")
 
 

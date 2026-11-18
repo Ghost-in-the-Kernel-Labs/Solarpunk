@@ -38,3 +38,10 @@ An entry is `### <date> · <task> · <agent>` and four lines: **Task**, **Opened
 - **Opened**: `docs/paths/product.md` (the remote-test row, which named the counts), `test/solarpunk/test_remote.py`, `test/solarpunk/test_project_run.py`, `test/solarpunk/test_demo.py`, `test/solarpunk/test_cli_tests.py`, `test/solarpunk/test_ui_asset.py`.
 - **Complaints**: what a run stores per asset (its kind's tests, and a failed ping beside them) is written in no document; it was read off the pinned numbers.
 - **Suggestions**: a sentence in `docs/CONTRACT.md` or the remote module's docstring: what one scheduled run stores per asset.
+
+### 2026-11-18 · 7.4, suggestions from the tests · Claude
+
+- **Task**: SP-015's suggestions: the rule tables, the table, the run, the receiver, accept and dismiss.
+- **Opened**: `docs/paths/product.md` (the remote-test and feed rows), `solarpunk/remote/registry.py`, `solarpunk/remote/results.py`, `solarpunk/remote/run.py`, `solarpunk/project/run.py`, `solarpunk/project/orchestrator.py`, `solarpunk/receiver/server.py`, `solarpunk/remote/scaffold.py`.
+- **Complaints**: `git stash` does not stash files marked intent-to-add, so comparing against the last commit by stashing silently compared nothing; a worktree of HEAD was the way. The Tk rule (a window freed off the main thread aborts the run) was known to one test file's setUp and written nowhere a window test's author would read.
+- **Suggestions**: the product workpath's window row to name `test/solarpunk/conftest.py` and the reason; "compare with a worktree of HEAD, never a stash" in the process workpath.

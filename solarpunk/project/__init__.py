@@ -45,6 +45,13 @@ from solarpunk.project.reports import (
     report_rows,
     report_sites,
 )
+from solarpunk.project.suggest import (
+    accept_suggestion,
+    dismiss_suggestion,
+    open_suggestions,
+    suggest_from_run,
+    suggest_pushed,
+)
 from solarpunk.project.run import RunReport, add_remote_test, remote_tests, scheduled_run
 from solarpunk.project.surface import (
     AssetDetail,
@@ -58,6 +65,8 @@ from solarpunk.project.surface import (
     ping_asset,
     register_asset,
 )
+from solarpunk.remote.registry import RemoteTest
+from solarpunk.remote.suggestions import Suggestion, SuggestionError
 from solarpunk.workorders.ledger import WorkOrder, WorkOrderError
 
 __all__ = [
@@ -71,14 +80,18 @@ __all__ = [
     "PowerOutput",
     "PowerReport",
     "RegistryError",
+    "RemoteTest",
     "RootCause",
     "RunReport",
     "SiteKpis",
+    "Suggestion",
+    "SuggestionError",
     "UnknownAsset",
     "UnknownEngineer",
     "UnknownRootCause",
     "WorkOrder",
     "WorkOrderError",
+    "accept_suggestion",
     "add_remote_test",
     "asset_detail",
     "asset_rows",
@@ -91,6 +104,7 @@ __all__ = [
     "codes_for_kind",
     "day_period",
     "demo_fleet",
+    "dismiss_suggestion",
     "faults_listing",
     "fleet_assets",
     "fleet_listing",
@@ -104,6 +118,7 @@ __all__ = [
     "open_outages",
     "open_preventive_work_order",
     "open_store",
+    "open_suggestions",
     "open_work_order_from_fault",
     "period",
     "ping_asset",
@@ -115,5 +130,7 @@ __all__ = [
     "report_rows",
     "report_sites",
     "scheduled_run",
+    "suggest_from_run",
+    "suggest_pushed",
     "work_orders_for",
 ]

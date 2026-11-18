@@ -19,9 +19,11 @@ from solarpunk.leaf.telemetry import Sample
 from solarpunk.mailer import mail as mailer
 from solarpunk.mailer import transport
 from solarpunk.project.orchestrator import fleet_assets, open_outages
+from solarpunk.project.suggest import suggest_from_run
 from solarpunk.remote import results as result_table
 from solarpunk.remote import run as remote
 from solarpunk.remote import scaffold
+from solarpunk.remote import suggestions as suggestion_table
 from solarpunk.remote.registry import RemoteTest, discover, tests_for
 from solarpunk.telemetry import samples as sample_table
 
@@ -157,6 +159,14 @@ def fault_statuses(assets: tuple[Asset, ...], outages: dict[str, Fault]) -> dict
     return {asset.asset_id: AssetStatus.RED if asset.asset_id in outages else AssetStatus.GREEN for asset in assets}
 
 
+def suggested_yellow(conn: sqlite3.Connection, statuses: dict[str, AssetStatus]) -> dict[str, AssetStatus]:
+    """The statuses with every GREEN asset that has an open suggestion made YELLOW, never RED (SP-015): a tracker with no
+    feed and a pushed TRK-001 waiting for an engineer is YELLOW; RED and YELLOW are left as they are."""
+    waiting = {found.asset_id for found in suggestion_table.open_suggestions(conn)}
+    return {asset_id: AssetStatus.YELLOW if status is AssetStatus.GREEN and asset_id in waiting else status
+            for asset_id, status in statuses.items()}
+
+
 def scheduled_run(conn: sqlite3.Connection, run_at: datetime, settings_path: Path | None = None) -> RunReport:
     """The job the clock runs, over every asset in the fleet: for the OAHE run fixture with a simulator for OAHE-INV-001,
     a closed port for OAHE-INV-002 and an open INV-001 on OAHE-INV-003, statuses GREEN, YELLOW and RED for the three
@@ -172,6 +182,8 @@ def scheduled_run(conn: sqlite3.Connection, run_at: datetime, settings_path: Pat
     flags = {asset_id: True for asset_id in outages}
     statuses = fault_statuses(tuple(asset for asset in assets if asset not in fed), outages)
     statuses.update(stamped(remote.run_suite(conn, fed, samples, flags, run_at), pinged.unreachable))
+    suggest_from_run(conn, tuple(asset.asset_id for asset in fed), run_at)
+    statuses = suggested_yellow(conn, statuses)
     sent, mail_errors = (0, ()) if settings is None else mail_all(conn, assets, statuses, settings, run_at)
     written = len(pinged.unreachable) + sum(len(tests_for(asset.kind)) for asset in fed)
     return RunReport(pinged.pinged, pinged.records, written, statuses, sent, pinged.errors + mail_errors)

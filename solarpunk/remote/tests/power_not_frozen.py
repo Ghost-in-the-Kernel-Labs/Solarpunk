@@ -9,6 +9,8 @@ from solarpunk.remote.results import Result
 
 KINDS = (AssetKind.INVERTER,)
 CLAUSES = ("9001-9.1.3",)
+# SP-015's rule table: the catalogue has no code for a logger replaying its last value. A gap for Ghost: no suggestion.
+SUGGESTS = {AssetKind.INVERTER: None}
 # Six records on the five-minute grid (SOL-06) are half an hour.
 FROZEN_RUN = 6
 

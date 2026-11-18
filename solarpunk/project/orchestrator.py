@@ -22,6 +22,7 @@ from solarpunk.leaf.faults import UNRECORDED, Fault
 from solarpunk.leaf.telemetry import Sample
 from solarpunk.mailer import mail as mail_table
 from solarpunk.remote import results as result_table
+from solarpunk.remote import suggestions as suggestion_table
 from solarpunk.telemetry import generate as generator
 from solarpunk.telemetry import samples as sample_table
 from solarpunk.workorders import ledger as work_ledger
@@ -37,6 +38,7 @@ LATER_TABLES: tuple[tuple[str, tuple[str, ...]], ...] = (
     ("results", result_table.schema()),
     ("mails", mail_table.schema()),
     ("work_orders", work_ledger.schema()),
+    ("suggestions", suggestion_table.schema()),
 )
 TABLE_NAMES = "SELECT name FROM sqlite_master WHERE type = 'table'"
 
@@ -286,13 +288,16 @@ def open_outages(conn: sqlite3.Connection) -> dict[str, Fault]:
 
 def asset_status(conn: sqlite3.Connection, asset_id: str) -> AssetStatus:
     """The three-colour rule (SP-007): RED while the asset carries an open OUTAGE fault, else YELLOW when its latest
-    remote results hold a failure, else GREEN: with an open INV-001 on OAHE-INV-001 its status is RED, with only an open
+    remote results hold a failure or it has an open suggestion (SP-015), else GREEN: with an open INV-001 on OAHE-INV-001 its status is RED, with only an open
     INV-002 (a derate) GREEN, with a failing latest reachable YELLOW; an id the fleet lacks raises UnknownAsset."""
     # Invariant: SOL-11 (a derate is not an outage)
     known(conn, asset_id)
     if asset_id in open_outages(conn):
         return AssetStatus.RED
     if any(not result.passed for result in result_table.latest_for(conn, asset_id)):
+        return AssetStatus.YELLOW
+    # Decision: SP-015 (an open suggestion keeps the asset yellow, never red: only an engineer's fault turns it red)
+    if suggestion_table.open_suggestions(conn, asset_id):
         return AssetStatus.YELLOW
     return AssetStatus.GREEN
 

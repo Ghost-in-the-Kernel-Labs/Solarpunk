@@ -9,6 +9,8 @@ from solarpunk.remote.results import Result
 
 KINDS = (AssetKind.INVERTER,)
 CLAUSES = ("9001-9.1.3",)
+# SP-015's rule table: power with no sun is a metering or clock fault the catalogue has no code for.
+SUGGESTS = {AssetKind.INVERTER: None}
 # A pyranometer reads a few W/m² of sky light and offset at night; 5 is above that and far below any useful sun.
 NIGHT_W_M2 = 5.0
 # An inverter's own standby draw and metering noise stay well under 1 % of its rating.

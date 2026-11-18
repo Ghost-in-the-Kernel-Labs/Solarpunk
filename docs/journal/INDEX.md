@@ -56,3 +56,4 @@ Written from `docs/journal/` by `scripts/journal_index.py`; do not edit by hand.
 | J-050 | 7.1: every fault names the engineer who assigned it; a failure the diagnostics hid | feature | `J-000-099.md` |
 | J-051 | 7.2: the gate on a frozen copy, every step timed, lint and the windows at every landing | feature | `J-000-099.md` |
 | J-052 | 7.3: the counts follow the registry; a scaffold in a scratch copy found two more assumptions | feature | `J-000-099.md` |
+| J-053 | 7.4: failing tests and pushed codes raise suggestions; a Tk abort the change exposed | feature | `J-000-099.md` |
