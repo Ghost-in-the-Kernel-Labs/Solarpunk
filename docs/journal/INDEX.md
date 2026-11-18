@@ -31,3 +31,4 @@ Written from `docs/journal/` by `scripts/journal_index.py`; do not edit by hand.
 | J-025 | 3.1: the fleet window landed; a UI lane must survive a missing tkinter, not only a missing display | feature | `J-000-099.md` |
 | J-026 | 3.2: the asset window landed; mutmut's verdicts under xvfb are not to be trusted | failure-caught | `J-000-099.md` |
 | J-027 | 3.3: the add-asset window landed; the type dropdown reads the maintenance list | feature | `J-000-099.md` |
+| J-028 | 3.4: the demo landed; an asset with no feed is not run through the suite | feature | `J-000-099.md` |

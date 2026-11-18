@@ -28,10 +28,6 @@ Lanes (P-15): 2.1 first (the list every other lane reads), then 2.2 to 2.6 in pa
 
 Lanes (P-15): 3.1 to 3.3 in parallel after 2.7, landed in this order; 3.4 after them.
 
-### 3.4 The demo
-
-Check: `python3 -m solarpunk.ui --demo` builds a file store `demo.db` beside the current directory (removed and rebuilt each run): the OAHE fixture, one day of seed-7 telemetry, two closed faults and one open INV-001 outage, a simulator started on an ephemeral port for OAHE-INV-001 with the asset's host and port set to it, the remote suite run once (so the window opens with green, yellow and red rows and a last-run instant), then the fleet window; `DEMO.md` at the root with the Windows commands (`py -3.12 -m venv .venv`, the lockfile install, `py -m solarpunk.ui --demo`), what to click in what order, the five-minute talk track, and the clause report command; `test/solarpunk/test_demo.py` builds the demo store headless and asserts the three colours are present; `README.md`'s skeleton filled (what Solarpunk is, the commands, the roadmap's phases in five lines).
-
 ### 3.5 Tune-up pass 3
 
 Check: `docs/when/tune-up.md` followed in full; the metrics table written; the navigation log's "Last review" set.

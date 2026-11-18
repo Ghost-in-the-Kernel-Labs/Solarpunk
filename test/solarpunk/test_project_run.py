@@ -191,6 +191,22 @@ class TheScheduledRun(RunFixture):
         project.close_fault(self.conn, self.outage.fault_id, at(2026, 6, 1, 10))
         self.assertIs(project.scheduled_run(self.conn, RUN_AT).statuses[INV3], AssetStatus.YELLOW)
 
+    def test_an_asset_with_no_endpoint_is_not_tested_and_takes_its_status_from_its_faults(self) -> None:
+        tracker = Asset("OAHE-TRK-001", AssetKind.TRACKER, "OAHE", "OAHE-SIT-001", "Tracker 1", None)
+        silent = Asset("OAHE-INV-004", AssetKind.INVERTER, "OAHE", "OAHE-SIT-001", "Inverter 4", 100.0)
+        project.load_fleet(self.conn, (tracker, silent))
+        project.assign_fault(self.conn, "OAHE-STR-001", "STR-001", at(2026, 6, 1, 9))
+        project.assign_fault(self.conn, silent.asset_id, "INV-001", at(2026, 6, 1, 9))
+        report = project.scheduled_run(self.conn, RUN_AT)
+        self.assertEqual((report.pinged, report.results), (3, 11))
+        self.assertIs(report.statuses[tracker.asset_id], AssetStatus.GREEN)
+        self.assertIs(report.statuses["OAHE-STR-001"], AssetStatus.GREEN)
+        self.assertIs(report.statuses[silent.asset_id], AssetStatus.RED)
+        self.assertEqual((results.latest_for(self.conn, tracker.asset_id), results.latest_for(self.conn, silent.asset_id)),
+                         ((), ()))
+        self.assertEqual({a: project.asset_status(self.conn, a) for a in report.statuses}, report.statuses)
+        self.assertEqual(count(self.conn, "results"), report.results)
+
     def test_a_naive_run_at_is_refused(self) -> None:
         with self.assertRaises(NotUtc):
             project.scheduled_run(self.conn, RUN_AT.replace(tzinfo=None))
@@ -225,6 +241,8 @@ class TheMails(RunFixture):
 
     def test_an_asset_with_nobody_to_mail_is_an_error_and_the_others_are_mailed(self) -> None:
         project.load_fleet(self.conn, BIGS)
+        # BIGS-INV-001 has no endpoint, so the suite does not test it: an open outage is what makes it alert.
+        project.assign_fault(self.conn, "BIGS-INV-001", "INV-001", at(2026, 6, 1, 9))
         server = self.smtp()
         report = project.scheduled_run(self.conn, RUN_AT, self.settings(server.server_address[1]))
         self.assertEqual((report.mails, len(report.errors)), (2, 3))

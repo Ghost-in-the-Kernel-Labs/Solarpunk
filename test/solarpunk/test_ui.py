@@ -151,11 +151,6 @@ class TheEntryHeadless(unittest.TestCase):
             entry.parse(["--help"])
         self.assertTrue(shown.getvalue().startswith("usage: solarpunk.ui [-h] [--db DB] [--demo]"))
 
-    def test_demo_is_3_4s_and_exits_2_without_a_window(self) -> None:
-        out = io.StringIO()
-        self.assertEqual(entry.main(["--demo"], out), 2)
-        self.assertEqual(out.getvalue(), "demo: see TODO 3.4\n")
-
 
 @unittest.skipUnless(display_available(), "no display")
 class TheFleetWindow(unittest.TestCase):

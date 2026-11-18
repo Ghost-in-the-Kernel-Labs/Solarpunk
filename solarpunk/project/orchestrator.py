@@ -1,7 +1,9 @@
 """The orchestrator: one store holding every module's tables, and the joins no lane may make (MOD-05). It checks an
 asset against the fleet before the ledger takes a fault, and reads the fleet, the faults and the samples to hand the
 KPI engine leaf types (Invariants: SOL-04, SOL-05, SOL-07 to SOL-10); an asset's status is the three-colour rule over
-the ledger and the remote results (SP-006, SP-007). The scheduled run is in run.py, the windows' surface in surface.py."""
+the ledger and the remote results (SP-006, SP-007). The scheduled run is in run.py, the windows' surface in surface.py.
+The demo (3.4) reaches the generator and the feed simulator through simulated_day and feed_server, since ui imports
+project and the leaf alone (SP-010)."""
 import sqlite3
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta
@@ -9,6 +11,7 @@ from pathlib import Path
 
 from solarpunk import kpi
 from solarpunk.faults import ledger
+from solarpunk.feed import simulate
 from solarpunk.fleet import registry
 from solarpunk.leaf import store
 from solarpunk.leaf.assets import Asset, site_id
@@ -23,6 +26,7 @@ from solarpunk.telemetry import samples as sample_table
 
 
 SITE_EMAIL = "site@oahe.example"
+LOOPBACK = "127.0.0.1"
 INVERTER_EMAIL = "inverter@oahe.example"
 STORE_TABLES = ("assets", "faults", "samples")
 # The tables Phase 2 added, by name, each with its schema: a store made before them gains them on reopening.
@@ -173,6 +177,19 @@ def generate_and_store(conn: sqlite3.Connection, site: str, period: Period, seed
     made = generator.generate(registry.by_site(conn, site), period, seed)
     sample_table.store(conn, made)
     return len(made)
+
+
+def simulated_day(asset: Asset, period: Period, seed: int) -> tuple[Sample, ...]:
+    """One inverter's generated samples over a period, stored nowhere, for a simulator to serve: simulated_day(OAHE-INV-001,
+    2026-06-01's day, 7) is 288 samples, the same each call."""
+    # Invariant: SOL-02 (one seed, the same samples)
+    return generator.generate((asset,), period, seed)
+
+
+def feed_server(samples: tuple[Sample, ...]) -> simulate.FeedServer:
+    """A bound feed simulator on 127.0.0.1 and a free port answering each connection with the samples' records, not yet
+    serving: feed_server(day).server_address is ("127.0.0.1", <the port>); the caller runs serve_forever."""
+    return simulate.make_server(samples, LOOPBACK, 0)
 
 
 def open_outages(conn: sqlite3.Connection) -> dict[str, Fault]:

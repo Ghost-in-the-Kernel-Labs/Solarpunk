@@ -1,6 +1,7 @@
 """The scheduled run (2.7, SP-006): the job the clock runs. It pings every asset with an endpoint and stores the new
-samples, records a feed that fails as a failing `reachable` result, runs the remote suite over every asset with the
-ledger's open-outage flags, stamps each status, and mails the engineers of every RED or YELLOW asset when a settings
+samples, records a feed that fails as a failing `reachable` result, runs the remote suite over every asset with an
+endpoint with the ledger's open-outage flags, gives an asset with no endpoint (no feed to test) its status from its
+faults alone, stamps each status, and mails the engineers of every RED or YELLOW asset when a settings
 path is given, recording each mail sent. Project's own reads go through the owning lanes' modules (fleet, ledger,
 samples, results, mails); remote's stored_samples and stored_asset stay remote's, for its command line (J-022)."""
 import sqlite3
@@ -142,6 +143,19 @@ def mail_all(conn: sqlite3.Connection, assets: tuple[Asset, ...], statuses: dict
     return sent, tuple(errors)
 
 
+def fed_only(assets: tuple[Asset, ...]) -> tuple[Asset, ...]:
+    """The assets with an endpoint, the ones the remote suite tests, in their order: of the OAHE fixture's site,
+    OAHE-INV-001 at 127.0.0.1:5020 and a string, (OAHE-INV-001,); an asset with no port has no feed to test (J-023)."""
+    return tuple(asset for asset in assets if asset.port is not None)
+
+
+def fault_statuses(assets: tuple[Asset, ...], outages: dict[str, Fault]) -> dict[str, AssetStatus]:
+    """The status of each asset not run through the suite, from its faults alone: RED with an open OUTAGE, else GREEN:
+    a string under an open STR-001 (a derate) is GREEN; a site with an open SIT-001 is RED."""
+    # Invariant: SOL-11 (a derate is not an outage)
+    return {asset.asset_id: AssetStatus.RED if asset.asset_id in outages else AssetStatus.GREEN for asset in assets}
+
+
 def scheduled_run(conn: sqlite3.Connection, run_at: datetime, settings_path: Path | None = None) -> RunReport:
     """The job the clock runs, over every asset in the fleet: for the OAHE run fixture with a simulator for OAHE-INV-001,
     a closed port for OAHE-INV-002 and an open INV-001 on OAHE-INV-003, statuses GREEN, YELLOW and RED for the three
@@ -149,12 +163,15 @@ def scheduled_run(conn: sqlite3.Connection, run_at: datetime, settings_path: Pat
     # Decision: SP-006
     settings = None if settings_path is None else transport.load_settings(settings_path)
     assets = fleet_assets(conn, None)
-    pinged = ping_all(conn, assets, run_at)
+    fed = fed_only(assets)
+    pinged = ping_all(conn, fed, run_at)
     span = window(run_at)
-    samples = {asset.asset_id: sample_table.in_period(conn, asset.asset_id, span) for asset in assets}
-    flags = {asset_id: True for asset_id in open_outages(conn)}
-    statuses = stamped(remote.run_suite(conn, assets, samples, flags, run_at), pinged.unreachable)
+    samples = {asset.asset_id: sample_table.in_period(conn, asset.asset_id, span) for asset in fed}
+    outages = open_outages(conn)
+    flags = {asset_id: True for asset_id in outages}
+    statuses = fault_statuses(tuple(asset for asset in assets if asset not in fed), outages)
+    statuses.update(stamped(remote.run_suite(conn, fed, samples, flags, run_at), pinged.unreachable))
     sent, mail_errors = (0, ()) if settings is None else mail_all(conn, assets, statuses, settings, run_at)
-    written = len(pinged.unreachable) + sum(len(tests_for(asset.kind)) for asset in assets)
+    written = len(pinged.unreachable) + sum(len(tests_for(asset.kind)) for asset in fed)
     return RunReport(pinged.pinged, pinged.records, written, statuses, sent, pinged.errors + mail_errors)
 
