@@ -36,7 +36,8 @@ check before a landing (`scripts/commit.sh`), `scripts/ship.sh` the only push to
 - Phase 3, the native front end (the fleet, asset and add-asset windows, the demo): the demo is 3.4, then a tune-up.
 - Phase 4, the work-order ledger: done.
 - Phase 5, one word to run it (`solarpunk`, `solarpunk --help`, the `test` commands): done.
-- Phase 6, the network's security: a design pass first.
+- Phase 6, reports and diagnostics: the power-output report, inverter diagnostics, then their windows.
+- Phase 7, the network's security: a design pass first.
 
 `docs/ROADMAP.md` holds the plan, `TODO.md` the open items in order.
 

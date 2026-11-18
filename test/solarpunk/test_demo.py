@@ -91,7 +91,7 @@ class TheDemoStore(DemoFixture):
 
     def test_the_run_report(self) -> None:
         report = demo.build_demo_store(self.path, self.port).run_report
-        self.assertEqual((report.pinged, report.records, report.results, report.mails), (3, 0, 10, 0))
+        self.assertEqual((report.pinged, report.records, report.results, report.mails), (3, 0, 19, 0))  # 6.2's four inverter tests and one sensor test
         self.assertEqual(report.errors, tuple(f"{a}: 127.0.0.1:9 is unreachable" for a in (INV2, SENSOR)))
 
     def test_the_ledger_and_the_telemetry(self) -> None:

@@ -11,8 +11,11 @@ Ghost's statement of where the product is going: five areas under one click (J-0
 own nightly regime (SP-012, J-038; the section below). Tune-up pass 5: cold gate 9.95 min, warm 0.80 min, fast loop
 23.1 s (J-039).
 
-**The first open item is 6.1, the network-security design pass** (`TODO.md`): a document and proposed decisions,
-no code, Ghost's to rule on. A fresh session starts there unless Ghost says otherwise.
+**The first open item is 6.3, the reports window** (`TODO.md`), then 6.4, the diagnostics in the asset window, then
+the pass. Phase 6 is reports and diagnostics, put ahead of the network's security by Ghost (SP-013, J-041): 6.1 (the
+power-output report, `solarpunk report`, SOL-13) and 6.2 (four inverter diagnostics) are done. The security design pass
+is now 7.1, with an advisor's research on industry addressing and security copied into it. An architecture review
+(J-041) is Ghost's to place: no product workpath, entry points declared nowhere, `project` and the CLI as hotspots.
 
 What exists: the fleet registry, the fault ledger over a closed catalogue, synthetic SCADA with gaps as data, the KPI
 engine with its blind mirror (contractual availability, performance ratio, energy yield, MTBF/MTTR), the clause register

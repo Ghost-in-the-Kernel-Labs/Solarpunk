@@ -14,8 +14,8 @@
       "power_kw": {"unit": "kW", "min": 0, "max": null},
       "temperature_c": {"unit": "°C", "min": -40, "max": 90}
     },
-    "tests": ["reachable", "on_grid", "irradiance_in_range", "power_under_rated", "night_power_near_zero"],
-    "passing": "The endpoint answers within the timeout with a sample whose every field is in range, power at or under the inverter's rated_kw and near zero at night."
+    "tests": ["reachable", "on_grid", "irradiance_in_range", "power_under_rated", "night_power_near_zero", "performance_above_floor", "power_not_frozen"],
+    "passing": "The endpoint answers within the timeout with a sample whose every field is in range, power at or under the inverter's rated_kw, near zero at night, at least 0.75 of what its rating and the sun promise in daylight, and never the same non-zero value for half an hour."
   },
   {
     "kind": "STRING",

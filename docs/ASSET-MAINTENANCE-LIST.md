@@ -34,10 +34,11 @@ Turns its strings' direct current into grid alternating current; the asset whose
 | power_kw | kW | 0 | — |
 | temperature_c | °C | -40 | 90 |
 
-Tests: `reachable`, `on_grid`, `irradiance_in_range`, `power_under_rated`, `night_power_near_zero`.
+Tests: `reachable`, `on_grid`, `irradiance_in_range`, `power_under_rated`, `night_power_near_zero`, `performance_above_floor`, `power_not_frozen`.
 
 Passing: the endpoint answers within the timeout with a sample whose every field is in range, power at or under the
-inverter's rated_kw and near zero at night.
+inverter's rated_kw, near zero at night, at least 0.75 of what its rating and the sun promise in daylight
+(irradiance at or above 200 W/m²), and never the same non-zero value for half an hour (six records).
 
 ## STRING
 

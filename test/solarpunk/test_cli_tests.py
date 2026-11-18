@@ -19,7 +19,11 @@ RUN_AT = "2026-06-01T13:00:00+00:00"
 LOCAL = "127.0.0.1"
 SITE = Asset("OAHE-SIT-001", AssetKind.SITE, "OAHE", None, "Oahe", None)
 TEST_LIST = [
+    "irradiance_in_range  INV,SEN  9001-9.1.3,55000-7.5",
+    "night_power_near_zero  INV  9001-9.1.3",
     "on_grid  INV,TRK,MTR,SEN  55000-7.5,9001-9.1.3",
+    "performance_above_floor  INV  55000-9.1",
+    "power_not_frozen  INV  9001-9.1.3",
     "power_under_rated  INV  9001-9.1.1",
     "reachable  INV,MTR,SEN,TRK  55000-9.1",
 ]
@@ -72,8 +76,8 @@ class TestCommands(unittest.TestCase):
 
     def report(self, port: int, run_at: str) -> str:
         """What test run prints for load's fleet at an instant: its first line is "run <run_at>: pinged 1, records 0,
-        results 4" (the failing reachable and the inverter's three tests)."""
-        return (f"run {run_at}: pinged 1, records 0, results 4\nOAHE-INV-001  yellow\nOAHE-SIT-001  green\n"
+        results 8" (the failing reachable and the inverter's seven tests, 6.2)."""
+        return (f"run {run_at}: pinged 1, records 0, results 8\nOAHE-INV-001  yellow\nOAHE-SIT-001  green\n"
                 f"error OAHE-INV-001: {LOCAL}:{port} is unreachable\n")
 
 
@@ -161,7 +165,7 @@ class Help(TestCommands):
 
     def test_every_command_of_the_parser_has_exactly_one_line(self) -> None:
         commands = leaves(cli.build_parser(), ())
-        self.assertEqual(len(commands), 12)
+        self.assertEqual(len(commands), 13)  # report added (6.1)
         lines = cli.HELP.splitlines()
         for command in commands:
             with self.subTest(command=command):

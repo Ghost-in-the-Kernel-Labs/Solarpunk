@@ -148,3 +148,24 @@ and `python3 -I scripts/clauses.py` prints every claimed clause as `held`, `fail
 the test run. A clause with no test is `open`, never silently absent. This project claims conformance
 to nothing: the register says which requirements its checks can flag, and that is all. Held by
 lane 1.5's check (`scripts/checks/clauses.py`).
+
+## SOL-13 Power output is energy, peak, specific yield and capacity factor, from the samples
+
+For one inverter over a period, from its samples in the period:
+
+    energy_kwh      = Σ power_kw × (SAMPLE_INTERVAL_S / 3600)       over samples that are not gaps
+    peak_kw         = max power_kw                                  (None when no sample carries a power)
+    specific_yield  = energy_kwh / rated_kw                         (kWh per kW of rating)
+    capacity_factor = energy_kwh / (rated_kw × period_hours)
+
+and for a site, the same over all its inverters' samples with `rated_kw` the sum of their ratings and `peak_kw` the
+coincident peak: the largest sum of power at one instant. `records` counts the samples that carried a power and `gaps`
+the gap samples, beside the numbers, never without them; an inverter with no `rated_kw`, or a rating of 0, is refused
+(SOL-03). The report is recomputed from the stored samples each time it is asked for, never kept. Worked example: over
+10:00 to 10:15 (0.25 h), OAHE-INV-001 rated 100 kW produces 60, 90 kW and a gap, and OAHE-INV-002 rated 50 kW produces
+30, 45, 42 kW. INV-001: `energy_kwh = (60 + 90) × 5/60 = 12.5`, `peak_kw = 90.0`, `specific_yield = 12.5 / 100 =
+0.125`, `capacity_factor = 12.5 / (100 × 0.25) = 0.5`, records 2, gaps 1. INV-002: `energy_kwh = 117 × 5/60 = 9.75`,
+`peak_kw = 45.0`, `specific_yield = 0.195`, `capacity_factor = 9.75 / 12.5 = 0.78`. The site: `energy_kwh = 22.25`,
+`rated_kw = 150`, `peak_kw = max(60 + 30, 90 + 45, 42) = 135.0`, `specific_yield = 22.25 / 150 = 0.1483`,
+`capacity_factor = 22.25 / 37.5 = 0.5933` (four decimals), records 5, gaps 1. Held by `solarpunk/kpi/output.py` and
+`test/solarpunk/test_output.py`'s golden.

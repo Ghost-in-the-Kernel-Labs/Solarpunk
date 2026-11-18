@@ -56,3 +56,4 @@ Written by `scripts/decisions_index.py` from `theGhost.md`; do not edit here. Se
 | SP-010 | The Phase 2 and 3 modules: feed, remote, receiver, schedule, mailer, ui | in force | modules-2 |
 | SP-011 | A work order closes only with a root-cause code from a closed list in the leaf | in force | work-orders |
 | SP-012 | Mutation testing leaves the gate for its own nightly regime | in force | mutation |
+| SP-013 | Reports and diagnostics before the network's security; power output is a contracted number | in force | plan |

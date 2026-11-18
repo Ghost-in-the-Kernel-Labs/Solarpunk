@@ -1,4 +1,4 @@
-"""The remote tests (2.3): the registry finds exactly the three modules and refuses a broken one; each test passes and
+"""The remote tests (2.3): the registry finds exactly the folder's modules and refuses a broken one; each test passes and
 fails as its docstring says; the results table orders an asset's latest run failing first; the suite stamps GREEN,
 YELLOW and RED; the command line runs one test against one stored asset. The store's assets and samples tables are
 made by their own lanes' schemas, so the results module's reads by name are held to the real tables."""
@@ -36,6 +36,9 @@ T0 = at(2026, 6, 1, 10, 0)
 T1 = at(2026, 6, 1, 10, 5)
 STAMP = "2026-06-01T10:05:00+00:00"
 BROKEN_PACKAGE = "remote_fixture_pkg"
+# Every module under solarpunk/remote/tests/, in name order; every one runs against an inverter (6.2 added four).
+EVERY_TEST = ["irradiance_in_range", "night_power_near_zero", "on_grid", "performance_above_floor", "power_not_frozen",
+              "power_under_rated", "reachable"]
 
 
 def reading(asset: Asset, moment: datetime, irradiance: float | None, power: float | None) -> Sample:
@@ -78,9 +81,9 @@ def write_broken_package(root: Path, body: str) -> None:
 
 
 class TheRegistry(unittest.TestCase):
-    def test_discover_finds_exactly_the_three(self) -> None:
+    def test_discover_finds_every_module_in_the_folder(self) -> None:
         found = registry.discover()
-        self.assertEqual(list(found), ["on_grid", "power_under_rated", "reachable"])
+        self.assertEqual(list(found), EVERY_TEST)
         self.assertEqual(found["reachable"].kinds, reachable.KINDS)
         self.assertEqual(found["on_grid"].clauses, ("55000-7.5", "9001-9.1.3"))
         self.assertIs(found["power_under_rated"].run, power_under_rated.run)
@@ -88,8 +91,9 @@ class TheRegistry(unittest.TestCase):
 
     def test_tests_for_a_kind_in_name_order(self) -> None:
         names = [test.name for test in registry.tests_for(AssetKind.INVERTER)]
-        self.assertEqual(names, ["on_grid", "power_under_rated", "reachable"])
-        self.assertEqual([test.name for test in registry.tests_for(AssetKind.SENSOR)], ["on_grid", "reachable"])
+        self.assertEqual(names, EVERY_TEST)
+        self.assertEqual([test.name for test in registry.tests_for(AssetKind.SENSOR)],
+                         ["irradiance_in_range", "on_grid", "reachable"])
         self.assertEqual(registry.tests_for(AssetKind.SITE), ())
 
     def test_each_test_names_register_clauses(self) -> None:
@@ -263,8 +267,8 @@ class RunningTests(unittest.TestCase):
 
     def test_run_test_refuses_an_unknown_name(self) -> None:
         with self.assertRaises(BadRemoteTest) as caught:
-            run.run_test("night_power_near_zero", INV1, ())
-        self.assertEqual(str(caught.exception), "no remote test night_power_near_zero")
+            run.run_test("tracker_moving", INV1, ())
+        self.assertEqual(str(caught.exception), "no remote test tracker_moving")
 
     def test_run_test_refuses_an_asset_of_another_kind(self) -> None:
         with self.assertRaises(BadRemoteTest) as caught:
@@ -289,8 +293,9 @@ class RunningTests(unittest.TestCase):
         self.assertEqual(results.latest_for(conn, INV2.asset_id)[0],
                          Recorded("power_under_rated", INV2.asset_id, T1, False,
                                   "2026-06-01T10:00:00+00:00: power 101.0 kW over rated 100.0 kW"))
-        self.assertEqual([r.test_name for r in results.latest_for(conn, SEN.asset_id)], ["reachable", "on_grid"])
-        self.assertEqual(conn.execute("SELECT count(*) FROM results").fetchone()[0], 8)
+        self.assertEqual([r.test_name for r in results.latest_for(conn, SEN.asset_id)],
+                         ["reachable", "irradiance_in_range", "on_grid"])
+        self.assertEqual(conn.execute("SELECT count(*) FROM results").fetchone()[0], 17)  # 7 + 7 + 3 (6.2)
         self.assertEqual(results.last_run_at(conn), T1)
 
     def test_run_suite_with_no_flags_is_green(self) -> None:

@@ -24,3 +24,10 @@ An entry is `### <date> · <task> · <agent>` and four lines: **Task**, **Opened
 - **Opened**: `docs/when/tune-up.md`, `stacks/python/gate.sh`, `scripts/gate.sh` (its header), `build/gate-cold-times.txt`, `docs/NAVIGATION-LOG.md`, `docs/HANDOFF.md`.
 - **Complaints**: `docs/when/tune-up.md` asks for a cold and a warm gate run, and since SP-012 no step keeps a cache, so the two measure the same thing; a pass run by the session that built the phase is its own reviewer, which the file's "the reviewer, not you" does not foresee. One debrief again, so nothing converges.
 - **Suggestions**: Ghost's word on whether a pass still needs two runs; a product workpath (`docs/paths/product.md`, a row per module), the builder's one complaint, open until a second agent meets it.
+
+### 2026-11-18 · 6.1 and 6.2, the power-output report and the inverter diagnostics · Claude
+
+- **Task**: SP-013's reordering, SOL-13 and its report, four remote tests, the records.
+- **Opened**: `docs/ROADMAP.md`, `TODO.md`, `docs/GOAL.md`, `docs/paths/process.md`, `scripts/checks/todo.py`, `solarpunk/kpi/performance.py`, `docs/CONTRACT.md` (SOL-08), `solarpunk/project/orchestrator.py`, `solarpunk/cli/main.py`, `solarpunk/remote/tests/power_under_rated.py`, `solarpunk/remote/registry.py`, `solarpunk/leaf/asset_types.json`.
+- **Complaints**: no routing row for product work again, a second voice for J-039's complaint (and an architecture advisor's); a new CLI command touches the help list, a hard-coded count in a test and two lines of `solarpunk.cmd`, found only by running the fast loop; the maintenance list's check reads a `Tests:` line as one line, which wrapping at 120 columns breaks with a message that does not say why.
+- **Suggestions**: `docs/paths/product.md`, a row per module; the help count derived from the parser and the launcher's words generated or held by one list; the asset-types check to say "one line" when a Tests line wraps.

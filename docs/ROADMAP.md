@@ -264,13 +264,44 @@ Ghost's directions of 2026-11-18, after the demo ran on his Windows machine.
   command with a line of what it does, the window's first; the list is a constant a test holds to the parser.
 - **5.3 Tune-up pass 5.** Ghost's word: the pass runs once the two commands land.
 
-### Phase 6: the network's security
+### Phase 6: reports and diagnostics
 
-Ghost's item of 2026-11-18: the demonstration's network is not a production one.
+Ghost's direction of 2026-11-18, before the demo: reports on the fleet's power output and diagnostics for the solar
+units, ahead of the network's security (SP-013). It adds to two of `docs/GOAL.md`'s areas, management reporting (5) and
+SCADA analytics (2), and joins them to the asset view (1).
 
-- **6.1 Network security: an engineering pass over the feed and the receiver.** Both speak plain TCP with no device
+- **6.1 The power-output report (`solarpunk/kpi/output.py`, `test/solarpunk/test_output.py`).** Per inverter and per
+  site over a period, energy, peak, specific yield (kWh/kWp) and capacity factor, each beside its records and gaps
+  (SOL-13, with a worked example); `project.power_report(conn, site, period)` recomputes it from the stored samples;
+  `solarpunk report SITE START END [--csv]` prints it or writes it as CSV.
+- **6.2 The inverter diagnostics (`solarpunk/remote/tests/`, `test/solarpunk/test_diagnostics.py`).** Four remote
+  tests, one file each, found by the registry (SP-010): `irradiance_in_range` (inverter and weather station),
+  `night_power_near_zero`, `performance_above_floor` (the daylight performance ratio at or above 0.75: the condition
+  that says a crew is worth sending, GOAL's "What to watch out for") and `power_not_frozen` (one non-zero power six
+  records in a row is a logger replaying its last value). Each names its threshold beside its reason. The tracker's
+  `tracker_moving` and the meter's `energy_monotonic` wait on the feed carrying `angle_deg` and `energy_kwh`, which its
+  wire does not yet (the 2026-11-18 advisor's finding).
+- **6.3 The reports window (`solarpunk/ui/reports.py`).** A site and a period chosen, the power-output table of 6.1 and
+  the site's power curve drawn on a tkinter canvas (no dependency, P-17), with a Save as CSV button; opened from the
+  fleet window. Its data is `project.power_report`, the call its tests also make headless.
+- **6.4 The diagnostics in the asset window (`solarpunk/ui/asset_window.py`).** The asset's latest result of every
+  remote test that runs on its kind, failing first, each with its reason and the threshold it names.
+- **6.5 Tune-up pass 6.**
+
+### Phase 7: the network's security
+
+Ghost's item of 2026-11-18: the demonstration's network is not a production one. Moved after reports and
+diagnostics by SP-013.
+
+- **7.1 Network security: an engineering pass over the feed and the receiver.** Both speak plain TCP with no device
   identity; the receiver defaults to localhost, which suits the demonstration alone. The pass is a document first
   (the wire today, the threats, a proposed decision for each of: authenticated asset connections, transport
   encryption, authorization of fault submissions, replay protection, network segmentation and deployment
-  controls); the code follows the decisions Ghost puts in force.
-- **6.2 Tune-up pass 6.**
+  controls); the code follows the decisions Ghost puts in force. The 2026-11-18 advisor's research is its starting
+  point: a module has no endpoint, an inverter, logger, meter, weather station or tracker controller does; the
+  industry addresses a device by host, port, protocol, unit id and register map (Modbus TCP on 502 with SunSpec
+  models at the device, DNP3 on 20000 or IEC 60870-5-104 on 2404 from the plant to the utility, OPC UA on 4840 to the
+  historian); the security references are Modbus/TCP Security (mutual TLS on 802), IEC 62351, IEC 62443 zones and
+  conduits, and NERC CIP-003 for a large US plant. It adds a sixth threat to the five: the feed client trusts whatever
+  answers at the host and port (spoofed telemetry).
+- **7.2 Tune-up pass 7.**

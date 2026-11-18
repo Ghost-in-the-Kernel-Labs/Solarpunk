@@ -146,7 +146,7 @@ class TheScheduledRun(RunFixture):
     def test_one_green_one_yellow_one_red_and_the_counts(self) -> None:
         report = project.scheduled_run(self.conn, RUN_AT)
         self.assertEqual(len(self.fed), 24)
-        self.assertEqual((report.pinged, report.records, report.results, report.mails), (3, 24, 11, 0))
+        self.assertEqual((report.pinged, report.records, report.results, report.mails), (3, 24, 23, 0))  # 6.2 added four tests per inverter
         self.assertIs(report.statuses[INV2], AssetStatus.YELLOW)
         self.assertIs(report.statuses[INV3], AssetStatus.RED)
         self.assertEqual({report.statuses[asset_id] for asset_id in GREEN_ONES}, {AssetStatus.GREEN})
@@ -198,7 +198,7 @@ class TheScheduledRun(RunFixture):
         project.assign_fault(self.conn, "OAHE-STR-001", "STR-001", at(2026, 6, 1, 9))
         project.assign_fault(self.conn, silent.asset_id, "INV-001", at(2026, 6, 1, 9))
         report = project.scheduled_run(self.conn, RUN_AT)
-        self.assertEqual((report.pinged, report.results), (3, 11))
+        self.assertEqual((report.pinged, report.results), (3, 23))  # 6.2 added four tests per inverter
         self.assertIs(report.statuses[tracker.asset_id], AssetStatus.GREEN)
         self.assertIs(report.statuses["OAHE-STR-001"], AssetStatus.GREEN)
         self.assertIs(report.statuses[silent.asset_id], AssetStatus.RED)

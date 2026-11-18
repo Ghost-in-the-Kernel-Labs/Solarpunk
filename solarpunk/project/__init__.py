@@ -6,9 +6,11 @@ so are the work order and the root-cause list (4.1)."""
 from solarpunk.faults.ledger import LedgerError
 from solarpunk.feed.client import FeedError
 from solarpunk.fleet.registry import RegistryError
+from solarpunk.kpi import PowerOutput
 from solarpunk.leaf.root_causes import RootCause, UnknownRootCause
 from solarpunk.project.orchestrator import (
     Fault,
+    PowerReport,
     SiteKpis,
     UnknownAsset,
     asset_status,
@@ -29,6 +31,7 @@ from solarpunk.project.orchestrator import (
     open_store,
     open_work_order_from_fault,
     period,
+    power_report,
     work_orders_for,
 )
 from solarpunk.project.run import RunReport, add_remote_test, remote_tests, scheduled_run
@@ -52,6 +55,8 @@ __all__ = [
     "Fault",
     "FeedError",
     "LedgerError",
+    "PowerOutput",
+    "PowerReport",
     "RegistryError",
     "RootCause",
     "RunReport",
@@ -86,6 +91,7 @@ __all__ = [
     "open_work_order_from_fault",
     "period",
     "ping_asset",
+    "power_report",
     "register_asset",
     "remote_tests",
     "scheduled_run",

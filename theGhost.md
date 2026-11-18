@@ -573,3 +573,12 @@ The core decisions above are inherited (Core C-001 to C-040); this project's beg
 - **Status:** in force
 - **See also:** C-018, C-024, C-040, SP-002
 - **subject:** mutation
+
+### SP-013: Reports and diagnostics before the network's security; power output is a contracted number
+- **Decision:** Phase 6 is reports and diagnostics: 6.1 the power-output report (`solarpunk/kpi/output.py`, `project.power_report`, `solarpunk report SITE START END [--csv]`), 6.2 the inverter diagnostics (four remote tests, one file each), 6.3 the reports window, 6.4 the diagnostics in the asset window, 6.5 its pass. The network's security, which was Phase 6, becomes Phase 7 with its items renumbered (7.1 the design pass, 7.2 its pass), its text unchanged but for what the 2026-11-18 advisor's research adds. Power output (energy, peak, specific yield, capacity factor, per inverter and per site) is a KPI with a contract entry and a worked example, SOL-13, like every number the plant is judged by.
+- **Why:** Ghost, 2026-11-18, before the demo: "We want to write reports on the power output of the assets in the fleet, we want specific diagnostics for the solar units", then, offered the order, "go with b, start 7.1 and 7.2. Move the 6.1 later." Reports and diagnostics show in a demo; the security pass is a design document that waits on Ghost's rulings whichever comes first. The phase numbers follow the chain's rule that phases are in order (`scripts/checks/todo.py`), so the items Ghost called 7.1 and 7.2 in the proposal are 6.1 and 6.2 here.
+- **Held by:** `TODO.md`, `docs/ROADMAP.md` §6, `docs/CONTRACT.md` SOL-13, `test/solarpunk/test_output.py`, `test/solarpunk/test_diagnostics.py`.
+- **Source:** Ghost, in chat, 2026-11-18.
+- **Status:** in force
+- **See also:** C-016, P-15, SP-010
+- **subject:** plan

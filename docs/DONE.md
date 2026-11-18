@@ -146,3 +146,13 @@ Done 2026-11-18 (J-035). Check: `python3 -m solarpunk.cli help` prints every com
 ### 5.3 Tune-up pass 5
 
 Done 2026-11-18 (J-039). Check: `docs/when/tune-up.md` followed in full; the metrics table written; the navigation log's "Last review" set. ✓ cold gate 9.95 min over 4,910 mutants (the last with mutation in the gate; the first cold run refused on three survivors, killed by J-037's test), warm 0.80 min on the gate without mutation (SP-012), fast loop 23.1 s; the one debrief reviewed; the log's header line restored.
+
+## Phase 6: reports and diagnostics
+
+### 6.1 The power-output report
+
+Done 2026-11-18 (J-041). Check: `docs/CONTRACT.md` SOL-13 states energy, peak, specific yield and capacity factor per inverter and per site with a worked example; `solarpunk/kpi/output.py` computes them over leaf samples, refusing an unrated or zero-rated inverter (SOL-03); `project.power_report(conn, site, period)` recomputes them from the store; `python3 -m solarpunk.cli report SITE START END [--csv]` prints a line per row or CSV, and `solarpunk.cmd` routes `report`; `test/solarpunk/test_output.py` holds the worked example as a golden and the site's energy equal to the performance ratio's (SOL-08) over J-012's day. ✓ fast loop green; the OAHE seed-7 day reports 1591.6242 kWh, 7.9581 kWh/kWp, capacity factor 0.3316, peak 187.22 kW; not run on Windows from here.
+
+### 6.2 The inverter diagnostics
+
+Done 2026-11-18 (J-041). Check: four remote tests under `solarpunk/remote/tests/`, found by the registry: `irradiance_in_range` (INVERTER, SENSOR), `night_power_near_zero`, `performance_above_floor` and `power_not_frozen` (INVERTER), each with its threshold named in the module and its reason naming the first offending record; the asset maintenance list and its JSON name the two new inverter tests; `test/solarpunk/test_diagnostics.py` holds each docstring's cases and edges, and a generated healthy day passes all four. ✓ fast loop green; the demo keeps its three colours (results per run 10 to 19); `tracker_moving` and `energy_monotonic` wait on the feed's wire, which carries irradiance and power alone.
