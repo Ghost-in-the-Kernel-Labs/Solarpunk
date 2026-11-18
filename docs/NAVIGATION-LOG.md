@@ -66,3 +66,10 @@ An entry is `### <date> · <task> · <agent>` and four lines: **Task**, **Opened
 - **Opened**: `solarpunk/leaf/faults.py`, `solarpunk/leaf/codes.py` (the catalogue), `solarpunk/receiver/server.py`, `theGhost.md` (SP-008, the supersession template), `docs/ROADMAP.md`, `TODO.md`.
 - **Complaints**: renumbering a phase touches four files by hand (ROADMAP, TODO, README, HANDOFF) and nothing points at all four; the decision template's partial-supersession pattern was found by grep, not by the header.
 - **Suggestions**: a line in the process workpath's "The plan" row naming the four files a renumbering touches.
+
+### 2026-11-18 · SP-016 and Phase 8 planned · Claude
+
+- **Task**: Ghost's test-record direction as a decision, three questions put, the phase written, security renumbered again.
+- **Opened**: `solarpunk/remote/results.py` (what is stored), `docs/ROADMAP.md`, `TODO.md`.
+- **Complaints**: the second renumbering of the security phase in one day: each new phase put ahead of it touches four files and a decision's text that named the old number.
+- **Suggestions**: an unnumbered "later" place for a phase that keeps being pushed back, or the waiting phase if it waits on nothing but order.

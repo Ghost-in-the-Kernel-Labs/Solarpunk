@@ -50,3 +50,4 @@ Written from `docs/journal/` by `scripts/journal_index.py`; do not edit by hand.
 | J-044 | The README's roadmap had fallen behind the chain; a test now holds it | failure-caught | `J-000-099.md` |
 | J-045 | 6.4: the diagnostics in the asset window, and a pass over nothing | feature | `J-000-099.md` |
 | J-046 | Faults are suggested by tests and assigned by engineers: Phase 7 planned (SP-015) | decision | `J-000-099.md` |
+| J-047 | The tests' record shown and kept whole: Phase 8 planned (SP-016) | decision | `J-000-099.md` |

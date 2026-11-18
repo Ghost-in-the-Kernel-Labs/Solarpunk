@@ -601,3 +601,12 @@ The core decisions above are inherited (Core C-001 to C-040); this project's beg
 - **Status:** in force
 - **See also:** SP-008, SP-006, SOL-04, SOL-07, SOL-10
 - **subject:** fault assignment
+
+### SP-016: The tests' record is shown, at the root and per asset, and kept whole
+- **Decision:** the UI shows the remote tests and what they have done. The asset window's diagnostics give each test's last-run instant. A Tests window, opened from the fleet window, lists every remote test with its kinds, the assets it runs on, its last run, how long it took and its pass and fail counts, and opens a test's log of its last 100 runs across the fleet. Each asset has a history of its last 100 results, searchable by test, result and words in the reason, with a timeline graph of each test's passes and failures over its runs. Every result is kept in the store and none is deleted; the windows show the newest 100. Each test's run is timed, and the duration stored beside its result; a result stored before has none, shown as such, never as zero.
+- **Why:** Ghost, 2026-11-18: "The system should also have a display of active tests that run against the assets under management. each individual asset has its sublist of tests run against it along with timestamps for last run. The master list that is reached from the root of the program's UI should display all tests, their run time, and a way to review logs of run tests for the last 100 runs. In addition, assets should be able to have the test results of last 100 logged against the device. This log is searchable and graphable." His rulings the same day: keep every result and show 100 (the record is audit evidence); "run time" is both when it last ran and how long it took; after fault assignment (Phase 7).
+- **Held by:** `docs/ROADMAP.md` Phase 8 and `TODO.md` 8.1 to 8.4, their tests when built. The network's security becomes Phase 9 (9.1, 9.2) to make room.
+- **Source:** Ghost, in chat, 2026-11-18.
+- **Status:** in force
+- **See also:** SP-015, SP-010, SP-013
+- **subject:** test record

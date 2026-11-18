@@ -72,23 +72,55 @@ Check: the asset window lists the asset's open suggestions (the device's first, 
 
 Check: `docs/when/tune-up.md` followed in full; the metrics table written; the navigation log's "Last review" set.
 
-## Phase 8: the network's security
+## Phase 8: the tests' record, at the root and per asset
 
-Lanes (P-15): 8.1 alone, then the items its decisions call for, then the pass. Moved after Phase 6 by SP-013 and after Phase 7 by SP-015.
+Lanes (P-15): 8.1 first (the surface every window reads), then 8.2, 8.3 and 8.4 in parallel, then 8.5 the pass. Ghost's direction, SP-016.
 
-### 8.1 Network security: an engineering pass over the feed and the receiver
+### 8.1 The record's surface and the timing
+
+The scheduled run times each test, and project gives the three views the windows read; every result is kept (SP-016).
+
+Check: the results table gains `duration_ms` (a store made before gains the column on opening, its old rows empty); the scheduled run and `solarpunk test run` store each test's duration; `project.tests_overview(conn)`, `project.test_log(conn, name, limit=100)` and `project.asset_log(conn, asset_id, limit=100, search=None)` (search matching the test name, "pass"/"fail" and words in the reason) are tested over a store holding more than 100 runs, newest first, nothing deleted; a result with no duration reads None, never 0; the fast loop green.
+
+### 8.2 Last run in the asset window
+
+Each test in the asset's diagnostics shows when it last ran and how long it took (SP-016).
+
+Check: `solarpunk/ui/asset_window.py`'s diagnostics table has columns for the last-run instant and the duration, "never" for a test never run on the asset, "—" for a duration not recorded; `test/solarpunk/test_ui_asset.py` holds both; a screenshot read back under xvfb; the fast loop green.
+
+### 8.3 The Tests window
+
+The master list from the root of the window: every test, its run time, and its last 100 runs (SP-016).
+
+Check: `solarpunk/ui/tests_window.py` opens from a "Tests" button in the fleet window; it lists `project.tests_overview` (name, kinds, assets, last run, duration, passes, failures) and, for the selected test, `project.test_log` (asset, instant, result, reason, duration), failures red; `test/solarpunk/test_ui_tests.py` builds it under xvfb over the demo store with its pure half headless; a screenshot read back; the fast loop green.
+
+### 8.4 The asset's history
+
+The asset's last 100 results, searchable and graphed (SP-016).
+
+Check: `solarpunk/ui/history.py` opens from a "History" button in the asset window; a table of `project.asset_log` with a search box that narrows it; a canvas timeline, one row per test, one mark per run, green a pass and red a failure, the time axis in UTC, its geometry pure functions tested headless (as `solarpunk/ui/chart.py`'s are); `test/solarpunk/test_ui_history.py` under xvfb over a store with more than 100 runs of an asset; a screenshot read back; the fast loop green.
+
+### 8.5 Tune-up pass 8
+
+Check: `docs/when/tune-up.md` followed in full; the metrics table written; the navigation log's "Last review" set.
+
+## Phase 9: the network's security
+
+Lanes (P-15): 9.1 alone, then the items its decisions call for, then the pass. Moved after Phase 6 by SP-013, after Phase 7 by SP-015 and after Phase 8 by SP-016.
+
+### 9.1 Network security: an engineering pass over the feed and the receiver
 
 The feed and the receiver use plain TCP. The receiver accepts asset identifiers and fault codes, but the implementation
 establishes neither an authenticated device identity nor an encrypted transport; it also defaults to localhost. That is
 reasonable for the demonstration. A production deployment needs: authenticated asset connections; transport
 encryption; authorization of fault submissions; replay protection; network segmentation and deployment controls. The
-2026-11-18 advisor's research is the pass's starting point (`docs/ROADMAP.md` 8.1): the industry's addressing (host,
+2026-11-18 advisor's research is the pass's starting point (`docs/ROADMAP.md` 9.1): the industry's addressing (host,
 port, protocol, unit id, register map; Modbus TCP and SunSpec at the device), its security references (Modbus/TCP
 Security, IEC 62351, IEC 62443, NERC CIP-003), and a sixth threat, spoofed telemetry from whatever answers at a feed's
 host and port.
 
 Check: `docs/NETWORK-SECURITY.md` holds the pass: what the feed (`solarpunk/feed/`) and the receiver (`solarpunk/receiver/`) do on the wire today, a threat model for each, and for each of the five needs (authenticated asset connections, transport encryption, authorization of fault submissions, replay protection, network segmentation and deployment controls) a proposed decision in `docs/decisions.md` with the options weighed, what the standard library alone can carry and what would need a dependency (Ghost's approval, C-034); the items that build each decision Ghost puts in force are added to this phase before its pass (the pass renumbered to the phase's end). No code changes in this item: the design is Ghost's to rule on first.
 
-### 8.2 Tune-up pass 8
+### 9.2 Tune-up pass 9
 
 Check: `docs/when/tune-up.md` followed in full; the metrics table written; the navigation log's "Last review" set.
