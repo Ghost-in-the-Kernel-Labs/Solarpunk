@@ -22,6 +22,11 @@ task: `docs/when/handoff.md`.
   came from, or marked "(verify)": an id carried from memory is wrong more often than it looks.
 - Read the body against the documents it quotes before you hand it out: a heading or a rule quoted
   from memory is wrong more often than it looks.
+- A lane's brief says four things every Phase 1 worker had to discover (Tune-up pass 1): new files are `git add -N`'d
+  before the checks read them; `docs/AGENT.md` (the metrics table) and `docs/MUTATION.md` are the coordinator's at
+  landing, so a red `test_metrics` on the lane's own tree is expected; whether mutation runs over the whole tree, and
+  that survivors in another module are not the lane's; and that TODO.md, DONE.md, the journal and the navigation log
+  are the coordinator's, the debrief riding in the report (SP-005).
 - The working set is the Start-here files of the routing row the item matches, plus the files the
   item names; nothing else. Say explicitly what the agent may and may not do: agents read silence
   literally.

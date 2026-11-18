@@ -42,5 +42,5 @@ A Core question: whether the stack gate should run an audit each pass.
 ## What to distrust
 
 - The Python stack's "image" is a venv made per session (`stacks/python/README.md`), not a Docker image; the gate has run under it here.
-- 19 tests under `test/test_stacks.py` skip as "no TypeScript stack in this tree": stamp residue, pruned or explained at 1.8.
+- 19 tests under `test/test_stacks.py` skip as "no TypeScript stack in this tree": stamp residue from Core's `stamp.py`, which copies every stack's tests; left in place (a Core-owned file) and named for Core under "For Ghost" (Tune-up pass 1).
 - `docs/AGENT.md`'s Fast loop and Gate cells are Ghost-Core's numbers until Tune-up pass 0 re-measures them here.

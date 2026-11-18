@@ -62,3 +62,7 @@ Done 2026-11-18 (J-013). Check: `test/solarpunk/test_leaf.py` holds the leaf's r
 ### 1.7 The thin CLI
 
 Done 2026-11-18 (J-014). Check: `python3 -m solarpunk.cli` with `fleet`, `fault`, `telemetry`, `kpi`, `clauses` subcommands, each one call into project; `test/solarpunk/test_cli.py` green; `solarpunk/cli/` imports project alone (MOD-02, `test/test_modules.py`). ✓ five subcommands, each one project call; `fleet load --demo` loads the OAHE eleven; every cli mutant killed; `project.open_or_create` reopens a file store.
+
+### 1.9 Tune-up pass 1
+
+Done 2026-11-18 (J-015). Check: `docs/when/tune-up.md` followed in full: the full gate twice, the navigation log reviewed and its "Last review" set, the metrics table written, the stamped TypeScript-only tests under `test/test_stacks.py` pruned or their skip explained. ✓ cold gate 2.35 min, warm 2.45 min, fast loop 21.3 s; eight debriefs reviewed, four converging complaints fixed in the stack README, the brief rules, process.md and long-run.md; the 19 TypeScript-only skips explained in HANDOFF (a Core fix, not a pruning here).

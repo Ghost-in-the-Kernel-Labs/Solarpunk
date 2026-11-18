@@ -20,10 +20,6 @@ question a later item depends on is copied into that item's text, so the item re
 
 Lanes (P-15): 1.1 to 1.5 are built in parallel by separate workers and landed in this order; 1.6 and 1.8 in parallel after them, then 1.7.
 
-### 1.9 Tune-up pass 1
-
-Check: `docs/when/tune-up.md` followed in full: the full gate twice, the navigation log reviewed and its "Last review" set, the metrics table written, the stamped TypeScript-only tests under `test/test_stacks.py` pruned or their skip explained.
-
 ## Phase 2: the feed, the remote tests, the clock
 
 Lanes (P-15): 2.1 first (the list every other lane reads), then 2.2 to 2.6 in parallel, landed in this order; 2.7 after them.

@@ -8,6 +8,7 @@ Read this when you start a run whose output is long, or one that may outlive you
   and its verdict last, and writes every step's output to build/gate.log and each step's seconds to
   build/gate-times.txt (C-037).
 - Send anything else long to a file: `mkdir -p build; <command> > build/<name>.log 2>&1`.
+- A usage line in the fast log (`python3 -m unittest: error: the following arguments are required: --seed`) is a CLI test's own argparse output, not a failure; read the verdict line.
 - Read the verdict first and the log only when it refuses:
   `grep -E "FAILED|Error|refused" build/gate.log`.
 - The gate's verdict is its last line, `gate: passed …` or `gate: refused at …`; a cold run's begins
