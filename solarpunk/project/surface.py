@@ -14,7 +14,7 @@ from solarpunk.leaf.assets import Asset
 from solarpunk.leaf.codes import AssetKind, AssetStatus, FaultCode, codes_for
 from solarpunk.leaf.faults import Fault
 from solarpunk.leaf.telemetry import Sample
-from solarpunk.project.orchestrator import asset_status, fleet_assets, known
+from solarpunk.project.orchestrator import asset_status, fleet_assets, is_cover, known
 from solarpunk.remote import results as result_table
 from solarpunk.remote.registry import tests_for
 from solarpunk.remote.results import Recorded
@@ -48,7 +48,8 @@ class AssetDetail:
     """The asset window's content: the asset, its open faults beside their meanings, its latest results failing first,
     its engineer chain, its status and its open work orders (4.1, last with a default so 3.2's window keeps working):
     for OAHE-INV-003 with an open INV-001 and a work order on it, open_faults is ((that fault, "Inverter offline: …"),),
-    status RED and open_orders (that order,)."""
+    status RED and open_orders (that order,); cover lines up with open_faults, True where the fault's engineer is not
+    the asset's own chain (SP-015)."""
 
     asset: Asset
     open_faults: tuple[tuple[Fault, str], ...]
@@ -57,6 +58,7 @@ class AssetDetail:
     status: AssetStatus
     open_orders: tuple[WorkOrder, ...] = ()
     diagnostics: tuple["Diagnostic", ...] = ()
+    cover: tuple[bool, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -99,6 +101,7 @@ def asset_detail(conn: sqlite3.Connection, asset_id: str) -> AssetDetail:
         status=asset_status(conn, asset_id),
         open_orders=tuple(order for order in work_ledger.by_asset(conn, asset_id) if order.closed is None),
         diagnostics=diagnostics_of(conn, asset),
+        cover=tuple(is_cover(conn, fault) for fault, _ in faults),
     )
 
 
@@ -107,7 +110,11 @@ def diagnostics_of(conn: sqlite3.Connection, asset: Asset) -> tuple[Diagnostic, 
     first, then never run, then passing, each group by name; a stored result of a test the folder no longer holds is
     kept, so nothing the run recorded is hidden: an inverter whose last run failed on_grid and passed reachable gives
     on_grid "fail", the five other inverter tests "not run", reachable "pass"; a string, which no test runs on, ()."""
-    latest = {found.test_name: found for found in result_table.latest_for(conn, asset.asset_id)}
+    latest: dict[str, Recorded] = {}
+    # latest_for orders failing first, and one run can store two results of a test (a ping that failed beside the suite
+    # run over stored samples): the first kept is the failure, so a failure is never hidden by a pass (J-050).
+    for found in result_table.latest_for(conn, asset.asset_id):
+        latest.setdefault(found.test_name, found)
     names = sorted({test.name for test in tests_for(asset.kind)} | set(latest))
     found = []
     for name in names:
@@ -123,13 +130,6 @@ def open_faults_of(conn: sqlite3.Connection, asset_id: str) -> tuple[Fault, ...]
     """The asset's open faults of every severity, in fault_id order: an open INV-001 and an open INV-004 on OAHE-INV-003
     give both; a closed one is left out."""
     return tuple(fault for fault in ledger.by_asset(conn, asset_id) if fault.closed is None)
-
-
-def known_engineers(conn: sqlite3.Connection) -> tuple[str, ...]:
-    """Every engineer address the fleet holds, distinct and sorted, for the engineer dropdown: the OAHE fleet gives
-    ("inverter@oahe.example", "site@oahe.example")."""
-    emails = {asset.engineer_email for asset in fleet_assets(conn, None) if asset.engineer_email is not None}
-    return tuple(sorted(emails))
 
 
 def register_asset(conn: sqlite3.Connection, asset: Asset) -> None:

@@ -1,21 +1,28 @@
 """A fault is one catalogue code carried by one asset over [opened, closed) (Invariant: SOL-04); an open fault has no
-closed instant yet."""
+closed instant yet. It names the engineer who assigned it and, when it was called in, the operator who entered it
+(SP-015); a fault stored before that rule reads assigned_by "unrecorded"."""
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 
 from solarpunk.leaf.clock import utc
 from solarpunk.leaf.codes import FaultCode, lookup
 
+# What a fault stored before SP-015 says of who assigned it: never an engineer's address, so never taken for one.
+UNRECORDED = "unrecorded"
+
 
 @dataclass(frozen=True)
 class Fault:
-    """One fault: Fault(7, "OAHE-INV-003", "INV-001", 10:10 UTC, 10:30 UTC); open: closed is None."""
+    """One fault: Fault(7, "OAHE-INV-003", "INV-001", 10:10 UTC, 10:30 UTC, "tech@oahe.example", None); open: closed is
+    None; recorded_by names the operator who entered an engineer's called-in fault, None when the engineer did."""
 
     fault_id: int
     asset_id: str
     code: str
     opened: datetime
     closed: datetime | None
+    assigned_by: str = UNRECORDED
+    recorded_by: str | None = None
 
     def __post_init__(self) -> None:
         """The code in the catalogue, the instants UTC, closed after opened: Fault(1, id, "INV-999", …) raises UnknownFaultCode."""

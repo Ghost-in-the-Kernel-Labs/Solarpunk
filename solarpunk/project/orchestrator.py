@@ -17,8 +17,8 @@ from solarpunk.fleet import registry
 from solarpunk.leaf import store
 from solarpunk.leaf.assets import Asset, site_id
 from solarpunk.leaf.clock import Period, at
-from solarpunk.leaf.codes import AssetKind, AssetStatus, Severity
-from solarpunk.leaf.faults import Fault
+from solarpunk.leaf.codes import AssetKind, AssetStatus, Severity, lookup
+from solarpunk.leaf.faults import UNRECORDED, Fault
 from solarpunk.leaf.telemetry import Sample
 from solarpunk.mailer import mail as mail_table
 from solarpunk.remote import results as result_table
@@ -43,6 +43,11 @@ TABLE_NAMES = "SELECT name FROM sqlite_master WHERE type = 'table'"
 
 class UnknownAsset(ValueError):
     """Raised for an asset id the fleet does not hold: UnknownAsset("OAHE-INV-009 is not in the fleet")."""
+
+
+class UnknownEngineer(ValueError):
+    """Raised for a fault assigned by an address the fleet holds for no asset, or by nobody (SP-015):
+    UnknownEngineer("nobody@example.com is not an engineer the fleet holds")."""
 
 
 @dataclass(frozen=True)
@@ -83,6 +88,7 @@ def open_or_create(path: str | Path) -> sqlite3.Connection:
     for name, statements in LATER_TABLES:
         if name not in present:
             store.apply(conn, statements)
+    ledger.upgrade(conn)
     return conn
 
 
@@ -122,12 +128,44 @@ def known(conn: sqlite3.Connection, asset_id: str) -> Asset:
     return asset
 
 
-def assign_fault(conn: sqlite3.Connection, asset_id: str, code: str, opened: datetime) -> Fault:
-    """Opens a fault on an asset the fleet holds, then as the ledger does: assign_fault(conn, "OAHE-INV-001", "INV-001",
-    10:10 UTC) is Fault(1, "OAHE-INV-001", "INV-001", 10:10, None); "OAHE-INV-009" raises UnknownAsset, stores nothing."""
+def known_engineers(conn: sqlite3.Connection) -> tuple[str, ...]:
+    """Every engineer address the fleet holds, distinct and sorted: the OAHE fleet gives ("inverter@oahe.example",
+    "site@oahe.example"); a fleet with no engineer gives ()."""
+    emails = {asset.engineer_email for asset in fleet_assets(conn, None) if asset.engineer_email is not None}
+    return tuple(sorted(emails))
+
+
+def assign_fault(conn: sqlite3.Connection, asset_id: str, code: str, opened: datetime, assigned_by: str,
+                 recorded_by: str | None = None) -> Fault:
+    """Opens a fault on an asset the fleet holds, assigned by an engineer the fleet holds and, when it was called in,
+    entered by the operator named in recorded_by (SP-015): assign_fault(conn, "OAHE-INV-001", "INV-001", 10:10 UTC,
+    "inverter@oahe.example") is Fault(1, "OAHE-INV-001", "INV-001", 10:10, None, "inverter@oahe.example", None);
+    "OAHE-INV-009" raises UnknownAsset and an address no asset names raises UnknownEngineer, each storing nothing. Any
+    engineer the fleet holds may assign; is_cover says when it is not the asset's own."""
+    # Decision: SP-015 (only an engineer assigns a fault, and the record says which)
     # Invariant: SOL-04 (the ledger refuses an unknown code); SOL-05 (no fault on an asset the fleet lacks)
     known(conn, asset_id)
-    return ledger.assign(conn, asset_id, code, opened)
+    if assigned_by not in known_engineers(conn):
+        raise UnknownEngineer(f"{assigned_by or 'nobody'} is not an engineer the fleet holds")
+    entered = recorded_by.strip() if recorded_by is not None else None
+    return ledger.assign(conn, asset_id, code, opened, assigned_by, entered or None)
+
+
+def check_fault(conn: sqlite3.Connection, asset_id: str, code: str) -> None:
+    """Refuses as assign_fault would, without assigning: an asset the fleet lacks raises UnknownAsset (SOL-05), a code
+    the catalogue lacks UnknownFaultCode (SOL-04); check_fault(conn, "OAHE-INV-001", "INV-001") returns None."""
+    known(conn, asset_id)
+    lookup(code)
+
+
+def is_cover(conn: sqlite3.Connection, fault: Fault) -> bool:
+    """Whether the engineer who assigned the fault is not the asset's own chain of asset, parent and site (SP-015): an
+    OAHE-INV-001 fault assigned by site@oahe.example is not cover (the site's engineer is in the chain); one assigned by
+    an engineer of another site is; a fault stored before SP-015 ("unrecorded") is not called cover."""
+    # Decision: SP-015 (cover is allowed, and visible)
+    if fault.assigned_by == UNRECORDED:
+        return False
+    return fault.assigned_by not in registry.engineers_for(conn, fault.asset_id)
 
 
 def close_fault(conn: sqlite3.Connection, fault_id: int, closed: datetime) -> Fault:

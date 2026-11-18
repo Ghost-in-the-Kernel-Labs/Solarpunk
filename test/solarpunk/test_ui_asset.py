@@ -14,6 +14,8 @@ from solarpunk.leaf.codes import AssetKind, AssetStatus, codes_for
 from solarpunk.remote import results
 from solarpunk.ui import demo
 
+ENGINEER = "site@oahe.example"  # SP-015: a fault names the engineer who assigned it; the fixtures' site engineer
+
 try:
     import tkinter
 
@@ -70,7 +72,7 @@ def fixture_store() -> sqlite3.Connection:
     project.register_asset(conn, SITE)
     project.register_asset(conn, INVERTER)
     project.register_asset(conn, UNSERVICED)
-    project.assign_fault(conn, INV1, "INV-001", OPENED)
+    project.assign_fault(conn, INV1, "INV-001", OPENED, ENGINEER)
     results.record(conn, "reachable", INV1, RUN_AT - timedelta(hours=1), results.Result(False, "stale"))
     results.record(conn, "reachable", INV1, RUN_AT, results.Result(True, "3 records"))
     results.record(conn, "on_grid", INV1, RUN_AT, results.Result(False, OFF_GRID))
@@ -117,7 +119,13 @@ class PureTest(unittest.TestCase):
 
     def test_fault_lines(self) -> None:
         meaning = "Inverter offline: no AC output while irradiance is above the start threshold"
-        self.assertEqual(asset_window.fault_lines(self.detail), (("INV-001", meaning, "2026-06-01 10:10 UTC"),))
+        self.assertEqual(asset_window.fault_lines(self.detail),
+                         (("INV-001", meaning, "2026-06-01 10:10 UTC", "site@oahe.example"),))
+
+    def test_assigned_text_says_who_entered_it_and_cover(self) -> None:
+        fault = project.Fault(1, INV1, "INV-001", OPENED, None, "a@oahe.example", "ops@oahe.example")
+        self.assertEqual(asset_window.assigned_text(fault, True), "a@oahe.example, entered by ops@oahe.example (cover)")
+        self.assertEqual(asset_window.assigned_text(project.Fault(1, INV1, "INV-001", OPENED, None), False), "unrecorded")
 
     def test_fault_lines_empty(self) -> None:
         self.assertEqual(asset_window.fault_lines(project.asset_detail(self.conn, SITE_ID)), ())
@@ -197,14 +205,16 @@ class WindowTest(unittest.TestCase):
         window = self.window
         titles = [child.cget("text") for child in window.winfo_children() if child.winfo_class() == "TLabel"]
         self.assertEqual(titles, ["Open faults", "Diagnostics"])
-        self.assertEqual([window.fault_tree.heading(c, "text") for c in ("code", "meaning", "opened")],
-                         ["Code", "Meaning", "Opened"])
+        self.assertEqual([window.fault_tree.heading(c, "text") for c in ("code", "meaning", "opened", "by")],
+                         ["Code", "Meaning", "Opened", "Assigned by"])
         self.assertEqual([window.result_tree.heading(c, "text") for c in ("test", "result", "reason")],
                          ["Test", "Result", "Reason"])
         self.assertEqual(str(window.result_tree.tag_configure("failing", "foreground")), "#c0392b")
         self.assertEqual(str(window.result_tree.tag_configure("notrun", "foreground")), "#808080")
         self.assertEqual([window.result_tree.column(c, "width") for c in ("test", "result")], [190, 70])
         self.assertGreaterEqual(window.result_tree.column("reason", "width"), 480)  # it stretches to the window
+        self.assertEqual([window.fault_tree.column(c, "width") for c in ("code", "meaning", "opened")], [70, 175, 165])
+        self.assertGreaterEqual(window.fault_tree.column("by", "width"), 470)
         self.assertEqual(str(window.message.cget("foreground")), "#c0392b")
         for widget in (window.fields, window.status_label, window.code_box, window.assign_button,
                        window.engineer_box, window.save_button, window.cancel_button, window.message):
@@ -212,6 +222,7 @@ class WindowTest(unittest.TestCase):
 
     def test_assign_adds_a_fault(self) -> None:
         self.window.code_box.current(3)
+        self.window.assigned_by_box.set(INVERTER_EMAIL)
         self.window.assign_button.invoke()
         codes = [fault.code for fault, _ in project.asset_detail(self.conn, INV1).open_faults]
         self.assertEqual(codes, ["INV-001", "INV-004"])
@@ -221,6 +232,7 @@ class WindowTest(unittest.TestCase):
 
     def test_assign_refused_is_shown(self) -> None:
         self.window.code_box.current(0)
+        self.window.assigned_by_box.set(INVERTER_EMAIL)
         self.window.assign_button.invoke()
         self.assertEqual(self.window.message.cget("text"),
                          "Refused: OAHE-INV-001 already carries open fault 1 of INV-001")
@@ -230,8 +242,26 @@ class WindowTest(unittest.TestCase):
     def test_assign_clears_an_earlier_refusal(self) -> None:
         self.window.assign_button.invoke()
         self.window.code_box.current(1)
+        self.window.assigned_by_box.set(INVERTER_EMAIL)
         self.window.assign_button.invoke()
         self.assertEqual(self.window.message.cget("text"), "")
+
+    def test_assign_needs_the_engineer_who_assigned_it(self) -> None:
+        """SP-015: a code with no engineer chosen is refused in the window and assigns nothing."""
+        self.window.code_box.current(3)
+        self.window.assign_button.invoke()
+        self.assertEqual(self.window.message.cget("text"), asset_window.CHOOSE_ENGINEER)
+        self.assertEqual(len(project.asset_detail(self.conn, INV1).open_faults), 1)
+        self.assertEqual(tuple(self.window.assigned_by_box.cget("values")), (INVERTER_EMAIL, SITE_EMAIL))
+
+    def test_assign_records_the_operator_who_entered_it(self) -> None:
+        self.window.code_box.current(3)
+        self.window.assigned_by_box.set(INVERTER_EMAIL)
+        self.window.entered_by_box.insert(0, "ops@oahe.example")
+        self.window.assign_button.invoke()
+        added = project.asset_detail(self.conn, INV1).open_faults[-1][0]
+        self.assertEqual((added.assigned_by, added.recorded_by), (INVERTER_EMAIL, "ops@oahe.example"))
+        self.assertEqual(self.rows(self.window.fault_tree)[-1][3], f"{INVERTER_EMAIL}, entered by ops@oahe.example")
 
     def test_assign_with_nothing_chosen(self) -> None:
         self.window.assign_button.invoke()
@@ -295,6 +325,13 @@ class TheDemosDiagnostics(unittest.TestCase):
         found = project.asset_detail(self.conn, demo.SENSOR).diagnostics
         self.assertEqual((found[0].test_name, found[0].state), ("reachable", "fail"))
         self.assertEqual([d.test_name for d in found], ["reachable", "irradiance_in_range", "on_grid"])
+
+    def test_the_dead_inverters_failed_reachable_is_not_hidden_by_the_suites_pass(self) -> None:
+        """OAHE-INV-002's run stores reachable twice at one instant, the ping's failure and a pass over its stored samples;
+        the diagnostics show the failure, first (J-050)."""
+        found = project.asset_detail(self.conn, demo.DOWN).diagnostics
+        self.assertEqual((found[0].test_name, found[0].state), ("reachable", "fail"))
+        self.assertEqual(found[0].reason, "127.0.0.1:9 is unreachable")
 
     def test_a_tracker_with_no_feed_shows_its_tests_never_run_and_a_string_shows_none(self) -> None:
         found = project.asset_detail(self.conn, "OAHE-TRK-001").diagnostics

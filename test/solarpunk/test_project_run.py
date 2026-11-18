@@ -28,6 +28,8 @@ from solarpunk.remote import results
 from solarpunk.telemetry import generate as generator
 from solarpunk.telemetry import samples as sample_table
 
+ENGINEER = "site@oahe.example"  # SP-015: a fault names the engineer who assigned it; the fixtures' site engineer
+
 SITE_EMAIL = "site@oahe.example"
 INVERTER_EMAIL = "inverter@oahe.example"
 SENDER = "ops@oahe.example"
@@ -121,7 +123,7 @@ class RunFixture(unittest.TestCase):
             replace(INVERTER_3, port=dead),
         ) + STRINGS
         project.load_fleet(self.conn, fleet)
-        self.outage = project.assign_fault(self.conn, INV3, "INV-001", at(2026, 6, 1, 9))
+        self.outage = project.assign_fault(self.conn, INV3, "INV-001", at(2026, 6, 1, 9), ENGINEER)
 
     def smtp(self) -> FakeSmtp:
         """A running fake SMTP server, stopped when the test ends: self.smtp().data is []."""
@@ -195,8 +197,8 @@ class TheScheduledRun(RunFixture):
         tracker = Asset("OAHE-TRK-001", AssetKind.TRACKER, "OAHE", "OAHE-SIT-001", "Tracker 1", None)
         silent = Asset("OAHE-INV-004", AssetKind.INVERTER, "OAHE", "OAHE-SIT-001", "Inverter 4", 100.0)
         project.load_fleet(self.conn, (tracker, silent))
-        project.assign_fault(self.conn, "OAHE-STR-001", "STR-001", at(2026, 6, 1, 9))
-        project.assign_fault(self.conn, silent.asset_id, "INV-001", at(2026, 6, 1, 9))
+        project.assign_fault(self.conn, "OAHE-STR-001", "STR-001", at(2026, 6, 1, 9), ENGINEER)
+        project.assign_fault(self.conn, silent.asset_id, "INV-001", at(2026, 6, 1, 9), ENGINEER)
         report = project.scheduled_run(self.conn, RUN_AT)
         self.assertEqual((report.pinged, report.results), (3, 23))  # 6.2 added four tests per inverter
         self.assertIs(report.statuses[tracker.asset_id], AssetStatus.GREEN)
@@ -242,7 +244,7 @@ class TheMails(RunFixture):
     def test_an_asset_with_nobody_to_mail_is_an_error_and_the_others_are_mailed(self) -> None:
         project.load_fleet(self.conn, BIGS)
         # BIGS-INV-001 has no endpoint, so the suite does not test it: an open outage is what makes it alert.
-        project.assign_fault(self.conn, "BIGS-INV-001", "INV-001", at(2026, 6, 1, 9))
+        project.assign_fault(self.conn, "BIGS-INV-001", "INV-001", at(2026, 6, 1, 9), ENGINEER)
         server = self.smtp()
         report = project.scheduled_run(self.conn, RUN_AT, self.settings(server.server_address[1]))
         self.assertEqual((report.mails, len(report.errors)), (2, 3))
@@ -283,7 +285,7 @@ class TheHelpers(unittest.TestCase):
         results.record(conn, "reachable", INV1, RUN_AT, results.Result(True, "3 records"))
         results.record(conn, "on_grid", INV1, RUN_AT, results.Result(False, "10:05: off the grid"))
         self.assertEqual(run.cause_of(conn, INV1, {}), mailer.RemoteFailure("on_grid", "10:05: off the grid"))
-        outage = project.assign_fault(conn, INV1, "INV-001", RUN_AT)
+        outage = project.assign_fault(conn, INV1, "INV-001", RUN_AT, ENGINEER)
         self.assertEqual(run.cause_of(conn, INV1, project.open_outages(conn)), outage)
 
     def test_ping_all_adds_up_every_feeds_new_records(self) -> None:
@@ -330,9 +332,9 @@ class TheSurface(RunFixture):
 
     def test_the_detail_holds_open_faults_latest_failing_first_engineers_and_status(self) -> None:
         project.scheduled_run(self.conn, RUN_AT)
-        closed = project.assign_fault(self.conn, INV3, "INV-002", at(2026, 6, 1, 9))
+        closed = project.assign_fault(self.conn, INV3, "INV-002", at(2026, 6, 1, 9), ENGINEER)
         project.close_fault(self.conn, closed.fault_id, at(2026, 6, 1, 10))
-        info = project.assign_fault(self.conn, INV3, "INV-004", at(2026, 6, 1, 9))
+        info = project.assign_fault(self.conn, INV3, "INV-004", at(2026, 6, 1, 9), ENGINEER)
         detail = project.asset_detail(self.conn, INV3)
         self.assertEqual(detail.asset, registry.get(self.conn, INV3))
         self.assertEqual(detail.open_faults, ((self.outage, codes.lookup("INV-001").meaning),
@@ -389,4 +391,4 @@ class TheSurface(RunFixture):
         self.assertIs(project.FeedError, client.FeedError)
         self.assertIs(surface.AssetRow, project.AssetRow)
         with self.assertRaises(project.LedgerError):
-            project.assign_fault(self.conn, INV3, "INV-001", at(2026, 6, 1, 11))
+            project.assign_fault(self.conn, INV3, "INV-001", at(2026, 6, 1, 11), ENGINEER)

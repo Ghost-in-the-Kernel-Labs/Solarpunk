@@ -35,7 +35,7 @@ The remote tests
 The fleet and its faults
   fleet load --demo                            register the OAHE example fleet
   fleet list [--site SITE]                     each asset with its kind, name and status
-  fault assign ASSET_ID CODE OPENED            open a fault from the catalogue on an asset
+  fault assign ID CODE OPENED --by ENGINEER    open a fault as its engineer [--recorded-by OPERATOR]
   fault close FAULT_ID CLOSED                  close a fault
   fault list [--open]                          the faults, or the open ones alone
 
@@ -57,11 +57,15 @@ def instant(text: str) -> datetime:
     return datetime.fromisoformat(text)
 
 
-def fault_line(fault: project.Fault) -> str:
-    """One fault as a line: Fault(1, "OAHE-INV-001", "INV-001", 10:10 UTC, None) is
-    "1 OAHE-INV-001 INV-001 2026-06-01T10:10:00+00:00 open"."""
+def fault_line(fault: project.Fault, cover: bool = False) -> str:
+    """One fault as a line, who assigned it last (SP-015): Fault(1, "OAHE-INV-001", "INV-001", 10:10 UTC, None,
+    "tech@oahe.example") is "1 OAHE-INV-001 INV-001 2026-06-01T10:10:00+00:00 open by tech@oahe.example"; entered by an
+    operator it adds " entered by <operator>", and with cover " (cover)"."""
     closed = "open" if fault.closed is None else fault.closed.isoformat()
-    return f"{fault.fault_id} {fault.asset_id} {fault.code} {fault.opened.isoformat()} {closed}"
+    entered = "" if fault.recorded_by is None else f" entered by {fault.recorded_by}"
+    covering = " (cover)" if cover else ""
+    return (f"{fault.fault_id} {fault.asset_id} {fault.code} {fault.opened.isoformat()} {closed}"
+            f" by {fault.assigned_by}{entered}{covering}")
 
 
 def fleet_load(conn: sqlite3.Connection, args: argparse.Namespace, out: TextIO) -> None:
@@ -78,21 +82,23 @@ def fleet_list(conn: sqlite3.Connection, args: argparse.Namespace, out: TextIO) 
 
 
 def fault_assign(conn: sqlite3.Connection, args: argparse.Namespace, out: TextIO) -> None:
-    """fault assign OAHE-INV-001 INV-001 2026-06-01T10:10:00+00:00 prints
-    "1 OAHE-INV-001 INV-001 2026-06-01T10:10:00+00:00 open"."""
-    out.write(fault_line(project.assign_fault(conn, args.asset_id, args.code, instant(args.opened))) + "\n")
+    """fault assign OAHE-INV-001 INV-001 2026-06-01T10:10:00+00:00 --by inverter@oahe.example [--recorded-by OPERATOR]
+    prints "1 OAHE-INV-001 INV-001 2026-06-01T10:10:00+00:00 open by inverter@oahe.example" (SP-015)."""
+    fault = project.assign_fault(conn, args.asset_id, args.code, instant(args.opened), args.by, args.recorded_by)
+    out.write(fault_line(fault, project.is_cover(conn, fault)) + "\n")
 
 
 def fault_close(conn: sqlite3.Connection, args: argparse.Namespace, out: TextIO) -> None:
     """fault close 1 2026-06-01T10:30:00+00:00 prints the fault with its close,
     "1 OAHE-INV-001 INV-001 2026-06-01T10:10:00+00:00 2026-06-01T10:30:00+00:00"."""
-    out.write(fault_line(project.close_fault(conn, args.fault_id, instant(args.closed))) + "\n")
+    fault = project.close_fault(conn, args.fault_id, instant(args.closed))
+    out.write(fault_line(fault, project.is_cover(conn, fault)) + "\n")
 
 
 def fault_list(conn: sqlite3.Connection, args: argparse.Namespace, out: TextIO) -> None:
     """fault list [--open]: one fault_line per fault in fault_id order, the open ones alone with --open."""
     for fault in project.faults_listing(conn, args.open):
-        out.write(fault_line(fault) + "\n")
+        out.write(fault_line(fault, project.is_cover(conn, fault)) + "\n")
 
 
 def telemetry_generate(conn: sqlite3.Connection, args: argparse.Namespace, out: TextIO) -> None:
@@ -199,6 +205,8 @@ def add_fleet_and_faults(commands: argparse._SubParsersAction) -> None:
     assign.add_argument("asset_id")
     assign.add_argument("code")
     assign.add_argument("opened")
+    assign.add_argument("--by", required=True)
+    assign.add_argument("--recorded-by")
     assign.set_defaults(handler=fault_assign)
     close = fault.add_parser("close")
     close.add_argument("fault_id", type=int)

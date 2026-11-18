@@ -21,6 +21,8 @@ from solarpunk.telemetry import generate as generator
 from solarpunk.telemetry import samples as sample_table
 from solarpunk.ui import demo
 
+ENGINEER = "site@oahe.example"  # SP-015: a fault names the engineer who assigned it; the fixtures' site engineer
+
 HAS_TKINTER = importlib.util.find_spec("tkinter") is not None
 if HAS_TKINTER:
     import tkinter
@@ -68,6 +70,15 @@ class DemoFixture(unittest.TestCase):
 
 
 class TheDemoStore(DemoFixture):
+    def test_every_fault_names_its_engineer_and_the_outage_shows_cover_and_the_operator(self) -> None:
+        demo.build_demo_store(self.path, self.port)
+        conn = self.opened()
+        faults = project.faults_listing(conn, False)
+        self.assertEqual([f.assigned_by for f in faults], [demo.SITE_ENGINEER, demo.INVERTER_ENGINEER, demo.INVERTER_ENGINEER])
+        (outage,) = project.faults_listing(conn, True)
+        self.assertEqual((outage.asset_id, outage.recorded_by, project.is_cover(conn, outage)),
+                         (demo.DOWN, demo.OPERATOR, True))
+
     def test_the_three_colours_and_who_wears_them(self) -> None:
         state = demo.build_demo_store(self.path, self.port)
         self.assertEqual((state.db_path, state.simulator_port), (self.path, self.port))
@@ -192,7 +203,7 @@ class TheDemoWindow(DemoFixture):
         root.update()
         opened = [w for w in top.winfo_children() if isinstance(w, AssetWindow)]
         self.assertEqual([w.asset_id for w in opened], [INV2])
-        project.assign_fault(conn, INV1, "INV-001", at(2026, 6, 1, 14))
+        project.assign_fault(conn, INV1, "INV-001", at(2026, 6, 1, 14), ENGINEER)
         opened[0].on_change()
         self.assertEqual(fleet.status_line.cget("text"), "11 assets: 8 green, 1 yellow, 2 red")
         self.assertEqual(fleet.add_button.cget("text"), "Add asset")

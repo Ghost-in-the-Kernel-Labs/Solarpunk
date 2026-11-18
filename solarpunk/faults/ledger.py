@@ -8,9 +8,15 @@ from datetime import datetime
 
 from solarpunk.leaf.clock import Period, utc
 from solarpunk.leaf.codes import lookup
-from solarpunk.leaf.faults import Fault
+from solarpunk.leaf.faults import UNRECORDED, Fault
 
-SELECT_FAULTS = "SELECT fault_id, asset_id, code, opened, closed FROM faults"
+SELECT_FAULTS = "SELECT fault_id, asset_id, code, opened, closed, assigned_by, recorded_by FROM faults"
+# The columns SP-015 added, each with the statement that adds it to a table made before: upgrade() applies the missing.
+LATER_COLUMNS = (
+    ("assigned_by", "ALTER TABLE faults ADD COLUMN assigned_by TEXT NOT NULL DEFAULT 'unrecorded'"),
+    ("recorded_by", "ALTER TABLE faults ADD COLUMN recorded_by TEXT NULL"),
+)
+INSERT_FAULT = "INSERT INTO faults (asset_id, code, opened, assigned_by, recorded_by) VALUES (?, ?, ?, ?, ?)"
 
 
 class LedgerError(ValueError):
@@ -22,8 +28,18 @@ def schema() -> tuple[str, ...]:
     """The ledger's schema statements, for leaf.store.apply: schema()[0] starts with "CREATE TABLE faults"."""
     return (
         "CREATE TABLE faults (fault_id INTEGER PRIMARY KEY, asset_id TEXT NOT NULL, code TEXT NOT NULL,"
-        " opened TEXT NOT NULL, closed TEXT NULL)",
+        " opened TEXT NOT NULL, closed TEXT NULL, assigned_by TEXT NOT NULL DEFAULT 'unrecorded', recorded_by TEXT NULL)",
     )
+
+
+def upgrade(conn: sqlite3.Connection) -> None:
+    """Adds to a faults table made before SP-015 the columns it lacks, its old rows reading assigned_by "unrecorded";
+    a table that has them is left as it is: upgrade(conn) twice changes nothing the second time."""
+    present = {row[1] for row in conn.execute("PRAGMA table_info(faults)")}
+    for name, statement in LATER_COLUMNS:
+        if name not in present:
+            conn.execute(statement)
+    conn.commit()
 
 
 def _stamp(moment: datetime) -> str:
@@ -44,8 +60,9 @@ def _select(conn: sqlite3.Connection, where: str, params: tuple[str | int | None
     INV-001 fault; _select(conn, "", ()) holds them all."""
     rows = conn.execute(SELECT_FAULTS + where + " ORDER BY fault_id", params).fetchall()
     faults = []
-    for fault_id, asset_id, code, opened, closed in rows:
-        faults.append(Fault(fault_id, asset_id, code, datetime.fromisoformat(opened), _instant(closed)))
+    for fault_id, asset_id, code, opened, closed, assigned_by, recorded_by in rows:
+        faults.append(Fault(fault_id, asset_id, code, datetime.fromisoformat(opened), _instant(closed), assigned_by,
+                            recorded_by))
     return tuple(faults)
 
 
@@ -57,9 +74,11 @@ def _get(conn: sqlite3.Connection, fault_id: int | None) -> Fault:
     return found[0]
 
 
-def assign(conn: sqlite3.Connection, asset_id: str, code: str, opened: datetime) -> Fault:
-    """Opens a fault of a catalogue code on an asset: assign(conn, "OAHE-INV-003", "INV-001", 10:10 UTC) is
-    Fault(1, "OAHE-INV-003", "INV-001", 10:10 UTC, None). Refuses an unknown code (UnknownFaultCode), a naive or non-UTC
+def assign(conn: sqlite3.Connection, asset_id: str, code: str, opened: datetime, assigned_by: str = UNRECORDED,
+           recorded_by: str | None = None) -> Fault:
+    """Opens a fault of a catalogue code on an asset, stored with who assigned it (whether that is an engineer is
+    project's check, SP-015): assign(conn, "OAHE-INV-003", "INV-001", 10:10 UTC) is Fault(1, "OAHE-INV-003", "INV-001",
+    10:10 UTC, None, "unrecorded", None). Refuses an unknown code (UnknownFaultCode), a naive or non-UTC
     instant (NotUtc) and a second open fault of the code on the asset (LedgerError)."""
     # Invariant: SOL-04
     lookup(code)
@@ -67,7 +86,7 @@ def assign(conn: sqlite3.Connection, asset_id: str, code: str, opened: datetime)
     clash = _select(conn, " WHERE asset_id = ? AND code = ? AND closed IS NULL", (asset_id, code))
     if clash:
         raise LedgerError(f"{asset_id} already carries open fault {clash[0].fault_id} of {code}")
-    cursor = conn.execute("INSERT INTO faults (asset_id, code, opened) VALUES (?, ?, ?)", (asset_id, code, stamp))
+    cursor = conn.execute(INSERT_FAULT, (asset_id, code, stamp, assigned_by, recorded_by))
     conn.commit()
     return _get(conn, cursor.lastrowid)
 

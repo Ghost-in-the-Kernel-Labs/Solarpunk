@@ -53,3 +53,4 @@ Written from `docs/journal/` by `scripts/journal_index.py`; do not edit by hand.
 | J-047 | The tests' record shown and kept whole: Phase 8 planned (SP-016) | decision | `J-000-099.md` |
 | J-048 | The demo checked end to end before Ghost's interview; the talk track brought up to date | trial | `J-000-099.md` |
 | J-049 | Tune-up pass 6: the product workpath four debriefs asked for; a cold gate refused on a tree edited mid-run | measurement | `J-000-099.md` |
+| J-050 | 7.1: every fault names the engineer who assigned it; a failure the diagnostics hid | feature | `J-000-099.md` |

@@ -17,3 +17,10 @@ Last review: a595275 (2026-11-18, Tune-up pass 6)
 
 An entry is `### <date> · <task> · <agent>` and four lines: **Task**, **Opened** (files, in order), **Complaints**,
 **Suggestions**.
+
+### 2026-11-18 · 7.1, who assigned a fault · Claude
+
+- **Task**: SP-015's first step: an engineer on every fault, an operator when called in, cover shown.
+- **Opened**: `docs/paths/product.md` (the fleet-and-faults row), `solarpunk/leaf/faults.py`, `solarpunk/faults/ledger.py`, `solarpunk/project/orchestrator.py`, `solarpunk/receiver/server.py`, `solarpunk/cli/main.py`, `solarpunk/ui/asset_window.py`, `solarpunk/ui/demo.py`.
+- **Complaints**: the product workpath's new row sent me to the right four files first; a rule added to `project.assign_fault` reached forty-five callers, and nothing lists the tests that build their own fleets (each needed an engineer the fleet holds); a failing test that leaves a server thread running hangs the fast loop after its summary, with no timeout to say so.
+- **Suggestions**: a timeout on `scripts/fast.sh`'s run, so a hang is a red line, not a stall.

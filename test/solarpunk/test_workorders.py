@@ -16,6 +16,8 @@ from solarpunk.faults import ledger as fault_ledger
 from solarpunk.leaf.codes import AssetStatus
 from solarpunk.project import UnknownAsset
 
+ENGINEER = "site@oahe.example"  # SP-015: a fault names the engineer who assigned it; the fixtures' site engineer
+
 INV = "OAHE-INV-003"
 INV1 = "OAHE-INV-001"
 INV2_OAHE = "OAHE-INV-002"
@@ -253,7 +255,7 @@ class ProjectWorkOrders(unittest.TestCase):
 
     def outage(self, conn: sqlite3.Connection) -> project.Fault:
         """An INV-001 opened on OAHE-INV-001 at 12:00 on 2026-06-01: outage(conn).fault_id is 1 in a fresh store."""
-        return project.assign_fault(conn, INV1, "INV-001", at(2026, 6, 1, 12))
+        return project.assign_fault(conn, INV1, "INV-001", at(2026, 6, 1, 12), ENGINEER)
 
     def test_an_order_from_a_fault_takes_the_faults_asset(self) -> None:
         conn = self.fleet()
@@ -321,7 +323,7 @@ class ProjectWorkOrders(unittest.TestCase):
     def test_closing_one_order_leaves_another_assets_fault_open(self) -> None:
         conn = self.fleet()
         first = self.outage(conn)
-        other = project.assign_fault(conn, INV2_OAHE, "INV-001", at(2026, 6, 1, 12))
+        other = project.assign_fault(conn, INV2_OAHE, "INV-001", at(2026, 6, 1, 12), ENGINEER)
         order = project.open_work_order_from_fault(conn, first.fault_id, at(2026, 6, 1, 12, 5), "x")
         project.close_work_order(conn, order.wo_id, "RC-COMPONENT", at(2026, 6, 1, 13))
         self.assertEqual(fault_ledger.open_faults(conn), (other,))

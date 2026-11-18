@@ -39,7 +39,18 @@ class TheSchema(unittest.TestCase):
             ("code", "TEXT", 1, None, 0),
             ("opened", "TEXT", 1, None, 0),
             ("closed", "TEXT", 0, None, 0),
+            ("assigned_by", "TEXT", 1, "'unrecorded'", 0),
+            ("recorded_by", "TEXT", 0, None, 0),
         ])
+
+    def test_upgrade_adds_the_sp015_columns_to_an_old_table_and_its_rows_read_unrecorded(self) -> None:
+        conn = sqlite3.connect(":memory:")
+        conn.execute("CREATE TABLE faults (fault_id INTEGER PRIMARY KEY, asset_id TEXT NOT NULL, code TEXT NOT NULL,"
+                     " opened TEXT NOT NULL, closed TEXT NULL)")
+        conn.execute("INSERT INTO faults (asset_id, code, opened) VALUES (?, ?, ?)", (INV, "INV-001", "2026-06-01T10:10:00+00:00"))
+        ledger.upgrade(conn)
+        ledger.upgrade(conn)
+        self.assertEqual(ledger.open_faults(conn), (Fault(1, INV, "INV-001", at(2026, 6, 1, 10, 10), None, "unrecorded", None),))
 
     def test_the_table_has_no_foreign_key_to_assets(self) -> None:
         self.assertEqual(fresh().execute("PRAGMA foreign_key_list(faults)").fetchall(), [])
@@ -50,7 +61,13 @@ class Assigning(unittest.TestCase):
         conn = fresh()
         fault = ledger.assign(conn, INV, "INV-001", at(2026, 6, 1, 10, 10))
         self.assertEqual(fault, Fault(1, INV, "INV-001", at(2026, 6, 1, 10, 10), None))
-        self.assertEqual(stored(conn), [(1, INV, "INV-001", "2026-06-01T10:10:00+00:00", None)])
+        self.assertEqual(stored(conn), [(1, INV, "INV-001", "2026-06-01T10:10:00+00:00", None, "unrecorded", None)])
+
+    def test_assign_stores_who_assigned_and_who_entered_it(self) -> None:
+        conn = fresh()
+        fault = ledger.assign(conn, INV, "INV-001", at(2026, 6, 1, 10, 10), "tech@oahe.example", "operator@oahe.example")
+        self.assertEqual((fault.assigned_by, fault.recorded_by), ("tech@oahe.example", "operator@oahe.example"))
+        self.assertEqual(stored(conn)[0][5:], ("tech@oahe.example", "operator@oahe.example"))
 
     def test_instants_round_trip_as_aware_utc(self) -> None:
         conn = fresh()

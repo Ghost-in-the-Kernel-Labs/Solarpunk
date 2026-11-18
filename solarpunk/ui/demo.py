@@ -33,12 +33,17 @@ SEED = 7
 RUN_AT = at(2026, 6, 1, 13)
 POLL_INTERVAL_S = 0.1
 DB_NAME = "demo.db"
-# The faults: (asset, code, opened hour, opened minute, closed hour, closed minute), None for still open.
+SITE_ENGINEER = "site@oahe.example"
+INVERTER_ENGINEER = "inverter@oahe.example"
+OPERATOR = "operator@oahe.example"
+# The faults (SP-015: each names the engineer who assigned it): (asset, code, opened hour, opened minute, closed hour,
+# closed minute, engineer). The open outage on OAHE-INV-002 was called in by INV-001's engineer, covering (INV-002's own
+# chain is the site's engineer alone), and entered by the operator: one record showing both.
 CLOSED_FAULTS = (
-    (SITE_ID, "SIT-002", 12, 0, 13, 0),
-    (FED, "INV-002", 10, 5, 10, 45),
+    (SITE_ID, "SIT-002", 12, 0, 13, 0, SITE_ENGINEER),
+    (FED, "INV-002", 10, 5, 10, 45, INVERTER_ENGINEER),
 )
-OPEN_OUTAGE = (DOWN, "INV-001", 11, 30)
+OPEN_OUTAGE = (DOWN, "INV-001", 11, 30, INVERTER_ENGINEER, OPERATOR)
 NO_FEED_KINDS = (AssetKind.TRACKER, AssetKind.METER)
 
 
@@ -86,12 +91,13 @@ def start_simulator(samples: tuple[Sample, ...]) -> tuple[socketserver.TCPServer
 
 def add_faults(conn: sqlite3.Connection) -> None:
     """The demo's ledger: SIT-002 on the site 12:00 to 13:00 and INV-002 on OAHE-INV-001 10:05 to 10:45, both closed,
-    then INV-001 on OAHE-INV-002 from 11:30, open; afterwards faults_listing(conn, True) is that one outage."""
-    for asset_id, code, opened_h, opened_m, closed_h, closed_m in CLOSED_FAULTS:
-        fault = project.assign_fault(conn, asset_id, code, at(2026, 6, 1, opened_h, opened_m))
+    then INV-001 on OAHE-INV-002 from 11:30, open, called in by INV-001's engineer and entered by the operator;
+    afterwards faults_listing(conn, True) is that one outage."""
+    for asset_id, code, opened_h, opened_m, closed_h, closed_m, engineer in CLOSED_FAULTS:
+        fault = project.assign_fault(conn, asset_id, code, at(2026, 6, 1, opened_h, opened_m), engineer)
         project.close_fault(conn, fault.fault_id, at(2026, 6, 1, closed_h, closed_m))
-    asset_id, code, opened_h, opened_m = OPEN_OUTAGE
-    project.assign_fault(conn, asset_id, code, at(2026, 6, 1, opened_h, opened_m))
+    asset_id, code, opened_h, opened_m, engineer, operator = OPEN_OUTAGE
+    project.assign_fault(conn, asset_id, code, at(2026, 6, 1, opened_h, opened_m), engineer, operator)
 
 
 def build_demo_store(path: Path, port: int) -> DemoState:

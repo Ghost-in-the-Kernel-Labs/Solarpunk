@@ -13,6 +13,8 @@ from solarpunk.leaf.telemetry import Sample, gap
 from solarpunk.kpi import availability
 from solarpunk import project
 
+ENGINEER = "site@oahe.example"  # SP-015: a fault names the engineer who assigned it; the fixtures' site engineer
+
 ROOT = Path(__file__).resolve().parents[3]
 ENTRY = re.compile(r"^### ([A-Z]{1,3}-\d{3}): .*?(?=^### |^## |\Z)", re.MULTILINE | re.DOTALL)
 SECTION = re.compile(r"^## (SOL-\d{2}) .*?(?=^## |\Z)", re.MULTILINE | re.DOTALL)
@@ -94,7 +96,7 @@ class Iso9001(unittest.TestCase):
         conn = project.open_store()
         self.addCleanup(conn.close)
         project.load_fleet(conn, project.demo_fleet())
-        fault = project.assign_fault(conn, "OAHE-INV-001", "INV-001", at(2026, 6, 1, 10))
+        fault = project.assign_fault(conn, "OAHE-INV-001", "INV-001", at(2026, 6, 1, 10), ENGINEER)
         order = project.open_work_order_from_fault(conn, fault.fault_id, at(2026, 6, 1, 10, 5), "inverter offline")
         with self.assertRaises(project.UnknownRootCause):
             project.close_work_order(conn, order.wo_id, "not-a-cause", at(2026, 6, 1, 11))

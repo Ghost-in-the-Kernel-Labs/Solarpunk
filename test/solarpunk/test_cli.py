@@ -57,9 +57,9 @@ OAHE_LIST = [
 ]
 STATUS_IDS = ["OAHE-INV-001", "OAHE-INV-002", "OAHE-MTR-001", "OAHE-SEN-001", "OAHE-SIT-001", "OAHE-STR-001",
               "OAHE-STR-002", "OAHE-STR-003", "OAHE-STR-004", "OAHE-TRK-001", "OAHE-TRK-002"]
-SITE_FAULT = "1 OAHE-SIT-001 SIT-002 2026-06-01T12:00:00+00:00 2026-06-01T13:00:00+00:00"
-OUTAGE_OPEN = "2 OAHE-INV-001 INV-001 2026-06-01T12:30:00+00:00 open"
-OUTAGE_CLOSED = "2 OAHE-INV-001 INV-001 2026-06-01T12:30:00+00:00 2026-06-01T14:30:00+00:00"
+SITE_FAULT = "1 OAHE-SIT-001 SIT-002 2026-06-01T12:00:00+00:00 2026-06-01T13:00:00+00:00 by site@oahe.example"
+OUTAGE_OPEN = "2 OAHE-INV-001 INV-001 2026-06-01T12:30:00+00:00 open by site@oahe.example"
+OUTAGE_CLOSED = "2 OAHE-INV-001 INV-001 2026-06-01T12:30:00+00:00 2026-06-01T14:30:00+00:00 by site@oahe.example"
 
 
 def kpi_lines(availability: str, inverters: str, energy_yield: str, faults_open: int, inverter_status: str) -> list[str]:
@@ -162,10 +162,10 @@ class TheStoreFile(Cli):
 class TheFaults(Cli):
     def test_assign_close_and_list(self) -> None:
         self.ok(["fleet", "load", "--demo"])
-        self.assertEqual(self.ok(["fault", "assign", "OAHE-SIT-001", "SIT-002", "2026-06-01T12:00:00+00:00"]),
-                         ["1 OAHE-SIT-001 SIT-002 2026-06-01T12:00:00+00:00 open"])
+        self.assertEqual(self.ok(["fault", "assign", "OAHE-SIT-001", "SIT-002", "2026-06-01T12:00:00+00:00", "--by", SITE_EMAIL]),
+                         ["1 OAHE-SIT-001 SIT-002 2026-06-01T12:00:00+00:00 open by site@oahe.example"])
         self.assertEqual(self.ok(["fault", "close", "1", "2026-06-01T13:00:00+00:00"]), [SITE_FAULT])
-        self.assertEqual(self.ok(["fault", "assign", "OAHE-INV-001", "INV-001", "2026-06-01T12:30:00+00:00"]),
+        self.assertEqual(self.ok(["fault", "assign", "OAHE-INV-001", "INV-001", "2026-06-01T12:30:00+00:00", "--by", SITE_EMAIL]),
                          [OUTAGE_OPEN])
         self.assertEqual(self.ok(["fault", "list"]), [SITE_FAULT, OUTAGE_OPEN])
         self.assertEqual(self.ok(["fault", "list", "--open"]), [OUTAGE_OPEN])
@@ -173,15 +173,28 @@ class TheFaults(Cli):
 
     def test_every_refusal_is_an_error_line_and_exit_2(self) -> None:
         self.ok(["fleet", "load", "--demo"])
-        self.refused(["fault", "assign", "OAHE-INV-009", "INV-001", "2026-06-01T10:00:00+00:00"],
+        self.refused(["fault", "assign", "OAHE-INV-009", "INV-001", "2026-06-01T10:00:00+00:00", "--by", SITE_EMAIL],
                      "OAHE-INV-009 is not in the fleet")
-        self.refused(["fault", "assign", "OAHE-INV-001", "INV-999", "2026-06-01T10:00:00+00:00"],
+        self.refused(["fault", "assign", "OAHE-INV-001", "INV-999", "2026-06-01T10:00:00+00:00", "--by", SITE_EMAIL],
                      "INV-999 is not in the catalogue")
-        self.refused(["fault", "assign", "OAHE-INV-001", "INV-001", "2026-06-01T10:00:00"],
+        self.refused(["fault", "assign", "OAHE-INV-001", "INV-001", "2026-06-01T10:00:00", "--by", SITE_EMAIL],
                      "2026-06-01T10:00:00 is not UTC")
-        self.refused(["fault", "assign", "OAHE-INV-001", "INV-001", "soon"], "Invalid isoformat string: 'soon'")
+        self.refused(["fault", "assign", "OAHE-INV-001", "INV-001", "soon", "--by", SITE_EMAIL], "Invalid isoformat string: 'soon'")
         self.refused(["fault", "close", "9", "2026-06-01T10:00:00+00:00"], "fault 9 is not in the ledger")
         self.assertEqual(self.ok(["fault", "list"]), [])
+
+    def test_only_an_engineer_the_fleet_holds_assigns_and_the_line_says_who(self) -> None:
+        """SP-015: --by is required, an address no asset names is refused, an operator's entry and cover are shown."""
+        self.ok(["fleet", "load", "--demo"])
+        code, out, err = self.run_cli(["fault", "assign", "OAHE-INV-001", "INV-001", "2026-06-01T10:00:00+00:00"])
+        self.assertEqual((code, out), (2, ""))
+        self.assertIn("the following arguments are required: --by", err)
+        self.refused(["fault", "assign", "OAHE-INV-001", "INV-001", "2026-06-01T10:00:00+00:00", "--by", "nobody@x.example"],
+                     "nobody@x.example is not an engineer the fleet holds")
+        self.assertEqual(self.ok(["fault", "assign", "OAHE-SIT-001", "SIT-001", "2026-06-01T10:00:00+00:00",
+                                  "--by", INVERTER_EMAIL, "--recorded-by", "ops@oahe.example"]),
+                         [f"1 OAHE-SIT-001 SIT-001 2026-06-01T10:00:00+00:00 open by {INVERTER_EMAIL}"
+                          " entered by ops@oahe.example (cover)"])
 
     def test_a_fault_id_must_be_a_number(self) -> None:
         code, out, err = self.run_cli(["fault", "close", "one", "2026-06-01T10:00:00+00:00"])
@@ -193,9 +206,9 @@ class TheFaults(Cli):
 class TheKpis(Cli):
     def test_j012s_day_while_the_outage_is_open(self) -> None:
         self.oahe_day()
-        self.ok(["fault", "assign", "OAHE-SIT-001", "SIT-002", "2026-06-01T12:00:00+00:00"])
+        self.ok(["fault", "assign", "OAHE-SIT-001", "SIT-002", "2026-06-01T12:00:00+00:00", "--by", SITE_EMAIL])
         self.ok(["fault", "close", "1", "2026-06-01T13:00:00+00:00"])
-        self.ok(["fault", "assign", "OAHE-INV-001", "INV-001", "2026-06-01T12:30:00+00:00"])
+        self.ok(["fault", "assign", "OAHE-INV-001", "INV-001", "2026-06-01T12:30:00+00:00", "--by", SITE_EMAIL])
         self.assertEqual(self.ok(["kpi", "OAHE", START, END]), kpi_lines(
             "availability OAHE-INV-001 0.5217 expected=288 excluded=12 down=132 gaps=9",
             "reliability INV mtbf_h=None mttr_h=None count=0 open=1",
@@ -203,9 +216,9 @@ class TheKpis(Cli):
 
     def test_j012s_day_closed_with_a_meter_reading(self) -> None:
         self.oahe_day()
-        self.ok(["fault", "assign", "OAHE-SIT-001", "SIT-002", "2026-06-01T12:00:00+00:00"])
+        self.ok(["fault", "assign", "OAHE-SIT-001", "SIT-002", "2026-06-01T12:00:00+00:00", "--by", SITE_EMAIL])
         self.ok(["fault", "close", "1", "2026-06-01T13:00:00+00:00"])
-        self.ok(["fault", "assign", "OAHE-INV-001", "INV-001", "2026-06-01T12:30:00+00:00"])
+        self.ok(["fault", "assign", "OAHE-INV-001", "INV-001", "2026-06-01T12:30:00+00:00", "--by", SITE_EMAIL])
         self.assertEqual(self.ok(["fault", "close", "2", "2026-06-01T14:30:00+00:00"]), [OUTAGE_CLOSED])
         self.assertEqual(self.ok(["kpi", "OAHE", START, END, "--meter-kwh", "900"]), kpi_lines(
             "availability OAHE-INV-001 0.9348 expected=288 excluded=12 down=18 gaps=9",

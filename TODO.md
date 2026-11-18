@@ -44,13 +44,6 @@ Lanes (P-15): 6.1 and 6.2 in parallel, landed in that order (done, J-041); 6.3 a
 
 Lanes (P-15): 7.1, then 7.2 (it needs 7.1's `assigned_by`), then 7.3, then 7.4 the pass. Ghost's direction, SP-015.
 
-### 7.1 Who assigned it
-
-Every fault records the engineer who assigned it and, when it was called in, the operator who entered it; nothing
-assigns a fault without an engineer (SP-015).
-
-Check: the leaf's `Fault` carries `assigned_by` and `recorded_by`; `solarpunk/faults/` stores them, and a store made before 7.1 gains both columns on opening with its old faults reading `assigned_by` "unrecorded"; `project.assign_fault(conn, asset_id, code, opened, assigned_by, recorded_by=None)` refuses an address the fleet does not hold (`project.known_engineers`) and reports cover when the engineer is not in `engineers_for(asset)`; `python3 -m solarpunk.cli fault assign ASSET CODE OPENED --by ENGINEER [--recorded-by OPERATOR]` (`--by` required) and `fault list` printing who; the asset window's Assign takes the engineer from a dropdown of known engineers and refuses none chosen; the demo's faults name an engineer; the receiver, until 7.2, refuses a push it cannot attribute rather than assign one unattributed; the tests of each, and the fast loop green.
-
 ### 7.2 Suggestions from the tests
 
 A failing remote test raises a suggestion of a likely fault by its rule table, and a code an asset pushes is a

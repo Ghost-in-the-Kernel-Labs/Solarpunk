@@ -62,9 +62,12 @@ derate on OAHE-INV-001 (10:00 to 10:45). The run is stamped 2026-06-01 13:00 UTC
 2. **Click OAHE-INV-002.** The asset window shows the open INV-001 outage with its meaning, and its diagnostics with
    `reachable` failing first, in red, with its reason.
 3. **Close it, click OAHE-INV-001, and assign a fault.** Its seven diagnostics all pass, fed by the simulator. Pick
-   INV-004 (firmware update pending, INFO) and press Assign: the fleet window stays green, since an INFO fault is not
-   an outage. Then assign INV-001: the fleet row turns red at once (the asset window refreshes the fleet window;
-   Refresh does the same by hand).
+   INV-004 (firmware update pending, INFO) and press Assign without an engineer: it is refused, since only an engineer
+   assigns a fault (SP-015). Choose inverter@oahe.example under "Assigned by" (and an operator under "Entered by" if it
+   was called in) and press Assign: the fleet window stays green, since an INFO fault is not an outage. Then assign
+   INV-001: the fleet row turns red at once (the asset window refreshes the fleet window; Refresh does the same by
+   hand). OAHE-INV-002's open outage shows who assigned it: inverter@oahe.example, entered by the operator, marked
+   cover, since that engineer is not INV-002's own.
 4. **The engineer.** In the same window type an address into Engineer and press Save, or Cancel to leave it.
 5. **Add asset** (the button above the list). The Type dropdown is read from the asset maintenance list. Fill an
    id such as OAHE-INV-005, a parent, the IP address 127.0.0.1 and a port, press Save: the new row appears in the

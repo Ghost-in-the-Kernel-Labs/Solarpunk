@@ -30,8 +30,10 @@ COLOURS: dict[AssetStatus, str] = {
     AssetStatus.YELLOW: "#e0b000",
     AssetStatus.RED: "#c0392b",
 }
-FAULT_COLUMNS = ("code", "meaning", "opened")
-FAULT_HEADINGS = ("Code", "Meaning", "Opened")
+FAULT_COLUMNS = ("code", "meaning", "opened", "by")
+FAULT_HEADINGS = ("Code", "Meaning", "Opened", "Assigned by")
+# The open faults' column widths in px: who assigned it, with an operator and cover, is the longest cell (SP-015).
+FAULT_WIDTHS = (70, 175, 165, 470)
 RESULT_COLUMNS = ("test", "result", "reason")
 RESULT_HEADINGS = ("Test", "Result", "Reason")
 # The diagnostics' column widths in px: the reason is the column a reader needs whole (6.4).
@@ -44,7 +46,10 @@ ENGINEER_TITLE = "Engineer"
 SAVE_TEXT = "Save"
 CANCEL_TEXT = "Cancel"
 CHOOSE_CODE = "Choose a code to assign."
-REFUSALS = (project.LedgerError, project.RegistryError, project.UnknownAsset, ValueError)
+CHOOSE_ENGINEER = "Choose the engineer who assigned it: only an engineer assigns a fault (SP-015)."
+ASSIGNED_BY_TITLE = "Assigned by"
+ENTERED_BY_TITLE = "Entered by (operator, if called in)"
+REFUSALS = (project.LedgerError, project.RegistryError, project.UnknownAsset, project.UnknownEngineer, ValueError)
 
 
 def shown(value: object) -> str:
@@ -92,10 +97,19 @@ def colour_of(status: AssetStatus) -> str:
     return COLOURS[status]
 
 
-def fault_lines(detail: project.AssetDetail) -> tuple[tuple[str, str, str], ...]:
-    """The open-faults rows (code, meaning, opened): an open INV-001 opened 2026-06-01 10:10 UTC gives (("INV-001",
-    "Inverter offline: …", "2026-06-01 10:10 UTC"),); no open fault gives ()."""
-    return tuple((fault.code, meaning, fault.opened.strftime(OPENED_FORMAT)) for fault, meaning in detail.open_faults)
+def assigned_text(fault: project.Fault, cover: bool) -> str:
+    """Who assigned a fault, as the window writes it (SP-015): "tech@oahe.example"; entered by an operator,
+    "tech@oahe.example, entered by ops@oahe.example"; with cover, " (cover)" after; a fault from before, "unrecorded"."""
+    entered = "" if fault.recorded_by is None else f", entered by {fault.recorded_by}"
+    return f"{fault.assigned_by}{entered}{' (cover)' if cover else ''}"
+
+
+def fault_lines(detail: project.AssetDetail) -> tuple[tuple[str, str, str, str], ...]:
+    """The open-faults rows (code, meaning, opened, assigned by): an open INV-001 opened 2026-06-01 10:10 UTC by
+    tech@oahe.example gives (("INV-001", "Inverter offline: …", "2026-06-01 10:10 UTC", "tech@oahe.example"),); no open
+    fault gives ()."""
+    return tuple((fault.code, meaning, fault.opened.strftime(OPENED_FORMAT), assigned_text(fault, cover))
+                 for (fault, meaning), cover in zip(detail.open_faults, detail.cover))
 
 
 def result_lines(detail: project.AssetDetail) -> tuple[tuple[str, str, str], ...]:
@@ -150,6 +164,8 @@ class AssetWindow(tk.Toplevel):
         self.status_label = tk.Label(self, anchor="w")
         self.status_label.pack(fill="x", padx=8)
         self.fault_tree = self.tree(OPEN_FAULTS_TITLE, FAULT_COLUMNS, FAULT_HEADINGS)
+        for column, width in zip(FAULT_COLUMNS, FAULT_WIDTHS):
+            self.fault_tree.column(column, width=width, stretch=column == FAULT_COLUMNS[-1])
         self.result_tree = self.tree(DIAGNOSTICS_TITLE, RESULT_COLUMNS, RESULT_HEADINGS, height=7)
         self.result_tree.tag_configure(FAILING_TAG, foreground=RED_TEXT)
         self.result_tree.tag_configure(NOT_RUN_TAG, foreground=GREY_TEXT)
@@ -180,6 +196,14 @@ class AssetWindow(tk.Toplevel):
         self.code_box.pack(side="left", padx=4)
         self.assign_button = ttk.Button(row, text=ASSIGN_TEXT, command=self.assign)
         self.assign_button.pack(side="left")
+        who = ttk.Frame(self)
+        who.pack(fill="x", padx=8)
+        ttk.Label(who, text=ASSIGNED_BY_TITLE).pack(side="left")
+        self.assigned_by_box = ttk.Combobox(who, values=project.known_engineers(self.conn), state="readonly", width=30)
+        self.assigned_by_box.pack(side="left", padx=4)
+        ttk.Label(who, text=ENTERED_BY_TITLE).pack(side="left")
+        self.entered_by_box = ttk.Entry(who, width=30)
+        self.entered_by_box.pack(side="left", padx=4)
 
     def build_engineer(self) -> None:
         """The "Engineer" row: an editable dropdown of the fleet's known addresses, then Save and Cancel."""
@@ -209,14 +233,20 @@ class AssetWindow(tk.Toplevel):
         self.engineer_box.set(detail.asset.engineer_email or "")
 
     def assign(self) -> None:
-        """Assigns the chosen code now (UTC), rereads the window and calls on_change; a refusal (a second open INV-001)
-        shows in the message line and changes nothing."""
+        """Assigns the chosen code now (UTC) as the chosen engineer, entered by the operator typed (SP-015), rereads the
+        window and calls on_change; no engineer chosen, or a refusal (a second open INV-001), shows in the message line
+        and changes nothing."""
         code = chosen_code(self.codes, self.code_box.current())
         if code is None:
             self.message.configure(text=CHOOSE_CODE)
             return
+        engineer = self.assigned_by_box.get()
+        if not engineer:
+            self.message.configure(text=CHOOSE_ENGINEER)
+            return
         try:
-            project.assign_fault(self.conn, self.asset_id, code, datetime.now(timezone.utc))
+            project.assign_fault(self.conn, self.asset_id, code, datetime.now(timezone.utc), engineer,
+                                 self.entered_by_box.get() or None)
         except REFUSALS as refusal:
             self.message.configure(text=refusal_text(refusal))
             return

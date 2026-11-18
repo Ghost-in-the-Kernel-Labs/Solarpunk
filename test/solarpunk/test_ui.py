@@ -17,6 +17,8 @@ from solarpunk.leaf.codes import AssetKind, AssetStatus
 from solarpunk.remote import results
 from solarpunk.ui import glyph
 
+ENGINEER = "site@oahe.example"  # SP-015: a fault names the engineer who assigned it; the fixtures' site engineer
+
 HAS_TKINTER = importlib.util.find_spec("tkinter") is not None
 if HAS_TKINTER:
     import tkinter
@@ -27,7 +29,8 @@ if HAS_TKINTER:
 INV1 = "OAHE-INV-001"
 INV2 = "OAHE-INV-002"
 INV3 = "OAHE-INV-003"
-SITE = Asset("OAHE-SIT-001", AssetKind.SITE, "OAHE", None, "Oahe", None, location="Pierre, SD")
+SITE = Asset("OAHE-SIT-001", AssetKind.SITE, "OAHE", None, "Oahe", None, location="Pierre, SD",
+             engineer_email=ENGINEER)
 FLEET = (
     SITE,
     Asset(INV1, AssetKind.INVERTER, "OAHE", "OAHE-SIT-001", "Inverter 1", 100.0),
@@ -60,7 +63,7 @@ def fill_store(conn: sqlite3.Connection) -> None:
     project.load_fleet(conn, FLEET)
     results.record(conn, "reachable", INV1, RUN_AT, results.Result(True, "24 records"))
     results.record(conn, "reachable", INV2, RUN_AT, results.Result(False, "127.0.0.1:1 is unreachable"))
-    project.assign_fault(conn, INV3, "INV-001", at(2026, 6, 1, 9))
+    project.assign_fault(conn, INV3, "INV-001", at(2026, 6, 1, 9), ENGINEER)
 
 
 def three_colour_store() -> sqlite3.Connection:
@@ -205,7 +208,7 @@ class TheFleetWindow(unittest.TestCase):
         self.assertEqual((seen, window.opened), (["OAHE-SIT-001"], []))
 
     def test_refresh_rereads_the_store(self) -> None:
-        project.assign_fault(self.conn, INV1, "INV-001", at(2026, 6, 1, 13))
+        project.assign_fault(self.conn, INV1, "INV-001", at(2026, 6, 1, 13), ENGINEER)
         self.assertEqual(self.fill_of(INV1), GREEN)
         self.window.refresh_button.invoke()
         self.assertEqual(self.fill_of(INV1), RED)
