@@ -39,8 +39,7 @@ moving only once origin takes it (SP-014), and the full `scripts/gate.sh` runs a
 - Phase 3, the native front end (the fleet, asset and add-asset windows, the demo): done.
 - Phase 4, the work-order ledger: done.
 - Phase 5, one word to run it (`solarpunk`, `solarpunk --help`, the `test` commands): done.
-- Phase 6, reports and diagnostics: in progress; the power-output report, four inverter diagnostics, the reports
-  window and the diagnostics in the asset window are done; its tune-up pass is next.
+- Phase 6, reports and diagnostics (the power-output report, four inverter diagnostics, their windows): done.
 - Phase 7, faults suggested by tests, assigned by engineers: not started (SP-015).
 - Phase 8, the tests' record (a Tests window, each asset's history, searchable and graphed): not started (SP-016).
 - Phase 9, the network's security: not started; a design pass first.

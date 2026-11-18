@@ -11,7 +11,8 @@ Ghost's statement of where the product is going: five areas under one click (J-0
 own nightly regime (SP-012, J-038; the section below). Tune-up pass 5: cold gate 9.95 min, warm 0.80 min, fast loop
 23.1 s (J-039).
 
-**The first open item is 6.5, Tune-up pass 6** (`TODO.md`), then Phase 7, Ghost's fault assignment (SP-015): tests
+**The first open item is 7.1, who assigned a fault** (`TODO.md`; Phase 6 closed by its pass, J-049): Phase 7 is Ghost's
+fault assignment (SP-015): tests
 suggest a likely fault, only an engineer assigns one, and the record says which; then Phase 8, the tests' record (SP-016): a Tests window at
 the root, each asset's last 100 results searchable and graphed. Network security is now Phase 9. 6.3, the reports window, landed (J-043): "Reports" beside
 "Add asset" in the fleet window; 6.4, the diagnostics in the asset window, landed (J-045). Phase 6 is reports and diagnostics, put ahead of the network's security by Ghost (SP-013, J-041): 6.1 (the
@@ -80,7 +81,7 @@ email on the asset, a mailer to those engineers on degradation, and the Save/Can
    had nothing to check, shown grey like "not run" and never counted as a pass. It changes `Result` and every remote
    test, so it is your ruling first.
 
-## Advisories under the gate's threshold (Tune-up pass 0)
+## Advisories under the gate's threshold (Tune-up pass 6; unchanged since pass 0)
 
 The Python stack's gate runs no audit step (`pip-audit` is not in the lock; `stacks/python/README.md` names it for a
 dependency review, not the gate), so none were reported; the 20 pins are tools alone (pytest, ruff, mutmut and theirs).

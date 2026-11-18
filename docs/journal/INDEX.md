@@ -51,3 +51,5 @@ Written from `docs/journal/` by `scripts/journal_index.py`; do not edit by hand.
 | J-045 | 6.4: the diagnostics in the asset window, and a pass over nothing | feature | `J-000-099.md` |
 | J-046 | Faults are suggested by tests and assigned by engineers: Phase 7 planned (SP-015) | decision | `J-000-099.md` |
 | J-047 | The tests' record shown and kept whole: Phase 8 planned (SP-016) | decision | `J-000-099.md` |
+| J-048 | The demo checked end to end before Ghost's interview; the talk track brought up to date | trial | `J-000-099.md` |
+| J-049 | Tune-up pass 6: the product workpath four debriefs asked for; a cold gate refused on a tree edited mid-run | measurement | `J-000-099.md` |

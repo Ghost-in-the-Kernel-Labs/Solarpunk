@@ -12,6 +12,7 @@ workpath's file, never here.
 | --- | --- | --- | --- |
 | Process: a decision, the plan, the journal, a word, a finding, the metrics, a routing row, a check, the supply chain, the gates | `docs/paths/process.md` (its rows) | C-008 to C-016 | `scripts/fast.sh` |
 | The philosophy, and why a rule is what it is | `docs/GHOST-IN-THE-KERNEL.md`, `docs/LESSONS.md` | | |
+| Product: a number, a test, a command, a window | `docs/paths/product.md` | SOL-01 to SOL-13 | `scripts/fast.sh` |
 | The kernel contract: invariants, the leaf module, entry points | `docs/CONTRACT.md`, `docs/modules.json` | C-012 | `test/test_contract.py`, `test/test_modules.py` |
 | A stack's tooling: its fast loop, lockfile, mutation runner | `stacks/<language>/README.md` | C-018, C-034 | `scripts/gate.sh` |
 
@@ -23,9 +24,9 @@ installed. Three checkpoints (C-040): `scripts/save.sh -m <message>` saves a ses
 `scripts/gate.sh --fast` is the fast checks, the check before a landing: the fast loop, the key scan, each present
 stack's fast checks; it records the tree it passed on (C-037). `scripts/commit.sh -a -F <message>` is the only way a
 commit reaches `main`: it stages, scans, runs the fast loop, refuses a tree the gate did not record, and refuses any
-but a `tune-up:` commit while a tune-up is due; with `--ship` it also pushes, `main` moving only once origin takes it (SP-014). The full gate,
+but a `tune-up:` commit while a tune-up is due; `--ship` also pushes it (SP-014). The full gate,
 `scripts/gate.sh` (the slow tests, every stack's gate, the metrics; build/gate.log, one `gate:` verdict line), is the
-release checkpoint: each tune-up pass and before a real project is stamped. Long output goes to a file (`docs/when/long-run.md`).
+release checkpoint: each tune-up pass and before a real project is stamped. Long output: `docs/when/long-run.md`.
 `python3 -I scripts/next_id.py decision|journal` gives the next id after fetching main.
 
 ## When X happens, read Y

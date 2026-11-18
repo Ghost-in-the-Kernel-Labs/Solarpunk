@@ -83,18 +83,26 @@ derate on OAHE-INV-001 (10:00 to 10:45). The run is stamped 2026-06-01 13:00 UTC
 2. **The closed catalogue and the ledger (ISO 9001 §8.7 and §10.2).** A fault can only be a code from the
    catalogue, on an asset the fleet holds; the ledger records when it opened and closed. Nonconforming output is
    named, controlled and corrected, never a free-text note.
-3. **The blind mirror.** Each KPI is reimplemented from the contract text alone by an agent that never saw the
-   code, and a test compares the two. Every number has a ten-row example you can check by hand.
+3. **The blind mirror.** The first four KPIs (SOL-07 to SOL-10) are reimplemented from the contract text alone by an
+   agent that never saw the code, and a test compares the two. Every number, power output included (SOL-13), has a
+   worked example in the contract a person can check by hand, held as a golden.
 4. **Show the clause report live:**
 
        python -I scripts\clauses.py
 
    Each ISO 9001 and ISO 55000 clause the project holds, the test that holds it, and held, failing or open.
-5. **The mutation score.** Every product line is mutated and the tests must notice; each survivor is either killed
-   or explained in `docs/MUTATION.md`. The tests are the audit.
-6. **What is next.** The work orders (Phase 4: a fault opens a work order with a root-cause code, closing it
-   closes the fault), the receiver pushing live faults into this window, the mailer writing to the engineer on a
-   red or yellow, and the clock running the suite on a schedule (Task Scheduler here, cron on Linux).
+5. **Reports and diagnostics (click Reports, then an inverter).** The power-output report is recomputed from the
+   stored telemetry every time, never kept: energy, peak, kWh per kW of rating, capacity factor, each beside its gaps.
+   The curve breaks where an inverter missed a reading rather than drawing it as lost output. The asset window lists
+   every remote test for the asset's kind: seven on an inverter, among them a daylight performance floor (the signal
+   that says a crew is worth sending, not a calendar) and a frozen-reading check (a logger replaying its last value).
+   Adding a test is adding one file: `solarpunk test add <name> --clause <id>`.
+6. **The tests are the audit.** Every product line is mutation-tested nightly; each survivor is killed or explained in
+   `docs/MUTATION.md`. Every decision has a number, a reason and the test that holds it (`theGhost.md`).
+7. **What is next, decided today.** Tests suggest a likely fault by their rules, and only an engineer assigns one, the
+   record saying which engineer and which operator entered it (SP-015); a Tests window at the root and each asset's
+   last 100 results, searchable and graphed, every result kept as evidence (SP-016); then the network's security, from
+   plain TCP towards what the industry uses (Modbus TCP with SunSpec at the device, mutual TLS, IEC 62443 zones).
 
 ## If something goes wrong
 

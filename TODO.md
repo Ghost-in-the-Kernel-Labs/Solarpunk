@@ -40,10 +40,6 @@ Lanes (P-15): 5.1 and 5.2 in order, then 5.3 the pass.
 
 Lanes (P-15): 6.1 and 6.2 in parallel, landed in that order (done, J-041); 6.3 after 6.1 (done, J-043) and 6.4 after 6.2 (done, J-045); 6.5 the pass.
 
-### 6.5 Tune-up pass 6
-
-Check: `docs/when/tune-up.md` followed in full; the metrics table written; the navigation log's "Last review" set.
-
 ## Phase 7: faults suggested by tests, assigned by engineers
 
 Lanes (P-15): 7.1, then 7.2 (it needs 7.1's `assigned_by`), then 7.3, then 7.4 the pass. Ghost's direction, SP-015.
