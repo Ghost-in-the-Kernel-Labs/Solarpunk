@@ -36,3 +36,6 @@ Written from `docs/journal/` by `scripts/journal_index.py`; do not edit by hand.
 | J-030 | Tune-up pass 3: the front end's lessons; Phase 3 closed the night Ghost asked for | measurement | `J-000-099.md` |
 | J-031 | 4.1: the work-order ledger landed; every row of the clause register is held | feature | `J-000-099.md` |
 | J-032 | Tune-up pass 4: the night's last pass; four phases closed, the chain empty | measurement | `J-000-099.md` |
+| J-033 | 5.1: one word on Windows, and the remote tests listed, run and scaffolded from the command line | feature | `J-000-099.md` |
+| J-034 | The cold gate: a refused cold run is fine; the warm gate is the one that counts | decision | `J-000-099.md` |
+| J-035 | 5.2: the help list behind `solarpunk --help` | feature | `J-000-099.md` |

@@ -15,11 +15,16 @@ test holds.
 ## Commands
 
     python3 -m solarpunk.ui --demo      # the demo: rebuilds demo.db and opens the fleet window (DEMO.md)
+    python3 -m solarpunk.cli test run   # every remote test over every asset of solarpunk.db, once (--db for another)
+    python3 -m solarpunk.cli test list  # the remote tests, each with its asset kinds and clauses
+    python3 -m solarpunk.cli test add tracker_moving --clause 55000-9.1   # scaffold a new remote test
     bash scripts/fast.sh                # the fast loop: every document check and unit test, nothing installed
     python3 -I scripts/clauses.py       # the clause report: each ISO 9001 and ISO 55000 clause and its test
 
-On Windows, `py -m solarpunk.ui --demo` and `python -I scripts\clauses.py`; `DEMO.md` has the setup, the click
-order and the talk track. `scripts/save.sh` saves a session's work on its own branch, `scripts/gate.sh --fast` is the
+On Windows the repository's `solarpunk.cmd` makes it one word, typed in the `Solarpunk` folder (or anywhere, with that
+folder on PATH): `solarpunk` opens the window, `solarpunk --demo` the demo, `solarpunk test run --db demo.db` runs the
+remote tests, `solarpunk test list` and `solarpunk test add <name> --clause <id>` as above; the clause report is
+`solarpunk clauses`, and `solarpunk --help` lists every command. `DEMO.md` has the setup, the click order and the talk track. `scripts/save.sh` saves a session's work on its own branch, `scripts/gate.sh --fast` is the
 check before a landing (`scripts/commit.sh`), `scripts/ship.sh` the only push to `main`, and the full
 `scripts/gate.sh` runs at each tune-up (C-040).
 
@@ -29,7 +34,9 @@ check before a landing (`scripts/commit.sh`), `scripts/ship.sh` the only push to
 - Phase 1, the fleet, its faults, its numbers (the registry, the ledger, telemetry, the KPI engine): done.
 - Phase 2, the feed, the remote tests, the clock (simulator, receiver, scheduler, mailer, the scheduled run): done.
 - Phase 3, the native front end (the fleet, asset and add-asset windows, the demo): the demo is 3.4, then a tune-up.
-- Phase 4, the work-order ledger: planned when Phase 3 closes.
+- Phase 4, the work-order ledger: done.
+- Phase 5, one word to run it (`solarpunk`, `solarpunk --help`, the `test` commands): done but for its tune-up.
+- Phase 6, the network's security: a design pass first.
 
 `docs/ROADMAP.md` holds the plan, `TODO.md` the open items in order.
 

@@ -31,7 +31,7 @@ from solarpunk.project.orchestrator import (
     period,
     work_orders_for,
 )
-from solarpunk.project.run import RunReport, scheduled_run
+from solarpunk.project.run import RunReport, add_remote_test, remote_tests, scheduled_run
 from solarpunk.project.surface import (
     AssetDetail,
     AssetRow,
@@ -60,6 +60,7 @@ __all__ = [
     "UnknownRootCause",
     "WorkOrder",
     "WorkOrderError",
+    "add_remote_test",
     "asset_detail",
     "asset_rows",
     "asset_status",
@@ -86,6 +87,7 @@ __all__ = [
     "period",
     "ping_asset",
     "register_asset",
+    "remote_tests",
     "scheduled_run",
     "work_orders_for",
 ]

@@ -17,6 +17,24 @@ Command Prompt or PowerShell:
 The `pip install` brings in the tools only (pytest, ruff, mutmut); the product needs none of them, so the plain
 `py -m solarpunk.ui --demo` from the `Solarpunk` folder works without the venv too.
 
+## One word: `solarpunk`
+
+The folder holds `solarpunk.cmd`, so in the `Solarpunk` folder (the one that holds `README.md`):
+
+    solarpunk --demo                              the demo
+    solarpunk                                     the window on solarpunk.db in this folder, made if missing
+    solarpunk --help                              every command, one line each
+    solarpunk test list                           the remote tests, each with its asset kinds and clauses
+    solarpunk test run --db demo.db               every remote test over every asset of that store, once, now
+    solarpunk test add tracker_moving --clause 55000-9.1
+
+`test add` writes `solarpunk\remote\tests\tracker_moving.py`, taking the test's asset kinds from the asset maintenance
+list (`--kind TRACKER` names them by hand); the new test fails on every run until its `run` function is written, so
+its assets turn yellow until then. To type `solarpunk` from any folder, add the `Solarpunk` folder to PATH (Settings,
+"Edit environment variables for your account", Path, New); the store stays in the folder you typed it in. After the
+demo window is closed its simulator is gone, so `solarpunk test run --db demo.db` shows OAHE-INV-001's feed as
+unreachable: the feeds must be answering for a green run.
+
 ## What appears
 
 The terminal prints one line per step:

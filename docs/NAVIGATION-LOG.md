@@ -21,3 +21,10 @@ An entry is `### 2026-11-18 · Tune-up pass 4 (coordinator) · Claude Fable
 - **Opened**: `docs/when/tune-up.md`, `build/gate-cold-times.txt`, `docs/NAVIGATION-LOG.md`, `docs/when/hand-out-a-task.md`, `docs/HANDOFF.md`.
 - **Complaints**: the cold gate (14.2 min) refuses at its target each pass (J-024, still Ghost's question); one lane's debrief, so nothing converges — its two valid points are written where the next brief is read.
 - **Suggestions**: a SOL-13 for root causes (an invariant: Ghost's); the brief rules name the armed metrics.
+
+### 2026-11-18 · 5.1 the one-word command and the remote-test commands · Claude Fable
+
+- **Task**: Ghost's requests in chat: `solarpunk` as one word on Windows, commands to run and add remote tests, a network-security item for the list.
+- **Opened**: `README.md`, `DEMO.md`, `docs/modules.json`, `docs/paths/process.md`, `TODO.md`, `solarpunk/cli/main.py`, `solarpunk/ui/__main__.py`, `solarpunk/remote/registry.py`, `solarpunk/project/run.py`, `scripts/checks/todo.py`, `docs/when/handoff.md`.
+- **Complaints**: CLAUDE.md's table has no row for product work (the CLI, a remote test, the UI): the product's modules are found only through `docs/modules.json`. Planning a phase (TODO, ROADMAP, DONE together) is learned from the last planning commit's diff, not from a row. The log's header line "An entry is" runs into the first entry's heading.
+- **Suggestions**: a `docs/paths/product.md` workpath with a row per module; a line in the plan row naming the three files a new phase touches.

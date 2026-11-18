@@ -249,3 +249,28 @@ The CMMS half of the ghost: a corrective action carries its cause.
   analysis is a query (`repeated_causes`) and ISO 9001 10.2.1 is held by a test. Closing a corrective order closes its
   fault, in project, in one call. The asset window lists the asset's open orders (a later item).
 - **4.2 Tune-up pass 4.**
+
+### Phase 5: one word to run it
+
+Ghost's directions of 2026-11-18, after the demo ran on his Windows machine.
+
+- **5.1 The one-word command and the remote-test commands (`solarpunk.cmd`, `solarpunk/cli/`, `solarpunk/remote/scaffold.py`).**
+  On Windows `solarpunk` opens the window and `solarpunk --demo` the demo; `solarpunk test run` runs every remote
+  test over every asset of the store once, `solarpunk test list` names the tests, and `solarpunk test add <name>`
+  scaffolds a new one beside the others, failing until its `run` is written, so no asset is green on a test nobody
+  wrote. The launcher is a batch file that only chooses between `solarpunk.ui` and `solarpunk.cli`; the logic is
+  project's and remote's (MOD-02).
+- **5.2 The help list (`solarpunk/cli/main.py`, `solarpunk.cmd`).** `solarpunk --help` (or `-h`, or `help`) lists every
+  command with a line of what it does, the window's first; the list is a constant a test holds to the parser.
+- **5.3 Tune-up pass 5.** Ghost's word: the pass runs once the two commands land.
+
+### Phase 6: the network's security
+
+Ghost's item of 2026-11-18: the demonstration's network is not a production one.
+
+- **6.1 Network security: an engineering pass over the feed and the receiver.** Both speak plain TCP with no device
+  identity; the receiver defaults to localhost, which suits the demonstration alone. The pass is a document first
+  (the wire today, the threats, a proposed decision for each of: authenticated asset connections, transport
+  encryption, authorization of fault submissions, replay protection, network segmentation and deployment
+  controls); the code follows the decisions Ghost puts in force.
+- **6.2 Tune-up pass 6.**

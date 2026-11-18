@@ -132,3 +132,13 @@ Done 2026-11-18 (J-031). Check: `solarpunk/leaf/root_causes.py` holds the closed
 ### 4.2 Tune-up pass 4
 
 Done 2026-11-18 (J-032). Check: `docs/when/tune-up.md` followed in full; the metrics table written; the navigation log's "Last review" set. ✓ cold gate 14.2 min (refused at its target: Ghost's question), warm 1.08 min, fast loop 26.2 s; the one debrief's points written into the brief rules.
+
+## Phase 5: one word to run it
+
+### 5.1 The one-word command and the remote-test commands
+
+Done 2026-11-18 (J-033). Check: `solarpunk.cmd` in the repository root: `solarpunk` runs `py -m solarpunk.ui` with every argument as typed (`solarpunk --demo` the demo, `solarpunk --db fleet.db` another store), and a first word that is one of the command line's subcommands runs `py -m solarpunk.cli`; `test/test_launcher.py` holds its routing words to the parser's own. `python3 -m solarpunk.cli test list` prints each remote test with its kinds and clauses; `test run [--db PATH] [--at INSTANT]` is the scheduled run once over every asset of the store, printing the counts, each asset's status and each feed that did not answer; `test add <name> --clause <id> [--kind <KIND>]` scaffolds `solarpunk/remote/tests/<name>.py` (`solarpunk/remote/scaffold.py`), its kinds from the asset maintenance list unless named, its `run` failing until written, refusing a taken name, an unknown kind and a missing clause; `test/solarpunk/test_scaffold.py` and `test/solarpunk/test_cli_tests.py` green; README.md and DEMO.md give the commands. ✓ fast loop 903 tests green, ruff clean; the launcher has not been run on Windows from here (no Windows shell in the session), and the new product lines have not been through mutmut (the next full gate's).
+
+### 5.2 The help list
+
+Done 2026-11-18 (J-035). Check: `python3 -m solarpunk.cli help` prints every command with one line of what it does, the window's four first (`solarpunk`, `solarpunk --demo`, `solarpunk --db PATH`, `solarpunk --help`), and opens no store; `solarpunk.cmd` sends `--help`, `-h` and `help` to it; `test/solarpunk/test_cli_tests.py` holds the list to the parser (every command exactly one line, no line for a command the parser lacks) and `test/test_launcher.py` the launcher's flags. ✓ fast loop 908 tests green, ruff clean; not run on Windows from here.

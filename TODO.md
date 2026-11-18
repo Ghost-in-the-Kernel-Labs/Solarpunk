@@ -31,3 +31,28 @@ Lanes (P-15): 3.1 to 3.3 in parallel after 2.7, landed in this order; 3.4 after 
 ## Phase 4: the work-order ledger
 
 Lanes (P-15): 4.1 alone, then 4.2 the pass.
+
+## Phase 5: one word to run it
+
+Lanes (P-15): 5.1 and 5.2 in order (done), then 5.3 the pass.
+
+### 5.3 Tune-up pass 5
+
+Check: `docs/when/tune-up.md` followed in full; the metrics table written; the navigation log's "Last review" set.
+
+## Phase 6: the network's security
+
+Lanes (P-15): 6.1 alone, then the items its decisions call for, then the pass.
+
+### 6.1 Network security: an engineering pass over the feed and the receiver
+
+The feed and the receiver use plain TCP. The receiver accepts asset identifiers and fault codes, but the implementation
+establishes neither an authenticated device identity nor an encrypted transport; it also defaults to localhost. That is
+reasonable for the demonstration. A production deployment needs: authenticated asset connections; transport
+encryption; authorization of fault submissions; replay protection; network segmentation and deployment controls.
+
+Check: `docs/NETWORK-SECURITY.md` holds the pass: what the feed (`solarpunk/feed/`) and the receiver (`solarpunk/receiver/`) do on the wire today, a threat model for each, and for each of the five needs (authenticated asset connections, transport encryption, authorization of fault submissions, replay protection, network segmentation and deployment controls) a proposed decision in `docs/decisions.md` with the options weighed, what the standard library alone can carry and what would need a dependency (Ghost's approval, C-034); the items that build each decision Ghost puts in force are added to this phase before its pass (the pass renumbered to the phase's end). No code changes in this item: the design is Ghost's to rule on first.
+
+### 6.2 Tune-up pass 6
+
+Check: `docs/when/tune-up.md` followed in full; the metrics table written; the navigation log's "Last review" set.

@@ -21,7 +21,8 @@ from solarpunk.mailer import transport
 from solarpunk.project.orchestrator import fleet_assets, open_outages
 from solarpunk.remote import results as result_table
 from solarpunk.remote import run as remote
-from solarpunk.remote.registry import tests_for
+from solarpunk.remote import scaffold
+from solarpunk.remote.registry import RemoteTest, discover, tests_for
 from solarpunk.telemetry import samples as sample_table
 
 REACHABLE = "reachable"
@@ -175,3 +176,16 @@ def scheduled_run(conn: sqlite3.Connection, run_at: datetime, settings_path: Pat
     written = len(pinged.unreachable) + sum(len(tests_for(asset.kind)) for asset in fed)
     return RunReport(pinged.pinged, pinged.records, written, statuses, sent, pinged.errors + mail_errors)
 
+
+
+def remote_tests() -> tuple[RemoteTest, ...]:
+    """Every remote test the registry finds, in name order: the names are ("on_grid", "power_under_rated", "reachable")
+    while those three are the folder's modules."""
+    return tuple(discover().values())
+
+
+def add_remote_test(name: str, kind_names: tuple[str, ...], clauses: tuple[str, ...]) -> Path:
+    """Scaffolds a new remote test beside the others and returns its file: add_remote_test("tracker_moving", (),
+    ("55000-9.1",)) is solarpunk/remote/tests/tracker_moving.py, its kinds from the asset maintenance list; a name
+    already taken, an unknown kind or no clause raises BadRemoteTest, a ValueError."""
+    return scaffold.add(name, kind_names, clauses)

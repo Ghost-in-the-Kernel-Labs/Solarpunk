@@ -17,7 +17,9 @@ the feed by IP and port with a simulator, standalone remote tests with a registr
 from one job, the mailer over SMTP, the scheduled run; the tkinter fleet window with the status glyphs, the asset window
 with Save and Cancel, the add-asset window with the type dropdown, the demo; and Phase 4's work-order ledger with root-cause codes, so every row of the clause register is held (9001
 eight, 55000 four). 487 product tests and 385 template tests; 4,720 mutants, every survivor killed or explained.
-`TODO.md` is empty: the four phases are built. Candidates for Phase 5, Ghost's to plan: the asset window listing open
+Phase 5 is Ghost's of 2026-11-18: 5.1 the one-word `solarpunk` command and the `test list|run|add` commands (J-033)
+and 5.2 the help list behind `solarpunk --help` (J-035), both done; 5.3 the pass; Phase 6 is the network's security, 6.1 its
+design pass (a document and proposed decisions first, Ghost's to rule on), 6.2 its pass. Other candidates, Ghost's to plan: the asset window listing open
 work orders and closing one with a cause; the receiver and the clock exercised end to end in the demo; `tracker_moving`,
 `energy_monotonic`, `irradiance_in_range` and `night_power_near_zero` as remote tests; a SOL-13 for root causes; the
 structure-half candidates of J-024; a Windows run of the demo recorded as a journal trial.
@@ -38,10 +40,8 @@ email on the asset, a mailer to those engineers on degradation, and the Save/Can
 - Run the demo on Windows once before the meeting (DEMO.md). If `tkinter` is missing there, python.org's installer with
   "tcl/tk and IDLE" ticked is the fix; nothing else is installed for the product.
 
-0. The cold gate (cache-off mutation over 3,195 mutants, each tune-up pass) takes 12.7 min against the 10 min target and
-   `scripts/gate.sh` refuses it at the metrics step by design; the warm gate is 1.5 min. Your word: exempt the cold run's
-   minutes from the target, give the cold run a target of its own (15?), or accept a refused cold run as the pass's
-   measurement. Until then each pass ends with a refused cold run and a passed warm one (J-024).
+0. Settled 2026-11-18 (J-034): "Cold gate refusal is fine. We really care about the warm gate." A refused cold run is
+   the pass's measurement; the warm gate is the one held to the 10 min target. Nothing in `scripts/gate.sh` changes.
 
 1. SP-006 to SP-009 are `proposed`: say "in force" (or change them) and the coordinator lands the status.
    The two choices inside them that are the coordinator's, not yours: tkinter as the toolkit (SP-007) and SMTP as
