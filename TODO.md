@@ -20,10 +20,6 @@ question a later item depends on is copied into that item's text, so the item re
 
 Lanes (P-15): 1.1 to 1.5 are built in parallel by separate workers and landed in this order; 1.6 and 1.8 in parallel after them, then 1.7.
 
-### 1.4 The KPI engine
-
-Check: `solarpunk/kpi/` with `availability`, `performance_ratio`, `energy_yield`, `mtbf_mttr` as pure functions citing their invariants (`# Invariant: SOL-07` …); `test/solarpunk/test_kpi.py` green, holding the contract's four worked examples as goldens (0.7 and gaps 1; 0.9133; the two-source yield; 3.0 and 21.0) and a ten-row hand-checkable table per KPI; every mutant killed or explained.
-
 ### 1.5 The clause register and its check
 
 Check: `docs/CLAUSE-REGISTER.md` with eight to twelve rows in the project's words, no sentence of either standard copied; `test/solarpunk/iso/test_iso9001.py` and `test/solarpunk/iso/test_iso55000.py` with one tagged test per row (`Clause: 9001-9.1.3` first in its docstring); `scripts/checks/clauses.py` fails the fast loop on a row with no tagged test or a tagged test with no row, and `test/test_clauses.py` rejects a planted break of each (C-013); `python3 -I scripts/clauses.py` prints each clause `held`, `failing` or `open`; the routing row for the register added to `docs/paths/process.md`.

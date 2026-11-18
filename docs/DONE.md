@@ -42,3 +42,7 @@ Done 2026-11-17 (J-008). Check: `solarpunk/faults/` with `schema`, `assign`, `cl
 ### 1.3 Synthetic SCADA
 
 Done 2026-11-17 (J-009). Check: `solarpunk/telemetry/` with `generate`, `schema`, `store`, `in_period`; `python3 -m solarpunk.telemetry.generate --seed 7` writes the one-day golden `test/solarpunk/goldens/telemetry-seed7.txt` byte-identically on two runs (SOL-02); `test/solarpunk/test_telemetry.py` green: every expected instant present (SOL-06), gaps carried as `gap()` samples, irradiance zero at night and 1000 at the peak; every mutant killed or explained. ✓ 34 tests; the seed-7 golden identical on two runs (288 lines, 9 gaps, 1000.0 at 13:00); nine telemetry survivors explained (SQL case; a `<` to `<=` on a draw that can never equal 0.02).
+
+### 1.4 The KPI engine
+
+Done 2026-11-17 (J-010). Check: `solarpunk/kpi/` with `availability`, `performance_ratio`, `energy_yield`, `mtbf_mttr` as pure functions citing their invariants (`# Invariant: SOL-07` …); `test/solarpunk/test_kpi.py` green, holding the contract's four worked examples as goldens (0.7 and gaps 1; 0.9133; the two-source yield; 3.0 and 21.0) and a ten-row hand-checkable table per KPI; every mutant killed or explained. ✓ 32 tests; the four goldens exact (Availability 0.7/12/2/3/1; PerformanceRatio 0.9133/11.4167/12.5/0; EnergyYield 11.2 meter and 11.4167 inverters; Reliability 21.0/3.0/2/0); every kpi mutant killed.
