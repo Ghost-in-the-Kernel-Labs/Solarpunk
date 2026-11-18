@@ -582,3 +582,12 @@ The core decisions above are inherited (Core C-001 to C-040); this project's beg
 - **Status:** in force
 - **See also:** C-016, P-15, SP-010
 - **subject:** plan
+
+### SP-014: A landing pushes main before main moves
+- **Decision:** `scripts/commit.sh --ship`, on `main` alone, makes the commit as it always has (the recorded tree, author Ghost, committer Claude, by `commit-tree`), then fetches `origin/main`, refuses unless it is a fast-forward of the parent, pushes the commit to `origin/main`, and only once the push is taken moves `main` with `update-ref`. A refused or failed push leaves `main` where it was. `scripts/ship.sh` stays, for a commit already made. A landing is `scripts/commit.sh -a -F <message> --ship`.
+- **Why:** on 2026-11-18 `scripts/commit.sh` moved `main` and the push that followed (`scripts/ship.sh`) was refused, so `main` sat ahead of origin; the end-of-turn hook fires on an unpushed commit and asks for a fix the project's rules forbid (re-authoring as Claude), burning a turn each time. Suite builder met the same failure: its landing fast-forwards `main` and pushes it at once, so `main` is never ahead of origin while a gate runs (its G-646, and G-363 for Ghost as author, which this project already had). Ghost, 2026-11-18: "yes this is a good fix. ship them".
+- **Held by:** `scripts/commit.sh` (step 8), `test/test_ship.py` (`TheShippedCommit`, and the raw-push list naming `scripts/commit.sh`), `docs/paths/process.md`'s order of a step, `CLAUDE.md`'s Commands.
+- **Source:** Ghost, in chat, 2026-11-18, from the suite builder agent's account of the fix.
+- **Status:** in force
+- **See also:** C-037, C-040, SP-013
+- **subject:** gates

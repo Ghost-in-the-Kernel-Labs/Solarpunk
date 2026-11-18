@@ -31,3 +31,10 @@ An entry is `### <date> · <task> · <agent>` and four lines: **Task**, **Opened
 - **Opened**: `docs/ROADMAP.md`, `TODO.md`, `docs/GOAL.md`, `docs/paths/process.md`, `scripts/checks/todo.py`, `solarpunk/kpi/performance.py`, `docs/CONTRACT.md` (SOL-08), `solarpunk/project/orchestrator.py`, `solarpunk/cli/main.py`, `solarpunk/remote/tests/power_under_rated.py`, `solarpunk/remote/registry.py`, `solarpunk/leaf/asset_types.json`.
 - **Complaints**: no routing row for product work again, a second voice for J-039's complaint (and an architecture advisor's); a new CLI command touches the help list, a hard-coded count in a test and two lines of `solarpunk.cmd`, found only by running the fast loop; the maintenance list's check reads a `Tests:` line as one line, which wrapping at 120 columns breaks with a message that does not say why.
 - **Suggestions**: `docs/paths/product.md`, a row per module; the help count derived from the parser and the launcher's words generated or held by one list; the asset-types check to say "one line" when a Tests line wraps.
+
+### 2026-11-18 · SP-014, the landing that pushes before main moves · Claude
+
+- **Task**: `scripts/commit.sh --ship`, its tests, the decision and the documents that name the landing.
+- **Opened**: `scripts/commit.sh`, `scripts/ship.sh`, `test/test_ship.py`, `test/test_gates.py`, `test/support_git.py`, `docs/paths/process.md`.
+- **Complaints**: the raw-push test's allow-list lives in a test, so a new push site is found by running the loop, not by reading the gates row; the largest-file ratchet fired on a test file, where the move to a sibling file was the right answer but nothing says which file a gate test belongs in.
+- **Suggestions**: name the push sites in process.md's gates row (it is where a builder starts); `test_ship.py` for anything that pushes, `test_gates.py` for the rest, said in that row.

@@ -35,9 +35,10 @@ there), the fast checks (`scripts/gate.sh --fast`: the fast loop, the key scan, 
 records the tree), the commit through `scripts/commit.sh -a -F <message>` (it stages, scans, runs the fast loop and
 refuses a tree the gate did not record, C-037, C-040; a fast record adds the trailer `Gate: fast checks`; a change
 wholly under `docs/` may add `--docs-only`, which skips the record and adds the trailer `Gate: fast loop only`, the
-one path open in a stamped project before its stack's gate is wired), the ship (`scripts/ship.sh`, the only
-`git push` to `main`: it fetches `main` and refuses a HEAD whose tree is not the record or that is not a
-fast-forward; the save's push goes to the session's branch, never `main`). In short: research, build, fast loop,
+one path open in a stamped project before its stack's gate is wired), the ship: `--ship` on the commit pushes it to
+`main` before `main` moves, so a refused push leaves `main` level with origin and the end-of-turn hook nothing to ask
+about (SP-014); `scripts/ship.sh`, the one other `git push` to `main`, ships a commit already made (it fetches `main` and refuses a HEAD whose tree is not
+the record or that is not a fast-forward); the save's push goes to the session's branch, never `main`. In short: research, build, fast loop,
 journal, debrief, save, fast checks, commit, ship. The full gate (`scripts/gate.sh`, the slow tests, every stack's
 gate, the metrics) is the release checkpoint, run at each tune-up pass and before a real project is stamped; a failure
 it finds after a landing is a fix-forward item, never a blocked commit (C-040). One test alone (the `-m unittest test.test_x` form cannot import under `-I`):

@@ -18,8 +18,11 @@
 #      staged path under docs/, the record is not compared and the message gets the trailer `Gate: fast loop only`
 #   7. the secret scan again, and the staged tree unchanged since step 6
 #   8. the commit: `git commit-tree` of the recorded tree on the parent HEAD named at step 1, author Ghost and committer
-#      Claude, then `git update-ref` from that parent, so a HEAD that moved meanwhile refuses it; never `git commit`
-# Usage: scripts/commit.sh [-a | <paths>…] -F file | -m msg [--docs-only]     (-F - reads the message from stdin)
+#      Claude, then `git update-ref` from that parent, so a HEAD that moved meanwhile refuses it; never `git commit`.
+#      With --ship (SP-014), on main only, the commit is pushed to origin's main first, a fast-forward or nothing, and
+#      the branch moves only once the push is taken: a refused push leaves main where it was, never ahead of origin
+#      (the end-of-turn hook then has no unpushed commit to ask about). It prints `ship: <short> → origin/main`.
+# Usage: scripts/commit.sh [-a | <paths>…] -F file | -m msg [--docs-only] [--ship]   (-F - reads the message from stdin)
 # A refusal leaves the index as it was before the script ran; the working tree is never touched. Never a git hook: an agent
 # never installs one (C-034), and nothing checks a commit after it exists (C-037).
 set -uo pipefail
@@ -29,7 +32,7 @@ AUTHOR_NAME=Ghost
 AUTHOR_EMAIL=118085043+ghost-in-the-kernel@users.noreply.github.com
 COMMITTER_NAME=Claude
 COMMITTER_EMAIL=noreply@anthropic.com
-USAGE="usage: scripts/commit.sh [-a | <paths>…] -F file | -m msg [--docs-only]"
+USAGE="usage: scripts/commit.sh [-a | <paths>…] -F file | -m msg [--docs-only] [--ship]"
 
 scratch=$(mktemp -d)
 saved_index=""
@@ -43,11 +46,12 @@ trap cleanup EXIT
 refuse() { echo "commit: refused at $1"; exit 1; }
 
 # The arguments: -a/-A or paths, one message, --docs-only.
-all="" docs_only="" message="" paths=()
+all="" docs_only="" message="" ship="" paths=()
 while [ "$#" -gt 0 ]; do
   case "$1" in
     -a|-A) all=1;;
     --docs-only) docs_only=1;;
+    --ship) ship=1;;
     -m) [ "$#" -ge 2 ] && [ -z "$message" ] || refuse "the arguments ($USAGE)"; printf '%s\n' "$2" > "$scratch/message"; message=1; shift;;
     -F|--file)
       [ "$#" -ge 2 ] && [ -z "$message" ] || refuse "the arguments ($USAGE)"
@@ -69,6 +73,7 @@ subject=$(head -1 "$scratch/message")
 # 1. Stage. The parent is named once, here: the commit is made on it or not at all.
 branch=$(git symbolic-ref --short -q HEAD) || refuse "staging (HEAD is not on a branch)"
 parent=$(git rev-parse --verify -q HEAD) || refuse "staging (the branch has no commit yet)"
+[ -z "$ship" ] || [ "$branch" = main ] || refuse "staging (--ship lands main alone; HEAD is on $branch)"
 saved_index=$(git rev-parse --git-path index)
 if [ -f "$saved_index" ]; then cp "$saved_index" "$scratch/index"; else saved_index=""; fi
 if [ -n "$all" ]; then git add -A || refuse "staging (git add failed)"; else git add -A -- "${paths[@]}" || refuse "staging (git add failed on the paths given)"; fi
@@ -138,8 +143,23 @@ findings=$(scan) || refuse "the second secret scan (the staged diff holds a secr
 # 8. The commit, from the tree, on the parent named at step 1; the branch moves only from that parent.
 commit=$(GIT_AUTHOR_NAME=$AUTHOR_NAME GIT_AUTHOR_EMAIL=$AUTHOR_EMAIL GIT_COMMITTER_NAME=$COMMITTER_NAME \
   GIT_COMMITTER_EMAIL=$COMMITTER_EMAIL git commit-tree "$tree" -p "$parent" -F "$scratch/message") || refuse "the commit (git commit-tree failed)"
-git update-ref -m "commit: $subject" "refs/heads/$branch" "$commit" "$parent" 2>/dev/null \
-  || refuse "the commit (HEAD moved since staging: $branch is no longer ${parent:0:10}; nothing committed)"
+if [ -n "$ship" ]; then
+  # Decision: SP-014. The push before the branch moves: origin takes the commit or main stays as it was.
+  git ls-remote --exit-code --heads origin main >/dev/null 2>&1
+  case $? in
+    0) git fetch -q origin +refs/heads/main:refs/remotes/origin/main || refuse "the ship (git fetch origin main failed; nothing committed)"
+       git merge-base --is-ancestor refs/remotes/origin/main "$parent" \
+         || refuse "the ship (origin/main moved past ${parent:0:10}: rebase onto it, run scripts/gate.sh --fast and commit again; nothing committed)";;
+    2) ;;
+    *) refuse "the ship (origin did not answer; nothing committed)";;
+  esac
+  git push -q origin "$commit:refs/heads/main" || refuse "the ship (git refused the push; main not moved, nothing forced)"
+fi
+if ! git update-ref -m "commit: $subject" "refs/heads/$branch" "$commit" "$parent" 2>/dev/null; then
+  [ -z "$ship" ] || refuse "the commit (pushed ${commit:0:10} to origin/main, but HEAD moved since staging: fetch origin main)"
+  refuse "the commit (HEAD moved since staging: $branch is no longer ${parent:0:10}; nothing committed)"
+fi
 committed=1
 git reset -q
 echo "commit: $(git rev-parse --short "$commit") $subject"
+[ -z "$ship" ] || echo "ship: $(git rev-parse --short "$commit") → origin/main"

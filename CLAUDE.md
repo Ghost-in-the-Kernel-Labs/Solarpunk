@@ -23,7 +23,7 @@ installed. Three checkpoints (C-040): `scripts/save.sh -m <message>` saves a ses
 `scripts/gate.sh --fast` is the fast checks, the check before a landing: the fast loop, the key scan, each present
 stack's fast checks; it records the tree it passed on (C-037). `scripts/commit.sh -a -F <message>` is the only way a
 commit reaches `main`: it stages, scans, runs the fast loop, refuses a tree the gate did not record, and refuses any
-but a `tune-up:` commit while a tune-up is due; `scripts/ship.sh` is the only push to `main`. The full gate,
+but a `tune-up:` commit while a tune-up is due; with `--ship` it also pushes, `main` moving only once origin takes it (SP-014). The full gate,
 `scripts/gate.sh` (the slow tests, every stack's gate, the metrics; build/gate.log, one `gate:` verdict line), is the
 release checkpoint: each tune-up pass and before a real project is stamped. Long output goes to a file (`docs/when/long-run.md`).
 `python3 -I scripts/next_id.py decision|journal` gives the next id after fetching main.
