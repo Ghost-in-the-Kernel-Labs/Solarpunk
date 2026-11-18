@@ -11,6 +11,7 @@ from solarpunk.leaf.faults import Fault
 from solarpunk.leaf.clock import Period
 from solarpunk.leaf.telemetry import Sample, gap
 from solarpunk.kpi import availability
+from solarpunk import project
 
 ROOT = Path(__file__).resolve().parents[3]
 ENTRY = re.compile(r"^### ([A-Z]{1,3}-\d{3}): .*?(?=^### |^## |\Z)", re.MULTILINE | re.DOTALL)
@@ -85,6 +86,24 @@ class Iso9001(unittest.TestCase):
         self.assertGreaterEqual(set(sections), {"SOL-07", "SOL-08", "SOL-10"})
         for sid, text in sections.items():
             self.assertIn("Worked example", text, sid)
+
+    def test_a_work_order_closes_only_with_a_listed_root_cause(self) -> None:
+        """Clause: 9001-10.2.1
+        A corrective work order opened from a fault refuses a close with a code outside the root-cause list and changes
+        nothing; closed with RC-COMPONENT, the order carries that cause and its fault is closed in the same call."""
+        conn = project.open_store()
+        self.addCleanup(conn.close)
+        project.load_fleet(conn, project.demo_fleet())
+        fault = project.assign_fault(conn, "OAHE-INV-001", "INV-001", at(2026, 6, 1, 10))
+        order = project.open_work_order_from_fault(conn, fault.fault_id, at(2026, 6, 1, 10, 5), "inverter offline")
+        with self.assertRaises(project.UnknownRootCause):
+            project.close_work_order(conn, order.wo_id, "not-a-cause", at(2026, 6, 1, 11))
+        self.assertEqual(project.work_orders_for(conn, "OAHE-INV-001"), (order,))
+        self.assertEqual(project.open_outages(conn), {"OAHE-INV-001": fault})
+        closed = project.close_work_order(conn, order.wo_id, "RC-COMPONENT", at(2026, 6, 1, 11))
+        self.assertIs(closed.root_cause, project.RootCause.COMPONENT)
+        self.assertEqual(closed.closed, at(2026, 6, 1, 11))
+        self.assertEqual(project.faults_listing(conn, True), ())
 
     def test_every_finding_keeps_its_evidence(self) -> None:
         """Clause: 9001-10.2.2

@@ -1,10 +1,12 @@
 """The orchestrator (lane 1.6): opens the store with every module's tables and joins the lanes over it, in
 solarpunk/project/orchestrator.py; the only module that imports fleet, faults, telemetry and kpi together (MOD-02).
 The scheduled run is in run.py (2.7, SP-006); the one surface the Phase 3 windows call is in surface.py (SP-007). The
-errors a surface catches are re-exported here, so receiver and ui catch them exactly without importing a lane (MOD-06)."""
+errors a surface catches are re-exported here, so receiver and ui catch them exactly without importing a lane (MOD-06);
+so are the work order and the root-cause list (4.1)."""
 from solarpunk.faults.ledger import LedgerError
 from solarpunk.feed.client import FeedError
 from solarpunk.fleet.registry import RegistryError
+from solarpunk.leaf.root_causes import RootCause, UnknownRootCause
 from solarpunk.project.orchestrator import (
     Fault,
     SiteKpis,
@@ -12,6 +14,7 @@ from solarpunk.project.orchestrator import (
     asset_status,
     assign_fault,
     close_fault,
+    close_work_order,
     day_period,
     demo_fleet,
     faults_listing,
@@ -22,8 +25,11 @@ from solarpunk.project.orchestrator import (
     load_fleet,
     open_or_create,
     open_outages,
+    open_preventive_work_order,
     open_store,
+    open_work_order_from_fault,
     period,
+    work_orders_for,
 )
 from solarpunk.project.run import RunReport, scheduled_run
 from solarpunk.project.surface import (
@@ -38,6 +44,7 @@ from solarpunk.project.surface import (
     ping_asset,
     register_asset,
 )
+from solarpunk.workorders.ledger import WorkOrder, WorkOrderError
 
 __all__ = [
     "AssetDetail",
@@ -46,15 +53,20 @@ __all__ = [
     "FeedError",
     "LedgerError",
     "RegistryError",
+    "RootCause",
     "RunReport",
     "SiteKpis",
     "UnknownAsset",
+    "UnknownRootCause",
+    "WorkOrder",
+    "WorkOrderError",
     "asset_detail",
     "asset_rows",
     "asset_status",
     "assign_engineer",
     "assign_fault",
     "close_fault",
+    "close_work_order",
     "codes_for_kind",
     "day_period",
     "demo_fleet",
@@ -68,9 +80,12 @@ __all__ = [
     "load_fleet",
     "open_or_create",
     "open_outages",
+    "open_preventive_work_order",
     "open_store",
+    "open_work_order_from_fault",
     "period",
     "ping_asset",
     "register_asset",
     "scheduled_run",
+    "work_orders_for",
 ]

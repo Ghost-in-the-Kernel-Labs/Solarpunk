@@ -13,6 +13,7 @@ from solarpunk.leaf import store
 from solarpunk.leaf.assets import Asset
 from solarpunk.leaf.clock import Period, at
 from solarpunk.leaf.codes import AssetKind, AssetStatus
+from solarpunk.mailer import mail as mail_table
 from solarpunk.project import UnknownAsset
 from solarpunk.remote import results
 from solarpunk.telemetry import samples
@@ -72,7 +73,7 @@ class TheStore(Store):
     def test_it_holds_every_modules_table_in_order(self) -> None:
         conn = self.fresh()
         names = [row[0] for row in conn.execute("SELECT name FROM sqlite_master WHERE type = 'table' ORDER BY rowid")]
-        self.assertEqual(names, ["assets", "faults", "samples", "results", "mails"])
+        self.assertEqual(names, ["assets", "faults", "samples", "results", "mails", "work_orders"])
         self.assertEqual(conn.execute("PRAGMA foreign_keys").fetchone()[0], 1)
 
     def test_it_opens_a_file_and_keeps_its_rows(self) -> None:
@@ -116,7 +117,7 @@ class Reopening(unittest.TestCase):
         return Path(folder.name) / "fleet.db"
 
     def tables(self, conn: sqlite3.Connection) -> list[str]:
-        """The store's tables in creation order: ["assets", "faults", "samples", "results", "mails"] for a new store."""
+        """The store's tables in creation order: ["assets", "faults", "samples", "results", "mails", "work_orders"] for a new store."""
         return [row[0] for row in conn.execute("SELECT name FROM sqlite_master WHERE type = 'table' ORDER BY rowid")]
 
     def test_a_file_store_reopens_with_its_rows(self) -> None:
@@ -127,7 +128,7 @@ class Reopening(unittest.TestCase):
         again = project.open_or_create(path)
         self.addCleanup(again.close)
         self.assertEqual(count(again, "assets"), 11)
-        self.assertEqual(self.tables(again), ["assets", "faults", "samples", "results", "mails"])
+        self.assertEqual(self.tables(again), ["assets", "faults", "samples", "results", "mails", "work_orders"])
 
     def test_an_old_store_of_three_tables_gains_results_and_mails_and_keeps_its_rows(self) -> None:
         path = self.path()
@@ -138,7 +139,7 @@ class Reopening(unittest.TestCase):
         old.close()
         conn = project.open_or_create(path)
         self.addCleanup(conn.close)
-        self.assertEqual(self.tables(conn), ["assets", "faults", "samples", "results", "mails"])
+        self.assertEqual(self.tables(conn), ["assets", "faults", "samples", "results", "mails", "work_orders"])
         self.assertEqual(count(conn, "assets"), 11)
         self.assertEqual((count(conn, "results"), count(conn, "mails")), (0, 0))
 
@@ -150,7 +151,7 @@ class Reopening(unittest.TestCase):
         old.close()
         conn = project.open_or_create(path)
         self.addCleanup(conn.close)
-        self.assertEqual(self.tables(conn), ["assets", "faults", "samples", "results", "mails"])
+        self.assertEqual(self.tables(conn), ["assets", "faults", "samples", "results", "mails", "work_orders"])
 
     def test_a_file_holding_some_of_the_first_tables_is_refused(self) -> None:
         path = self.path()
@@ -322,3 +323,18 @@ class OneSiteAlone(Store):
     def test_a_site_the_fleet_lacks_is_refused(self) -> None:
         with self.assertRaises(UnknownAsset):
             project.kpis_for(self.oahe_day(), "NOPE", DAY)
+
+
+class Phase4Reopening(Reopening):
+    def test_a_phase_three_store_gains_work_orders_alone_and_keeps_its_rows(self) -> None:
+        path = self.path()
+        old = store.connect(path)
+        for statements in (registry.schema(), ledger.schema(), samples.schema(), results.schema(), mail_table.schema()):
+            store.apply(old, statements)
+        project.load_fleet(old, OAHE)
+        old.close()
+        conn = project.open_or_create(path)
+        self.addCleanup(conn.close)
+        self.assertEqual(self.tables(conn), ["assets", "faults", "samples", "results", "mails", "work_orders"])
+        self.assertEqual((count(conn, "assets"), count(conn, "work_orders")), (11, 0))
+

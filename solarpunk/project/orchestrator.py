@@ -3,7 +3,8 @@ asset against the fleet before the ledger takes a fault, and reads the fleet, th
 KPI engine leaf types (Invariants: SOL-04, SOL-05, SOL-07 to SOL-10); an asset's status is the three-colour rule over
 the ledger and the remote results (SP-006, SP-007). The scheduled run is in run.py, the windows' surface in surface.py.
 The demo (3.4) reaches the generator and the feed simulator through simulated_day and feed_server, since ui imports
-project and the leaf alone (SP-010)."""
+project and the leaf alone (SP-010). A work order (4.1, SP-011) is opened from a fault the ledger holds open, and closing
+a corrective one closes its fault in the same call."""
 import sqlite3
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta
@@ -23,16 +24,19 @@ from solarpunk.mailer import mail as mail_table
 from solarpunk.remote import results as result_table
 from solarpunk.telemetry import generate as generator
 from solarpunk.telemetry import samples as sample_table
+from solarpunk.workorders import ledger as work_ledger
+from solarpunk.workorders.ledger import WorkOrder, WorkOrderError
 
 
 SITE_EMAIL = "site@oahe.example"
 LOOPBACK = "127.0.0.1"
 INVERTER_EMAIL = "inverter@oahe.example"
 STORE_TABLES = ("assets", "faults", "samples")
-# The tables Phase 2 added, by name, each with its schema: a store made before them gains them on reopening.
+# The tables Phases 2 and 4 added, by name, each with its schema: a store made before them gains them on reopening.
 LATER_TABLES: tuple[tuple[str, tuple[str, ...]], ...] = (
     ("results", result_table.schema()),
     ("mails", mail_table.schema()),
+    ("work_orders", work_ledger.schema()),
 )
 TABLE_NAMES = "SELECT name FROM sqlite_master WHERE type = 'table'"
 
@@ -55,8 +59,8 @@ class SiteKpis:
 
 
 def open_store(path: str | Path = store.MEMORY) -> sqlite3.Connection:
-    """A store holding the fleet's, the ledger's, the samples', the remote results' and the mails' tables, applied in
-    that order: open_store() is an in-memory store where "SELECT count(*) FROM faults" gives 0."""
+    """A store holding the fleet's, the ledger's, the samples', the remote results', the mails' and the work orders'
+    tables, applied in that order: open_store() is an in-memory store where "SELECT count(*) FROM faults" gives 0."""
     conn = store.connect(path)
     store.apply(conn, registry.schema())
     store.apply(conn, ledger.schema())
@@ -69,7 +73,7 @@ def open_store(path: str | Path = store.MEMORY) -> sqlite3.Connection:
 def open_or_create(path: str | Path) -> sqlite3.Connection:
     """The store at a path, its tables made only when it has none (the CLI's store, which outlives one call):
     open_or_create("fleet.db") on a new file is open_store("fleet.db"); on a file holding the three first tables it
-    opens it again with its rows, adding results and mails where it lacks them, where open_store would raise
+    opens it again with its rows, adding results, mails and work_orders where it lacks them, where open_store would raise
     "table assets already exists"; a file holding some of the three first is handed to open_store, which refuses it."""
     conn = store.connect(path)
     present = {row[0] for row in conn.execute(TABLE_NAMES)}
@@ -129,6 +133,45 @@ def assign_fault(conn: sqlite3.Connection, asset_id: str, code: str, opened: dat
 def close_fault(conn: sqlite3.Connection, fault_id: int, closed: datetime) -> Fault:
     """Closes an open fault as the ledger does: close_fault(conn, 1, 10:30 UTC).closed is 10:30 UTC."""
     return ledger.close(conn, fault_id, closed)
+
+
+def open_work_order_from_fault(conn: sqlite3.Connection, fault_id: int, opened: datetime, note: str) -> WorkOrder:
+    """Opens a corrective work order for a fault the ledger holds open, on that fault's asset: for open fault 1 on
+    OAHE-INV-001 opened 10:10, open_work_order_from_fault(conn, 1, 10:20 UTC, "fuse") is WorkOrder(1, "OAHE-INV-001", 1,
+    "corrective", 10:20, None, None, "fuse"); a fault not open in the ledger raises LedgerError, an order opened before
+    its fault WorkOrderError, and neither stores anything."""
+    fault = next((found for found in ledger.open_faults(conn) if found.fault_id == fault_id), None)
+    if fault is None:
+        raise ledger.LedgerError(f"fault {fault_id} is not open in the ledger")
+    if opened < fault.opened:
+        raise WorkOrderError(f"a work order for fault {fault_id} cannot open before the fault did")
+    return work_ledger.open_corrective(conn, fault.asset_id, fault_id, opened, note)
+
+
+def open_preventive_work_order(conn: sqlite3.Connection, asset_id: str, opened: datetime, note: str) -> WorkOrder:
+    """Opens a preventive work order on an asset the fleet holds: open_preventive_work_order(conn, "OAHE-TRK-001",
+    10:10 UTC, "grease").kind is "preventive"; "OAHE-INV-009" raises UnknownAsset, stores nothing."""
+    # Invariant: SOL-05 (no record on an asset the fleet lacks)
+    known(conn, asset_id)
+    return work_ledger.open_preventive(conn, asset_id, opened, note)
+
+
+def close_work_order(conn: sqlite3.Connection, wo_id: int, root_cause: str, closed: datetime) -> WorkOrder:
+    """Closes a work order with its root-cause code and, for a corrective order whose fault is still open, that fault
+    at the same instant, in one call: close_work_order(conn, 1, "RC-COMPONENT", 10:30 UTC) leaves order 1 and its
+    fault both closed at 10:30; an unknown code raises UnknownRootCause and closes neither."""
+    # Decision: SP-011 (closing a corrective order closes its fault, in project, in one call)
+    order = work_ledger.close(conn, wo_id, root_cause, closed)
+    if order.fault_id is not None and any(f.fault_id == order.fault_id for f in ledger.open_faults(conn)):
+        ledger.close(conn, order.fault_id, closed)
+    return order
+
+
+def work_orders_for(conn: sqlite3.Connection, asset_id: str) -> tuple[WorkOrder, ...]:
+    """Every work order an asset the fleet holds had or has, in wo_id order: work_orders_for(conn, "OAHE-INV-001") holds
+    its orders alone; "OAHE-INV-009" raises UnknownAsset."""
+    known(conn, asset_id)
+    return work_ledger.by_asset(conn, asset_id)
 
 
 def fleet_assets(conn: sqlite3.Connection, site: str | None) -> tuple[Asset, ...]:

@@ -16,6 +16,8 @@ from solarpunk.leaf.telemetry import Sample
 from solarpunk.project.orchestrator import asset_status, fleet_assets, known
 from solarpunk.remote import results as result_table
 from solarpunk.remote.results import Recorded
+from solarpunk.workorders import ledger as work_ledger
+from solarpunk.workorders.ledger import WorkOrder
 
 NO_FAILURE = "—"
 
@@ -36,14 +38,16 @@ class AssetRow:
 @dataclass(frozen=True)
 class AssetDetail:
     """The asset window's content: the asset, its open faults beside their meanings, its latest results failing first,
-    its engineer chain and its status: for OAHE-INV-003 with an open INV-001, open_faults is ((that fault, "Inverter
-    offline: …"),) and status RED."""
+    its engineer chain, its status and its open work orders (4.1, last with a default so 3.2's window keeps working):
+    for OAHE-INV-003 with an open INV-001 and a work order on it, open_faults is ((that fault, "Inverter offline: …"),),
+    status RED and open_orders (that order,)."""
 
     asset: Asset
     open_faults: tuple[tuple[Fault, str], ...]
     latest: tuple[Recorded, ...]
     engineers: tuple[str, ...]
     status: AssetStatus
+    open_orders: tuple[WorkOrder, ...] = ()
 
 
 def row_of(conn: sqlite3.Connection, asset: Asset) -> AssetRow:
@@ -72,6 +76,7 @@ def asset_detail(conn: sqlite3.Connection, asset_id: str) -> AssetDetail:
         latest=result_table.latest_for(conn, asset_id),
         engineers=registry.engineers_for(conn, asset_id),
         status=asset_status(conn, asset_id),
+        open_orders=tuple(order for order in work_ledger.by_asset(conn, asset_id) if order.closed is None),
     )
 
 
