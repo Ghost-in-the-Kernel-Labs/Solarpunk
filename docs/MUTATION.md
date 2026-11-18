@@ -35,3 +35,10 @@ for a mutant that is truly equivalent.
 - `solarpunk.leaf.clock.x_on_grid__mutmut_4`: `+ microsecond / 1_000_000` to `-`; whole seconds lie on the 300 s grid only at second 0 (60·minute + second is a multiple of 300 only when second is a multiple of 60), and any nonzero microsecond leaves a fraction in (0, 1) either way, so the same instants are refused with the same message (built from the instant, not the sum); checked over every minute and second with 306 microsecond values, 1 101 600 cases, no disagreement.
 - `solarpunk.leaf.clock.x_on_grid__mutmut_5`: `minute * 60 + second` to `- second`; 60·minute − second is a multiple of 300 only when second is 0, as with `+`; same reason and check as mutmut_4.
 - `solarpunk.leaf.clock.x_on_grid__mutmut_9`: `/ 1_000_000` to `/ 1000001`; the fraction stays in (0, 1) for every nonzero microsecond and 0 for none, so on-grid-ness and the message are unchanged; same check as mutmut_4.
+
+## Display-only survivors
+
+mutmut runs with no display, so a mutant on a line only a Tk window reaches survives there and is killed under `xvfb-run -a .venv/bin/pytest test/solarpunk/test_ui*.py` (Tune-up pass 2's rule for UI lanes; J-025). Each line names the mutants it covers.
+
+- `solarpunk.ui.__main__.x_main__mutmut_4`, `_5`, `_6`, `_7`, `_8`, `_9`, `_10`, `_11`, `_12`, `_13` (`solarpunk.ui.__main__.x_main__mutmut_4` `solarpunk.ui.__main__.x_main__mutmut_5` `solarpunk.ui.__main__.x_main__mutmut_6` `solarpunk.ui.__main__.x_main__mutmut_7` `solarpunk.ui.__main__.x_main__mutmut_8` `solarpunk.ui.__main__.x_main__mutmut_9` `solarpunk.ui.__main__.x_main__mutmut_10` `solarpunk.ui.__main__.x_main__mutmut_11` `solarpunk.ui.__main__.x_main__mutmut_12` `solarpunk.ui.__main__.x_main__mutmut_13`): the lines after the `--demo` branch of `main` (`open_or_create`, `tkinter.Tk()`, the title, `FleetWindow`'s arguments, `run(root)`, `return 0`), reached only by `TheEntry` under a display.
+

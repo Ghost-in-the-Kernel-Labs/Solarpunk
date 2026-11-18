@@ -28,10 +28,6 @@ Lanes (P-15): 2.1 first (the list every other lane reads), then 2.2 to 2.6 in pa
 
 Lanes (P-15): 3.1 to 3.3 in parallel after 2.7, landed in this order; 3.4 after them.
 
-### 3.1 The fleet window
-
-Check: `solarpunk/ui/` with `app.py` (`FleetWindow(root, conn)`: a scrollable list of every asset in id order, each row a 24×16 solar-panel glyph drawn on a `tkinter.Canvas` in the asset's `AssetStatus` colour (green, yellow, red: `glyph.py` draws it; `colour_of(status)`), the id, the name and the kind; a mouseover tooltip with the last status and the last run's instant from `results.latest_for`; a click opens 3.2's window; a Refresh button that rereads the store) and `__main__.py` (`python3 -m solarpunk.ui --db <path>` opens it; `--demo` is 3.4's); `test/solarpunk/test_ui.py` green under a display (`xvfb-run -a .venv/bin/pytest test/solarpunk/test_ui.py`), skipping with the message "no display" where `tkinter.Tk()` raises `TclError`; the data every widget shows comes from one `project` call the tests also call headless; every mutant killed or explained.
-
 ### 3.2 The asset window
 
 Check: `solarpunk/ui/asset_window.py` (`AssetWindow(parent, conn, asset_id)`: the asset's fields; its open faults with code, meaning and opened instant; the remote tests of the last run, the failing one first with its reason; a form to assign a catalogue code (a dropdown of `CATALOGUE` for the asset's kind, an Assign button); the engineer: a dropdown of the fleet's known engineer emails plus a text field, and two buttons reading exactly `Save` and `Cancel` — Save calls `fleet.assign_engineer` and closes, Cancel closes and changes nothing); `test/solarpunk/test_ui_asset.py` green under a display, skipping without one; every mutant killed or explained.

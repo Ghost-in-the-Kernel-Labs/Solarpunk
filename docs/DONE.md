@@ -100,3 +100,9 @@ Done 2026-11-18 (J-023). Check: `solarpunk/project/` gains `scheduled_run(conn, 
 ### 2.8 Tune-up pass 2
 
 Done 2026-11-18 (J-024). Check: `docs/when/tune-up.md` followed in full; the six readings of J-010 written into `docs/CONTRACT.md` SOL-07 to SOL-10 as sentences (a tune-up may not change invariants' meaning: the sentences say what the code already does, with the worked examples unchanged — anything that would change a number is a question for Ghost instead); the metrics table written; the navigation log's "Last review" set. ✓ cold gate 12.7 min (refused at the gate target: Ghost's question), warm gate 1.48 min with mutmut's cache kept, fast loop 26 s after the socket tests stopped waiting on the 0.5 s poll; seven debriefs reviewed; the contract's sentences for SOL-07 to SOL-10 written.
+
+## Phase 3: the native front end
+
+### 3.1 The fleet window
+
+Done 2026-11-18 (J-025). Check: `solarpunk/ui/` with `app.py` (`FleetWindow(root, conn)`: a scrollable list of every asset in id order, each row a 24×16 solar-panel glyph drawn on a `tkinter.Canvas` in the asset's `AssetStatus` colour (green, yellow, red: `glyph.py` draws it; `colour_of(status)`), the id, the name and the kind; a mouseover tooltip with the last status and the last run's instant from `results.latest_for`; a click opens 3.2's window; a Refresh button that rereads the store) and `__main__.py` (`python3 -m solarpunk.ui --db <path>` opens it; `--demo` is 3.4's); `test/solarpunk/test_ui.py` green under a display (`xvfb-run -a .venv/bin/pytest test/solarpunk/test_ui.py`), skipping with the message "no display" where `tkinter.Tk()` raises `TclError`; the data every widget shows comes from one `project` call the tests also call headless; every mutant killed or explained. ✓ 20 tests under xvfb (8 widget tests skip without a display, the rest run headless); every view string and colour from a pure function; ten display-only survivors recorded in `docs/MUTATION.md`.

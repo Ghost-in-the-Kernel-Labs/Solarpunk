@@ -28,3 +28,4 @@ Written from `docs/journal/` by `scripts/journal_index.py`; do not edit by hand.
 | J-022 | 2.3: the remote tests and their registry landed; the list now names on_grid for every kind with a feed | feature | `J-000-099.md` |
 | J-023 | 2.7: the scheduled run and the UI's surface landed; the three colours are one function | feature | `J-000-099.md` |
 | J-024 | Tune-up pass 2: two armed metrics regressed and were brought back; the cold run's target is Ghost's question | measurement | `J-000-099.md` |
+| J-025 | 3.1: the fleet window landed; a UI lane must survive a missing tkinter, not only a missing display | feature | `J-000-099.md` |
