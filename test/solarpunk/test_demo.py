@@ -16,6 +16,7 @@ from pathlib import Path
 from solarpunk import project
 from solarpunk.leaf.clock import at
 from solarpunk.leaf.codes import AssetKind, AssetStatus
+from solarpunk.remote import registry as remote_registry
 from solarpunk.remote import results
 from solarpunk.telemetry import generate as generator
 from solarpunk.telemetry import samples as sample_table
@@ -102,7 +103,10 @@ class TheDemoStore(DemoFixture):
 
     def test_the_run_report(self) -> None:
         report = demo.build_demo_store(self.path, self.port).run_report
-        self.assertEqual((report.pinged, report.records, report.results, report.mails), (3, 0, 19, 0))  # 6.2's four inverter tests and one sensor test
+        # Every test of each pinged asset's kind, and a failed ping's reachable beside them for the two dead feeds (SP-017).
+        per_run = (2 * len(remote_registry.tests_for(AssetKind.INVERTER)) + len(remote_registry.tests_for(AssetKind.SENSOR))
+                   + 2)
+        self.assertEqual((report.pinged, report.records, report.results, report.mails), (3, 0, per_run, 0))
         self.assertEqual(report.errors, tuple(f"{a}: 127.0.0.1:9 is unreachable" for a in (INV2, SENSOR)))
 
     def test_the_ledger_and_the_telemetry(self) -> None:

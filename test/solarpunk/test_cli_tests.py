@@ -14,19 +14,15 @@ from solarpunk import project
 from solarpunk.cli import main as cli
 from solarpunk.leaf.assets import Asset
 from solarpunk.leaf.codes import AssetKind
+from solarpunk.remote import registry as remote_registry
 
 RUN_AT = "2026-06-01T13:00:00+00:00"
 LOCAL = "127.0.0.1"
 SITE = Asset("OAHE-SIT-001", AssetKind.SITE, "OAHE", None, "Oahe", None)
-TEST_LIST = [
-    "irradiance_in_range  INV,SEN  9001-9.1.3,55000-7.5",
-    "night_power_near_zero  INV  9001-9.1.3",
-    "on_grid  INV,TRK,MTR,SEN  55000-7.5,9001-9.1.3",
-    "performance_above_floor  INV  55000-9.1",
-    "power_not_frozen  INV  9001-9.1.3",
-    "power_under_rated  INV  9001-9.1.1",
-    "reachable  INV,MTR,SEN,TRK  55000-9.1",
-]
+# What `test list` prints, one line per test in the folder, from the registry (SP-017): adding a remote test adds a
+# line here with no edit, and the shape of the line ("name  KINDS  CLAUSES") is still held.
+TEST_LIST = [f"{test.name}  {','.join(kind.value for kind in test.kinds)}  {','.join(test.clauses)}"
+             for test in remote_registry.discover().values()]
 
 
 def leaves(parser: argparse.ArgumentParser, path: tuple[str, ...]) -> list[str]:
@@ -76,8 +72,9 @@ class TestCommands(unittest.TestCase):
 
     def report(self, port: int, run_at: str) -> str:
         """What test run prints for load's fleet at an instant: its first line is "run <run_at>: pinged 1, records 0,
-        results 8" (the failing reachable and the inverter's seven tests, 6.2)."""
-        return (f"run {run_at}: pinged 1, records 0, results 8\nOAHE-INV-001  yellow\nOAHE-SIT-001  green\n"
+        results N", N the inverter's tests and the failed ping's reachable beside them, from the registry (SP-017)."""
+        results = len(remote_registry.tests_for(AssetKind.INVERTER)) + 1
+        return (f"run {run_at}: pinged 1, records 0, results {results}\nOAHE-INV-001  yellow\nOAHE-SIT-001  green\n"
                 f"error OAHE-INV-001: {LOCAL}:{port} is unreachable\n")
 
 
@@ -165,7 +162,7 @@ class Help(TestCommands):
 
     def test_every_command_of_the_parser_has_exactly_one_line(self) -> None:
         commands = leaves(cli.build_parser(), ())
-        self.assertEqual(len(commands), 13)  # report added (6.1)
+        self.assertGreater(len(commands), 0)  # the count follows the parser (SP-017); each command has its one line
         lines = cli.HELP.splitlines()
         for command in commands:
             with self.subTest(command=command):

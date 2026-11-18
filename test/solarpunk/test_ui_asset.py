@@ -11,6 +11,7 @@ from solarpunk import project
 from solarpunk.leaf.assets import Asset
 from solarpunk.leaf.clock import at
 from solarpunk.leaf.codes import AssetKind, AssetStatus, codes_for
+from solarpunk.remote import registry as remote_registry
 from solarpunk.remote import results
 from solarpunk.ui import demo
 
@@ -41,16 +42,12 @@ RUN_AT = at(2026, 6, 1, 12)
 UNSERVICED = Asset(INV2, AssetKind.INVERTER, "OAHE", SITE_ID, "Inverter 2", 100.0)
 OFF_GRID = "10:05: off the grid"
 NEVER = "no result yet: the scheduled run has not tested this asset"
-# The inverter's diagnostics (6.4): its last run failed on_grid and passed reachable; the other five never ran on it.
-DIAGNOSTIC_ROWS = (
-    ("on_grid", "FAIL", OFF_GRID),
-    ("irradiance_in_range", "not run", NEVER),
-    ("night_power_near_zero", "not run", NEVER),
-    ("performance_above_floor", "not run", NEVER),
-    ("power_not_frozen", "not run", NEVER),
-    ("power_under_rated", "not run", NEVER),
-    ("reachable", "pass", "3 records"),
-)
+# The inverter's diagnostics (6.4): its last run failed on_grid and passed reachable; every other inverter test the
+# registry holds never ran on it, so it follows the folder (SP-017).
+NEVER_RUN = sorted(test.name for test in remote_registry.tests_for(AssetKind.INVERTER)
+                   if test.name not in ("on_grid", "reachable"))
+DIAGNOSTIC_ROWS = (("on_grid", "FAIL", OFF_GRID), *[(name, "not run", NEVER) for name in NEVER_RUN],
+                   ("reachable", "pass", "3 records"))
 
 
 def display_available() -> bool:
@@ -135,7 +132,7 @@ class PureTest(unittest.TestCase):
 
     def test_row_tags(self) -> None:
         self.assertEqual(asset_window.row_tags(("on_grid", "FAIL", OFF_GRID)), ("failing",))
-        self.assertEqual(asset_window.row_tags(("power_not_frozen", "not run", NEVER)), ("notrun",))
+        self.assertEqual(asset_window.row_tags((NEVER_RUN[0], "not run", NEVER)), ("notrun",))
         self.assertEqual(asset_window.row_tags(("reachable", "pass", "3 records")), ())
 
     def test_code_labels(self) -> None:
@@ -316,15 +313,17 @@ class TheDemosDiagnostics(unittest.TestCase):
         self.conn = project.open_or_create(Path(folder.name) / demo.DB_NAME)
         self.addCleanup(self.conn.close)
 
-    def test_the_fed_inverter_passes_all_seven(self) -> None:
+    def test_the_fed_inverter_passes_every_inverter_test(self) -> None:
         found = project.asset_detail(self.conn, demo.FED).diagnostics
-        self.assertEqual(len(found), 7)
+        self.assertEqual(len(found), len(remote_registry.tests_for(AssetKind.INVERTER)))
         self.assertEqual({diagnostic.state for diagnostic in found}, {"pass"}, found)
 
-    def test_the_sensors_failing_reachable_comes_first(self) -> None:
+    def test_the_sensors_failing_reachable_is_in_the_failures_shown_first(self) -> None:
         found = project.asset_detail(self.conn, demo.SENSOR).diagnostics
-        self.assertEqual((found[0].test_name, found[0].state), ("reachable", "fail"))
-        self.assertEqual([d.test_name for d in found], ["reachable", "irradiance_in_range", "on_grid"])
+        self.assertIn(("reachable", "fail"), [(d.test_name, d.state) for d in found])
+        order = ("fail", "not run", "pass")
+        self.assertEqual(list(found), sorted(found, key=lambda d: (order.index(d.state), d.test_name)))  # failing first
+        self.assertEqual(sorted(d.test_name for d in found), sorted(t.name for t in remote_registry.tests_for(AssetKind.SENSOR)))
 
     def test_the_dead_inverters_failed_reachable_is_not_hidden_by_the_suites_pass(self) -> None:
         """OAHE-INV-002's run stores reachable twice at one instant, the ping's failure and a pass over its stored samples;
@@ -335,7 +334,8 @@ class TheDemosDiagnostics(unittest.TestCase):
 
     def test_a_tracker_with_no_feed_shows_its_tests_never_run_and_a_string_shows_none(self) -> None:
         found = project.asset_detail(self.conn, "OAHE-TRK-001").diagnostics
-        self.assertEqual([(d.test_name, d.state) for d in found], [("on_grid", "not run"), ("reachable", "not run")])
+        tracker = [test.name for test in remote_registry.tests_for(AssetKind.TRACKER)]
+        self.assertEqual([(d.test_name, d.state) for d in found], [(name, "not run") for name in tracker])
         self.assertEqual(project.asset_detail(self.conn, "OAHE-STR-001").diagnostics, ())
 
 

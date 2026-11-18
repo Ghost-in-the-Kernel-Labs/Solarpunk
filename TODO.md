@@ -44,13 +44,6 @@ Lanes (P-15): 6.1 and 6.2 in parallel, landed in that order (done, J-041); 6.3 a
 
 Lanes (P-15): 7.1 (done, J-050), then 7.2 and 7.3 (SP-017, put ahead by Ghost), then 7.4 (it needs 7.1's `assigned_by`), then 7.5, then 7.6 the pass. Ghost's direction, SP-015.
 
-### 7.3 Counts that follow from the registry
-
-The tests take what follows from the registry and the parser from them (SP-017), so a remote test or a command is one
-file again.
-
-Check: no test pins the number or the names of the remote tests, the results of a run, or the commands: `test/solarpunk/test_remote.py`, `test_project_run.py`, `test_demo.py`, `test_cli_tests.py`, `test_ui_asset.py` and `test_diagnostics.py` derive them from `solarpunk.remote.registry` and the parser; scaffolding a remote test into the folder (`solarpunk test add`, in a scratch copy) leaves those tests green; the fast loop green.
-
 ### 7.4 Suggestions from the tests
 
 A failing remote test raises a suggestion of a likely fault by its rule table, and a code an asset pushes is a

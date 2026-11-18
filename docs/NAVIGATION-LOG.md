@@ -31,3 +31,10 @@ An entry is `### <date> · <task> · <agent>` and four lines: **Task**, **Opened
 - **Opened**: `scripts/gate.sh`, `scripts/fast.sh`, `stacks/python/gate.sh`, `test/support_git.py`, `test/test_gates.py`, `scripts/checks/gate_record.py`.
 - **Complaints**: the process workpath's gates row is long but named every file I needed; the gate's own header is the clearest description of it, and a new paragraph was needed there to keep it so.
 - **Suggestions**: none.
+
+### 2026-11-18 · 7.3, counts that follow from the registry · Claude
+
+- **Task**: no test pins what the registry and the parser decide.
+- **Opened**: `docs/paths/product.md` (the remote-test row, which named the counts), `test/solarpunk/test_remote.py`, `test/solarpunk/test_project_run.py`, `test/solarpunk/test_demo.py`, `test/solarpunk/test_cli_tests.py`, `test/solarpunk/test_ui_asset.py`.
+- **Complaints**: what a run stores per asset (its kind's tests, and a failed ping beside them) is written in no document; it was read off the pinned numbers.
+- **Suggestions**: a sentence in `docs/CONTRACT.md` or the remote module's docstring: what one scheduled run stores per asset.

@@ -11,8 +11,8 @@ Ghost's statement of where the product is going: five areas under one click (J-0
 own nightly regime (SP-012, J-038; the section below). Tune-up pass 5: cold gate 9.95 min, warm 0.80 min, fast loop
 23.1 s (J-039).
 
-**The first open item is 7.3, counts that follow from the registry** (`TODO.md`; SP-017: Ghost put 7.2, the gate's
-reliability, landed in J-051, and 7.3 ahead of the tests' suggestions, now 7.4; 7.1, who assigned a fault, landed in J-050; until 7.4 the receiver holds every good push for an engineer and stores nothing): Phase 7 is Ghost's
+**The first open item is 7.4, suggestions from the tests** (`TODO.md`; SP-017's 7.2, the gate's reliability, and 7.3,
+counts that follow the registry, landed in J-051 and J-052; 7.1, who assigned a fault, landed in J-050; until 7.4 the receiver holds every good push for an engineer and stores nothing): Phase 7 is Ghost's
 fault assignment (SP-015): tests
 suggest a likely fault, only an engineer assigns one, and the record says which; then Phase 8, the tests' record (SP-016): a Tests window at
 the root, each asset's last 100 results searchable and graphed. Network security is now Phase 9. 6.3, the reports window, landed (J-043): "Reports" beside
