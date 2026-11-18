@@ -1,6 +1,13 @@
 #!/usr/bin/env bash
 # The gate: the check before a landing, the definition of done (C-032, C-037, C-040, AGT-07). There is no CI on push.
-# It runs every step on the working tree as it stands, never on a commit. In order: the fast loop (timed), the key scan
+# It runs every step on a frozen copy of the working tree (SP-017): the tree it takes before the first step is checked
+# out into a temporary `git worktree` (`.venv` linked in, being ignored), every step runs there, and the record is that
+# tree; an edit to the working tree while the gate runs no longer touches the run, it only makes the record stale, which
+# scripts/commit.sh refuses. A step that changes the copy is still refused. With no commit yet (a fresh `git init`) the
+# copy cannot be made and the steps run in place, as before. Every step runs under `timeout` (GHOST_STEP_TIMEOUT
+# seconds, 600 by default), and a step that runs past it is refused by name, "(timed out after N s)". A step's output
+# lines that begin `note:` are shown on the terminal under its `==` line (the Python stack's says when the window tests
+# could not run). In order: the fast loop (timed), the key scan
 # over the tree's changes, the slow tests, each stack's own gate where a stack is present, the generated files, the
 # metrics.
 # The fast checks: `scripts/gate.sh --fast` is the landing checkpoint (C-040): the fast loop, the key scan, each present
@@ -31,6 +38,8 @@
 set -uo pipefail
 cd "$(dirname "$0")/.."
 started=$(date +%s)
+home=$PWD
+step_timeout=${GHOST_STEP_TIMEOUT:-600}
 log=build/gate.log
 times=build/gate-times.txt
 cold=
@@ -56,19 +65,28 @@ verdict() {
 }
 stop() { verdict "gate: refused at $1"; exit 1; }
 
-git_dir=$(git rev-parse --git-dir 2>/dev/null) || { echo "gate: refused at the lock (not a git repository: the record lives in .git/ghost)"; exit 1; }
+git_dir=$(git rev-parse --absolute-git-dir 2>/dev/null) || { echo "gate: refused at the lock (not a git repository: the record lives in .git/ghost)"; exit 1; }
 ghost="$git_dir/ghost"
 mkdir -p "$ghost" build
 if ! mkdir "$ghost/lock" 2>/dev/null; then
-  echo "gate: refused at the lock ($ghost/lock is held: another gate runs in this clone, or one was killed; remove the folder once none runs)"
+  echo "gate: refused at the lock ($(git rev-parse --git-dir)/ghost/lock is held: another gate runs in this clone, or one was killed; remove the folder once none runs)"
   exit 1
 fi
-trap 'rm -rf "$ghost/lock"' EXIT
+copy=
+# cleanup: the lock freed and the frozen copy removed, red or green.
+cleanup() {
+  [ -z "$copy" ] || { git -C "$home" worktree remove --force "$copy" >/dev/null 2>&1; rm -rf "$copy"; git -C "$home" worktree prune; }
+  rm -rf "$ghost/lock"
+}
+trap cleanup EXIT
 trap 'exit 130' INT TERM
 rm -f "$ghost/tree" "$ghost/kind"
 : > "$log"
 : > "$times"
 git check-ignore -q "$log" || stop "the log (git does not ignore build/, so the gate's own log would change the tree)"
+log_name=$log
+log=$home/$log
+times=$home/$times
 
 tree() { python3 -I scripts/checks/gate_record.py --tree 2>> "$log"; }
 # key_scan: every change the tree holds against HEAD, untracked files included, through scripts/checks/secrets.py --diff;
@@ -89,7 +107,7 @@ failures() {
   names=$(tail -n "+$1" "$log" | grep -E '^(FAIL|ERROR): ') || return 0
   count=$(printf '%s\n' "$names" | wc -l)
   printf '%s\n' "$names" | head -40
-  [ "$count" -le 40 ] || echo "... $((count - 40)) more in $log"
+  [ "$count" -le 40 ] || echo "... $((count - 40)) more in ${log_name:-$log}"
 }
 seconds_since() { awk -v a="$1" -v b="$(date +%s.%N)" 'BEGIN { printf "%.2f", b - a }'; }
 
@@ -100,15 +118,34 @@ step() {
   begun=$(date +%s.%N)
   echo "== $name" >> "$log"
   first=$(wc -l < "$log")
-  "$@" >> "$log" 2>&1
+  # Decision: SP-017 (a shell function, the key scan, cannot run under timeout; it reads git alone and does not hang)
+  if [ "$(type -t "$1")" = function ]; then
+    "$@" >> "$log" 2>&1
+  else
+    timeout --kill-after=10 "$step_timeout" "$@" >> "$log" 2>&1
+  fi
   local status=$?
   secs=$(seconds_since "$begun")
   echo "$secs $name" >> "$times"
+  [ "$status" -ne 124 ] && [ "$status" -ne 137 ] || { failures "$first"; stop "$refusal (timed out after $step_timeout s)"; }
   [ "$status" -eq 0 ] || { failures "$first"; stop "$refusal"; }
   echo "== $name: passed ($secs s)"
+  tail -n "+$first" "$log" | grep -E '^note: ' || true
+}
+
+# freeze <tree>: the tree checked out into a temporary worktree, which every step then runs in (SP-017); with no commit
+# to hang a worktree on, nothing is made and the steps run in place.
+freeze() {
+  git rev-parse -q --verify HEAD >/dev/null || return 0
+  copy=$(mktemp -d "${TMPDIR:-/tmp}/ghost-gate-XXXXXX")
+  git worktree add -q --detach "$copy" HEAD >> "$log" 2>&1 || return 1
+  git -C "$copy" read-tree --reset -u "$1" >> "$log" 2>&1 || return 1
+  [ ! -e .venv ] || ln -s "$home/.venv" "$copy/.venv"
+  cd "$copy"
 }
 
 before=$(tree) || stop "the record (git write-tree failed before the first step: build/gate.log)"
+freeze "$before" || stop "the frozen copy (git worktree could not check out the tree: build/gate.log)"
 
 step "the fast loop" "the fast loop" scripts/fast.sh
 fast_loop=$(awk '$0 ~ / the fast loop$/ { print $1 }' "$times")
@@ -133,6 +170,7 @@ gate_minutes=$(awk -v a="$started" -v b="$(date +%s)" 'BEGIN { printf "%.2f", (b
 
 after=$(tree) || stop "the record (git write-tree failed after the last step: build/gate.log)"
 [ "$before" = "$after" ] || stop "the record (the tree changed while the gate ran: nothing recorded; run it again)"
+cd "$home"
 echo "$after" > "$ghost/tree"
 echo "$kind" > "$ghost/kind"
 

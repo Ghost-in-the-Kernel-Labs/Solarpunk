@@ -24,3 +24,10 @@ An entry is `### <date> · <task> · <agent>` and four lines: **Task**, **Opened
 - **Opened**: `docs/paths/product.md` (the fleet-and-faults row), `solarpunk/leaf/faults.py`, `solarpunk/faults/ledger.py`, `solarpunk/project/orchestrator.py`, `solarpunk/receiver/server.py`, `solarpunk/cli/main.py`, `solarpunk/ui/asset_window.py`, `solarpunk/ui/demo.py`.
 - **Complaints**: the product workpath's new row sent me to the right four files first; a rule added to `project.assign_fault` reached forty-five callers, and nothing lists the tests that build their own fleets (each needed an engineer the fleet holds); a failing test that leaves a server thread running hangs the fast loop after its summary, with no timeout to say so.
 - **Suggestions**: a timeout on `scripts/fast.sh`'s run, so a hang is a red line, not a stall.
+
+### 2026-11-18 · 7.2, the gate's reliability · Claude
+
+- **Task**: SP-017's gate half: a frozen copy, timeouts, ruff and the window tests in the fast checks, daemon threads.
+- **Opened**: `scripts/gate.sh`, `scripts/fast.sh`, `stacks/python/gate.sh`, `test/support_git.py`, `test/test_gates.py`, `scripts/checks/gate_record.py`.
+- **Complaints**: the process workpath's gates row is long but named every file I needed; the gate's own header is the clearest description of it, and a new paragraph was needed there to keep it so.
+- **Suggestions**: none.

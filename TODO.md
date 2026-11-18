@@ -42,22 +42,29 @@ Lanes (P-15): 6.1 and 6.2 in parallel, landed in that order (done, J-041); 6.3 a
 
 ## Phase 7: faults suggested by tests, assigned by engineers
 
-Lanes (P-15): 7.1, then 7.2 (it needs 7.1's `assigned_by`), then 7.3, then 7.4 the pass. Ghost's direction, SP-015.
+Lanes (P-15): 7.1 (done, J-050), then 7.2 and 7.3 (SP-017, put ahead by Ghost), then 7.4 (it needs 7.1's `assigned_by`), then 7.5, then 7.6 the pass. Ghost's direction, SP-015.
 
-### 7.2 Suggestions from the tests
+### 7.3 Counts that follow from the registry
+
+The tests take what follows from the registry and the parser from them (SP-017), so a remote test or a command is one
+file again.
+
+Check: no test pins the number or the names of the remote tests, the results of a run, or the commands: `test/solarpunk/test_remote.py`, `test_project_run.py`, `test_demo.py`, `test_cli_tests.py`, `test_ui_asset.py` and `test_diagnostics.py` derive them from `solarpunk.remote.registry` and the parser; scaffolding a remote test into the folder (`solarpunk test add`, in a scratch copy) leaves those tests green; the fast loop green.
+
+### 7.4 Suggestions from the tests
 
 A failing remote test raises a suggestion of a likely fault by its rule table, and a code an asset pushes is a
 suggestion from the device; an engineer accepts or dismisses each, recorded with who (SP-015).
 
 Check: each module under `solarpunk/remote/tests/` declares `SUGGESTS` (a mapping from each of its `KINDS` to a catalogue code or None), held by the registry; a `suggestions` table (asset, code, source test or "device", reason, run, state open/accepted/dismissed, by whom, fault id when accepted, dismissal reason); the scheduled run stores one open suggestion per failing test with a code, never two open of the same code on one asset; the receiver stores a pushed code as a suggestion from the device; `project.accept_suggestion(conn, id, engineer, recorded_by=None)` opens the fault through 7.1's `assign_fault`, linked, and `project.dismiss_suggestion(conn, id, engineer, reason)`; an open suggestion keeps the asset yellow and never red, and no KPI reads it; the rule table printed by `solarpunk test list`; the tests of each, and the fast loop green.
 
-### 7.3 Suggestions in the asset window and on the command line
+### 7.5 Suggestions in the asset window and on the command line
 
 The engineer's view of what the tests suggest, where the asset is, and the same on the command line (SP-015).
 
 Check: the asset window lists the asset's open suggestions (the device's first, then by run, newest first) with code, meaning, source and reason, and Accept and Dismiss, each taking the engineer from the known-engineer dropdown and an optional operator, Dismiss a reason; `solarpunk fault suggestions [--asset ID]`, `fault accept ID --by ENGINEER [--recorded-by OPERATOR]`, `fault dismiss ID --by ENGINEER --reason TEXT`; `test/solarpunk/test_ui_asset.py` and the CLI tests cover each; a screenshot of the demo's asset window read back under xvfb; the fast loop green.
 
-### 7.4 Tune-up pass 7
+### 7.6 Tune-up pass 7
 
 Check: `docs/when/tune-up.md` followed in full; the metrics table written; the navigation log's "Last review" set.
 

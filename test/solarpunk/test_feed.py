@@ -51,7 +51,7 @@ def served(payload: bytes) -> Iterator[int]:
     """A server answering one connection with the payload, on a thread; yields its port: with served(b"") as port, a
     ping of port reads nothing."""
     server = simulate.FeedServer(("127.0.0.1", 0), payload)
-    thread = threading.Thread(target=server.handle_request)
+    thread = threading.Thread(daemon=True, target=server.handle_request)
     thread.start()
     try:
         yield server.server_address[1]
@@ -114,7 +114,7 @@ class ThePing(unittest.TestCase):
     def test_the_simulator_serves_a_day_and_ping_reads_it_whole(self) -> None:
         day = gen.generate((INVERTER,), DAY, 7)
         server = simulate.make_server(day, "127.0.0.1", 0)
-        thread = threading.Thread(target=server.serve_forever, kwargs={"poll_interval": 0.02})
+        thread = threading.Thread(daemon=True, target=server.serve_forever, kwargs={"poll_interval": 0.02})
         thread.start()
         try:
             asset = replace(INVERTER, port=server.server_address[1])
@@ -306,7 +306,7 @@ class TheSimulator(unittest.TestCase):
         found: list[int] = []
         out = Flushes()
         with contextlib.redirect_stdout(out):
-            thread = threading.Thread(target=lambda: found.append(simulate.serve((READING,), "127.0.0.1", port, True)))
+            thread = threading.Thread(daemon=True, target=lambda: found.append(simulate.serve((READING,), "127.0.0.1", port, True)))
             thread.start()
             samples = self.ping_when_up(port)
             thread.join(5)
@@ -327,7 +327,7 @@ class TheSimulator(unittest.TestCase):
         found: list[int] = []
         argv = ["OAHE-INV-001", "--port", str(port), "--seed", "7", "--day", "2026-06-01", "--rated-kw", "90", "--once"]
         with contextlib.redirect_stdout(io.StringIO()):
-            thread = threading.Thread(target=lambda: found.append(simulate.main(argv, source)))
+            thread = threading.Thread(daemon=True, target=lambda: found.append(simulate.main(argv, source)))
             thread.start()
             samples = self.ping_when_up(port)
             thread.join(5)

@@ -301,17 +301,22 @@ when it was called in. It adds to `docs/GOAL.md`'s quality management (4: who de
   before gains the two columns on opening, its old faults read `assigned_by` "unrecorded". `solarpunk fault assign`
   takes `--by ENGINEER` (required) and `--recorded-by OPERATOR`; the asset window's Assign takes the engineer from a
   dropdown of known engineers; the demo's faults name an engineer; `fault list` prints who.
-- **7.2 Suggestions from the tests (`solarpunk/remote/`, `solarpunk/project/`, `solarpunk/receiver/`).** Each remote
+- **7.2 The gate's reliability (`scripts/gate.sh`, `scripts/fast.sh`, `stacks/python/gate.sh`; SP-017).** The gate runs on
+  a frozen copy of the tree it records; every step and the fast loop time out; ruff and the window tests (under xvfb
+  where installed) are in the fast checks, and the stack gate says on the terminal when the window tests could not run.
+- **7.3 Counts that follow from the registry (`test/`; SP-017).** The tests take the number of remote tests, their
+  results per run and the commands from the registry and the parser, so adding a remote test or a command is one file.
+- **7.4 Suggestions from the tests (`solarpunk/remote/`, `solarpunk/project/`, `solarpunk/receiver/`).** Each remote
   test names the likely catalogue code for a failure on each kind it runs on (`SUGGESTS`, a rule table Ghost reviews:
   `reachable` on an inverter suggests INV-001, a frozen power suggests no code until the catalogue has one); the
   scheduled run stores a suggestion for every failing test with a code (asset, code, test, reason, run); a code pushed
   to the receiver is a suggestion marked as pushed by the device (SP-008 in part superseded). An engineer accepts a
   suggestion into a fault linked to it, or dismisses it with a reason; both record who. An open suggestion keeps the
   asset yellow; only a fault turns it red or counts in a KPI.
-- **7.3 Suggestions in the asset window and on the command line (`solarpunk/ui/asset_window.py`, `solarpunk/cli/`).**
+- **7.5 Suggestions in the asset window and on the command line (`solarpunk/ui/asset_window.py`, `solarpunk/cli/`).**
   The asset window lists open suggestions (the device's first, then by run) with Accept and Dismiss, each taking the
   engineer and, for a call-in, the operator; `solarpunk fault suggestions|accept|dismiss`.
-- **7.4 Tune-up pass 7.**
+- **7.6 Tune-up pass 7.**
 
 ### Phase 8: the tests' record, at the root and per asset
 

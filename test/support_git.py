@@ -66,7 +66,13 @@ def attempt(root: Path, subject: str) -> subprocess.CompletedProcess:
 # The gate's steps in a scratch repository: each a stub that says it ran, so the log can be told from the terminal. A
 # Python step writes a file when the file touch-me exists, as a step that changes the tree; the fast loop is red when
 # the file red exists. A stamped project's gate has no slow tests (scripts/stamp.py drop_stamp_gate).
-STUB_FAST = "#!/usr/bin/env bash\necho \"stub fast loop ran $*\"\n[ ! -f red ]\n"
+# SP-017's hooks, each off unless its variable is set: EDIT_ME names a file in the real tree the stub appends to (an edit
+# made while the gate runs), SLEEP_S makes it hang, NOTE makes it print a `note:` line.
+STUB_FAST = ("#!/usr/bin/env bash\necho \"stub fast loop ran $*\"\n"
+             "[ -z \"${EDIT_ME:-}\" ] || echo edited >> \"$EDIT_ME\"\n"
+             "[ -z \"${SLEEP_S:-}\" ] || sleep \"$SLEEP_S\"\n"
+             "[ -z \"${NOTE:-}\" ] || echo \"note: $NOTE\"\n"
+             "[ ! -f red ]\n")
 STUB_PY = "import pathlib, time\nprint('stub step ran')\nif pathlib.Path('touch-me').exists():\n    pathlib.Path('changed.txt').write_text(str(time.time_ns()))\n"
 
 
@@ -89,10 +95,11 @@ def gated_repo() -> Path:
     return root
 
 
-def gate(root: Path) -> subprocess.CompletedProcess:
+def gate(root: Path, extra: dict[str, str] | None = None) -> subprocess.CompletedProcess:
     """The scratch repository's gate, run as an agent runs it: `scripts/gate.sh`, nothing redirected, and warm though the
-    real gate that runs this test is cold (it exports GHOST_COLD)."""
-    env = {k: v for k, v in os.environ.items() if k != "GHOST_COLD"}
+    real gate that runs this test is cold (it exports GHOST_COLD); extra sets the stub's hooks (SP-017):
+    gate(root, {"NOTE": "x"})."""
+    env = {k: v for k, v in os.environ.items() if k != "GHOST_COLD"} | (extra or {})
     return subprocess.run(["bash", "scripts/gate.sh"], cwd=root, capture_output=True, text=True, env=env)
 
 

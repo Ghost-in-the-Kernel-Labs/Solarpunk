@@ -1,6 +1,6 @@
 """The receiver: the one inbound surface, where an asset pushes a line `<asset-id> <fault-code>` over TCP. It refuses
 first (an asset the fleet lacks, SOL-05; a code the catalogue lacks, SOL-04). A good line is no longer assigned: only an
-engineer assigns a fault (SP-015, superseding SP-008 in part), so until 7.2 stores a pushed code as a suggestion for an
+engineer assigns a fault (SP-015, superseding SP-008 in part), so until 7.4 stores a pushed code as a suggestion for an
 engineer, the receiver holds it, storing nothing, and says so. It reaches the fleet and the ledger only through project
 (MOD-06, SP-010). One line per connection; the answer is `refused <reason>`, a good line's reason "held for an
 engineer: <asset-id> <code> (SP-015)"."""
@@ -47,7 +47,7 @@ def handle(conn: sqlite3.Connection, line: str, now: datetime) -> project.Fault:
     """Checks the line's asset and code through project and holds a good line for an engineer, storing nothing
     (SP-015): handle(conn, "OAHE-INV-001 INV-001", 10:10 UTC) on the OAHE fleet raises ReceiverError("held for an
     engineer: OAHE-INV-001 INV-001 (SP-015)"); "OAHE-INV-009 INV-001" raises ReceiverError("unknown asset
-    OAHE-INV-009"), "OAHE-INV-001 INV-999" ReceiverError("unknown code INV-999"). It returns a fault again when 7.2
+    OAHE-INV-009"), "OAHE-INV-001 INV-999" ReceiverError("unknown code INV-999"). It returns a fault again when 7.4
     makes a pushed code a suggestion; now is when the line arrived, which that suggestion will carry."""
     # Decision: SP-015 (a pushed code is not a fault until an engineer assigns one)
     # Invariant: SOL-04 (no fault of a code the catalogue lacks); SOL-05 (no fault on an asset the fleet lacks)
@@ -64,7 +64,7 @@ def handle(conn: sqlite3.Connection, line: str, now: datetime) -> project.Fault:
 def reply(db_path: str | Path, line: str, now: datetime) -> str:
     """The answer to one pushed line, against the store at a path opened for this line alone: reply(db, "OAHE-INV-001
     INV-001\\n", now) on a fresh OAHE store is "refused held for an engineer: OAHE-INV-001 INV-001 (SP-015)\\n" (until
-    7.2 makes it a suggestion); reply(db, "OAHE-INV-009 INV-001\\n", now) is
+    7.4 makes it a suggestion); reply(db, "OAHE-INV-009 INV-001\\n", now) is
     "refused unknown asset OAHE-INV-009\\n"."""
     with closing(project.open_or_create(db_path)) as conn:
         try:

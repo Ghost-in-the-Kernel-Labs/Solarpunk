@@ -24,7 +24,7 @@ ROOT = Path(__file__).resolve().parents[2]
 HOST = "127.0.0.1"
 INV1 = "OAHE-INV-001"
 NOW = at(2026, 6, 1, 10, 10)
-# SP-015: a good push is held for an engineer, storing nothing, until 7.2 makes it a suggestion.
+# SP-015: a good push is held for an engineer, storing nothing, until 7.4 makes it a suggestion.
 HELD_1 = "refused held for an engineer: OAHE-INV-001 INV-001 (SP-015)\n"
 HELD_2 = "refused held for an engineer: OAHE-INV-002 INV-001 (SP-015)\n"
 WAIT = 10.0
@@ -70,7 +70,7 @@ class Receiving(unittest.TestCase):
         """Pushes bytes to a receiver on an ephemeral port that serves exactly that one connection in a thread, and
         returns the answer: self.served(b"OAHE-INV-001 INV-001\\n") is HELD_1 (SP-015: held for an engineer)."""
         with server.make_server(self.db, HOST, 0) as listening:
-            worker = threading.Thread(target=listening.handle_request)
+            worker = threading.Thread(daemon=True, target=listening.handle_request)
             worker.start()
             answer = push(listening.server_address[1], payload)
             worker.join(WAIT)
@@ -155,7 +155,7 @@ class Serving(Receiving):
     def test_serve_once_answers_one_connection_and_returns_its_port(self) -> None:
         port = free_port()
         found: list[int] = []
-        worker = threading.Thread(target=lambda: found.append(receiver.serve(self.db, HOST, port, once=True)))
+        worker = threading.Thread(daemon=True, target=lambda: found.append(receiver.serve(self.db, HOST, port, once=True)))
         worker.start()
         self.assertEqual(self.pushed_when_up(port, b"OAHE-INV-001 INV-001\n"), HELD_1)
         worker.join(WAIT)
@@ -163,14 +163,14 @@ class Serving(Receiving):
 
     def test_serve_by_default_keeps_serving(self) -> None:
         port = free_port()
-        threading.Thread(target=receiver.serve, args=(self.db, HOST, port), daemon=True).start()
+        threading.Thread(daemon=True, target=receiver.serve, args=(self.db, HOST, port)).start()
         self.assertEqual(self.pushed_when_up(port, b"OAHE-INV-001 INV-001\n"), HELD_1)
         self.assertEqual(push(port, b"OAHE-INV-002 INV-001\n"), HELD_2)
 
     def test_run_serves_until_shut_down(self) -> None:
         with server.make_server(self.db, HOST, 0) as listening:
             found: list[int] = []
-            worker = threading.Thread(target=lambda: found.append(server.run(listening, False)))
+            worker = threading.Thread(daemon=True, target=lambda: found.append(server.run(listening, False)))
             worker.start()
             port = listening.server_address[1]
             self.assertEqual(push(port, b"OAHE-INV-001 INV-001\n"), HELD_1)
@@ -217,7 +217,7 @@ class Command(Receiving):
         out = io.StringIO()
         found: list[int] = []
         argv = ["--db", self.db, "--host", HOST, "--port", "0", "--once"]
-        worker = threading.Thread(target=lambda: found.append(receiver.main(argv, out)))
+        worker = threading.Thread(daemon=True, target=lambda: found.append(receiver.main(argv, out)))
         worker.start()
         deadline = time.monotonic() + WAIT
         while not out.getvalue() and time.monotonic() < deadline:

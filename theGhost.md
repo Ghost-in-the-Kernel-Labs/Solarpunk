@@ -610,3 +610,12 @@ The core decisions above are inherited (Core C-001 to C-040); this project's beg
 - **Status:** in force
 - **See also:** SP-015, SP-010, SP-013
 - **subject:** test record
+
+### SP-017: The gate runs on a frozen copy, every step times out, lint and the windows are in the fast checks
+- **Decision:** `scripts/gate.sh` checks out the tree it gates (the SHA it takes before its first step) into a temporary `git worktree` and runs every step there, `.venv` linked in; the record is that SHA, and a step that changes the copy is still refused, while an edit to the working tree meanwhile no longer touches the run. Every step runs under `timeout` (`GHOST_STEP_TIMEOUT`, 600 s by default) and `scripts/fast.sh` under its own (`GHOST_FAST_TIMEOUT`, 300 s), so a hang is a refusal naming its step. The Python stack's fast checks run ruff, and run pytest under `xvfb-run` where it is installed, so the window tests run at every landing; where it is not, the stack gate says so in a `note:` line the gate prints on the terminal. A test's server thread is a daemon thread. And the tests take the counts that follow from the registry and the parser (the remote tests, their results per run, the commands) from them, never as pinned numbers, so a remote test or a command is added by one file again.
+- **Why:** Ghost, 2026-11-18, of seven suggestions after the day's landings: "do 1-4, and 6 ahead of 7.2". The day's failures each had its own cause: a cold gate refused on a tree edited while it ran (J-049); a test that left a server thread running hung the fast loop after its summary, with no line saying so (J-050); a missing annotation reached `main` since ruff ran only in the full gate (J-043); both of Phase 6's window bugs were invisible to every gate, which skipped the window tests (J-043, J-045); adding four remote tests and one command broke seven tests that pinned numbers (J-041).
+- **Held by:** `scripts/gate.sh`, `scripts/fast.sh`, `stacks/python/gate.sh`, `test/test_gates.py`, `test/test_gate_failures.py`, `docs/ROADMAP.md` and `TODO.md` 7.2 and 7.3.
+- **Source:** Ghost, in chat, 2026-11-18, from Claude's seven suggestions for the shipping's reliability.
+- **Status:** in force
+- **See also:** C-037, C-040, SP-014, SP-012
+- **subject:** gates
