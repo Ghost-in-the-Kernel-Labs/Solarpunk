@@ -45,3 +45,10 @@ An entry is `### <date> · <task> · <agent>` and four lines: **Task**, **Opened
 - **Opened**: `solarpunk/ui/app.py`, `solarpunk/ui/__main__.py`, `solarpunk/ui/demo.py`, `test/solarpunk/test_ui.py`, `solarpunk/project/surface.py`, `stacks/python/README.md` (the fast loop row, for tkinter), `docs/journal/J-000-099.md` (J-025).
 - **Complaints**: that the widget tests need tkinter and xvfb and that the fast loop's interpreter has neither is written only in the stack README's long fast-loop cell and a journal entry; a fresh container's venv had no tkinter either, which nothing says. No product workpath again (third voice: J-039, J-041).
 - **Suggestions**: a UI row in a product workpath naming `xvfb-run -a .venv/bin/python -m pytest test/solarpunk/test_ui*.py` and `apt-get install python3-tk` when the venv lacks it; the pure-half split (`glyph.py`, `chart.py`) written as the UI rule.
+
+### 2026-11-18 · the README's roadmap held to the chain · Claude
+
+- **Task**: the stale README fixed, and a test so it cannot fall behind TODO.md and DONE.md again.
+- **Opened**: `README.md`, `TODO.md`, `docs/DONE.md`, `test/solarpunk/test_mirror.py` (to check the mirror's claim).
+- **Complaints**: the README is the one document a visitor reads first and the only one in the meta-architecture table (`docs/ROADMAP.md` §5) with no test; the handoff's list of what a landing updates does not name it.
+- **Suggestions**: a README row in §5's table naming `test/test_readme.py`, at the next tune-up.

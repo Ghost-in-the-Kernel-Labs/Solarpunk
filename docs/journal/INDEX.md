@@ -47,3 +47,4 @@ Written from `docs/journal/` by `scripts/journal_index.py`; do not edit by hand.
 | J-041 | Reports and diagnostics before the network's security: the power-output report and four inverter diagnostics | decision | `J-000-099.md` |
 | J-042 | A landing pushes main before main moves: the end-of-turn hook's misfire closed | failure-caught | `J-000-099.md` |
 | J-043 | 6.3: the reports window, and a curve that drew a gap as a fall in output | feature | `J-000-099.md` |
+| J-044 | The README's roadmap had fallen behind the chain; a test now holds it | failure-caught | `J-000-099.md` |
