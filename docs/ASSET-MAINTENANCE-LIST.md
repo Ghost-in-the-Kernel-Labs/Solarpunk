@@ -58,7 +58,7 @@ A single-axis tracker turning a row of panels to follow the sun, stowing flat in
 | --- | --- | --- | --- |
 | angle_deg | deg | -60 | 60 |
 
-Tests: `reachable`, `tracker_moving`.
+Tests: `reachable`, `on_grid`, `tracker_moving`.
 
 Passing: the endpoint answers within the timeout with an angle in range that changes over the day.
 
@@ -70,7 +70,7 @@ The revenue meter at the point of interconnection: the energy the plant is paid 
 | --- | --- | --- | --- |
 | energy_kwh | kWh | 0 | — |
 
-Tests: `reachable`, `energy_monotonic`.
+Tests: `reachable`, `on_grid`, `energy_monotonic`.
 
 Passing: the endpoint answers within the timeout with an energy count at or above zero that never falls from one
 sample to the next.
@@ -84,6 +84,6 @@ A weather station: plane-of-array irradiance and temperature, the denominator of
 | irradiance_w_m2 | W/m2 | 0 | 1500 |
 | temperature_c | °C | -40 | 90 |
 
-Tests: `reachable`, `irradiance_in_range`.
+Tests: `reachable`, `on_grid`, `irradiance_in_range`.
 
 Passing: the endpoint answers within the timeout with irradiance and temperature both in range.

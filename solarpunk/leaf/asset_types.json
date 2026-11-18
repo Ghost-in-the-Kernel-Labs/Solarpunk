@@ -30,7 +30,7 @@
     "fields": {
       "angle_deg": {"unit": "deg", "min": -60, "max": 60}
     },
-    "tests": ["reachable", "tracker_moving"],
+    "tests": ["reachable", "on_grid", "tracker_moving"],
     "passing": "The endpoint answers within the timeout with an angle in range that changes over the day."
   },
   {
@@ -39,7 +39,7 @@
     "fields": {
       "energy_kwh": {"unit": "kWh", "min": 0, "max": null}
     },
-    "tests": ["reachable", "energy_monotonic"],
+    "tests": ["reachable", "on_grid", "energy_monotonic"],
     "passing": "The endpoint answers within the timeout with an energy count at or above zero that never falls from one sample to the next."
   },
   {
@@ -49,7 +49,7 @@
       "irradiance_w_m2": {"unit": "W/m2", "min": 0, "max": 1500},
       "temperature_c": {"unit": "°C", "min": -40, "max": 90}
     },
-    "tests": ["reachable", "irradiance_in_range"],
+    "tests": ["reachable", "on_grid", "irradiance_in_range"],
     "passing": "The endpoint answers within the timeout with irradiance and temperature both in range."
   }
 ]

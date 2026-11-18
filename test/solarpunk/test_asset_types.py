@@ -34,8 +34,8 @@ class TheList(unittest.TestCase):
         self.assertEqual(sorted(asset_types.fields_of(AssetKind.SENSOR)), ["irradiance_w_m2", "temperature_c"])
 
     def test_the_tests_each_kind_runs(self) -> None:
-        self.assertEqual(asset_types.asset_type(AssetKind.TRACKER).tests, ("reachable", "tracker_moving"))
-        self.assertEqual(asset_types.asset_type(AssetKind.METER).tests, ("reachable", "energy_monotonic"))
+        self.assertEqual(asset_types.asset_type(AssetKind.TRACKER).tests, ("reachable", "on_grid", "tracker_moving"))
+        self.assertEqual(asset_types.asset_type(AssetKind.METER).tests, ("reachable", "on_grid", "energy_monotonic"))
         self.assertIn("power_under_rated", asset_types.asset_type(AssetKind.INVERTER).tests)
 
     def test_fields_of_is_a_copy(self) -> None:

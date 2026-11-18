@@ -25,3 +25,4 @@ Written from `docs/journal/` by `scripts/journal_index.py`; do not edit by hand.
 | J-019 | 2.6: the mailer landed; one SMTP path, the credential never shown | feature | `J-000-099.md` |
 | J-020 | A dataclass decorator on an Enum made every AssetStatus equal | failure-caught | `J-000-099.md` |
 | J-021 | 2.2: the feed and its simulator landed; the simulator is telemetry on the wire | contradiction | `J-000-099.md` |
+| J-022 | 2.3: the remote tests and their registry landed; the list now names on_grid for every kind with a feed | feature | `J-000-099.md` |
