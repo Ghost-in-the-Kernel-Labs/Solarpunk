@@ -24,26 +24,38 @@ the system should have enough structure to expose a misunderstanding when one is
 
 ## This project's ghost
 
-<!-- STAMP: replace this section. Name the loss this project is built against, in a paragraph,
-and the mechanisms by which the kernel remembers it, as a list that cites the contract and the
-decisions. The parents' sections are the examples; each is the philosophy pointed at a different
-loss. -->
+Solarpunk is built against the loss that follows a utility-scale solar plant through its service
+life: the number survives and its meaning does not. An availability of 98.7 % in a monthly report
+rests on a dozen choices nobody wrote down: which hours were excluded (night, grid curtailment,
+force majeure, a client-requested outage), what counted as "the inverter was down" against a
+SCADA feed that drops samples, which irradiance sensor the performance ratio leaned on and what
+its reference yield assumed. Technicians rotate, the asset manager changes, the service contract
+is renewed with new wording, and three years in an auditor asks why this number and there is no
+one left who knows. ISO 55000 calls what is lost "line of sight" from the plant's purpose to the
+work done on it; ISO 9001 calls the fix evidence. The kernel remembers it so:
 
-Every project built this way has a loss of its own, and this section names it. The parents:
+- **Every KPI is a contract clause, not a formula in a script.** `docs/KPI-CONTRACT.md` defines
+  each number (availability, performance ratio, energy yield, MTBF, MTTR) in words, with the
+  exclusions it applies and a ten-row worked example a person checks by hand; the code cites the
+  clause it implements and a test compares the two (SP-002 onward, once written).
+- **Every exclusion is a named rule with a decision behind it.** An hour leaves the denominator
+  only by a rule in the contract that names the decision that admitted it, so "why was this hour
+  excluded" has an answer in the tree, never in someone's memory.
+- **The telemetry's gaps are data, not noise.** A dropped SCADA sample is recorded as a gap and
+  the KPI says how it treated it; a number that silently filled a gap is a defect.
+- **A corrective action carries its cause.** Every work order in the ledger closes with a
+  root-cause code from a closed list in the glossary, so root-cause analysis is a query, not a
+  meeting, and a repeated code is the signal for a preventive action.
+- **The clause register is the audit.** `docs/CLAUSE-REGISTER.md` maps each ISO 9001 and ISO
+  55000 requirement the project claims to the test that holds it; a clause with no test is marked
+  open, and a test that stops failing on its planted break is caught by the check doctrine (C-013).
+- **The blind mirror.** Each KPI is reimplemented from the contract text alone by an agent that has
+  not seen the code, and a test compares the two (the Python stack's rule), so the contract, not
+  the code, is what the number means.
 
-- **Suite Builder**: a test suite written by a tool whose reasons for each test would be gone by
-  the time the suite failed; so every generated test says where it came from, and the Suite IR
-  holds every decision a suite needs as plain data read back from the output.
-- **Katana**: a COBOL program whose authors have been gone for decades; so what the code does and
-  what it means are two artifacts (the Semantic IR and the Intent IR), and a proof ledger links
-  them, hash-chained, so a person's confirmation survives a rebuild.
-- **Employee Evaluator**: turnover, the ordinary loss, in a product that measures the philosophy
-  in other people's code; so every score is traced to a fact with evidence and a confidence.
-- **Neon Rain**: the forgotten search, a loss that happens in weeks to the person who caused it:
-  how many configurations were tried before this one looked good; so the trials file is
-  append-only and its count deflates every reported number.
-
-A project whose section is still this list has not yet said what it is for.
+The parents' sections are the pattern, each pointed at a different loss: Suite Builder at the
+reasons behind generated tests, Katana at authors gone for decades, Employee Evaluator at
+turnover, Neon Rain at the forgotten search (`docs/LINEAGE.md`).
 
 ## What it asks of a project's own code
 
