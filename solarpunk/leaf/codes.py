@@ -29,6 +29,16 @@ class Severity(Enum):
 
 
 @dataclass(frozen=True)
+class AssetStatus(Enum):
+    """The one glyph the front end shows per asset (Phase 3): GREEN, the last scheduled run's remote tests all passed;
+    YELLOW, one failed; RED, the asset carries an open OUTAGE fault. AssetStatus.RED.value is "red"."""
+
+    GREEN = "green"
+    YELLOW = "yellow"
+    RED = "red"
+
+
+@dataclass(frozen=True)
 class FaultCode:
     """One row of the catalogue: FaultCode("INV-001", AssetKind.INVERTER, Severity.OUTAGE, "Inverter offline")."""
 

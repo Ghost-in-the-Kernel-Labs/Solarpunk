@@ -16,3 +16,7 @@ Done 2026-11-17 (J-002, SP-002). Check: `stacks/python/gate.sh` runs green under
 ### 0.3 The roadmap and TODO filled
 
 Done 2026-11-17 (J-003). Check: `docs/ROADMAP.md` §1 to §6 written for Solarpunk (its STAMP line gone, Phase 1 planned in §6) and `TODO.md` holds Phase 1's items in order, each with its Check line, ending with its tune-up pass. ✓
+
+### 0.4 The contract and the leaf module
+
+Done 2026-11-17 (J-004). Check: `docs/CONTRACT.md` renamed and its first invariants written; `docs/modules.json`'s package and modules set; `test/test_contract.py` and `test/test_modules.py` green on the real folders. ✓ The file keeps its name (`test/test_contract.py` reads it by name) and is titled the KPI contract, prefix SOL-.

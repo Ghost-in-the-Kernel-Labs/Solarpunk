@@ -34,7 +34,7 @@ is renewed with new wording, and three years in an auditor asks why this number 
 one left who knows. ISO 55000 calls what is lost "line of sight" from the plant's purpose to the
 work done on it; ISO 9001 calls the fix evidence. The kernel remembers it so:
 
-- **Every KPI is a contract clause, not a formula in a script.** `docs/KPI-CONTRACT.md` defines
+- **Every KPI is a contract clause, not a formula in a script.** `docs/CONTRACT.md` (the KPI contract) defines
   each number (availability, performance ratio, energy yield, MTBF, MTTR) in words, with the
   exclusions it applies and a ten-row worked example a person checks by hand; the code cites the
   clause it implements and a test compares the two (SP-002 onward, once written).
