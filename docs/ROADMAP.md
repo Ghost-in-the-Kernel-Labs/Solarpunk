@@ -164,21 +164,21 @@ here; its check is copied into `TODO.md`.
 
 ### Phase 2: the feed, the remote tests, the clock
 
-What Ghost set on 2026-11-17, planned in full when Phase 1 closes:
+What Ghost set on 2026-11-17; the lanes, 2.1 first and the rest in parallel (P-15):
 
-- **The asset maintenance list (`docs/ASSET-MAINTENANCE-LIST.md`, `solarpunk/leaf/asset_types.json`).** One entry per
+- **2.1 The asset maintenance list (`docs/ASSET-MAINTENANCE-LIST.md`, `solarpunk/leaf/asset_types.json`).** One entry per
   asset type: what the asset is, the fields its feed answers with and the range each is supposed to fall in (an
   inverter answers `irradiance_w_m2`, `power_kw`, `temperature_c`; a tracker `angle_deg`; a meter `energy_kwh`,
   monotonic), the remote tests that can be run against it, and what a passing response is. The UI's type dropdown
   reads this list, the feed reader checks a response against it, and a remote test's `KINDS` names entries in it;
   `AssetKind` stays the id of an entry. A check holds the document and the JSON together (C-013).
-- **The feed (`solarpunk/feed/`).** An asset is added by its IP address and port (`Asset.host`, `Asset.port`, in the
+- **2.2 The feed (`solarpunk/feed/`).** An asset is added by its IP address and port (`Asset.host`, `Asset.port`, in the
   leaf from 1.1); `ping(asset)` opens the endpoint and reads its data feed, one JSON line per sample in the leaf's
   `Sample` shape over plain TCP, and turns it into samples the telemetry table stores. A simulator
   (`python3 -m solarpunk.feed.simulate <asset> --port N --seed S`) serves the synthetic generator's output on a port,
   so the client, the remote tests and the UI are exercised here with no real inverter; a real asset's adapter is a
   later project's (§4).
-- **Remote tests (`solarpunk/remote/`).** A remote test is a standalone module `solarpunk/remote/tests/<name>.py`
+- **2.3 Remote tests (`solarpunk/remote/`).** A remote test is a standalone module `solarpunk/remote/tests/<name>.py`
   with `KINDS` (the `AssetKind`s it runs against), `CLAUSES` (the register clauses it evidences, `9001-9.1.1` …),
   and `run(asset, samples) -> Result(passed, reason)`; it is executed on its own against one asset of a defined
   kind (`python3 -m solarpunk.remote.run <test> <asset-id>`) and by the scheduled job against every asset of its
@@ -190,37 +190,48 @@ What Ghost set on 2026-11-17, planned in full when Phase 1 closes:
   evidence beside the repository's tagged tests, so ISO 9001 and ISO 55000 coverage is one report over both
   (`scripts/clauses.py`). The leaf's `AssetStatus` rule: RED when the asset carries an open OUTAGE fault, YELLOW when
   the latest run has a failing remote test, GREEN otherwise.
-- **The mailer (`solarpunk/mailer/`).** On a new OUTAGE fault, a pushed error code or a failing remote test, one mail
+- **2.6 The mailer (`solarpunk/mailer/`).** On a new OUTAGE fault, a pushed error code or a failing remote test, one mail
   to the engineers `engineers_for` names, saying the asset, its location, the code or test and the instant, sent by
   `smtplib` from the standard library over the account's SMTP server (Outlook's own through Microsoft 365's SMTP, any
   SMTP host on Linux: one code path, SP-009); the server, port and sender live in a settings file the tests never
   read, and the tests use a local `smtpd`-style fake. A mail is also a row in a `mails` table, so what was sent and to
   whom is a query.
-- **The clock (`solarpunk/schedule/`).** One `Job` (name, command, cadence) rendered to a crontab line on Linux and a
+- **2.5 The clock (`solarpunk/schedule/`).** One `Job` (name, command, cadence) rendered to a crontab line on Linux and a
   `schtasks /Create` command on Windows, each against a golden; `install` and `remove` run the platform's tool and
   are the only functions that touch the host, so the tests never do; a Windows run is a by-hand Actions job (C-032).
   The scheduled job pings every asset with a feed, runs the whole remote-test suite (each test against every asset
   of its kinds), stores the results, stamps each asset's last status and the run's instant (`last_status`,
   `last_run_at` on the asset, shown on mouseover in Phase 3), and recomputes the site's KPIs. Open for Ghost: whether
   the job runs `python3 -m solarpunk.cli` or a frozen entry point.
-- **The receiver (`solarpunk/receiver/`).** The one inbound surface: an asset pushes a line `<asset-id> <fault-code>`
+- **2.4 The receiver (`solarpunk/receiver/`).** The one inbound surface: an asset pushes a line `<asset-id> <fault-code>`
   to the central server; the receiver refuses an unknown asset or code (SOL-04, SOL-05), assigns the fault in the
   ledger and sets the asset's status at once (SP-008), so degradation reaches the fleet view in real time, between
   scheduled runs.
 
+- **2.7 Tune-up pass 2**, which also writes J-010's six readings into the contract as sentences.
+
 ### Phase 3: the native front end
 
-A desktop UI on Windows and Linux, no browser and no web hook (Ghost, 2026-11-17): tkinter from the standard library
-(P-17), `solarpunk/ui/`. The main screen is a scrollable list of every asset, each row a small solar-panel glyph
-drawn on a canvas in the asset's `AssetStatus` colour (green passed the last scheduled run, yellow a remote test
-failed on it, red an active OUTAGE fault) beside the asset's id and name; clicking a row opens the asset: its open
-faults, the remote tests of its last run with the failing one named and its reason first, and a form to assign a
-catalogue code or add a remote test. A second screen adds an asset: its id, its type from a dropdown read from the asset maintenance list, its IP address and port, and pings it.
-Clicking an asset's icon opens its window, which also assigns its engineer: a dropdown of known engineer emails
-plus a text field for a new one, and two buttons that read Save and Cancel; Save writes `assign_engineer`, Cancel
-changes nothing. The UI calls project alone (its own MOD row when planned); every screen's data is a project call the tests exercise
-headless, and the widgets are tested under a virtual display where the session has one, by hand on Windows where
-it does not. Planned when Phase 2 closes.
+A desktop UI on Windows and Linux, no browser and no web hook (Ghost, 2026-11-17; SP-007): tkinter from the standard
+library (P-17), `solarpunk/ui/`, calling project alone (a `ui` module row in `docs/modules.json`, mayImport project).
+
+- **3.1 The fleet window (`solarpunk/ui/app.py`, `glyph.py`, `__main__.py`).** A scrollable list of every asset, each
+  row a small solar-panel glyph on a canvas in the asset's `AssetStatus` colour (green: the last scheduled run's remote
+  tests passed; yellow: one failed; red: an open OUTAGE fault), the id, name and kind; mouseover shows the last status
+  and the run's instant; a click opens the asset window; Refresh rereads the store. Every widget's data is one project
+  call the tests also make headless; the widgets are tested under a virtual display (`xvfb-run`) and skip without one.
+- **3.2 The asset window (`solarpunk/ui/asset_window.py`).** The asset's fields, its open faults with their meanings,
+  the last run's remote tests with the failing one and its reason first, a form to assign a catalogue code, and the
+  engineer assignment: a dropdown of known engineer emails plus a text field, with `Save` and `Cancel`.
+- **3.3 The add-asset window (`solarpunk/ui/add_asset.py`).** Id, name, site, parent, the type from a dropdown read
+  from the asset maintenance list, rated kW, location, engineer email, IP address and port; Ping reads the feed once
+  and shows the first record or the error; Save registers through project; the fleet's refusals are shown, never
+  swallowed.
+- **3.4 The demo (`python3 -m solarpunk.ui --demo`, `DEMO.md`).** A rebuilt file store with the OAHE fixture, a day of
+  telemetry, closed and open faults, a simulator for one inverter and one run of the remote suite, so the window opens
+  with all three colours and a last-run instant; `DEMO.md` holds the Windows commands, the click order, the talk track
+  and the clause report; `README.md` filled.
+- **3.5 Tune-up pass 3.**
 
 ### Phase 4: the work-order ledger
 

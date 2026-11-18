@@ -515,8 +515,8 @@ The core decisions above are inherited (Core C-001 to C-040); this project's beg
 - **Decision:** `solarpunk/schedule/` (Phase 2) renders a `Job` to a crontab line and to a `schtasks /Create` command, each compared with a golden; only `install` and `remove` touch the host and the tests never call them. A scheduled run executes the whole remote-test suite, each test against every asset of its kinds, stamps each asset's last status and the run's instant, and recomputes KPIs. A Windows run is a by-hand Actions job (C-032).
 - **Why:** Ghost's direction: the ability to schedule jobs on both Windows and Linux; the session has no Windows (F-03), so what can be proven here is the rendered artefact, and the host step is kept to two functions.
 - **Held by:** `docs/ROADMAP.md` Phase 2; the lane's goldens when built.
-- **Source:** Ghost, 2026-11-17, in chat.
-- **Status:** proposed
+- **Source:** Ghost, 2026-11-17, in chat; in force by his word of 2026-11-17 23:25 ("keep the agents busy all night, clear as much of the roadmap as possible"), C-040.
+- **Status:** in force
 - **See also:** Core C-032, SP-007
 - **subject:** scheduling
 
@@ -524,8 +524,8 @@ The core decisions above are inherited (Core C-001 to C-040); this project's beg
 - **Decision:** `solarpunk/ui/` (Phase 3) is tkinter from the standard library: a scrollable list of assets, each with a solar-panel glyph in its `AssetStatus` colour (green: the last scheduled run's remote tests passed; yellow: one failed; red: an open OUTAGE fault), the last status and the run's instant on mouseover, click-through to the failing remote test and its reason, a form to add an asset with its type from a dropdown read from the asset maintenance list and its IP address and port. No web server, no browser, no web hook. The UI calls project alone.
 - **Why:** Ghost's direction: native Windows and Linux UIs, not web; tkinter is the one toolkit CPython ships on both, so P-17 holds. Open: whether tkinter's look suffices or a toolkit (a dependency, SP-004) is wanted later.
 - **Held by:** `docs/ROADMAP.md` Phase 3, §4.
-- **Source:** Ghost, 2026-11-17, in chat; the toolkit is the coordinator's proposal for Ghost's word.
-- **Status:** proposed
+- **Source:** Ghost, 2026-11-17, in chat; the toolkit is the coordinator's proposal, in force by Ghost's word of 2026-11-17 23:25 to clear the roadmap (C-040); Ghost may still refuse it by a superseding decision.
+- **Status:** in force
 - **See also:** SP-004, SP-006
 - **subject:** front end
 
@@ -533,8 +533,8 @@ The core decisions above are inherited (Core C-001 to C-040); this project's beg
 - **Decision:** beside the scheduled pull (SP-006), an asset may push a line `<asset-id> <fault-code>` to the central receiver (`solarpunk/receiver/`, Phase 2), which refuses an unknown asset or code (SOL-04, SOL-05), assigns the fault in the ledger and sets the asset's status at once, so degradation is seen in real time, not at the next run.
 - **Why:** Ghost's direction: assets ping the server with their id and error code. The receiver is the one inbound surface, so it is small, refuses first, and stores nothing it cannot name.
 - **Held by:** `docs/ROADMAP.md` Phase 2; the lane's refusal tests when built.
-- **Source:** Ghost, 2026-11-17, in chat.
-- **Status:** proposed
+- **Source:** Ghost, 2026-11-17, in chat; in force by his word of 2026-11-17 23:25 ("keep the agents busy all night, clear as much of the roadmap as possible"), C-040.
+- **Status:** in force
 - **See also:** SP-006, SOL-04
 - **subject:** receiver
 
@@ -542,7 +542,16 @@ The core decisions above are inherited (Core C-001 to C-040); this project's beg
 - **Decision:** the mailer (Phase 2) sends through `smtplib` to the account's SMTP server: Outlook and Microsoft 365 by their SMTP endpoint, any SMTP host on Linux; no Outlook desktop automation (COM, which needs a dependency and a Windows session) and no mail library. The server, port, sender and credential reference live outside the repository (a settings file the tests never read; a credential is read from one named environment variable and never printed, the supply-chain rules); the tests send to a local fake.
 - **Why:** Ghost's direction: mailer integration to Outlook and comparable services on Linux, on asset degradation or a bad flag. SMTP is the one protocol both sides speak that CPython ships; a second path per platform is a second thing to test and to break. Open: if Outlook's desktop client itself must send (not the account), that is a dependency and a decision (SP-004).
 - **Held by:** `docs/ROADMAP.md` Phase 2; the lane's fake-server tests when built.
-- **Source:** Ghost, 2026-11-17, in chat; the SMTP shape is the coordinator's proposal for Ghost's word.
-- **Status:** proposed
+- **Source:** Ghost, 2026-11-17, in chat; the SMTP shape is the coordinator's proposal, in force by Ghost's word of 2026-11-17 23:25 to clear the roadmap (C-040); Ghost may still refuse it by a superseding decision.
+- **Status:** in force
 - **See also:** SP-004, SP-006, SP-008
 - **subject:** mail
+
+### SP-010: The Phase 2 and 3 modules: feed, remote, receiver, schedule, mailer, ui
+- **Decision:** six modules join `docs/modules.json`: feed, remote, schedule and mailer import the leaf alone, as the Phase 1 lanes do (MOD-05); receiver imports leaf and project (it assigns a fault through `project.assign_fault`, which refuses an asset the fleet lacks, so the refusal is written once); ui imports leaf and project (the leaf for its types, project for every read and write); project may import every module but receiver, ui and cli. A remote test is a module file under `solarpunk/remote/tests/`, inside the remote module, found by its registry.
+- **Why:** the lanes of Phases 2 and 3 are built in parallel like Phase 1's (SP-005), so none may import another's unfinished code; the receiver and the UI are the two surfaces a user or an asset touches, and both go through project so a rule (an asset must exist; a code must be in the catalogue) is held in one place.
+- **Held by:** `docs/modules.json`, `test/test_modules.py`.
+- **Source:** Ghost's directions of 2026-11-17 (`docs/ROADMAP.md` Phases 2 and 3), the module set the coordinator's, in force by Ghost's word to clear the roadmap (C-040).
+- **Status:** in force
+- **See also:** SP-003, SP-005, SP-007, SP-008
+- **subject:** modules-2

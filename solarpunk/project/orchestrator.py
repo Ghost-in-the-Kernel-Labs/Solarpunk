@@ -3,7 +3,7 @@ asset against the fleet before the ledger takes a fault, and reads the fleet, th
 KPI engine leaf types (Invariants: SOL-04, SOL-05, SOL-07 to SOL-10)."""
 import sqlite3
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import date, datetime, timedelta
 from pathlib import Path
 
 from solarpunk import kpi
@@ -11,12 +11,17 @@ from solarpunk.faults import ledger
 from solarpunk.fleet import registry
 from solarpunk.leaf import store
 from solarpunk.leaf.assets import Asset, site_id
-from solarpunk.leaf.clock import Period
+from solarpunk.leaf.clock import Period, at
 from solarpunk.leaf.codes import AssetKind, AssetStatus, Severity
 from solarpunk.leaf.faults import Fault
 from solarpunk.leaf.telemetry import Sample
 from solarpunk.telemetry import generate as generator
 from solarpunk.telemetry import samples as sample_table
+
+
+SITE_EMAIL = "site@oahe.example"
+INVERTER_EMAIL = "inverter@oahe.example"
+STORE_TABLES = ("assets", "faults", "samples")
 
 
 class UnknownAsset(ValueError):
@@ -46,6 +51,39 @@ def open_store(path: str | Path = store.MEMORY) -> sqlite3.Connection:
     return conn
 
 
+def open_or_create(path: str | Path) -> sqlite3.Connection:
+    """The store at a path, its tables made only when it has none (the CLI's store, which outlives one call):
+    open_or_create("fleet.db") on a new file is open_store("fleet.db"); on a file holding all three tables it opens
+    it again with its rows, where open_store would raise "table assets already exists"."""
+    conn = store.connect(path)
+    marks = ",".join("?" for _ in STORE_TABLES)
+    query = f"SELECT count(*) FROM sqlite_master WHERE type = 'table' AND name IN ({marks})"
+    if conn.execute(query, STORE_TABLES).fetchone()[0] == len(STORE_TABLES):
+        return conn
+    conn.close()
+    return open_store(path)
+
+
+def demo_fleet() -> tuple[Asset, ...]:
+    """The OAHE example fleet, copied from test/solarpunk/test_fleet.py (ROADMAP 1.1): eleven assets, the site first,
+    a parent before its children; demo_fleet()[1].asset_id is "OAHE-INV-001"."""
+    return (
+        Asset("OAHE-SIT-001", AssetKind.SITE, "OAHE", None, "Oahe", None, location="Pierre, SD",
+              engineer_email=SITE_EMAIL),
+        Asset("OAHE-INV-001", AssetKind.INVERTER, "OAHE", "OAHE-SIT-001", "Inverter 1", 100.0, "10.0.0.1", 5020,
+              "Pad A", INVERTER_EMAIL),
+        Asset("OAHE-INV-002", AssetKind.INVERTER, "OAHE", "OAHE-SIT-001", "Inverter 2", 100.0, "10.0.0.2", 5020, "Pad B"),
+        Asset("OAHE-STR-001", AssetKind.STRING, "OAHE", "OAHE-INV-001", "String 1", 50.0),
+        Asset("OAHE-STR-002", AssetKind.STRING, "OAHE", "OAHE-INV-001", "String 2", 50.0),
+        Asset("OAHE-STR-003", AssetKind.STRING, "OAHE", "OAHE-INV-002", "String 3", 50.0),
+        Asset("OAHE-STR-004", AssetKind.STRING, "OAHE", "OAHE-INV-002", "String 4", 50.0),
+        Asset("OAHE-TRK-001", AssetKind.TRACKER, "OAHE", "OAHE-SIT-001", "Tracker 1", None, "10.0.0.11", 502),
+        Asset("OAHE-TRK-002", AssetKind.TRACKER, "OAHE", "OAHE-SIT-001", "Tracker 2", None, "10.0.0.12", 502),
+        Asset("OAHE-MTR-001", AssetKind.METER, "OAHE", "OAHE-SIT-001", "Revenue meter", None, "10.0.0.21", 1),
+        Asset("OAHE-SEN-001", AssetKind.SENSOR, "OAHE", None, "Irradiance sensor", None, "10.0.0.31", 65535),
+    )
+
+
 def load_fleet(conn: sqlite3.Connection, assets: tuple[Asset, ...]) -> None:
     """Registers the assets, a parent before its children, refusing as the registry does: load_fleet(conn, OAHE) stores
     eleven assets."""
@@ -73,6 +111,43 @@ def assign_fault(conn: sqlite3.Connection, asset_id: str, code: str, opened: dat
 def close_fault(conn: sqlite3.Connection, fault_id: int, closed: datetime) -> Fault:
     """Closes an open fault as the ledger does: close_fault(conn, 1, 10:30 UTC).closed is 10:30 UTC."""
     return ledger.close(conn, fault_id, closed)
+
+
+def fleet_assets(conn: sqlite3.Connection, site: str | None) -> tuple[Asset, ...]:
+    """The fleet's assets in id order, one site's when a site is given: fleet_assets(conn, "OAHE") is OAHE's eleven;
+    fleet_assets(conn, None) adds every other site's, BIGS-INV-001 before OAHE-INV-001."""
+    if site is not None:
+        return registry.by_site(conn, site)
+    found = [asset for kind in AssetKind for asset in registry.by_kind(conn, kind)]
+    return tuple(sorted(found, key=lambda asset: asset.asset_id))
+
+
+def fleet_listing(conn: sqlite3.Connection, site: str | None) -> tuple[tuple[Asset, AssetStatus], ...]:
+    """Each of fleet_assets' assets beside its status: with an open INV-001 on OAHE-INV-001, fleet_listing(conn,
+    "OAHE")[1] is (OAHE-INV-001, AssetStatus.RED) and every other pair's status GREEN."""
+    return tuple((asset, asset_status(conn, asset.asset_id)) for asset in fleet_assets(conn, site))
+
+
+def faults_listing(conn: sqlite3.Connection, open_only: bool) -> tuple[Fault, ...]:
+    """Every fault the ledger holds in fault_id order, or the open ones alone: with fault 1 closed and fault 2 open,
+    faults_listing(conn, False) is (fault 1, fault 2) and faults_listing(conn, True) is (fault 2,)."""
+    if open_only:
+        return ledger.open_faults(conn)
+    found = [fault for asset in fleet_assets(conn, None) for fault in ledger.by_asset(conn, asset.asset_id)]
+    return tuple(sorted(found, key=lambda fault: fault.fault_id))
+
+
+def period(start: datetime, end: datetime) -> Period:
+    """The leaf's half-open period, refusing as it does: period(10:00 UTC, 11:00 UTC).expected() is 12; a naive end
+    raises NotUtc, a reversed pair ValueError."""
+    return Period(start, end)
+
+
+def day_period(day: date) -> Period:
+    """One UTC day as a period, midnight to midnight: day_period(date(2026, 6, 1)) is Period(at(2026, 6, 1),
+    at(2026, 6, 2)), 288 instants."""
+    start = at(day.year, day.month, day.day)
+    return Period(start, start + timedelta(days=1))
 
 
 def generate_and_store(conn: sqlite3.Connection, site: str, period: Period, seed: int) -> int:

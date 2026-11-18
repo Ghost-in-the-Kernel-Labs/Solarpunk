@@ -17,3 +17,4 @@ Written from `docs/journal/` by `scripts/journal_index.py`; do not edit by hand.
 | J-011 | 1.5: the clause register landed; coverage of the two standards is one report | feature | `J-000-099.md` |
 | J-012 | 1.6: the orchestrator landed; the blind mirror agreed on every worked example | trial | `J-000-099.md` |
 | J-013 | 1.8: the leaf's own tests; the tree's mutation run is clean | feature | `J-000-099.md` |
+| J-014 | 1.7: the thin CLI landed; Phases 2 and 3 planned as lanes; SP-006 to SP-010 in force | failure-caught | `J-000-099.md` |

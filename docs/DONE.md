@@ -58,3 +58,7 @@ Done 2026-11-18 (J-012). Check: `solarpunk/project/` with `open_store`, `assign_
 ### 1.8 The leaf's own tests
 
 Done 2026-11-18 (J-013). Check: `test/solarpunk/test_leaf.py` holds the leaf's refusals and numbers (clock: `utc`, `on_grid`, `Period`, `at`; telemetry: `Sample`, `gap`; assets: `Asset`'s host/port pairing, port bound and email shape, `parse_asset_id`, `site_id`; faults: `Fault`'s refusals, `covers`, `duration`; store: `connect`, `apply`), so `rm -rf mutants && .venv/bin/mutmut run && .venv/bin/mutmut results | python -I scripts/survivors.py` prints `survivors: every one explained` on the whole tree. ✓ 36 tests; the whole tree's mutation run clean, every survivor explained (three equivalent `on_grid` arithmetic mutants proven by brute force over 1,101,600 instants).
+
+### 1.7 The thin CLI
+
+Done 2026-11-18 (J-014). Check: `python3 -m solarpunk.cli` with `fleet`, `fault`, `telemetry`, `kpi`, `clauses` subcommands, each one call into project; `test/solarpunk/test_cli.py` green; `solarpunk/cli/` imports project alone (MOD-02, `test/test_modules.py`). ✓ five subcommands, each one project call; `fleet load --demo` loads the OAHE eleven; every cli mutant killed; `project.open_or_create` reopens a file store.

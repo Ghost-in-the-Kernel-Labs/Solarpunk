@@ -49,7 +49,8 @@ Written by `scripts/decisions_index.py` from `theGhost.md`; do not edit here. Se
 | SP-003 | Seven modules; Phase 1's lanes are the five below the leaf | in force | modules |
 | SP-004 | The database is SQLite from the standard library; no runtime dependency until a phase needs one | in force | dependencies |
 | SP-005 | Lanes are built in parallel and landed in number order | in force | lanes |
-| SP-006 | Jobs are scheduled by cron on Linux and Task Scheduler on Windows from one job definition | proposed | scheduling |
-| SP-007 | The front end is native, tkinter, on Windows and Linux; nothing a browser opens | proposed | front end |
-| SP-008 | Assets push their own error codes to the central receiver | proposed | receiver |
-| SP-009 | Mail goes out by SMTP from the standard library, one code path for Outlook and Linux | proposed | mail |
+| SP-006 | Jobs are scheduled by cron on Linux and Task Scheduler on Windows from one job definition | in force | scheduling |
+| SP-007 | The front end is native, tkinter, on Windows and Linux; nothing a browser opens | in force | front end |
+| SP-008 | Assets push their own error codes to the central receiver | in force | receiver |
+| SP-009 | Mail goes out by SMTP from the standard library, one code path for Outlook and Linux | in force | mail |
+| SP-010 | The Phase 2 and 3 modules: feed, remote, receiver, schedule, mailer, ui | in force | modules-2 |
