@@ -34,3 +34,7 @@ Done 2026-11-17 (J-006). Check: `docs/when/tune-up.md` followed in full; the met
 ### 1.1 The asset registry
 
 Done 2026-11-17 (J-007). Check: `solarpunk/fleet/` with `schema`, `register`, `load_fleet`, `get`, `by_site`, `by_kind`, `children`; `test/solarpunk/test_fleet.py` green, with a refusal test for each of a malformed id (SOL-05), a kind disagreeing with the id, a missing or foreign-site parent, and a duplicate; the OAHE fixture (the site and ten assets) in the test file; every mutant killed or explained (`stacks/python/gate.sh`). ✓ 35 tests; 136 of 136 fleet mutants killed; two leaf PRAGMA-case survivors explained in `docs/MUTATION.md`.
+
+### 1.2 The fault ledger
+
+Done 2026-11-17 (J-008). Check: `solarpunk/faults/` with `schema`, `assign`, `close`, `open_faults`, `by_asset`, `by_code`, `in_period`, `repeated`; `test/solarpunk/test_faults.py` green, with a refusal test for each of an unknown code (SOL-04), a naive instant (SOL-06), a second open fault of one code on one asset, a close before open and a double close; instants round-trip as aware UTC; every mutant killed or explained. ✓ 20 tests; every ledger mutant killed or explained (18 SQL letter-case survivors in `docs/MUTATION.md`).
