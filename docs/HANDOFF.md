@@ -28,6 +28,12 @@ email on the asset, a mailer to those engineers on degradation, and the Save/Can
 2. Phase 2's open question: does the scheduled job run `python3 -m solarpunk.cli`, or a frozen entry point?
 3. Ghost-Core owes the fixes for F-001 to F-004 (`docs/FINDINGS.md`); this project carries them locally.
 
+## Advisories under the gate's threshold (Tune-up pass 0)
+
+The Python stack's gate runs no audit step (`pip-audit` is not in the lock; `stacks/python/README.md` names it for a
+dependency review, not the gate), so none were reported; the 20 pins are tools alone (pytest, ruff, mutmut and theirs).
+A Core question: whether the stack gate should run an audit each pass.
+
 ## Trials: questions settled by a run, not an argument
 
 (none yet)

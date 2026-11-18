@@ -24,3 +24,7 @@ Done 2026-11-17 (J-004). Check: `docs/CONTRACT.md` renamed and its first invaria
 ### 0.5 The founding decisions
 
 Done 2026-11-17 (J-005). Check: `theGhost.md` holds Ghost's founding decisions for Solarpunk, a decision for each core decision it refuses among them, each with Ghost as its Source. Agents cannot author Ghost's decisions: an agent drafts the questions for Ghost in `docs/HANDOFF.md`, and a builder that reports "waiting on Ghost" has done its job. ✓ SP-002 to SP-005 in force by Ghost's word in chat; SP-006 to SP-009 proposed from Ghost's directions, waiting on his word (`docs/HANDOFF.md`); no core decision refused.
+
+### 0.6 Tune-up pass 0
+
+Done 2026-11-17 (J-006). Check: `docs/when/tune-up.md` followed in full; the metrics table written; the navigation log's "Last review" set. ✓ Cold gate 0.72 min, warm gate 0.70 min, fast loop 18.7 s; Core unchanged since the stamp (same commit); one fix from the notes (coordinate.md, landing one item at a time).

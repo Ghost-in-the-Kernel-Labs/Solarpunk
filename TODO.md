@@ -16,10 +16,6 @@ question a later item depends on is copied into that item's text, so the item re
 
 ## Phase 0: founding
 
-### 0.6 Tune-up pass 0
-
-Check: `docs/when/tune-up.md` followed in full; the metrics table written; the navigation log's "Last review" set.
-
 ## Phase 1: the fleet, its faults, its numbers
 
 Lanes (P-15): 1.1 to 1.5 are built in parallel by separate workers and landed in this order; 1.6 and 1.7 after them.

@@ -47,6 +47,14 @@ working tree (`git merge --squash agent/<name>`, or the files themselves), runs 
 each worker's change as its own commit (C-031, C-040: what lands on `main` passed the fast checks; the full gate
 runs at the tune-up).
 
+## Landing one item at a time
+
+`scripts/commit.sh` commits the tree the gate recorded, whole: two items finished in one working tree cannot be
+landed as two commits without putting the second's files aside first. Land each item as soon as it is done, before
+starting the next, so a landing never needs a stash (Solarpunk J-006: 0.3 and 0.4 finished together cost a stash and
+a conflict on the metrics table). Run `python3 -I scripts/metrics.py --write` last, after every document edit of the
+commit, since the metrics table counts documentation lines and goes stale on the next edit.
+
 ## Commits and hooks
 
 The fast checks run on the working tree before a landing (`scripts/commit.sh`); nothing re-prompts the

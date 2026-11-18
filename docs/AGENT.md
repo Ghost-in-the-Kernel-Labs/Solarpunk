@@ -41,13 +41,13 @@ stamped project inherits these lines and its tune-up pass re-measures the first.
 | Metric | Target | Measured | Why it matters to the agent |
 | --- | --- | --- | --- |
 | Mandatory context (words) | < 1,200 | 1184 | every task pays it |
-| Fast loop (s) | < 30 | 25.9 | run after every edit |
-| Gate (min) | < 10 | 5.2 | paid before every push |
+| Fast loop (s) | < 30 | 18.7 | run after every edit |
+| Gate (min) | < 10 | 0.7 | paid before every push |
 | Largest source file (lines) | < 400 | 378 | fits a read without paging |
 | Files a routing row opens | ≤ 5 | 2 | the first five reads decide the task |
 | Decisions without `See also` | 0 | 0 | links find what grep misses |
 | Stale generated files | 0 | 0 | AGT-05 |
-| Docs lines per source line | < 0.35 | 9.2 | Suite Builder reached 0.37 and it hurt; unarmed until there is source |
+| Docs lines per source line | < 0.35 | 9.3 | Suite Builder reached 0.37 and it hurt; unarmed until there is source |
 | Cost rows since the thresholds were set | — | 0 | informational, never armed: `docs/when/grades.md`'s provisional numbers move only by a decision from these rows (C-036) |
 
 ## Re-measuring (a tune-up pass, C-024)
