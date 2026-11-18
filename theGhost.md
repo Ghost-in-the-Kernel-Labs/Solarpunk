@@ -619,3 +619,12 @@ The core decisions above are inherited (Core C-001 to C-040); this project's beg
 - **Status:** in force
 - **See also:** C-037, C-040, SP-014, SP-012
 - **subject:** gates
+
+### SP-018: An engineer emails the cause; the mail is the evidence of the closure
+- **Decision:** an engineer closes a fault's cause by replying to the mail the mailer sent about it. The outgoing mail's subject carries a per-fault token (an HMAC of the fault's id under a key from the settings file, never the repository), so a reply is bound to that fault; the mailbox is read with `imaplib` from the standard library, its address and password in the settings file the tests never read. Every mail read is stored whole (sender, date, subject, message id, text) and never deleted. A reply is acted on only when its token is good and its sender is an engineer the fleet holds; then its cause is found by one rule: a line `CAUSE: <word>` wins, else exactly one root cause named by its word or a listed synonym in the text applies, and none or more than one sends the mail to a review queue and a reply asking which. Applying a cause closes the fault's corrective work order with that root cause (opening the order from the fault first when it has none), which closes the fault (4.1), decided by the sending engineer, and the stored mail is linked to the closure as its evidence: the mail is the cause of the update. An operator resolves the review queue on the engineer's word, recorded as such (SP-015).
+- **Why:** Ghost, 2026-11-18: "an engineer should be able to email the cause, the email should be scanned for keywords and if it contains a word that lists a cause, it updates to that", and "The email should be appended as the cause of the update of the cause." His rulings the same day: the mail closes the work order with a root cause; one match applies, none or several go to review, an explicit line wins; after Phase 7's pass, before the tests' record. Email over a phone app: the engineer's phone already reads the mailer's mail, and a reply needs no app and no dependency.
+- **Held by:** `docs/ROADMAP.md` Phase 8 and `TODO.md` 8.1 to 8.4, their tests when built. The tests' record (SP-016) becomes Phase 9 and the network's security Phase 10.
+- **Source:** Ghost, in chat, 2026-11-18.
+- **Status:** in force
+- **See also:** SP-015, SP-009, SP-011, SP-016
+- **subject:** email causes

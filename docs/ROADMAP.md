@@ -318,33 +318,55 @@ when it was called in. It adds to `docs/GOAL.md`'s quality management (4: who de
   engineer and, for a call-in, the operator; `solarpunk fault suggestions|accept|dismiss`.
 - **7.6 Tune-up pass 7.**
 
-### Phase 8: the tests' record, at the root and per asset
+### Phase 8: the cause by email
+
+Ghost's direction of 2026-11-18 (SP-018): an engineer replies to the mailer's mail with the cause; the reply is scanned,
+and when it names exactly one root cause the fault's work order closes with it, the mail kept as the closure's evidence.
+It joins maintenance execution (3: closeout evidence) to quality management (4: root cause, ISO 9001 10.2).
+
+- **8.1 The reply token (`solarpunk/mailer/`).** Each mail about a fault carries a token in its subject, an HMAC of the
+  fault's id under a key in the settings file (`hmac` from the standard library), and asks for a reply with the cause,
+  a `CAUSE: <word>` line read first; a token is checked without the store, and a forged or altered one refused.
+- **8.2 The mailbox reader (`solarpunk/mailer/`, `solarpunk/project/`).** `imaplib` reads the unseen mail of the
+  settings' mailbox at each scheduled run; every mail is stored whole in an `inbound_mails` table and never deleted; the
+  tests use a local fake IMAP server, as the mailer's use a fake SMTP one.
+- **8.3 The cause scan and its review queue (`solarpunk/leaf/root_causes.py`, `solarpunk/project/`).** The synonyms of
+  each root cause in the leaf (a closed list, as the causes are); a mail with a good token from an engineer the fleet
+  holds: `CAUSE: <word>` wins, else exactly one cause named closes the fault's corrective work order with it (opening
+  the order first when the fault has none), decided by that engineer, the mail linked as its evidence; none, several, a
+  bad token or a stranger's address go to the review queue, and the engineer is mailed back asking which.
+- **8.4 The cause in the windows and on the command line (`solarpunk/ui/`, `solarpunk/cli/`).** The asset window shows
+  a closed order's cause with its mail; a review queue an operator resolves on the engineer's word (recorded as such);
+  `solarpunk mail read` runs the reader once.
+- **8.5 Tune-up pass 8.**
+
+### Phase 9: the tests' record, at the root and per asset
 
 Ghost's direction of 2026-11-18 (SP-016): the tests that run against the fleet are shown with what they have done, at
 the root of the window and on each asset, the last 100 runs reviewable, an asset's history searchable and graphed; every
 result kept. It adds to `docs/GOAL.md`'s SCADA analytics (2) and quality management (4: audit evidence).
 
-- **8.1 The record's surface and the timing (`solarpunk/remote/`, `solarpunk/project/`).** Each test's run is timed and
+- **9.1 The record's surface and the timing (`solarpunk/remote/`, `solarpunk/project/`).** Each test's run is timed and
   its duration stored beside its result (a `duration_ms` column a store made before gains, empty for its old rows);
   project gives `tests_overview` (each test: kinds, assets it runs on, last run, last duration, passes and failures),
   `test_log(name, limit=100)` (its newest runs across the fleet) and `asset_log(asset_id, limit=100, search=None)` (the
   asset's newest results, filtered by test, result and words in the reason). Nothing is deleted.
-- **8.2 Last run in the asset window (`solarpunk/ui/asset_window.py`).** The diagnostics table gains each test's last-run
+- **9.2 Last run in the asset window (`solarpunk/ui/asset_window.py`).** The diagnostics table gains each test's last-run
   instant (and duration); a test never run reads "never".
-- **8.3 The Tests window (`solarpunk/ui/tests_window.py`).** "Tests" beside "Reports" in the fleet window: every remote
+- **9.3 The Tests window (`solarpunk/ui/tests_window.py`).** "Tests" beside "Reports" in the fleet window: every remote
   test with its kinds, asset count, last run, duration and pass/fail counts; selecting one shows its last 100 runs
   (asset, instant, result, reason, duration), failures red.
-- **8.4 The asset's history (`solarpunk/ui/history.py`).** From the asset window, "History": the asset's last 100 results
+- **9.4 The asset's history (`solarpunk/ui/history.py`).** From the asset window, "History": the asset's last 100 results
   in a table with a search box (test, result, words in the reason), and a timeline drawn on a canvas, one row per test,
   one mark per run, green a pass and red a failure, its time axis in UTC; the pure half headless, as `chart.py` is.
-- **8.5 Tune-up pass 8.**
+- **9.5 Tune-up pass 9.**
 
-### Phase 9: the network's security
+### Phase 10: the network's security
 
 Ghost's item of 2026-11-18: the demonstration's network is not a production one. Moved after reports and
-diagnostics by SP-013, after fault assignment by SP-015, and after the tests' record by SP-016.
+diagnostics by SP-013, after fault assignment by SP-015, after the tests' record by SP-016, and after email causes by SP-018.
 
-- **9.1 Network security: an engineering pass over the feed and the receiver.** Both speak plain TCP with no device
+- **10.1 Network security: an engineering pass over the feed and the receiver.** Both speak plain TCP with no device
   identity; the receiver defaults to localhost, which suits the demonstration alone. The pass is a document first
   (the wire today, the threats, a proposed decision for each of: authenticated asset connections, transport
   encryption, authorization of fault submissions, replay protection, network segmentation and deployment
@@ -355,4 +377,4 @@ diagnostics by SP-013, after fault assignment by SP-015, and after the tests' re
   historian); the security references are Modbus/TCP Security (mutual TLS on 802), IEC 62351, IEC 62443 zones and
   conduits, and NERC CIP-003 for a large US plant. It adds a sixth threat to the five: the feed client trusts whatever
   answers at the host and port (spoofed telemetry).
-- **9.2 Tune-up pass 9.**
+- **10.2 Tune-up pass 10.**

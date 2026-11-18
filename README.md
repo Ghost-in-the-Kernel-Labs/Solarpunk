@@ -43,8 +43,9 @@ moving only once origin takes it (SP-014), and the full `scripts/gate.sh` runs a
 - Phase 7, faults suggested by tests, assigned by engineers: in progress; every fault names the engineer who assigned
   it, the gate is hardened, failing tests and pushed codes raise suggestions an engineer accepts or dismisses in the
   asset window or on the command line; the phase's tune-up pass is next (SP-015).
-- Phase 8, the tests' record (a Tests window, each asset's history, searchable and graphed): not started (SP-016).
-- Phase 9, the network's security: not started; a design pass first.
+- Phase 8, the cause by email (an engineer's reply closes the work order, the mail its evidence): not started (SP-018).
+- Phase 9, the tests' record (a Tests window, each asset's history, searchable and graphed): not started (SP-016).
+- Phase 10, the network's security: not started; a design pass first.
 
 `docs/ROADMAP.md` holds the plan, `TODO.md` the open items in order, `docs/DONE.md` what is finished;
 `test/test_readme.py` holds each line above to those two files.

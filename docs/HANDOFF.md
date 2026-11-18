@@ -14,11 +14,10 @@ own nightly regime (SP-012, J-038; the section below). Tune-up pass 5: cold gate
 **The first open item is 7.6, Tune-up pass 7** (`TODO.md`; 7.5, the suggestions in the window and on the command line,
 landed in J-054; 7.4, the suggestions themselves, in J-053; SP-017's 7.2 and 7.3 in J-051 and J-052; 7.1, who assigned a fault, landed in J-050; until 7.4 the receiver holds every good push for an engineer and stores nothing): Phase 7 is Ghost's
 fault assignment (SP-015): tests
-suggest a likely fault, only an engineer assigns one, and the record says which; then Phase 8, the tests' record (SP-016): a Tests window at
-the root, each asset's last 100 results searchable and graphed. Network security is now Phase 9. 6.3, the reports window, landed (J-043): "Reports" beside
+suggest a likely fault, only an engineer assigns one, and the record says which; then Phase 8, the cause by email (SP-018), Phase 9, the tests' record (SP-016), and Phase 10, network security. 6.3, the reports window, landed (J-043): "Reports" beside
 "Add asset" in the fleet window; 6.4, the diagnostics in the asset window, landed (J-045). Phase 6 is reports and diagnostics, put ahead of the network's security by Ghost (SP-013, J-041): 6.1 (the
 power-output report, `solarpunk report`, SOL-13) and 6.2 (four inverter diagnostics) are done. The security design pass
-is now 9.1, with an advisor's research on industry addressing and security copied into it. An architecture review
+is now 10.1, with an advisor's research on industry addressing and security copied into it. An architecture review
 (J-041) is Ghost's to place: no product workpath, entry points declared nowhere, `project` and the CLI as hotspots.
 
 What exists: the fleet registry, the fault ledger over a closed catalogue, synthetic SCADA with gaps as data, the KPI

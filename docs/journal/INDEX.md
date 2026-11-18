@@ -58,3 +58,4 @@ Written from `docs/journal/` by `scripts/journal_index.py`; do not edit by hand.
 | J-052 | 7.3: the counts follow the registry; a scaffold in a scratch copy found two more assumptions | feature | `J-000-099.md` |
 | J-053 | 7.4: failing tests and pushed codes raise suggestions; a Tk abort the change exposed | feature | `J-000-099.md` |
 | J-054 | 7.5: suggested faults in the asset window and on the command line | feature | `J-000-099.md` |
+| J-055 | The cause by email planned (SP-018): a reply closes the work order, the mail its evidence | decision | `J-000-099.md` |

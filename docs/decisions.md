@@ -61,3 +61,4 @@ Written by `scripts/decisions_index.py` from `theGhost.md`; do not edit here. Se
 | SP-015 | Tests suggest a fault; only an engineer assigns one | in force | fault assignment |
 | SP-016 | The tests' record is shown, at the root and per asset, and kept whole | in force | test record |
 | SP-017 | The gate runs on a frozen copy, every step times out, lint and the windows are in the fast checks | in force | gates |
+| SP-018 | An engineer emails the cause; the mail is the evidence of the closure | in force | email causes |
