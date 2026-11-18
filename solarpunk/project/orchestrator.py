@@ -292,28 +292,6 @@ def reliability_of(assets: tuple[Asset, ...], period: Period, faults: tuple[Faul
     return {kind: kpi.mtbf_mttr(kind, assets, period, faults) for kind in AssetKind if kind in present}
 
 
-@dataclass(frozen=True)
-class PowerReport:
-    """A site's power output over one period (6.1, SOL-13): the site's row and one per inverter in id order; for OAHE,
-    site.asset_id is "OAHE-SIT-001" and inverters holds OAHE-INV-001 and OAHE-INV-002."""
-
-    period: Period
-    site: kpi.PowerOutput
-    inverters: tuple[kpi.PowerOutput, ...]
-
-
-def power_report(conn: sqlite3.Connection, site: str, period: Period) -> PowerReport:
-    """The site's and each inverter's energy, peak, specific yield and capacity factor from the stored samples: for a
-    clean stored OAHE day each inverter's records are its non-gap samples and the site's energy is their sum; a site the
-    fleet lacks raises UnknownAsset."""
-    # Invariant: SOL-13 (the engine's numbers over the stored samples alone, so the report is recomputed, never kept)
-    known(conn, site_id(site))
-    inverters = inverters_of(registry.by_site(conn, site))
-    samples = site_samples(conn, inverters, period)
-    rows = tuple(kpi.inverter_output(inverter, samples, period) for inverter in inverters)
-    return PowerReport(period, kpi.site_output(site_id(site), inverters, samples, period), rows)
-
-
 def kpis_for(conn: sqlite3.Connection, site: str, period: Period, meter_kwh: float | None = None) -> SiteKpis:
     """The site's KPIs over the period from the fleet, the ledger and the stored samples; energy_yield uses meter_kwh
     when given and the meter carried no MTR-001, else the inverters' energy: kpis_for(conn, "OAHE", day) for a clean

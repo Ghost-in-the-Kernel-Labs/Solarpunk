@@ -2,7 +2,6 @@
 (any ValueError project raises: UnknownAsset, RegistryError, LedgerError, UnknownFaultCode, NotUtc) prints
 "error: <message>" to stderr and exits 2 (MOD-02: logic cannot hide in argument parsing)."""
 import argparse
-import csv
 import sqlite3
 import subprocess
 import sys
@@ -127,28 +126,16 @@ def kpi(conn: sqlite3.Connection, args: argparse.Namespace, out: TextIO) -> None
     write_kpis(project.kpis_for(conn, args.site, span, args.meter_kwh), out)
 
 
-OUTPUT_FIELDS = ("asset_id", "rated_kw", "energy_kwh", "peak_kw", "specific_yield", "capacity_factor", "records", "gaps")
-
-
-def output_rows(found: project.PowerReport) -> list[project.PowerOutput]:
-    """The report's rows, the site's first, then each inverter's in id order: three for OAHE."""
-    return [found.site, *found.inverters]
-
 
 def write_report(found: project.PowerReport, as_csv: bool, out: TextIO) -> None:
     """One line per row: the contract's example site starts "output OAHE-SIT-001 rated_kw=150.0 energy_kwh=22.25
-    peak_kw=135.0 specific_yield=0.1483 capacity_factor=0.5933 records=5 gaps=1"; with as_csv, a header naming
-    OUTPUT_FIELDS and one comma-separated row each, an absent peak left empty."""
+    peak_kw=135.0 specific_yield=0.1483 capacity_factor=0.5933 records=5 gaps=1"; with as_csv, project.report_csv."""
     if as_csv:
-        writer = csv.writer(out, lineterminator="\n")
-        writer.writerow(OUTPUT_FIELDS)
-        for row in output_rows(found):
-            writer.writerow(["" if getattr(row, f) is None else getattr(row, f) for f in OUTPUT_FIELDS])
+        out.write(project.report_csv(found))
         return
-    for row in output_rows(found):
-        parts = " ".join(f"{field}={getattr(row, field)}" for field in OUTPUT_FIELDS[1:])
+    for row in project.report_rows(found):
+        parts = " ".join(f"{field}={getattr(row, field)}" for field in project.OUTPUT_FIELDS[1:])
         out.write(f"output {row.asset_id} {parts}\n")
-
 
 def report(conn: sqlite3.Connection, args: argparse.Namespace, out: TextIO) -> None:
     """report OAHE 2026-06-01T00:00:00+00:00 2026-06-02T00:00:00+00:00 [--csv] prints write_report's lines."""

@@ -1,7 +1,8 @@
 """Run: python3 -m solarpunk.ui --db fleet.db opens the fleet window on that store, made if missing; python3 -m
 solarpunk.ui --demo rebuilds demo.db in the current directory (solarpunk/ui/demo.py), starts the feed simulator for
 OAHE-INV-001, runs the suite once and opens the fleet window on it. Either way a click on a row opens the asset window,
-whose changes refresh the fleet window, and "Add asset" above the list opens the add-asset window."""
+whose changes refresh the fleet window, "Add asset" above the list opens the add-asset window and "Reports" the
+power-output report (6.3)."""
 import argparse
 import sqlite3
 import sys
@@ -18,12 +19,14 @@ from solarpunk.ui import demo
 from solarpunk.ui.add_asset import AddAssetWindow
 from solarpunk.ui.app import FleetWindow
 from solarpunk.ui.asset_window import AssetWindow
+from solarpunk.ui.reports import ReportsWindow
 
 PROG = "solarpunk.ui"
 DEFAULT_DB = "solarpunk.db"
 TITLE = "Solarpunk fleet"
 DEMO_TITLE = "Solarpunk fleet — demo (OAHE, 2026-06-01)"
 ADD_ASSET = "Add asset"
+REPORTS = "Reports"
 STORE_LINE = "demo: store {name} rebuilt\n"
 SIMULATOR_LINE = "demo: simulator on 127.0.0.1:{port}\n"
 RUN_LINE = "demo: run - {green} green, {yellow} yellow, {red} red\n"
@@ -52,8 +55,9 @@ def run_line(report: project.RunReport) -> str:
 
 
 def open_fleet(root: tkinter.Tk, conn: sqlite3.Connection) -> FleetWindow:
-    """The fleet window wired to the other two: a click opens AssetWindow(root, conn, id, on_change=refresh), and the
-    "Add asset" button packed above the list opens AddAssetWindow(root, conn, on_saved) which refreshes after a save."""
+    """The fleet window wired to the others: a click opens AssetWindow(root, conn, id, on_change=refresh), the "Add asset"
+    button packed above the list opens AddAssetWindow(root, conn, on_saved) which refreshes after a save, and "Reports"
+    beside it opens ReportsWindow(root, conn) (6.3)."""
     window = FleetWindow(root, conn)
     window.on_open_asset = lambda asset_id: AssetWindow(root, conn, asset_id, window.refresh)
     bar = ttk.Frame(root)
@@ -61,6 +65,8 @@ def open_fleet(root: tkinter.Tk, conn: sqlite3.Connection) -> FleetWindow:
     window.add_button = ttk.Button(bar, text=ADD_ASSET,
                                    command=lambda: AddAssetWindow(root, conn, lambda asset_id: window.refresh()))
     window.add_button.pack(side=tkinter.LEFT)
+    window.reports_button = ttk.Button(bar, text=REPORTS, command=lambda: ReportsWindow(root, conn))
+    window.reports_button.pack(side=tkinter.LEFT)
     return window
 
 

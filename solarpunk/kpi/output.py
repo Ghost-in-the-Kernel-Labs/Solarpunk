@@ -2,6 +2,7 @@
 them, each number beside the records and gaps it was read from (Invariants: SOL-03, SOL-13)."""
 from collections.abc import Sequence
 from dataclasses import dataclass
+from datetime import datetime
 
 from solarpunk.kpi.results import rounded
 from solarpunk.leaf.assets import Asset
@@ -54,14 +55,36 @@ def inverter_output(inverter: Asset, samples: Sequence[Sample], period: Period) 
     return output_of(inverter.asset_id, inverter.rated_kw, own, max(powers) if powers else None, period)
 
 
+def summed_power(samples: Sequence[Sample]) -> tuple[tuple[datetime, float], ...]:
+    """The sum of power at each instant that has a record carrying one, in time order (SOL-13): SOL-13's example gives
+    ((10:00, 90.0), (10:05, 135.0), (10:10, 42.0)); an instant of gaps alone is left out, never drawn as 0."""
+    # Invariant: SOL-13
+    by_instant: dict[datetime, float] = {}
+    for sample in powered(samples):
+        by_instant[sample.at] = by_instant.get(sample.at, 0.0) + sample.power_kw
+    return tuple((instant, rounded(by_instant[instant])) for instant in sorted(by_instant))
+
+
 def coincident_peak(samples: Sequence[Sample]) -> float | None:
     """The largest sum of power at one instant over every inverter (SOL-13): 60+30, 90+45 and 42 kW at three instants
     give 135.0; None when no record carries a power."""
     # Invariant: SOL-13
-    by_instant: dict = {}
-    for sample in powered(samples):
-        by_instant[sample.at] = by_instant.get(sample.at, 0.0) + sample.power_kw
-    return rounded(max(by_instant.values())) if by_instant else None
+    curve = summed_power(samples)
+    return max(power for _, power in curve) if curve else None
+
+
+def site_curve(inverters: Sequence[Asset], samples: Sequence[Sample], period: Period) -> tuple[tuple[datetime, float], ...]:
+    """The site's summed power over the period at each instant where every inverter has a record carrying a power
+    (SOL-13): the curve the reports window draws. An instant where one inverter has a gap is left out, so the line breaks
+    there rather than dropping to the other inverters' share: SOL-13's example gives ((10:00, 90.0), (10:05, 135.0)),
+    INV-001's gap at 10:10 leaving 10:10 out."""
+    # Invariant: SOL-13
+    ids = {inverter.asset_id for inverter in inverters}
+    own = [s for s in powered(samples) if s.asset_id in ids and period.start <= s.at < period.end]
+    reporting: dict[datetime, int] = {}
+    for sample in own:
+        reporting[sample.at] = reporting.get(sample.at, 0) + 1
+    return tuple(point for point in summed_power(own) if reporting[point[0]] == len(ids))
 
 
 def site_output(site_id: str, inverters: Sequence[Asset], samples: Sequence[Sample], period: Period) -> PowerOutput:

@@ -4,6 +4,7 @@ subcommand's lines and CSV."""
 import io
 import tempfile
 import unittest
+from datetime import datetime
 from pathlib import Path
 
 from solarpunk import kpi, project
@@ -21,7 +22,7 @@ START = "2026-06-01T00:00:00+00:00"
 END = "2026-06-02T00:00:00+00:00"
 
 
-def reading(asset: Asset, moment, power: float) -> Sample:
+def reading(asset: Asset, moment: datetime, power: float) -> Sample:
     """A sample with a power and an irradiance beside it: reading(INV1, T0, 60.0).power_kw is 60.0."""
     return Sample(asset.asset_id, moment, 800.0, power, False)
 
@@ -104,7 +105,7 @@ class TheReport(unittest.TestCase):
     def test_the_csv(self) -> None:
         code, out, _ = self.run_cli(["report", "OAHE", START, END, "--csv"])
         lines = out.splitlines()
-        self.assertEqual((code, lines[0]), (0, ",".join(cli.OUTPUT_FIELDS)))
+        self.assertEqual((code, lines[0]), (0, ",".join(project.OUTPUT_FIELDS)))
         self.assertEqual(lines[2], "OAHE-INV-001,100.0,799.9658,94.35,7.9997,0.3333,279,9")
 
     def test_an_unknown_site_is_refused(self) -> None:

@@ -1,8 +1,8 @@
 """The orchestrator (lane 1.6): opens the store with every module's tables and joins the lanes over it, in
 solarpunk/project/orchestrator.py; the only module that imports fleet, faults, telemetry and kpi together (MOD-02).
-The scheduled run is in run.py (2.7, SP-006); the one surface the Phase 3 windows call is in surface.py (SP-007). The
-errors a surface catches are re-exported here, so receiver and ui catch them exactly without importing a lane (MOD-06);
-so are the work order and the root-cause list (4.1)."""
+The scheduled run is in run.py (2.7, SP-006); the reports' surface in reports.py (6.1, 6.3); the one surface the Phase
+3 windows call is in surface.py (SP-007). The errors a surface catches are re-exported here, so receiver and ui catch
+them exactly without importing a lane (MOD-06); so are the work order and the root-cause list (4.1)."""
 from solarpunk.faults.ledger import LedgerError
 from solarpunk.feed.client import FeedError
 from solarpunk.fleet.registry import RegistryError
@@ -10,7 +10,6 @@ from solarpunk.kpi import PowerOutput
 from solarpunk.leaf.root_causes import RootCause, UnknownRootCause
 from solarpunk.project.orchestrator import (
     Fault,
-    PowerReport,
     SiteKpis,
     UnknownAsset,
     asset_status,
@@ -31,8 +30,16 @@ from solarpunk.project.orchestrator import (
     open_store,
     open_work_order_from_fault,
     period,
-    power_report,
     work_orders_for,
+)
+from solarpunk.project.reports import (
+    OUTPUT_FIELDS,
+    PowerReport,
+    power_report,
+    report_csv,
+    report_day,
+    report_rows,
+    report_sites,
 )
 from solarpunk.project.run import RunReport, add_remote_test, remote_tests, scheduled_run
 from solarpunk.project.surface import (
@@ -55,6 +62,7 @@ __all__ = [
     "Fault",
     "FeedError",
     "LedgerError",
+    "OUTPUT_FIELDS",
     "PowerOutput",
     "PowerReport",
     "RegistryError",
@@ -94,6 +102,10 @@ __all__ = [
     "power_report",
     "register_asset",
     "remote_tests",
+    "report_csv",
+    "report_day",
+    "report_rows",
+    "report_sites",
     "scheduled_run",
     "work_orders_for",
 ]

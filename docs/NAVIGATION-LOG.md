@@ -38,3 +38,10 @@ An entry is `### <date> · <task> · <agent>` and four lines: **Task**, **Opened
 - **Opened**: `scripts/commit.sh`, `scripts/ship.sh`, `test/test_ship.py`, `test/test_gates.py`, `test/support_git.py`, `docs/paths/process.md`.
 - **Complaints**: the raw-push test's allow-list lives in a test, so a new push site is found by running the loop, not by reading the gates row; the largest-file ratchet fired on a test file, where the move to a sibling file was the right answer but nothing says which file a gate test belongs in.
 - **Suggestions**: name the push sites in process.md's gates row (it is where a builder starts); `test_ship.py` for anything that pushes, `test_gates.py` for the rest, said in that row.
+
+### 2026-11-18 · 6.3, the reports window · Claude
+
+- **Task**: the reports window over `project.power_report`, its curve, the CSV in project, the Reports button.
+- **Opened**: `solarpunk/ui/app.py`, `solarpunk/ui/__main__.py`, `solarpunk/ui/demo.py`, `test/solarpunk/test_ui.py`, `solarpunk/project/surface.py`, `stacks/python/README.md` (the fast loop row, for tkinter), `docs/journal/J-000-099.md` (J-025).
+- **Complaints**: that the widget tests need tkinter and xvfb and that the fast loop's interpreter has neither is written only in the stack README's long fast-loop cell and a journal entry; a fresh container's venv had no tkinter either, which nothing says. No product workpath again (third voice: J-039, J-041).
+- **Suggestions**: a UI row in a product workpath naming `xvfb-run -a .venv/bin/python -m pytest test/solarpunk/test_ui*.py` and `apt-get install python3-tk` when the venv lacks it; the pure-half split (`glyph.py`, `chart.py`) written as the UI rule.

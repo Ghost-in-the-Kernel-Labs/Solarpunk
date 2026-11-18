@@ -161,7 +161,10 @@ For one inverter over a period, from its samples in the period:
 and for a site, the same over all its inverters' samples with `rated_kw` the sum of their ratings and `peak_kw` the
 coincident peak: the largest sum of power at one instant. `records` counts the samples that carried a power and `gaps`
 the gap samples, beside the numbers, never without them; an inverter with no `rated_kw`, or a rating of 0, is refused
-(SOL-03). The report is recomputed from the stored samples each time it is asked for, never kept. Worked example: over
+(SOL-03). The site's power curve (the reports window's) is the summed power at each instant where every inverter
+has a record carrying a power; an instant where any inverter has a gap is left out, so the drawn line breaks there and
+never shows a gap as a fall in output. The report is recomputed from the stored samples each time it is asked for,
+never kept. Worked example: over
 10:00 to 10:15 (0.25 h), OAHE-INV-001 rated 100 kW produces 60, 90 kW and a gap, and OAHE-INV-002 rated 50 kW produces
 30, 45, 42 kW. INV-001: `energy_kwh = (60 + 90) × 5/60 = 12.5`, `peak_kw = 90.0`, `specific_yield = 12.5 / 100 =
 0.125`, `capacity_factor = 12.5 / (100 × 0.25) = 0.5`, records 2, gaps 1. INV-002: `energy_kwh = 117 × 5/60 = 9.75`,

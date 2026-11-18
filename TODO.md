@@ -38,20 +38,7 @@ Lanes (P-15): 5.1 and 5.2 in order, then 5.3 the pass.
 
 ## Phase 6: reports and diagnostics
 
-Lanes (P-15): 6.1 and 6.2 in parallel, landed in that order (done, J-041); 6.3 after 6.1 and 6.4 after 6.2, in parallel; 6.5 the pass.
-
-### 6.3 The reports window
-
-A window that shows 6.1's power-output report: a site and a period chosen, the table, the site's power curve on a
-tkinter canvas, and Save as CSV; opened from the fleet window (SP-013).
-
-Check: `solarpunk/ui/reports.py` opens from a button in the fleet window; it takes a site and a day (or a start and end),
-shows one row per `project.power_report` row (the site's first: energy, peak, specific yield, capacity factor, records,
-gaps), draws the site's summed power over the period as a line on a canvas with its axes labelled in kW and UTC hours,
-and writes the same CSV as `solarpunk report --csv` through a save dialog; a refusal (an unknown site, a reversed period)
-is shown, never swallowed; `test/solarpunk/test_ui_reports.py` builds it under xvfb (skipped without one) over the demo
-store and asserts the table's rows equal the report's; the curve's points are a function tested headless; the fast loop
-green.
+Lanes (P-15): 6.1 and 6.2 in parallel, landed in that order (done, J-041); 6.3 after 6.1 (done, J-043) and 6.4 after 6.2; 6.5 the pass.
 
 ### 6.4 The diagnostics in the asset window
 
