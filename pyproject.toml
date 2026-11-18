@@ -1,5 +1,4 @@
 # Tool configuration only: this project is not a package to install (Neon Rain R-001, R-017).
-# STAMP: replace PROJECT with the product package's folder (docs/modules.json's package).
 
 [tool.pytest.ini_options]
 testpaths = ["test"]
@@ -10,6 +9,8 @@ markers = ["slow: its own budget; the gate runs it"]
 [tool.ruff]
 target-version = "py312"
 line-length = 120
+# The planted-break fixtures are broken on purpose (C-013); the linter reads the code, not the breaks (F-003).
+exclude = ["test/fixtures"]
 
 [tool.ruff.lint]
 # The readability rules a linter can say: type hints on every function (ANN), no bare except (E722), the common
@@ -19,6 +20,10 @@ select = ["E4", "E7", "E9", "F", "ANN", "B"]
 ignore = ["B905"]
 
 [tool.mutmut]
-source_paths = ["scripts/checks/", "PROJECT/"]
+# Mutation covers the product and the product's tests only (F-004): mutmut runs the tests in a copy that holds Python
+# alone, and the template's checks read scripts/*.sh and git's file list, so they cannot run there. The checks keep
+# their planted-break tests (C-013); the product keeps mutation (C-018).
+source_paths = ["solarpunk/"]
+pytest_add_cli_args_test_selection = ["test/solarpunk/"]
 process_isolation = "forkserver"
 also_copy = ["docs/", "theGhost.md", "TODO.md", "CLAUDE.md", "README.md", "requirements.lock"]

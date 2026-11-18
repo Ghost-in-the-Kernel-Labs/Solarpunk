@@ -1,6 +1,6 @@
 """The readability rules a linter cannot say: short functions, small comprehensions, no *args or **kwargs, a docstring
 with an example on every function (stacks/python/README.md; from Neon Rain R-015). Run: python3 -I scripts/checks/readability.py
-STAMP: set OUR_CODE to the product package and the tool folders. It reads git's file list (scripts/checks/common.py; C-001):
+OUR_CODE is the product package and the tool folders. It reads git's file list (scripts/checks/common.py; C-001):
 a file on disk that git does not track is not read."""
 import ast
 import sys
@@ -12,7 +12,7 @@ from scripts.checks.common import matching, tracked_files  # noqa: E402
 
 MAX_FUNCTION_LINES = 40
 MAX_COMPREHENSION_CLAUSES = 3
-OUR_CODE: tuple[str, ...] = ("PROJECT", "scripts", "test")
+OUR_CODE: tuple[str, ...] = ("solarpunk", "scripts", "test")
 
 
 def clauses(node: ast.ListComp | ast.SetComp | ast.DictComp | ast.GeneratorExp) -> int:

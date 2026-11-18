@@ -474,3 +474,12 @@ The core decisions above are inherited (Core C-001 to C-040); this project's beg
 - **Status:** in force
 - **See also:** Core C-008
 - **subject:** founding
+
+### SP-002: Mutation covers the product and the product's tests; the leaf's first code comes forward into 0.2
+- **Decision:** mutmut's `source_paths` is `solarpunk/` and its tests are `test/solarpunk/` alone; the template's checks under `scripts/checks/` keep their planted-break tests (C-013) and are not mutated here. Because mutation with nothing to mutate is red, the leaf's first module, the fault-code catalogue (`solarpunk/leaf/codes.py`), lands with 0.2 rather than 0.4; 0.4 keeps the contract and `docs/modules.json`.
+- **Why:** mutmut runs the tests in a copy that holds Python alone, and the template's tests read `scripts/*.sh` and git's file list, so the stamped configuration (`source_paths = ["scripts/checks/", "PROJECT/"]`) can never run green (F-004); and the catalogue is the first thing Ghost asked the fleet to hold, error codes assigned to assets. Chosen by Ghost over a gate that tolerates zero mutants and over landing 0.2 on the fast checks alone.
+- **Held by:** `pyproject.toml` (`[tool.mutmut]`), `stacks/python/gate.sh`, `test/solarpunk/test_codes.py`.
+- **Source:** Ghost, 2026-11-17, in chat (C-040: Ghost's word in chat is Ghost's word); J-002.
+- **Status:** in force
+- **See also:** Core C-018, Core C-016
+- **subject:** mutation

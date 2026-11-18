@@ -1,5 +1,5 @@
 """Every outside import in our Python is in requirements.lock or the standard library (C-034 rule 2).
-Run: python3 -I scripts/checks/imports.py. STAMP: set OUR_CODE. It reads git's file list (scripts/checks/common.py;
+Run: python3 -I scripts/checks/imports.py. OUR_CODE is the product package and the tool folders. It reads git's file list (scripts/checks/common.py;
 C-001): a Python file on disk that git does not track is not read. The lock is read from the disk: it is the allow-list,
 not a file under check, and an untracked lock read as empty would only refuse more."""
 import ast
@@ -11,7 +11,7 @@ if __name__ == "__main__":  # run as a script from the project's root: the root 
     sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from scripts.checks.common import matching, tracked_files  # noqa: E402
 
-OUR_CODE: tuple[str, ...] = ("PROJECT", "scripts", "test")
+OUR_CODE: tuple[str, ...] = ("solarpunk", "scripts", "test")
 ROOT = Path(__file__).resolve().parent.parent.parent
 
 
@@ -39,6 +39,8 @@ def problems(root: Path) -> list[str]:
     files = tracked_files(root)
     for top in OUR_CODE:
         for path in matching(files, root, f"{top}/**/*.py"):
+            if "fixtures" in path.relative_to(root).parts:  # the planted breaks import what they like (C-013; F-003)
+                continue
             for name in sorted(top_level_imports(path.read_text())):
                 if name not in ours and name not in sys.stdlib_module_names and name.lower() not in allowed:
                     found.append(f"{path.relative_to(root)} imports {name}, which requirements.lock does not hold")

@@ -45,3 +45,4 @@ Written by `scripts/decisions_index.py` from `theGhost.md`; do not edit here. Se
 | C-039 | File pinning is removed; what runs code by itself is an inventory, and a change to it names its decision in the commit | in force | supply chain |
 | C-040 | Saving is separate from landing; three checkpoints; the count is main's; Ghost's word in chat is Ghost's word | in force | commits |
 | SP-001 | Solarpunk is stamped from Ghost-Core, on the python stack | in force | founding |
+| SP-002 | Mutation covers the product and the product's tests; the leaf's first code comes forward into 0.2 | in force | mutation |

@@ -5,3 +5,4 @@ Written from `docs/journal/` by `scripts/journal_index.py`; do not edit by hand.
 | Entry | Title | Class | File |
 | --- | --- | --- | --- |
 | J-001 | Solarpunk stamped from Ghost-Core | direction | `J-000-099.md` |
+| J-002 | 0.2: the python stack wired, the leaf's first code pulled forward | decision | `J-000-099.md` |

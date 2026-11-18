@@ -1,5 +1,6 @@
 """The repository holds the supply-chain rules a file can show; and every planted break is caught (C-032, C-034)."""
 import unittest
+from pathlib import Path
 
 from scripts.checks import supply_chain
 from test.support import BROKEN, ROOT
@@ -94,7 +95,7 @@ class TheCheck(unittest.TestCase):
 AGENT = "---\nname: a\ndescription: d\ntools: Read\n---\nbody\n"
 
 
-def agents_root(files: dict[str, str]) -> "Path":
+def agents_root(files: dict[str, str]) -> Path:
     """A scratch root with the agent files given and docs/SUPPLY-CHAIN.md's Agent files table written by --register."""
     from test.support import scratch
     root = scratch()
