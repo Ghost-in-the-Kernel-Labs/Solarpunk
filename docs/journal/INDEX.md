@@ -40,3 +40,4 @@ Written from `docs/journal/` by `scripts/journal_index.py`; do not edit by hand.
 | J-034 | The cold gate: a refused cold run is fine; the warm gate is the one that counts | decision | `J-000-099.md` |
 | J-035 | 5.2: the help list behind `solarpunk --help` | feature | `J-000-099.md` |
 | J-036 | The goal written down: five areas under one click | direction | `J-000-099.md` |
+| J-037 | The pass's cold gate caught three survivors in the scaffold's write | failure-caught | `J-000-099.md` |

@@ -77,6 +77,12 @@ class TheSource(Scaffold):
         self.assertEqual(path, self.folder / "energy_monotonic.py")
         self.assertEqual(path.read_text(encoding="utf-8"), ENERGY_MONOTONIC)
 
+    def test_the_file_is_written_as_utf8_whatever_the_platforms_default(self) -> None:
+        with mock.patch.object(Path, "write_text") as write_text:
+            scaffold.write(self.folder, "energy_monotonic", (AssetKind.METER, AssetKind.INVERTER),
+                           ("9001-9.1.1", "55000-9.1"))
+        write_text.assert_called_once_with(ENERGY_MONOTONIC, encoding="utf-8")
+
     def test_the_registry_loads_it_and_it_fails_until_written(self) -> None:
         scaffold.write(self.folder, "tracker_moving", (AssetKind.TRACKER,), ("55000-9.1",))
         found = self.load()
