@@ -44,10 +44,6 @@ Lanes (P-15): 6.1 and 6.2 in parallel, landed in that order (done, J-041); 6.3 a
 
 Lanes (P-15): 7.1 (done, J-050), then 7.2 and 7.3 (SP-017, put ahead by Ghost), then 7.4 (it needs 7.1's `assigned_by`), then 7.5, then 7.6 the pass. Ghost's direction, SP-015.
 
-### 7.6 Tune-up pass 7
-
-Check: `docs/when/tune-up.md` followed in full; the metrics table written; the navigation log's "Last review" set.
-
 ## Phase 8: the cause by email
 
 Lanes (P-15): 8.1 and 8.2 in parallel, then 8.3 (it needs both), then 8.4, then 8.5 the pass. Ghost's direction, SP-018.
