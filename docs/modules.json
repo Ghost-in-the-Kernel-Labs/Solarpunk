@@ -109,7 +109,8 @@
         "feed",
         "remote",
         "schedule",
-        "mailer"
+        "mailer",
+        "workorders"
       ],
       "entryPoints": []
     },
@@ -169,6 +170,14 @@
       "mayImport": [
         "leaf",
         "project"
+      ],
+      "entryPoints": []
+    },
+    "workorders": {
+      "folder": "solarpunk/workorders",
+      "purpose": "The work-order ledger: corrective orders opened from a fault, preventive ones from a signal, each closed only with a root-cause code from the leaf's closed list (4.1, SP-011).",
+      "mayImport": [
+        "leaf"
       ],
       "entryPoints": []
     }

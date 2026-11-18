@@ -62,3 +62,6 @@ removes is a decision in its own log.
 | **patch reviewer** | the agent that reads one dependency update's diff with Read, Grep and Glob and nothing else: read-only by construction (C-035) | security reviewer, approver (its SAFE approves nothing alone), auditor |
 | **reviewed version** | the last version of a package the project read in full, in `docs/REVIEWED-VERSIONS.md`; the next review's old side | last installed version (the diff is read from the reviewed one, not the installed one) |
 | **routine update** | a patch or minor of a package the project already has that passes every layer; taken without asking Ghost (C-035) | minor bump, auto-update |
+| **work order** | one unit of service work on one asset, corrective (opened from a fault) or preventive, closed only with a root-cause code (SP-011) | ticket, job (a job is the clock's), task |
+| **root-cause code** | one of the leaf's closed list of causes a work order closes with (`solarpunk/leaf/root_causes.py`) | failure code, reason code |
+

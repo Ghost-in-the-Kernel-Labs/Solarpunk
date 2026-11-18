@@ -241,6 +241,11 @@ library (P-17), `solarpunk/ui/`, calling project alone (a `ui` module row in `do
 
 ### Phase 4: the work-order ledger
 
-Corrective and preventive work orders (the CMMS half of the ghost): a work order opened from a fault or from a
-`repeated` signal, its root-cause code from a closed list in the glossary, its closure closing the fault. Planned
-when Phase 3 closes.
+The CMMS half of the ghost: a corrective action carries its cause.
+
+- **4.1 The work-order ledger (`solarpunk/workorders/`, `solarpunk/leaf/root_causes.py`).** A work order is opened from a
+  fault (corrective) or from a `repeated` signal or a schedule (preventive), carries the asset, the fault where there is
+  one, who opened it and a note, and closes only with a root-cause code from a closed list in the leaf — so root-cause
+  analysis is a query (`repeated_causes`) and ISO 9001 10.2.1 is held by a test. Closing a corrective order closes its
+  fault, in project, in one call. The asset window lists the asset's open orders (a later item).
+- **4.2 Tune-up pass 4.**
