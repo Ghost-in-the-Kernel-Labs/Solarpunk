@@ -7,3 +7,5 @@ resolved finding is marked, never deleted. A result that depends on a finding ci
 
 | Id | Finding | Evidence | Qualifies | Status |
 | --- | --- | --- | --- | --- |
+| F-001 | The glossary governs `docs/REVIEWED-VERSIONS.md`, whose Package cells are third-party names that can carry a banned alias; a stamp fails its own fast loop at the first dependency review | Ghostreach F-005 (its stamp of 2026-11-13); this tree's `docs/GLOSSARY.md` "Not governed" line at stamp 59c211c | the stamp recipe (Ghost-Core owes the fix); here, the exemption added | resolved here, open in Core |
+| F-002 | `scripts/ship.sh` is stamped at mode 100644 while every other script is 100755, so the only push to `main` cannot be run as `scripts/ship.sh` | Ghostreach F-006; `git ls-files -s scripts/ship.sh` at 59c211c | the stamp recipe (Ghost-Core owes the fix); here, the mode set in 0.2's commit | resolved here, open in Core |
