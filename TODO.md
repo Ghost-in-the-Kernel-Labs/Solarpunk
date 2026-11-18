@@ -28,10 +28,6 @@ Lanes (P-15): 2.1 first (the list every other lane reads), then 2.2 to 2.6 in pa
 
 Lanes (P-15): 3.1 to 3.3 in parallel after 2.7, landed in this order; 3.4 after them.
 
-### 3.5 Tune-up pass 3
-
-Check: `docs/when/tune-up.md` followed in full; the metrics table written; the navigation log's "Last review" set.
-
 ## Phase 4: the work-order ledger
 
 Planned when Phase 3 closes (`docs/ROADMAP.md` Phase 4).

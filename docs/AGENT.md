@@ -41,8 +41,8 @@ stamped project inherits these lines and its tune-up pass re-measures the first.
 | Metric | Target | Measured | Why it matters to the agent |
 | --- | --- | --- | --- |
 | Mandatory context (words) | < 1,200 | 1184 | every task pays it |
-| Fast loop (s) | < 30 | 26.0 | run after every edit |
-| Gate (min) | < 10 | 1.5 | paid before every push |
+| Fast loop (s) | < 30 | 25.8 | run after every edit |
+| Gate (min) | < 10 | 1.1 | paid before every push |
 | Largest source file (lines) | < 400 | 393 | fits a read without paging |
 | Files a routing row opens | ≤ 5 | 2 | the first five reads decide the task |
 | Decisions without `See also` | 0 | 0 | links find what grep misses |

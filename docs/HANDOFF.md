@@ -2,12 +2,21 @@
 
 Read `CLAUDE.md` first, then this. `TODO.md` is the chain in order; `docs/DONE.md` is what is finished.
 
-## Where the project stands (2026-11-18, 03:00)
+## Where the project stands (2026-11-18, 05:00, the morning hand-back)
 
-Phases 0, 1 and 2 are closed: the fleet, the ledger, synthetic SCADA, the KPI engine with its blind mirror, the clause
-register with its coverage report, the orchestrator and CLI; the asset maintenance list, the feed and its simulator, the
-remote tests and their registry, the receiver, the clock, the mailer, the scheduled run and the UI's surface. Phase 3
-(the tkinter front end and the demo) is next: 3.1 to 3.3 as parallel lanes, 3.4 the demo and DEMO.md, 3.5 the pass.
+Phases 0 to 3 are closed in one night: 31 commits on `main`, each landed through the gate and authored as Ghost.
+**The demo is `python -m solarpunk.ui --demo`; `DEMO.md` has the Windows commands, what to click and the talk track.**
+Under xvfb here it prints the simulator's port, `demo: store demo.db rebuilt`, `demo: run - 9 green, 1 yellow, 1 red`
+and opens the window; it has not been run on Windows (this session has none, F-03), so run it once before the meeting,
+from a fresh clone, and read DEMO.md's "If something goes wrong".
+
+What exists: the fleet registry, the fault ledger over a closed catalogue, synthetic SCADA with gaps as data, the KPI
+engine with its blind mirror (contractual availability, performance ratio, energy yield, MTBF/MTTR), the clause register
+and `scripts/clauses.py` (9001: 7 held, 1 open; 55000: 4 held), the orchestrator and CLI; the asset maintenance list,
+the feed by IP and port with a simulator, standalone remote tests with a registry, the receiver, cron and Task Scheduler
+from one job, the mailer over SMTP, the scheduled run; the tkinter fleet window with the status glyphs, the asset window
+with Save and Cancel, the add-asset window with the type dropdown, the demo. 479 product tests and 385 template tests;
+4,499 mutants, every survivor killed or explained. Phase 4 (the work-order ledger) is planned, not built.
 
 ## Settled by Ghost (2026-11-17, in chat)
 
@@ -21,6 +30,9 @@ ISO 9001 and ISO 55000 coverage from the test suite as one report; an asset's lo
 email on the asset, a mailer to those engineers on degradation, and the Save/Cancel engineer-assignment window.
 
 ## For Ghost: waiting on you
+
+- Run the demo on Windows once before the meeting (DEMO.md). If `tkinter` is missing there, python.org's installer with
+  "tcl/tk and IDLE" ticked is the fix; nothing else is installed for the product.
 
 0. The cold gate (cache-off mutation over 3,195 mutants, each tune-up pass) takes 12.7 min against the 10 min target and
    `scripts/gate.sh` refuses it at the metrics step by design; the warm gate is 1.5 min. Your word: exempt the cold run's
