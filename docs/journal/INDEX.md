@@ -43,3 +43,4 @@ Written from `docs/journal/` by `scripts/journal_index.py`; do not edit by hand.
 | J-037 | The pass's cold gate caught three survivors in the scaffold's write | failure-caught | `J-000-099.md` |
 | J-038 | Mutation testing leaves the gate: its own script, run nightly (SP-012) | decision | `J-000-099.md` |
 | J-039 | Tune-up pass 5: the last cold gate with mutation in it; the warm gate is 0.80 min without | measurement | `J-000-099.md` |
+| J-040 | The launcher's first run on Windows: a capital letter in a folder name, then the help list | trial | `J-000-099.md` |

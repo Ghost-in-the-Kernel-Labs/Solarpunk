@@ -22,9 +22,9 @@ cron and Task Scheduler from one job, the mailer over SMTP, the scheduled run; t
 windows, the demo; the work-order ledger with root-cause codes; the one-word launcher. 912 tests in the fast loop;
 4,910 mutants, every survivor killed or explained.
 
-Not verified, said plainly: `solarpunk.cmd` was written and read against the parser by a test, but no Windows shell
-ran it in the session that wrote it; Ghost's first run of `solarpunk --help` and `solarpunk test run --db demo.db` on
-his machine is its trial. "Add a test suite" was read as scaffolding one remote test (`test add`); Ghost has not
+`solarpunk.cmd` ran on Ghost's Windows machine from a fresh clone: `solarpunk --help` printed the list (J-040). Its
+other paths (`solarpunk`, `solarpunk --demo`, `solarpunk test run --db demo.db`, a folder on PATH) have not been
+reported back. Not verified, said plainly: "Add a test suite" was read as scaffolding one remote test (`test add`); Ghost has not
 confirmed that reading. Some test file leaves a store unclosed (a ResourceWarning that lands in whatever test runs when
 garbage is collected, J-033); it is not found.
 

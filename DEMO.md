@@ -92,6 +92,9 @@ derate on OAHE-INV-001 (10:00 to 10:45). The run is stamped 2026-06-01 13:00 UTC
 
 ## If something goes wrong
 
+- **"No module named 'solarpunk'"**: the command was typed outside the clone, or the clone's `solarpunk` folder has
+  become `Solarpunk` (Windows treats the two names as one; Python does not), which happens when the repository is
+  cloned inside a folder already named `Solarpunk` and then moved up. Clone again straight onto the Desktop.
 - **"No module named tkinter"**: reinstall CPython 3.12 from python.org with "tcl/tk and IDLE" ticked.
 - **A port is busy**: run it again; the simulator picks a free port each time.
 - **"demo.db" cannot be removed**: a demo window from an earlier run is still open; close it and run again.
