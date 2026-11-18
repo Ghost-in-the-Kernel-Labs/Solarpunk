@@ -1,0 +1,3 @@
+schtasks /Create /F /TN "Solarpunk\solarpunk-ping" /SC MINUTE /MO 15 /TR "python -m solarpunk.cli telemetry generate OAHE today --seed 7"
+schtasks /Create /F /TN "Solarpunk\solarpunk-kpi" /SC DAILY /ST 06:00 /TR "python -m solarpunk.cli kpi OAHE yesterday today"
+schtasks /Create /F /TN "Solarpunk\solarpunk-clauses" /SC HOURLY /TR "python -m solarpunk.cli clauses"
