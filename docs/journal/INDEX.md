@@ -61,3 +61,4 @@ Written from `docs/journal/` by `scripts/journal_index.py`; do not edit by hand.
 | J-055 | The cause by email planned (SP-018): a reply closes the work order, the mail its evidence | decision | `J-000-099.md` |
 | J-056 | Tune-up pass 7: the first pass on the frozen copy; the fast loop back under its target | measurement | `J-000-099.md` |
 | J-057 | What a test looks like, and suites to run them in: 9.1 and 9.2 planned (SP-019) | decision | `J-000-099.md` |
+| J-058 | Python suites, a test's own reads, reactions as a closed vocabulary (SP-020) | decision | `J-000-099.md` |

@@ -81,7 +81,7 @@ Check: `docs/when/tune-up.md` followed in full; the metrics table written; the n
 
 ## Phase 9: the tests' record, at the root and per asset
 
-Lanes (P-15): 9.1 and 9.2 first (SP-019: what a test is, and the suites), then 9.3 (the surface every window reads), then 9.4, 9.5 and 9.6 in parallel, then 9.7 the pass. Moved after Phase 8 by SP-018. Ghost's direction, SP-016.
+Lanes (P-15): 9.1 and 9.2 first (SP-019: what a test is, and the suites), then 9.3 (a test's own reads) and 9.4 (reactions, which need suites; SP-020), then 9.5 (the surface every window reads), then 9.6, 9.7 and 9.8 in parallel, then 9.9 the pass. Moved after Phase 8 by SP-018. Ghost's direction, SP-016.
 
 ### 9.1 What a test looks like
 
@@ -92,35 +92,49 @@ Check: `docs/REMOTE-TESTS.md` states a remote test's contract: its module's fiel
 
 ### 9.2 The suites folder
 
-Tests run in named suites, each with its own reach and cadence (SP-019).
+Tests run in named suites, each with its own reach and cadence (SP-019); a suite is a Python module of declarations
+(SP-020).
 
-Check: a suite is a file in `solarpunk/remote/suites/` naming its tests (each one the registry holds), the kinds or sites it runs against, and its cadence (every run, hourly, daily at an hour); the registry refuses a suite naming a test or kind it lacks; the scheduled run runs each suite due at its instant and stores its results as today, a result carrying its suite; `solarpunk suite list` prints each suite with its tests and cadence, `suite run NAME [--db PATH]` runs one now, `suite add NAME --test T [--kind K] [--cadence C]` writes one; the default suite `all` runs every test on every run, so a store with no other suite behaves as before; the suite file's format is Ghost's to choose first (JSON read by the standard library, or a Python module like a test), copied here when chosen; the fast loop green.
+Check: a suite is a module in `solarpunk/remote/suites/` declaring `TESTS` (names the registry holds), `KINDS` and `SITES` (its reach) and `CADENCE` (a value of a closed set: every run, hourly, daily at an hour), and nothing else of its own; the registry finds every suite as it finds every test, refusing one with a test, kind or cadence it lacks, or with a function of its own; the scheduled run runs each suite due at its instant and stores its results as today, a result carrying its suite; `solarpunk suite list` prints each suite with its tests and cadence, `suite run NAME [--db PATH]` runs one now, `suite add NAME --test T [--kind K] [--cadence C]` writes one; the default suite `all` runs every test on every run, so a store with no other suite behaves as before; the fast loop green.
 
-### 9.3 The record's surface and the timing
+### 9.3 A test's own reads
+
+A test that needs readings the stored samples cannot give (power once a second for a minute) declares them, and the
+runner takes them; the test itself stays a pure judgement (SP-020).
+
+Check: a test may declare `ACQUIRE`, a value of a closed set (`Burst(field, every_s, for_s)` first), held by the registry; the feed (`solarpunk/feed/`) gains a live-read mode answering one current reading per request, and the simulator serves it from its day; the runner, for a test with `ACQUIRE`, takes the reads through the feed (each read's instant kept) and hands them to `run`, which reads nothing else; a test without `ACQUIRE` judges the stored samples as today; a first burst test (power ripple over a minute) with its threshold and why; the tests use the simulator, never a real asset, and a burst's duration is shortened in them by a parameter, never by sleeping a minute; the fast loop green.
+
+### 9.4 Reactions
+
+What a failure does is declared per test from a closed vocabulary, checked at load, and printed (SP-020).
+
+Check: a test declares `REACTIONS`, per kind a tuple of actions from a closed set (`Suggest(code)`, `Mail()`, `RunSuite(name)`, `OpenPreventive(note)`), replacing `SUGGESTS` (each test's rule becomes a `Suggest`, results unchanged); the registry refuses an unknown action, a code not of the kind's, a suite the folder lacks, and a chain where a suite started by a reaction would start itself, directly or through another, or run deeper than a stated limit; the scheduled run carries out each failing test's reactions, recording each; `solarpunk test list` prints each test's reactions; no action commands equipment; the fast loop green.
+
+### 9.5 The record's surface and the timing
 
 The scheduled run times each test, and project gives the three views the windows read; every result is kept (SP-016).
 
 Check: the results table gains `duration_ms` (a store made before gains the column on opening, its old rows empty); the scheduled run and `solarpunk test run` store each test's duration; `project.tests_overview(conn)`, `project.test_log(conn, name, limit=100)` and `project.asset_log(conn, asset_id, limit=100, search=None)` (search matching the test name, "pass"/"fail" and words in the reason) are tested over a store holding more than 100 runs, newest first, nothing deleted; a result with no duration reads None, never 0; the fast loop green.
 
-### 9.4 Last run in the asset window
+### 9.6 Last run in the asset window
 
 Each test in the asset's diagnostics shows when it last ran and how long it took (SP-016).
 
 Check: `solarpunk/ui/asset_window.py`'s diagnostics table has columns for the last-run instant and the duration, "never" for a test never run on the asset, "—" for a duration not recorded; `test/solarpunk/test_ui_asset.py` holds both; a screenshot read back under xvfb; the fast loop green.
 
-### 9.5 The Tests window
+### 9.7 The Tests window
 
 The master list from the root of the window: every test, its run time, and its last 100 runs (SP-016).
 
 Check: `solarpunk/ui/tests_window.py` opens from a "Tests" button in the fleet window; it lists `project.tests_overview` (name, kinds, assets, last run, duration, passes, failures) and, for the selected test, `project.test_log` (asset, instant, result, reason, duration), failures red; `test/solarpunk/test_ui_tests.py` builds it under xvfb over the demo store with its pure half headless; a screenshot read back; the fast loop green.
 
-### 9.6 The asset's history
+### 9.8 The asset's history
 
 The asset's last 100 results, searchable and graphed (SP-016).
 
 Check: `solarpunk/ui/history.py` opens from a "History" button in the asset window; a table of `project.asset_log` with a search box that narrows it; a canvas timeline, one row per test, one mark per run, green a pass and red a failure, the time axis in UTC, its geometry pure functions tested headless (as `solarpunk/ui/chart.py`'s are); `test/solarpunk/test_ui_history.py` under xvfb over a store with more than 100 runs of an asset; a screenshot read back; the fast loop green.
 
-### 9.7 Tune-up pass 9
+### 9.9 Tune-up pass 9
 
 Check: `docs/when/tune-up.md` followed in full; the metrics table written; the navigation log's "Last review" set.
 

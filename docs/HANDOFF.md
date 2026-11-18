@@ -85,9 +85,8 @@ email on the asset, a mailer to those engineers on degradation, and the Save/Can
    data-quality failure, suggest nothing. Two gaps in the catalogue keep two diagnostics silent: no inverter code for
    output under the performance floor (soiling, a string down) and none for a logger replaying its last value. Say
    which rules to change and whether the catalogue gains the two codes.
-7. A suite file's format (9.2, SP-019): JSON, read by the standard library and editable by hand with no code in it, or a
-   Python module like a test, which can compute its list. Claude's recommendation is JSON: a suite is data, not
-   behaviour, and a check can read it without importing anything.
+7. Settled 2026-11-18 (SP-020): a suite is a Python module of declarations; a test may acquire its own reads; reactions
+   are a closed vocabulary, nothing commanding equipment.
 
 ## Advisories under the gate's threshold (Tune-up pass 6; unchanged since pass 0)
 

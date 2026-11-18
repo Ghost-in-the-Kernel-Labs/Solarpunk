@@ -635,5 +635,15 @@ The core decisions above are inherited (Core C-001 to C-040); this project's beg
 - **Held by:** `docs/ROADMAP.md` and `TODO.md` 9.1 and 9.2, their checks when built.
 - **Source:** Ghost, in chat, 2026-11-18.
 - **Status:** in force
-- **See also:** SP-010, SP-016, SP-017
+- **See also:** SP-010, SP-016, SP-017, SP-020 (the suite format chosen: Python)
+- **subject:** test suites
+
+### SP-020: Suites are Python modules of declarations; a test may acquire its own reads; reactions are a closed vocabulary
+- **Decision:** a suite is a Python module under `solarpunk/remote/suites/` holding declarations alone (`TESTS`, `KINDS`, `SITES`, `CADENCE`, the cadence a value of a small closed set), which the registry reads and checks, so a typo fails on import; it holds no logic. A test may declare `ACQUIRE` (what field to read, how often, for how long, such as `Burst(field="power_kw", every_s=1, for_s=60)`): the runner does the reading through the feed, and `run` stays a pure judgement of the readings it is handed, so it is tested with hand-made readings and no network; a test with no `ACQUIRE` judges the stored samples as today. What a failure does is a test's `REACTIONS`, per kind, from a closed vocabulary (raise a suggestion, mail the engineers, run a follow-up suite, open a preventive work order), checked by the registry at load: an unknown action or suite is refused, and a suite a reaction starts cannot start itself, directly or through another, with a depth limit; `REACTIONS` replaces `SUGGESTS`, whose rule becomes a `Suggest` reaction. A reaction makes records, messages and more tests only: nothing a test or a reaction does commands equipment (curtailing an inverter, stowing a tracker) until a decision of its own and the network's security phase.
+- **Why:** Ghost, 2026-11-18, shown a suite and a reaction each written as JSON and as Python: "yes, record it with python suites", leaning to Python "because this could be defined". His example of a test that reads power once a second for a minute showed that a test can need its own acquisition, which the stored five-minute samples cannot give; separating the reading from the judging keeps 9.1's rule that `run` reads only what it is handed. A closed vocabulary of reactions keeps what a failure does visible at a glance and checkable, where free code in an `on_fail` could loop or reach anything.
+- **Supersedes:** SP-019, in part: its open question of a suite file's format, now Python modules of declarations. The rest of SP-019 stands, so its Status stays `in force` and its See also names SP-020.
+- **Held by:** `docs/ROADMAP.md` and `TODO.md` 9.2 to 9.4, their checks when built.
+- **Source:** Ghost, in chat, 2026-11-18.
+- **Status:** in force
+- **See also:** SP-019, SP-015, SP-010
 - **subject:** test suites
