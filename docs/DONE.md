@@ -54,3 +54,7 @@ Done 2026-11-17 (J-011). Check: `docs/CLAUSE-REGISTER.md` with eight to twelve r
 ### 1.6 The orchestrator and the mirror
 
 Done 2026-11-18 (J-012). Check: `solarpunk/project/` with `open_store`, `assign_fault` (refuses an asset the fleet lacks), `kpis_for`; `test/solarpunk/test_project.py` green over the OAHE fixture end to end; `test/solarpunk/test_mirror.py`, written from `docs/CONTRACT.md` alone by a worker whose brief forbids `solarpunk/kpi/`, agrees with the engine on all four worked examples; every mutant killed or explained. ✓ 29 tests (19 end to end, 10 mirror); the mirror, written from the contract alone, agreed with the engine on all four worked examples and six variations; 185 of 185 project mutants killed.
+
+### 1.8 The leaf's own tests
+
+Done 2026-11-18 (J-013). Check: `test/solarpunk/test_leaf.py` holds the leaf's refusals and numbers (clock: `utc`, `on_grid`, `Period`, `at`; telemetry: `Sample`, `gap`; assets: `Asset`'s host/port pairing, port bound and email shape, `parse_asset_id`, `site_id`; faults: `Fault`'s refusals, `covers`, `duration`; store: `connect`, `apply`), so `rm -rf mutants && .venv/bin/mutmut run && .venv/bin/mutmut results | python -I scripts/survivors.py` prints `survivors: every one explained` on the whole tree. ✓ 36 tests; the whole tree's mutation run clean, every survivor explained (three equivalent `on_grid` arithmetic mutants proven by brute force over 1,101,600 instants).

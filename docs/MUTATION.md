@@ -32,3 +32,6 @@ for a mutant that is truly equivalent.
 - solarpunk.telemetry.samples.x_schema__mutmut_20: lowercases `PRIMARY KEY (asset_id, at)`; the same key.
 - solarpunk.telemetry.samples.x_schema__mutmut_21: uppercases the key's column names; SQLite column names are case-insensitive, the same key.
 - solarpunk.telemetry.generate.x_reading__mutmut_2: `rng.random() < 0.02` to `<=`; random() returns multiples of 2**-53 and the double 0.02 is not one, so equality never happens.
+- `solarpunk.leaf.clock.x_on_grid__mutmut_4`: `+ microsecond / 1_000_000` to `-`; whole seconds lie on the 300 s grid only at second 0 (60·minute + second is a multiple of 300 only when second is a multiple of 60), and any nonzero microsecond leaves a fraction in (0, 1) either way, so the same instants are refused with the same message (built from the instant, not the sum); checked over every minute and second with 306 microsecond values, 1 101 600 cases, no disagreement.
+- `solarpunk.leaf.clock.x_on_grid__mutmut_5`: `minute * 60 + second` to `- second`; 60·minute − second is a multiple of 300 only when second is 0, as with `+`; same reason and check as mutmut_4.
+- `solarpunk.leaf.clock.x_on_grid__mutmut_9`: `/ 1_000_000` to `/ 1000001`; the fraction stays in (0, 1) for every nonzero microsecond and 0 for none, so on-grid-ness and the message are unchanged; same check as mutmut_4.

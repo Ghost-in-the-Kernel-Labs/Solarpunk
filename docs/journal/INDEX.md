@@ -16,3 +16,4 @@ Written from `docs/journal/` by `scripts/journal_index.py`; do not edit by hand.
 | J-010 | 1.4: the KPI engine landed; six readings the contract should say outright | ambiguity | `J-000-099.md` |
 | J-011 | 1.5: the clause register landed; coverage of the two standards is one report | feature | `J-000-099.md` |
 | J-012 | 1.6: the orchestrator landed; the blind mirror agreed on every worked example | trial | `J-000-099.md` |
+| J-013 | 1.8: the leaf's own tests; the tree's mutation run is clean | feature | `J-000-099.md` |
