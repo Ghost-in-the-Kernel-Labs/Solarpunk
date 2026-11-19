@@ -264,3 +264,7 @@ Done 2026-11-19 (J-079). Check: an "Errors" view in the Runs window: a bar per c
 ### 10.7 Error counts across the fleet
 
 Done 2026-11-19 (J-080). Check: an "Errors" button beside Reports in the fleet window opens a window: choose a code from the catalogue and a period, a bar per asset that raised it, faults and suggestions told apart, counts written beside the bars, worst first; clicking a bar opens that asset's Runs window; the screenshot read back; the fast loop green. ✓ `solarpunk/ui/errors_window.py` (a code box of the whole catalogue opening on INV-001, From and To days, Show, the line, `bars.draw_bars`); a click on a row's label, bar or words opens its Runs window, found by the row's tag; the program's "Errors" button; `code_choices`, `code_of`, `asset_counts`, `no_asset_errors`, `row_of` in `solarpunk/ui/runs_text.py`, headless; `test/solarpunk/test_ui_fleet_errors.py` (6 tests); the 9.5 toolbar test names the fourth button; DEMO.md's Reports step; the screenshot read back.
+
+### 10.8 Tune-up pass 10
+
+Done 2026-11-19 (J-081). Check: `docs/when/tune-up.md` followed in full; the metrics table written; the navigation log's "Last review" set. ✓ Cold gate 1.28 min, warm 1.23 min, fast loop 22.7 s, slow tests 11.1 s, 9 of 9 measured, none regressed, both gates passing first time; seven debriefs read; the window row names the Runs and Errors windows' pure modules; the log wiped, Last review set.

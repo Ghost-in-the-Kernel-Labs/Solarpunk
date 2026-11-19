@@ -84,3 +84,4 @@ Written from `docs/journal/` by `scripts/journal_index.py`; do not edit by hand.
 | J-078 | Accounts widened for many users: versions, a viewer role, per-site scope (SP-026) | decision | `J-000-099.md` |
 | J-079 | 10.6: errors by code, the Runs window's Errors tab | feature | `J-000-099.md` |
 | J-080 | 10.7: error counts across the fleet, the Errors window | feature | `J-000-099.md` |
+| J-081 | Tune-up pass 10: Phase 10 closed, both gates passing first time | measurement | `J-000-099.md` |

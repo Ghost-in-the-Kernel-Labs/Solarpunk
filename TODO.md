@@ -62,10 +62,6 @@ the window), then 10.4, 10.5 and 10.6 in parallel, then 10.7 (the fleet's view),
 SP-024: a Runs button beside each asset, its runs, and the runs grouped and graphed. It takes over the asset's history
 that Phase 13 (then 12.5's `asset_log` and 12.8) planned, so nothing is built twice.
 
-### 10.8 Tune-up pass 10
-
-Check: `docs/when/tune-up.md` followed in full; the metrics table written; the navigation log's "Last review" set.
-
 ## Phase 11: tickets in the windows
 
 Lanes (P-15): 11.1, then 11.2, then 11.3 the pass. Ghost's direction, SP-022; moved from Phase 8 (8.3, 8.4) by

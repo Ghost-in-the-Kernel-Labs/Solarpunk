@@ -11,51 +11,9 @@ to the ruling grade; record the review in the journal; set the line below to the
 review ran at (`git rev-parse --short HEAD`, not the tune-up's own, which does not exist yet). Each entry's **Opened** list, read against the routing row its task matched, is the measure
 of whether a fresh agent found its way: files, in order; `CLAUDE.md` does not count.
 
-Last review: 09e5dc4 (2026-11-19, Tune-up pass 9)
+Last review: 883c4d5 (2026-11-19, Tune-up pass 10)
 
 ## Entries
 
 An entry is `### <date> · <task> · <agent>` and four lines: **Task**, **Opened** (files, in order), **Complaints**,
 **Suggestions**.
-
-### 2026-11-19 · 10.1 what a run and a count are · Claude
-- **Task**: SOL-15, the Runs window's readings, with worked examples over the demo store.
-- **Opened**: `TODO.md`, `docs/CONTRACT.md`, `test/test_contract.py`, `solarpunk/leaf/clock.py`.
-- **Complaints**: no row says how to see the demo store's rows; it was built and read with SQL from a scratch folder.
-- **Suggestions**: none yet; one agent's.
-
-### 2026-11-19 · 10.2 the runs' surface · Claude
-- **Task**: four project calls reading runs, power and error counts, held to SOL-15.
-- **Opened**: `TODO.md`, `solarpunk/remote/results.py`, `solarpunk/remote/suggestions.py`, `solarpunk/faults/ledger.py`, `solarpunk/telemetry/samples.py`.
-- **Complaints**: none; the product row for the fleet and faults named the ledger, and `docs/modules.json` said what project may import.
-- **Suggestions**: none.
-
-### 2026-11-19 · 10.3 the Runs button and window · Claude
-- **Task**: a Runs link per fleet row and the Runs window over `project.asset_runs`.
-- **Opened**: `TODO.md`, `solarpunk/ui/app.py`, `solarpunk/ui/asset_window.py`, `solarpunk/ui/__main__.py`.
-- **Complaints**: none.
-- **Suggestions**: none.
-
-### 2026-11-19 · 10.4 runs by test · Claude
-- **Task**: the By test timeline in the Runs window.
-- **Opened**: `TODO.md`, `solarpunk/ui/chart.py`, `solarpunk/ui/runs_window.py`.
-- **Complaints**: none.
-- **Suggestions**: none.
-
-### 2026-11-19 · 10.5 power over time · Claude
-- **Task**: the Power tab, its curve drawn as the reports window draws one.
-- **Opened**: `TODO.md`, `solarpunk/ui/chart.py`, `solarpunk/ui/reports.py`, `solarpunk/ui/runs_window.py`.
-- **Complaints**: a whole-screen screenshot compares more than the window changed; rendering the one window alone was needed for a fair proof.
-- **Suggestions**: none yet; one agent's.
-
-### 2026-11-19 · 10.6 errors by code · Claude
-- **Task**: the Errors tab: bars per code, faults and suggestions apart.
-- **Opened**: `TODO.md`, `solarpunk/ui/runs_window.py`, `solarpunk/ui/runs_text.py`, `solarpunk/project/runs.py`.
-- **Complaints**: none.
-- **Suggestions**: none.
-
-### 2026-11-19 · 10.7 error counts across the fleet · Claude
-- **Task**: the fleet's Errors window over `code_counts_by_asset`, its rows opening the Runs window.
-- **Opened**: `TODO.md`, `solarpunk/ui/__main__.py`, `solarpunk/ui/bars.py`, `solarpunk/leaf/codes.py`.
-- **Complaints**: none.
-- **Suggestions**: none.
