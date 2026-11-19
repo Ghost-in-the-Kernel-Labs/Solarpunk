@@ -608,7 +608,7 @@ The core decisions above are inherited (Core C-001 to C-040); this project's beg
 - **Held by:** `docs/ROADMAP.md` Phase 8 and `TODO.md` 8.1 to 8.4, their tests when built. The network's security becomes Phase 9 (9.1, 9.2) to make room.
 - **Source:** Ghost, in chat, 2026-11-18.
 - **Status:** in force
-- **See also:** SP-015, SP-010, SP-013
+- **See also:** SP-015, SP-010, SP-013, SP-024 (the asset's history moved to Phase 10, runs per asset)
 - **subject:** test record
 
 ### SP-017: The gate runs on a frozen copy, every step times out, lint and the windows are in the fast checks
@@ -676,5 +676,15 @@ The core decisions above are inherited (Core C-001 to C-040); this project's beg
 - **Held by:** `docs/ROADMAP.md` Phases 8 to 14; `TODO.md`; `README.md`.
 - **Source:** Ghost, in chat, 2026-11-19.
 - **Status:** in force
-- **See also:** SP-022, SP-007, SP-015
+- **See also:** SP-022, SP-007, SP-015, SP-024 (its phase numbers after 9 shifted by one)
+- **subject:** front end
+
+### SP-024: Runs per asset, as Phase 10: a Runs button beside each asset, its runs grouped and graphed
+- **Decision:** a new Phase 10, after the fleet window's rework: each row of the fleet list gains a "Runs" cell opening a Runs window for that asset, listing its runs (the results stored at one instant), newest first, the last 100 shown and every one kept (SP-016), with four groupings, each graphed: runs by test (a timeline), power over time (the asset's samples, gaps drawn as gaps), errors by code (faults and suggestions counted apart), and, from an "Errors" button at the root, one code's counts across the fleet. A contract section defines a run, an error count and a power series with worked examples before any is built. It takes over the asset's history the tests' record planned (`asset_log` and the History window), so that is built once. The phases after 9 move by one: tickets in the windows 11, accounts 12, the tests' record 13, the security pass 14, the network 15, their order unchanged.
+- **Why:** Ghost, 2026-11-19: "Lets add a runs button. This is beside each asset, and when clicked brings up each run associated with the asset, as well as a grouping of each run with a graph of each run grouping. For example, monitoring asset power over time, or how many times each asset caused a specific error." Asked, he placed it as a new phase after Phase 9 and chose all four groupings. Every view reads data the store holds (results, samples, faults, suggestions).
+- **Supersedes:** SP-023, in part: its phase numbers after 9; SP-016, in part: the asset's history moves from the tests' record to Phase 10. Both stay `in force` otherwise and name SP-024 in their See also.
+- **Held by:** `docs/ROADMAP.md` Phases 10 to 15; `TODO.md`; `README.md`.
+- **Source:** Ghost, in chat, 2026-11-19.
+- **Status:** in force
+- **See also:** SP-016, SP-023, SP-022, SP-007
 - **subject:** front end

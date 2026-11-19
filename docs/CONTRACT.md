@@ -231,7 +231,7 @@ its targets read what that says. Comments carry their author and instant and are
 past a target when, at the instant asked, a target is `late` or `overdue`. Closing the fault alone (`solarpunk fault
 close`) ends the downtime and leaves the ticket open, to be closed with its root cause.
 
-When a remote tracker is joined behind an adapter (10.1), each field has one owner, and the other side's copy is for
+When a remote tracker is joined behind an adapter (11.1), each field has one owner, and the other side's copy is for
 display only:
 
 | Field | Owner |

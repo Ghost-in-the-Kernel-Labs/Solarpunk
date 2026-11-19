@@ -15,10 +15,10 @@ own nightly regime (SP-012, J-038; the section below). Tune-up pass 5: cold gate
 tests' record, the security pass, and a central server; Phase 8's cause by email was withdrawn by SP-021; Phase 7 closed by its pass, J-056; 7.5, the suggestions in the window and on the command line,
 landed in J-054; 7.4, the suggestions themselves, in J-053; SP-017's 7.2 and 7.3 in J-051 and J-052; 7.1, who assigned a fault, landed in J-050; until 7.4 the receiver holds every good push for an engineer and stores nothing): Phase 7 is Ghost's
 fault assignment (SP-015): tests
-suggest a likely fault, only an engineer assigns one, and the record says which; then (SP-022, renumbered by SP-023) Phase 8 local tickets (8.1 and 8.2), 9 the fleet window as an operations root, 10 tickets in the windows, 11 accounts and auth, 12 the tests' record, 13 the security pass, 14 a central server. 6.3, the reports window, landed (J-043): "Reports" beside
+suggest a likely fault, only an engineer assigns one, and the record says which; then (SP-022, renumbered by SP-023 and SP-024) Phase 8 local tickets (8.1 and 8.2), 9 the fleet window as an operations root, 10 runs per asset, 11 tickets in the windows, 12 accounts and auth, 13 the tests' record, 14 the security pass, 15 a central server. 6.3, the reports window, landed (J-043): "Reports" beside
 "Add asset" in the fleet window; 6.4, the diagnostics in the asset window, landed (J-045). Phase 6 is reports and diagnostics, put ahead of the network's security by Ghost (SP-013, J-041): 6.1 (the
 power-output report, `solarpunk report`, SOL-13) and 6.2 (four inverter diagnostics) are done. The security design pass
-is now 13.1, with an advisor's research on industry addressing and security copied into it. An architecture review
+is now 14.1, with an advisor's research on industry addressing and security copied into it. An architecture review
 (J-041) is Ghost's to place: no product workpath, entry points declared nowhere, `project` and the CLI as hotspots.
 
 What exists: the fleet registry, the fault ledger over a closed catalogue, synthetic SCADA with gaps as data, the KPI
@@ -91,7 +91,7 @@ email on the asset, a mailer to those engineers on degradation, and the Save/Can
 8. The ticket targets (SOL-14, J-061) are Claude's proposal, in force for the code until you set yours: OUTAGE (P1)
    acknowledged within 1 h and worked on within 4 h; DERATE (P2) 4 h and 24 h; INFO (P3) 24 h and 72 h. A preventive work
    order, having no fault, is P3 (J-063), also Claude's proposal. Closing a fault alone (`solarpunk fault close`) leaves
-   its ticket open, to be closed with a root cause; until Phase 10 the command line cannot move a ticket.
+   its ticket open, to be closed with a root cause; until Phase 11 the command line cannot move a ticket.
 9. The fast loop's margin (Tune-up pass 8, J-064): warm 29.2 s against its 30 s target (26.9 s at pass 7), and the
    cold gate refused at 36.7 s. The slowest file is `test/test_gates.py` (10 s alone). Moving it to the full gate is a
    tune-up's to make, but it holds the gate's own refusals, so it waits on your word; or the target is yours to move.

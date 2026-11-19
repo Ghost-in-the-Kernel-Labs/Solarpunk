@@ -43,12 +43,13 @@ moving only once origin takes it (SP-014), and the full `scripts/gate.sh` runs a
 - Phase 7, faults suggested by tests, assigned by engineers (and the gate hardened): done.
 - Phase 8, local tickets (status flow, priorities, response targets, the ticket ledger): done (SP-022).
 - Phase 9, the fleet window as an operations root (headings, causes, what waits on a person): in progress (SP-023).
-- Phase 10, tickets in the windows (the adapter, the local tracker, a Tickets window): not started (SP-022, SP-023).
-- Phase 11, accounts and authentication (every act attributed to a signed-in account): not started (SP-022).
-- Phase 12, the tests and their record (what a test is, suites, a Tests window, each asset's history): not started
-  (SP-016, SP-019, SP-020).
-- Phase 13, the network's security (the feed, the receiver, and the central server's design): not started.
-- Phase 14, the network (a central server with many clients, planned from Phase 13's decisions): not started.
+- Phase 10, runs per asset (a Runs button, each run, runs by test, power, error counts, graphed): not started (SP-024).
+- Phase 11, tickets in the windows (the adapter, the local tracker, a Tickets window): not started (SP-022, SP-023).
+- Phase 12, accounts and authentication (every act attributed to a signed-in account): not started (SP-022).
+- Phase 13, the tests and their record (what a test is, suites, a Tests window): not started (SP-016, SP-019,
+  SP-020).
+- Phase 14, the network's security (the feed, the receiver, and the central server's design): not started.
+- Phase 15, the network (a central server with many clients, planned from Phase 14's decisions): not started.
 
 `docs/ROADMAP.md` holds the plan, `TODO.md` the open items in order, `docs/DONE.md` what is finished;
 `test/test_readme.py` holds each line above to those two files.

@@ -70,3 +70,4 @@ Written from `docs/journal/` by `scripts/journal_index.py`; do not edit by hand.
 | J-064 | Tune-up pass 8: Phase 8 closed; the fast loop at its margin | measurement | `J-000-099.md` |
 | J-065 | 9.1: the fleet window's headings and readable cells | feature | `J-000-099.md` |
 | J-066 | 9.2: the cause column, why a row is its colour | feature | `J-000-099.md` |
+| J-067 | Runs per asset, as Phase 10: a Runs button, its runs grouped and graphed (SP-024) | decision | `J-000-099.md` |
