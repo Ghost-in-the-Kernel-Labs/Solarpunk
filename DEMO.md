@@ -57,30 +57,32 @@ derate on OAHE-INV-001 (10:00 to 10:45). The run is stamped 2026-06-01 13:00 UTC
 
 ## What to click, in order
 
-1. **Read the headings, then mouse over a row.** Each column is named (Asset, Name, Kind, Status, Cause, Last run, Failing),
+1. **Read the band above the list.** "Open outages: 1", "Awaiting an engineer: 1", "Open work orders: 1": what waits
+   on a person. Click one and the list keeps only its assets (the outage: OAHE-INV-002); click it again for all eleven.
+2. **Read the headings, then mouse over a row.** Each column is named (Asset, Name, Kind, Status, Cause, Last run, Failing),
    and the Cause says why a row is its colour: OAHE-INV-002 "INV-001 since 2026-06-01 11:30 UTC", OAHE-SEN-001
    "suggested SEN-001";
    the tooltip gives the last status and the run's instant ("Last status: yellow at 2026-06-01 13:00 UTC"); a string,
    a tracker or the meter, having no endpoint the run can reach, reads "no feed", where an asset with one not yet run
    would read "never run".
-2. **Click OAHE-INV-002.** The asset window shows the open INV-001 outage with its meaning, and its diagnostics with
+3. **Click OAHE-INV-002.** The asset window shows the open INV-001 outage with its meaning, and its diagnostics with
    `reachable` failing first, in red, with its reason.
-3. **Close it, click OAHE-INV-001, and assign a fault.** Its seven diagnostics all pass, fed by the simulator. Pick
+4. **Close it, click OAHE-INV-001, and assign a fault.** Its seven diagnostics all pass, fed by the simulator. Pick
    INV-004 (firmware update pending, INFO) and press Assign without an engineer: it is refused, since only an engineer
    assigns a fault (SP-015). Choose inverter@oahe.example under "Assigned by" (and an operator under "Entered by" if it
    was called in) and press Assign: the fleet window stays green, since an INFO fault is not an outage. Then assign
    INV-001: the fleet row turns red at once (the asset window refreshes the fleet window; Refresh does the same by
    hand). OAHE-INV-002's open outage shows who assigned it: inverter@oahe.example, entered by the operator, marked
    cover, since that engineer is not INV-002's own.
-4. **A suggested fault (SP-015).** Close it and click OAHE-SEN-001, the yellow weather station. Its `reachable` failed,
+5. **A suggested fault (SP-015).** Close it and click OAHE-SEN-001, the yellow weather station. Its `reachable` failed,
    and the test's rule suggests SEN-001 (readings unreliable) under "Suggested faults": the tests propose, they do not
    assign. Select it, choose site@oahe.example under "Assigned by" and press Accept: the fault opens as that engineer.
    Or give a reason and press Dismiss. `solarpunk fault suggestions` lists the same on the command line.
-5. **The engineer.** In the same window type an address into Engineer and press Save, or Cancel to leave it.
-6. **Add asset** (the button above the list). The Type dropdown is read from the asset maintenance list. Fill an
+6. **The engineer.** In the same window type an address into Engineer and press Save, or Cancel to leave it.
+7. **Add asset** (the button above the list). The Type dropdown is read from the asset maintenance list. Fill an
    id such as OAHE-INV-005, a parent, the IP address 127.0.0.1 and a port, press Save: the new row appears in the
    fleet window. Then press **Ping**: with nothing listening on that port it says so, plainly.
-7. **Reports** (beside Add asset). The power-output report for OAHE over the demo day: the site's row first (1591.6 kWh,
+8. **Reports** (beside Add asset). The power-output report for OAHE over the demo day: the site's row first (1591.6 kWh,
    peak 187.2 kW, 7.96 kWh per kW of rating, capacity factor 0.33), then each inverter's, each with its records and
    gaps, and the site's power curve over the day in UTC. The line breaks where an inverter has a gap, never dropping to
    the other's share. **Save as CSV** writes the same file as `solarpunk report OAHE <start> <end> --csv`. Swap the
@@ -88,29 +90,29 @@ derate on OAHE-INV-001 (10:00 to 10:45). The run is stamped 2026-06-01 13:00 UTC
 
 ## The five-minute talk track
 
-1. **Line of sight (ISO 55000).** The site's purpose is energy delivered; that becomes a KPI contract
+2. **Line of sight (ISO 55000).** The site's purpose is energy delivered; that becomes a KPI contract
    (availability, performance ratio, energy yield, MTBF and MTTR, `docs/CONTRACT.md`); the code that computes each
    number cites the clause it serves; a test flags any break; the clause register shows the coverage.
-2. **The closed catalogue and the ledger (ISO 9001 §8.7 and §10.2).** A fault can only be a code from the
+3. **The closed catalogue and the ledger (ISO 9001 §8.7 and §10.2).** A fault can only be a code from the
    catalogue, on an asset the fleet holds; the ledger records when it opened and closed. Nonconforming output is
    named, controlled and corrected, never a free-text note.
-3. **The blind mirror.** The first four KPIs (SOL-07 to SOL-10) are reimplemented from the contract text alone by an
+4. **The blind mirror.** The first four KPIs (SOL-07 to SOL-10) are reimplemented from the contract text alone by an
    agent that never saw the code, and a test compares the two. Every number, power output included (SOL-13), has a
    worked example in the contract a person can check by hand, held as a golden.
-4. **Show the clause report live:**
+5. **Show the clause report live:**
 
        python -I scripts\clauses.py
 
    Each ISO 9001 and ISO 55000 clause the project holds, the test that holds it, and held, failing or open.
-5. **Reports and diagnostics (click Reports, then an inverter).** The power-output report is recomputed from the
+6. **Reports and diagnostics (click Reports, then an inverter).** The power-output report is recomputed from the
    stored telemetry every time, never kept: energy, peak, kWh per kW of rating, capacity factor, each beside its gaps.
    The curve breaks where an inverter missed a reading rather than drawing it as lost output. The asset window lists
    every remote test for the asset's kind: seven on an inverter, among them a daylight performance floor (the signal
    that says a crew is worth sending, not a calendar) and a frozen-reading check (a logger replaying its last value).
    Adding a test is adding one file: `solarpunk test add <name> --clause <id>`.
-6. **The tests are the audit.** Every product line is mutation-tested nightly; each survivor is killed or explained in
+7. **The tests are the audit.** Every product line is mutation-tested nightly; each survivor is killed or explained in
    `docs/MUTATION.md`. Every decision has a number, a reason and the test that holds it (`theGhost.md`).
-7. **What is next, decided today.** Tests suggest a likely fault by their rules, and only an engineer assigns one, the
+8. **What is next, decided today.** Tests suggest a likely fault by their rules, and only an engineer assigns one, the
    record saying which engineer and which operator entered it (SP-015); a Tests window at the root and each asset's
    last 100 results, searchable and graphed, every result kept as evidence (SP-016); then the network's security, from
    plain TCP towards what the industry uses (Modbus TCP with SunSpec at the device, mutual TLS, IEC 62443 zones).

@@ -11,7 +11,7 @@ from solarpunk.feed import client as feed
 from solarpunk.fleet import registry
 from solarpunk.leaf import asset_types
 from solarpunk.leaf.assets import Asset
-from solarpunk.leaf.codes import AssetKind, AssetStatus, FaultCode, codes_for
+from solarpunk.leaf.codes import AssetKind, AssetStatus, FaultCode, Severity, codes_for
 from solarpunk.leaf.faults import Fault
 from solarpunk.leaf.telemetry import Sample
 from solarpunk.project.orchestrator import asset_status, fleet_assets, is_cover, known, open_outages
@@ -21,6 +21,8 @@ from solarpunk.remote import suggestions as suggestion_table
 from solarpunk.remote.results import Recorded
 from solarpunk.remote.suggestions import Suggestion
 from solarpunk.workorders import ledger as work_ledger
+from solarpunk.workorders import tickets as ticket_ledger
+from solarpunk.workorders.tickets import Ticket
 from solarpunk.workorders.ledger import WorkOrder
 
 NO_FAILURE = "—"
@@ -95,6 +97,24 @@ def row_of(conn: sqlite3.Connection, asset: Asset) -> AssetRow:
     suggestions = suggestion_table.open_suggestions(conn, asset.asset_id)
     suggested = suggestions[0].code if suggestions else None
     return AssetRow(asset.asset_id, asset.name, asset.kind, status, last_run_at, failing, has_feed, outage, suggested)
+
+
+@dataclass(frozen=True)
+class Attention:
+    """What waits on a person (9.3, SP-023), each a listing whose length is its count: the open OUTAGE faults, the open
+    suggestions awaiting an engineer, the open work orders' tickets. The demo gives one of each: OAHE-INV-002's INV-001,
+    OAHE-SEN-001's SEN-001, and the outage's ticket."""
+
+    outages: tuple[Fault, ...]
+    suggestions: tuple[Suggestion, ...]
+    orders: tuple[Ticket, ...]
+
+
+def attention(conn: sqlite3.Connection) -> Attention:
+    """The three listings the fleet window counts at its top, each read once: nothing in them changes a status."""
+    # Invariant: SOL-11 (a derate is not an outage)
+    outages = tuple(f for f in ledger.open_faults(conn) if f.catalogue_row().severity is Severity.OUTAGE)
+    return Attention(outages, suggestion_table.open_suggestions(conn), ticket_ledger.open_tickets(conn))
 
 
 def asset_rows(conn: sqlite3.Connection) -> tuple[AssetRow, ...]:

@@ -4,9 +4,13 @@ them; test_demo.py holds the demo's causes as goldens."""
 from datetime import datetime
 
 from solarpunk.leaf.codes import AssetStatus
-from solarpunk.project.surface import AssetRow
+from solarpunk.project.surface import AssetRow, Attention
 
 INSTANT_FORMAT = "%Y-%m-%d %H:%M UTC"
+# The attention band's counts (9.3), in the order they stand: a key, and the words before the count.
+BAND = (("outages", "Open outages"), ("suggestions", "Awaiting an engineer"), ("orders", "Open work orders"))
+BAND_TEXT = "{label}: {count}"
+SHOWING = "; showing {label} alone"
 NO_CAUSE = "—"
 OUTAGE_CAUSE = "{code} since {instant}"
 SUGGESTED_CAUSE = "suggested {code}"
@@ -26,3 +30,24 @@ def cause_text(row: AssetRow) -> str:
     if row.status is AssetStatus.YELLOW:
         return SUGGESTED_CAUSE.format(code=row.suggested) if row.suggested is not None else row.failing
     return NO_CAUSE
+
+
+def band_counts(found: Attention) -> tuple[tuple[str, str], ...]:
+    """Each count's key and words, zero shown, never hidden: the demo gives (("outages", "Open outages: 1"),
+    ("suggestions", "Awaiting an engineer: 1"), ("orders", "Open work orders: 1"))."""
+    return tuple((key, BAND_TEXT.format(label=label, count=len(getattr(found, key)))) for key, label in BAND)
+
+
+def band_assets(found: Attention, key: str) -> frozenset[str]:
+    """The assets one count names, for the list's filter: band_assets(demo, "outages") is {"OAHE-INV-002"}."""
+    return frozenset(item.asset_id for item in getattr(found, key))
+
+
+def filtered(rows: tuple[AssetRow, ...], assets: frozenset[str] | None) -> tuple[AssetRow, ...]:
+    """The rows a filter keeps, in their order; None keeps them all."""
+    return rows if assets is None else tuple(row for row in rows if row.asset_id in assets)
+
+
+def showing(key: str | None) -> str:
+    """The status line's note on a filter: showing("outages") is "; showing open outages alone"; None gives ""."""
+    return "" if key is None else SHOWING.format(label=dict(BAND)[key].lower())

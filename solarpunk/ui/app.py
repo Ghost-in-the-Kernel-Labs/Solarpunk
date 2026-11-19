@@ -13,7 +13,7 @@ from tkinter import ttk
 
 from solarpunk import project
 from solarpunk.leaf.codes import AssetStatus
-from solarpunk.ui.cells import cause_text, instant_text
+from solarpunk.ui.cells import band_assets, band_counts, cause_text, filtered, instant_text, showing
 from solarpunk.ui.glyph import colour_of, draw_panel
 
 ROW_HEIGHT = 28
@@ -109,8 +109,12 @@ class FleetWindow:
         self.opened: list[str] = []
         self.on_open_asset = self.opened.append if on_open_asset is None else on_open_asset
         self.rows: tuple[project.AssetRow, ...] = ()
+        self.all_rows: tuple[project.AssetRow, ...] = ()
+        self.filter_key: str | None = None
         self.frame = ttk.Frame(root)
         self.frame.pack(fill=tkinter.BOTH, expand=True)
+        self.band = ttk.Frame(self.frame)
+        self.band_buttons: dict[str, ttk.Button] = {}
         self.font = tkfont.nametofont("TkDefaultFont")
         self.heading_font = self.font.copy()
         self.heading_font.configure(weight="bold")
@@ -121,12 +125,13 @@ class FleetWindow:
         self.canvas.configure(yscrollcommand=self.scrollbar.set)
         self.refresh_button = ttk.Button(self.frame, text=REFRESH, command=self.refresh)
         self.status_line = ttk.Label(self.frame)
-        self.header.grid(row=0, column=0, sticky="ew")
-        self.canvas.grid(row=1, column=0, sticky="nsew")
-        self.scrollbar.grid(row=1, column=1, sticky="ns")
-        self.refresh_button.grid(row=2, column=0, sticky="w")
-        self.status_line.grid(row=3, column=0, sticky="w")
-        self.frame.rowconfigure(1, weight=1)
+        self.band.grid(row=0, column=0, sticky="w", pady=(2, 4))
+        self.header.grid(row=1, column=0, sticky="ew")
+        self.canvas.grid(row=2, column=0, sticky="nsew")
+        self.scrollbar.grid(row=2, column=1, sticky="ns")
+        self.refresh_button.grid(row=3, column=0, sticky="w")
+        self.status_line.grid(row=4, column=0, sticky="w")
+        self.frame.rowconfigure(2, weight=1)
         self.frame.columnconfigure(0, weight=1)
         self.tooltip = self.make_tooltip(root)
         self.canvas.bind("<Button-1>", self.on_click)
@@ -151,8 +156,12 @@ class FleetWindow:
     def refresh(self) -> None:
         """Rereads the store and redraws the headings and every row, the columns as wide as their text: after a fault
         opens an outage on OAHE-INV-001, refresh() turns its glyph "#c0392b"."""
-        self.rows = project.asset_rows(self.conn)
-        lines = [row_text(row) for row in self.rows]
+        self.all_rows = project.asset_rows(self.conn)
+        found = project.attention(self.conn)
+        self.draw_band(found)
+        assets = None if self.filter_key is None else band_assets(found, self.filter_key)
+        self.rows = filtered(self.all_rows, assets)
+        lines = [row_text(row) for row in self.all_rows]
         self.xs = column_xs(lines, self.measure)
         width = width_for(self.xs, lines, self.measure)
         self.header.delete(tkinter.ALL)
@@ -164,7 +173,23 @@ class FleetWindow:
         for index, row in enumerate(self.rows):
             self.draw_row(index, row)
         self.canvas.configure(width=width, scrollregion=(0, 0, width, len(self.rows) * ROW_HEIGHT))
-        self.status_line.configure(text=summary(self.rows))
+        self.status_line.configure(text=summary(self.all_rows) + showing(self.filter_key))
+
+    def draw_band(self, found: project.Attention) -> None:
+        """The attention band (9.3): a button per count, zero shown; the one filtering the list stays pressed."""
+        for key, text in band_counts(found):
+            button = self.band_buttons.get(key)
+            if button is None:
+                button = ttk.Button(self.band, command=lambda k=key: self.toggle(k))
+                button.pack(side=tkinter.LEFT, padx=(0, 6))
+                self.band_buttons[key] = button
+            button.configure(text=text)
+            button.state(["pressed"] if key == self.filter_key else ["!pressed"])
+
+    def toggle(self, key: str) -> None:
+        """Filters the list to one count's assets, or clears the filter when that count is clicked again."""
+        self.filter_key = None if self.filter_key == key else key
+        self.refresh()
 
     def draw_row(self, index: int, row: project.AssetRow) -> None:
         """Draws one row at index * 28 px: the glyph tagged "glyph:<id>", the six words tagged "row:<id>"."""

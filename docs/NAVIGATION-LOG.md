@@ -29,3 +29,9 @@ An entry is `### <date> · <task> · <agent>` and four lines: **Task**, **Opened
 - **Opened**: `TODO.md`, `solarpunk/project/surface.py`, `solarpunk/project/orchestrator.py`, `solarpunk/ui/app.py`, `test/solarpunk/test_demo.py`.
 - **Complaints**: the window row says the pure half is `chart.py` or `glyph.py`; text for the fleet list had no pure home, so one was made (`cells.py`).
 - **Suggestions**: the window row could name `solarpunk/ui/cells.py` as the pure half of the fleet list's words.
+
+### 2026-11-19 · 9.3 the attention band · Claude
+- **Task**: three counts above the fleet list, each a filter.
+- **Opened**: `TODO.md`, `solarpunk/ui/__main__.py`, `solarpunk/ui/app.py`, `solarpunk/project/surface.py`, `solarpunk/project/orchestrator.py`.
+- **Complaints**: none.
+- **Suggestions**: none.

@@ -55,11 +55,13 @@ from solarpunk.project.suggest import (
 from solarpunk.project.run import RunReport, add_remote_test, remote_tests, scheduled_run
 from solarpunk.project.surface import (
     AssetDetail,
+    Attention,
     AssetRow,
     Diagnostic,
     asset_detail,
     asset_rows,
     assign_engineer,
+    attention,
     codes_for_kind,
     kinds,
     ping_asset,
@@ -83,6 +85,7 @@ from solarpunk.workorders.tickets import Breach, Comment, Ticket
 __all__ = [
     "AssetDetail",
     "AssetRow",
+    "Attention",
     "BadMove",
     "Breach",
     "Comment",
@@ -116,6 +119,7 @@ __all__ = [
     "asset_status",
     "assign_engineer",
     "assign_fault",
+    "attention",
     "check_fault",
     "close_fault",
     "close_work_order",

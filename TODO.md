@@ -55,12 +55,6 @@ Lanes (P-15): 9.1 to 9.5 in order (each touches `solarpunk/ui/app.py`), then 9.6
 from the 2026-11-18 advisor's review of the root window: the list says what colour an asset is, not why, nor what waits
 on a person.
 
-### 9.3 The attention band
-
-What waits on a person, counted at the top (SP-023).
-
-Check: above the list, at most four counts: open outages, suggestions awaiting an engineer, open work orders; each equals the length of its project listing (the demo: 1, 1, 1, its outage's ticket the open work order since 8.2); clicking a count filters the list to its assets and clicking it again clears the filter; a count of zero is shown, not hidden; the fast loop green.
-
 ### 9.4 Sort and filter
 
 Three red assets found among three hundred without scrolling (SP-023).
