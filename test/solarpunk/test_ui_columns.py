@@ -56,12 +56,12 @@ class TheWords(unittest.TestCase):
         self.assertEqual(app.tooltip_text(made_up(False, False)), "Last status: green, no feed")
 
     def test_each_column_is_as_wide_as_its_widest_text_and_a_gap(self) -> None:
-        self.assertEqual(app.column_xs([], seven), (40, 91, 135, 179, 237, 288, 360))
+        self.assertEqual(app.column_xs([], seven), (40, 105, 163, 221, 293, 358, 444))  # each heading with its sort mark (9.4)
         lines = [("OAHE-INV-001", LONG_NAME, "inverter", "green", "—", "2026-06-01 12:00 UTC", "—")]
         xs = app.column_xs(lines, seven)
         self.assertEqual(xs[1] - xs[0], 7 * 12 + 16)
         self.assertEqual(xs[2] - xs[1], 7 * len(LONG_NAME) + 16)
-        for line in (app.HEADINGS, *lines):
+        for line in (app.marked_headings(), *lines):
             for index in range(len(xs) - 1):
                 self.assertLess(xs[index] + seven(line[index]), xs[index + 1], line[index])
 

@@ -55,12 +55,6 @@ Lanes (P-15): 9.1 to 9.5 in order (each touches `solarpunk/ui/app.py`), then 9.6
 from the 2026-11-18 advisor's review of the root window: the list says what colour an asset is, not why, nor what waits
 on a person.
 
-### 9.4 Sort and filter
-
-Three red assets found among three hundred without scrolling (SP-023).
-
-Check: pure `worst_first` (red, then yellow, then green, ties by id) and `matching(rows, text, status, kind)` tested headless; a search box (Ctrl+F) and status and kind boxes above the list, Esc clears them; a heading click sorts by its column; F5 refreshes and Enter opens the selected asset; the fast loop green.
-
 ### 9.5 The status bar
 
 Which store, and when it last ran (SP-023).

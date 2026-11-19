@@ -12,8 +12,9 @@ from tkinter import font as tkfont
 from tkinter import ttk
 
 from solarpunk import project
-from solarpunk.leaf.codes import AssetStatus
-from solarpunk.ui.cells import band_assets, band_counts, cause_text, filtered, instant_text, showing
+from solarpunk.leaf.codes import AssetKind, AssetStatus
+from solarpunk.ui.cells import band_assets, band_counts, filtered, instant_text, never_text, row_text, showing
+from solarpunk.ui.order import matching, sorted_by
 from solarpunk.ui.glyph import colour_of, draw_panel
 
 ROW_HEIGHT = 28
@@ -25,11 +26,10 @@ RIGHT_MARGIN = 12
 HEADINGS = ("Asset", "Name", "Kind", "Status", "Cause", "Last run", "Failing")
 HEADING_HEIGHT = 24
 HEADING_TAG = "heading"
+SORT_MARK = {False: " ▲", True: " ▼"}
 CANVAS_WIDTH = 820
 CANVAS_HEIGHT = 420
 TOOLTIP_OFFSET = 14
-NEVER_RUN = "never run"
-NO_FEED = "no feed"
 REFRESH = "Refresh"
 TOOLTIP_RUN = "Last status: {status} at {instant}"
 TOOLTIP_NEVER = "Last status: {status}, {never}"
@@ -37,20 +37,13 @@ SUMMARY = "{total} assets: {green} green, {yellow} yellow, {red} red"
 GLYPH_TAG = "glyph:{asset_id}"
 ROW_TAG = "row:{asset_id}"
 TOOLTIP_BACKGROUND = "#ffffe0"
+SELECTED_FILL = "#cfe2f3"
+SELECTED_TAG = "selected"
+ANY_STATUS = "any status"
+ANY_KIND = "any kind"
+SEARCH = "Search (Ctrl+F)"
+SHOWN = "; {shown} of {total} shown"
 
-
-def never_text(row: project.AssetRow) -> str:
-    """Why a row has no run: "never run" for an asset with an endpoint, "no feed" for one the run cannot reach."""
-    return NEVER_RUN if row.has_feed else NO_FEED
-
-
-def row_text(row: project.AssetRow) -> tuple[str, str, str, str, str, str, str]:
-    """A row's seven words: AssetRow("OAHE-INV-002", "Inverter 2", INVERTER, YELLOW, 12:00 UTC, "reachable") gives
-    ("OAHE-INV-002", "Inverter 2", "inverter", "yellow", "reachable", "2026-06-01 12:00 UTC", "reachable"), its cause
-    fifth (9.2, cells.cause_text); never run gives "never run" in the sixth place, or "no feed" for an asset with no
-    endpoint."""
-    last_run = never_text(row) if row.last_run_at is None else instant_text(row.last_run_at)
-    return (row.asset_id, row.name, row.kind.name.lower(), row.status.value, cause_text(row), last_run, row.failing)
 
 
 def tooltip_text(row: project.AssetRow) -> str:
@@ -61,11 +54,17 @@ def tooltip_text(row: project.AssetRow) -> str:
     return TOOLTIP_RUN.format(status=row.status.value, instant=instant_text(row.last_run_at))
 
 
+def marked_headings() -> tuple[str, ...]:
+    """The headings as wide as they can be drawn, each with a sort mark: ("Asset ▲", "Name ▲", …)."""
+    return tuple(heading + SORT_MARK[False] for heading in HEADINGS)
+
+
 def column_xs(lines: Iterable[tuple[str, ...]], measure: Callable[[str], int]) -> tuple[int, ...]:
-    """Each column's left x, the first at 40, each next one the widest text before it (heading included) plus a 16 px
-    gap: with measure = 7 px a character, column_xs([("Asset", "Name")], measure) is (40, 91)."""
+    """Each column's left x, the first at 40, each next one the widest text before it plus a 16 px gap, a heading
+    measured with room for its sort mark (9.4): with measure = 7 px a character, column_xs([], measure) starts
+    (40, 105), "Asset ▲" being 49 px."""
     widths = [0] * len(HEADINGS)
-    for line in (HEADINGS, *lines):
+    for line in (marked_headings(), *lines):
         for index, text in enumerate(line):
             widths[index] = max(widths[index], measure(text))
     xs = [FIRST_X]
@@ -76,7 +75,7 @@ def column_xs(lines: Iterable[tuple[str, ...]], measure: Callable[[str], int]) -
 
 def width_for(xs: tuple[int, ...], lines: Iterable[tuple[str, ...]], measure: Callable[[str], int]) -> int:
     """The width that holds every column, the last one's widest text and a 12 px margin, never under 820."""
-    last = max((measure(line[-1]) for line in (HEADINGS, *lines)), default=0)
+    last = max((measure(line[-1]) for line in (marked_headings(), *lines)), default=0)
     return max(CANVAS_WIDTH, xs[-1] + last + RIGHT_MARGIN)
 
 
@@ -111,6 +110,10 @@ class FleetWindow:
         self.rows: tuple[project.AssetRow, ...] = ()
         self.all_rows: tuple[project.AssetRow, ...] = ()
         self.filter_key: str | None = None
+        self.found: project.Attention | None = None
+        self.sort_column = 0
+        self.sort_reverse = False
+        self.selected: str | None = None
         self.frame = ttk.Frame(root)
         self.frame.pack(fill=tkinter.BOTH, expand=True)
         self.band = ttk.Frame(self.frame)
@@ -126,18 +129,50 @@ class FleetWindow:
         self.refresh_button = ttk.Button(self.frame, text=REFRESH, command=self.refresh)
         self.status_line = ttk.Label(self.frame)
         self.band.grid(row=0, column=0, sticky="w", pady=(2, 4))
-        self.header.grid(row=1, column=0, sticky="ew")
-        self.canvas.grid(row=2, column=0, sticky="nsew")
-        self.scrollbar.grid(row=2, column=1, sticky="ns")
-        self.refresh_button.grid(row=3, column=0, sticky="w")
-        self.status_line.grid(row=4, column=0, sticky="w")
-        self.frame.rowconfigure(2, weight=1)
+        self.make_filters()
+        self.filters.grid(row=1, column=0, sticky="w", pady=(0, 4))
+        self.header.grid(row=2, column=0, sticky="ew")
+        self.canvas.grid(row=3, column=0, sticky="nsew")
+        self.scrollbar.grid(row=3, column=1, sticky="ns")
+        self.refresh_button.grid(row=4, column=0, sticky="w")
+        self.status_line.grid(row=5, column=0, sticky="w")
+        self.frame.rowconfigure(3, weight=1)
         self.frame.columnconfigure(0, weight=1)
         self.tooltip = self.make_tooltip(root)
         self.canvas.bind("<Button-1>", self.on_click)
         self.canvas.bind("<Motion>", self.on_motion)
         self.canvas.bind("<Leave>", self.hide_tooltip)
+        self.header.bind("<Button-1>", self.on_heading)
+        self.bind_keys(root.winfo_toplevel())
         self.refresh()
+
+    def make_filters(self) -> None:
+        """The filter row (9.4): a search box, a status box and a kind box; each change redraws the list."""
+        self.filters = ttk.Frame(self.frame)
+        self.search_text = tkinter.StringVar()
+        self.status_choice = tkinter.StringVar(value=ANY_STATUS)
+        self.kind_choice = tkinter.StringVar(value=ANY_KIND)
+        ttk.Label(self.filters, text=SEARCH).pack(side=tkinter.LEFT)
+        self.search_box = ttk.Entry(self.filters, textvariable=self.search_text, width=24)
+        self.search_box.pack(side=tkinter.LEFT, padx=(4, 12))
+        self.status_box = ttk.Combobox(self.filters, textvariable=self.status_choice, state="readonly", width=12,
+                                       values=(ANY_STATUS, *(s.value for s in AssetStatus)))
+        self.status_box.pack(side=tkinter.LEFT, padx=(0, 8))
+        self.kind_box = ttk.Combobox(self.filters, textvariable=self.kind_choice, state="readonly", width=12,
+                                     values=(ANY_KIND, *(k.name.lower() for k in AssetKind)))
+        self.kind_box.pack(side=tkinter.LEFT)
+        for variable in (self.search_text, self.status_choice, self.kind_choice):
+            variable.trace_add("write", lambda *_: self.redraw())
+
+    def bind_keys(self, window: tkinter.Misc) -> None:
+        """Ctrl+F to the search box, Esc clears the filters, F5 refreshes, Up and Down move the selection, Enter opens
+        the selected asset; each on the fleet's own window, so an asset window's keys stay its own."""
+        window.bind("<Control-f>", lambda _e: self.search_box.focus_set())
+        window.bind("<Escape>", lambda _e: self.clear_filters())
+        window.bind("<F5>", lambda _e: self.refresh())
+        window.bind("<Up>", lambda _e: self.move_selection(-1))
+        window.bind("<Down>", lambda _e: self.move_selection(1))
+        window.bind("<Return>", lambda _e: self.open_selected())
 
     def make_tooltip(self, root: tkinter.Misc) -> ttk.Label:
         """A borderless window holding one label, hidden until a mouseover: make_tooltip(root).master is that window,
@@ -154,26 +189,82 @@ class FleetWindow:
         return max(self.font.measure(text), self.heading_font.measure(text))
 
     def refresh(self) -> None:
-        """Rereads the store and redraws the headings and every row, the columns as wide as their text: after a fault
-        opens an outage on OAHE-INV-001, refresh() turns its glyph "#c0392b"."""
+        """Rereads the store, then redraws: after a fault opens an outage on OAHE-INV-001, refresh() turns its glyph
+        "#c0392b"."""
         self.all_rows = project.asset_rows(self.conn)
-        found = project.attention(self.conn)
-        self.draw_band(found)
-        assets = None if self.filter_key is None else band_assets(found, self.filter_key)
-        self.rows = filtered(self.all_rows, assets)
+        self.found = project.attention(self.conn)
+        self.redraw()
+
+    def banded(self) -> tuple[project.AssetRow, ...]:
+        """The rows the band's filter keeps (9.3), every row with none."""
+        assert self.found is not None
+        return filtered(self.all_rows, None if self.filter_key is None else band_assets(self.found, self.filter_key))
+
+    def kept(self) -> tuple[project.AssetRow, ...]:
+        """The rows the band's filter, the search, the status and the kind keep, in the chosen sort."""
+        status = None if self.status_choice.get() == ANY_STATUS else AssetStatus(self.status_choice.get())
+        kind = None if self.kind_choice.get() == ANY_KIND else AssetKind[self.kind_choice.get().upper()]
+        rows = matching(self.banded(), self.search_text.get(), status, kind)
+        return sorted_by(rows, self.sort_column, self.sort_reverse)
+
+    def redraw(self) -> None:
+        """Redraws the band, the headings and the rows the filters keep, without rereading the store, the columns as
+        wide as the whole fleet's text so a filter never moves them."""
+        if self.found is None:
+            return
+        self.draw_band(self.found)
+        self.rows = self.kept()
         lines = [row_text(row) for row in self.all_rows]
         self.xs = column_xs(lines, self.measure)
         width = width_for(self.xs, lines, self.measure)
         self.header.delete(tkinter.ALL)
-        for x, text in zip(self.xs, HEADINGS):
-            self.header.create_text(x, HEADING_HEIGHT // 2, text=text, anchor=tkinter.W, font=self.heading_font,
+        for index, (x, text) in enumerate(zip(self.xs, HEADINGS)):
+            sorted_here = index == self.sort_column and (index, self.sort_reverse) != (0, False)  # id order is unmarked
+            mark = SORT_MARK[self.sort_reverse] if sorted_here else ""
+            self.header.create_text(x, HEADING_HEIGHT // 2, text=text + mark, anchor=tkinter.W, font=self.heading_font,
                                     tags=(HEADING_TAG,))
         self.header.configure(width=width)
         self.canvas.delete(tkinter.ALL)
+        if self.selected not in [row.asset_id for row in self.rows]:
+            self.selected = None
         for index, row in enumerate(self.rows):
+            if row.asset_id == self.selected:
+                self.canvas.create_rectangle(0, index * ROW_HEIGHT, width, (index + 1) * ROW_HEIGHT, fill=SELECTED_FILL,
+                                             outline="", tags=(SELECTED_TAG,))
             self.draw_row(index, row)
         self.canvas.configure(width=width, scrollregion=(0, 0, width, len(self.rows) * ROW_HEIGHT))
-        self.status_line.configure(text=summary(self.all_rows) + showing(self.filter_key))
+        narrowed = len(self.rows) != len(self.banded())  # the band's own filter is said by showing()
+        shown = SHOWN.format(shown=len(self.rows), total=len(self.all_rows)) if narrowed else ""
+        self.status_line.configure(text=summary(self.all_rows) + showing(self.filter_key) + shown)
+
+    def on_heading(self, event: tkinter.Event) -> None:
+        """A click on a heading sorts by its column; a second click on the same one turns the order round."""
+        column = max((i for i, x in enumerate(self.xs) if x <= event.x), default=0)
+        self.sort_reverse = not self.sort_reverse if column == self.sort_column else False
+        self.sort_column = column
+        self.redraw()
+
+    def clear_filters(self) -> None:
+        """Esc: empties the search, sets the status and kind boxes to any, and lifts the band's filter."""
+        self.filter_key = None
+        self.search_text.set("")
+        self.status_choice.set(ANY_STATUS)
+        self.kind_choice.set(ANY_KIND)
+        self.redraw()
+
+    def move_selection(self, step: int) -> None:
+        """Up or Down: the selection moves one row, starting at the first, never past either end."""
+        if not self.rows:
+            return
+        ids = [row.asset_id for row in self.rows]
+        index = -1 if self.selected is None else ids.index(self.selected)
+        self.selected = ids[min(max(index + step, 0), len(ids) - 1)]
+        self.redraw()
+
+    def open_selected(self) -> None:
+        """Enter: opens the selected asset, as a click on its row does; with nothing selected, nothing opens."""
+        if self.selected is not None:
+            self.on_open_asset(self.selected)
 
     def draw_band(self, found: project.Attention) -> None:
         """The attention band (9.3): a button per count, zero shown; the one filtering the list stays pressed."""
@@ -189,7 +280,7 @@ class FleetWindow:
     def toggle(self, key: str) -> None:
         """Filters the list to one count's assets, or clears the filter when that count is clicked again."""
         self.filter_key = None if self.filter_key == key else key
-        self.refresh()
+        self.redraw()
 
     def draw_row(self, index: int, row: project.AssetRow) -> None:
         """Draws one row at index * 28 px: the glyph tagged "glyph:<id>", the six words tagged "row:<id>"."""
@@ -209,6 +300,8 @@ class FleetWindow:
         that is the second row; a click below the last row calls nothing."""
         row = self.row_under(event)
         if row is not None:
+            self.selected = row.asset_id
+            self.redraw()
             self.on_open_asset(row.asset_id)
 
     def on_motion(self, event: tkinter.Event) -> None:

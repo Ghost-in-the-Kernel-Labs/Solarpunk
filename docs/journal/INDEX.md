@@ -72,3 +72,4 @@ Written from `docs/journal/` by `scripts/journal_index.py`; do not edit by hand.
 | J-066 | 9.2: the cause column, why a row is its colour | feature | `J-000-099.md` |
 | J-067 | Runs per asset, as Phase 10: a Runs button, its runs grouped and graphed (SP-024) | decision | `J-000-099.md` |
 | J-068 | 9.3: the attention band, what waits on a person | feature | `J-000-099.md` |
+| J-069 | 9.4: sort and filter the fleet list | feature | `J-000-099.md` |

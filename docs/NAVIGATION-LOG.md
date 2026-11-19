@@ -35,3 +35,9 @@ An entry is `### <date> · <task> · <agent>` and four lines: **Task**, **Opened
 - **Opened**: `TODO.md`, `solarpunk/ui/__main__.py`, `solarpunk/ui/app.py`, `solarpunk/project/surface.py`, `solarpunk/project/orchestrator.py`.
 - **Complaints**: none.
 - **Suggestions**: none.
+
+### 2026-11-19 · 9.4 sort and filter · Claude
+- **Task**: worst first, column sort, search and boxes, keys and a selection in the fleet window.
+- **Opened**: `TODO.md`, `solarpunk/ui/app.py`, `solarpunk/ui/cells.py`, `test/solarpunk/test_ui_band.py`.
+- **Complaints**: none; the window row's rule to read the screenshot back caught the one bug.
+- **Suggestions**: none.

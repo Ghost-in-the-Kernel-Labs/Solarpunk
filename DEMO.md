@@ -64,7 +64,9 @@ derate on OAHE-INV-001 (10:00 to 10:45). The run is stamped 2026-06-01 13:00 UTC
    "suggested SEN-001";
    the tooltip gives the last status and the run's instant ("Last status: yellow at 2026-06-01 13:00 UTC"); a string,
    a tracker or the meter, having no endpoint the run can reach, reads "no feed", where an asset with one not yet run
-   would read "never run".
+   would read "never run". Click the Status heading to put the worst first (a second click turns it round); type
+   in the search box (Ctrl+F) or pick a status or a kind to narrow the list, Esc to clear; Up and Down move the
+   selection and Enter opens it; F5 rereads the store.
 3. **Click OAHE-INV-002.** The asset window shows the open INV-001 outage with its meaning, and its diagnostics with
    `reachable` failing first, in red, with its reason.
 4. **Close it, click OAHE-INV-001, and assign a fault.** Its seven diagnostics all pass, fed by the simulator. Pick

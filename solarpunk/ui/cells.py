@@ -12,6 +12,8 @@ BAND = (("outages", "Open outages"), ("suggestions", "Awaiting an engineer"), ("
 BAND_TEXT = "{label}: {count}"
 SHOWING = "; showing {label} alone"
 NO_CAUSE = "—"
+NEVER_RUN = "never run"
+NO_FEED = "no feed"
 OUTAGE_CAUSE = "{code} since {instant}"
 SUGGESTED_CAUSE = "suggested {code}"
 
@@ -51,3 +53,17 @@ def filtered(rows: tuple[AssetRow, ...], assets: frozenset[str] | None) -> tuple
 def showing(key: str | None) -> str:
     """The status line's note on a filter: showing("outages") is "; showing open outages alone"; None gives ""."""
     return "" if key is None else SHOWING.format(label=dict(BAND)[key].lower())
+
+
+def never_text(row: AssetRow) -> str:
+    """Why a row has no run: "never run" for an asset with an endpoint, "no feed" for one the run cannot reach."""
+    return NEVER_RUN if row.has_feed else NO_FEED
+
+
+def row_text(row: AssetRow) -> tuple[str, str, str, str, str, str, str]:
+    """A row's seven words: AssetRow("OAHE-INV-002", "Inverter 2", INVERTER, YELLOW, 12:00 UTC, "reachable") gives
+    ("OAHE-INV-002", "Inverter 2", "inverter", "yellow", "reachable", "2026-06-01 12:00 UTC", "reachable"), its cause
+    fifth (9.2, cells.cause_text); never run gives "never run" in the sixth place, or "no feed" for an asset with no
+    endpoint."""
+    last_run = never_text(row) if row.last_run_at is None else instant_text(row.last_run_at)
+    return (row.asset_id, row.name, row.kind.name.lower(), row.status.value, cause_text(row), last_run, row.failing)
