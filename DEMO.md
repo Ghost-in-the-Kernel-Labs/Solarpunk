@@ -100,6 +100,10 @@ derate on OAHE-INV-001 (10:00 to 10:45). The run is stamped 2026-06-01 13:00 UTC
 
    **Errors** (beside Reports) counts one code across the fleet: INV-001 over the demo day is one row, OAHE-INV-002 with
    "1 fault" and "0 suggestions", worst first; a click on a row opens that asset's Runs window.
+   **Tickets** (beside Errors) lists the open tickets, the nearest target first: OAHE-INV-002's, opened 11:30, in red,
+   its acknowledgement "OVERDUE, due 2026-06-01 12:30 UTC" (the demo's run is at 13:00; on a later clock the response
+   is overdue too). A double click opens the asset window, whose **Ticket** panel acknowledges, comments (By an
+   engineer) and resolves (what was done and a root cause), which closes the fault.
 ## The five-minute talk track
 
 2. **Line of sight (ISO 55000).** The site's purpose is energy delivered; that becomes a KPI contract

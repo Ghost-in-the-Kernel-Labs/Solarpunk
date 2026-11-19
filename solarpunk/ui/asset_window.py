@@ -10,6 +10,8 @@ from collections.abc import Callable
 from datetime import datetime, timezone
 from tkinter import ttk
 
+from solarpunk.ui.ticket_panel import TicketPanel
+
 from solarpunk import project
 from solarpunk.leaf.assets import Asset
 from solarpunk.leaf.codes import AssetStatus, FaultCode, lookup
@@ -196,9 +198,16 @@ class AssetWindow(tk.Toplevel):
         self.build_decide()
         self.build_assign()
         self.build_engineer()
+        self.ticket_panel = TicketPanel(self, conn, asset_id, self.ticket_changed)  # 11.2
+        self.ticket_panel.pack(fill="x", padx=8, pady=4)
         self.message = tk.Label(self, anchor="w", foreground=RED_TEXT)
         self.message.pack(fill="x", padx=8, pady=4)
         self.fill(detail)
+
+    def ticket_changed(self) -> None:
+        """After a ticket act: the window rereads its asset and the fleet window the store."""
+        self.fill(project.asset_detail(self.conn, self.asset_id))
+        self.on_change()
 
     def tree(self, title: str, columns: tuple[str, ...], headings: tuple[str, ...], height: int = 4) -> ttk.Treeview:
         """A titled Treeview of named columns, height rows tall: tree("Diagnostics", ("test", …), ("Test", …), 7) shows
@@ -260,6 +269,7 @@ class AssetWindow(tk.Toplevel):
         for line in field_lines(detail.asset):
             ttk.Label(self.fields, text=line, anchor="w").pack(fill="x")
         self.status_label.configure(text=status_line(detail.status), foreground=colour_of(detail.status))
+        self.ticket_panel.refresh()
         self.fault_tree.delete(*self.fault_tree.get_children())
         for fault_row in fault_lines(detail):
             self.fault_tree.insert("", "end", values=fault_row)

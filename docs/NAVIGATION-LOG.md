@@ -23,3 +23,9 @@ An entry is `### <date> · <task> · <agent>` and four lines: **Task**, **Opened
 - **Opened**: `TODO.md`, `docs/modules.json`, `solarpunk/workorders/ledger.py`, `solarpunk/workorders/tickets.py`, `solarpunk/project/run.py`.
 - **Complaints**: `docs/modules.json`'s "adding" text says how to propose a module but not where its approval is written; a decision record was used.
 - **Suggestions**: the "adding" text could say "the approval is a decision in theGhost.md naming the entry".
+
+### 2026-11-19 · 11.2 tickets in the windows and on the command line · Claude
+- **Task**: the Tickets window, the asset window's ticket panel, the ticket commands.
+- **Opened**: `TODO.md`, `solarpunk/cli/main.py`, `solarpunk.cmd`, `solarpunk/ui/asset_window.py`, `solarpunk/ui/__main__.py`.
+- **Complaints**: two files near the 400-line ceiling forced new files mid-task; nothing said so before the work began.
+- **Suggestions**: the product row for a command and for a window could name the file's line count to watch.

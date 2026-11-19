@@ -85,12 +85,15 @@ from solarpunk.project.runs import (
 )
 from solarpunk.project.tracker import Drained, drain_outbox, local_tracker, tickets_waiting
 from solarpunk.project.tickets import (
+    TicketView,
     comment_on_ticket,
     move_ticket,
     open_tickets,
+    resolve_ticket,
     set_ticket_assignee,
     ticket_comments,
     ticket_of,
+    tickets_by_target,
     tickets_past_target,
 )
 from solarpunk.leaf.tickets import BadMove, Priority, TargetState, TicketStatus
@@ -127,6 +130,7 @@ __all__ = [
     "TargetState",
     "Ticket",
     "TicketStatus",
+    "TicketView",
     "UnknownAsset",
     "UnknownEngineer",
     "UnknownRootCause",
@@ -181,6 +185,7 @@ __all__ = [
     "report_day",
     "report_rows",
     "report_sites",
+    "resolve_ticket",
     "scheduled_run",
     "set_ticket_assignee",
     "store_name",
@@ -188,6 +193,7 @@ __all__ = [
     "suggest_pushed",
     "ticket_comments",
     "ticket_of",
+    "tickets_by_target",
     "tickets_past_target",
     "tickets_waiting",
     "work_orders_for",

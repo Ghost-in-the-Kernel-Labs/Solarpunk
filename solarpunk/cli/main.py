@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import TextIO
 
 from solarpunk import project
+from solarpunk.cli.tickets import add_tickets
 
 ROOT = Path(__file__).resolve().parents[2]
 CLAUSES_SCRIPT = "scripts/clauses.py"
@@ -41,6 +42,12 @@ The fleet and its faults
   fault suggestions [--asset ID]               the faults the tests and the devices suggest, waiting
   fault accept ID --by ENGINEER                accept a suggestion into a fault [--recorded-by OPERATOR]
   fault dismiss ID --by ENGINEER --reason WHY  dismiss a suggestion, saying why
+
+The tickets (each takes --at INSTANT, now by default)
+  ticket list                                  the open tickets, the nearest target first, a breach marked
+  ticket ack ID                                acknowledge a ticket
+  ticket comment ID --by WHO WORDS             add a comment, kept as written
+  ticket resolve ID --cause CODE --done WORDS  resolve and close a ticket and its fault with a root cause
 
 The numbers
   telemetry generate SITE DAY --seed N         store a day of synthetic telemetry
@@ -323,6 +330,7 @@ def build_parser() -> argparse.ArgumentParser:
     add_fleet_and_faults(commands)
     add_the_rest(commands)
     add_tests(commands)
+    add_tickets(commands)  # 11.2
     return parser
 
 

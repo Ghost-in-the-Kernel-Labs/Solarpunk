@@ -67,12 +67,6 @@ that Phase 13 (then 12.5's `asset_log` and 12.8) planned, so nothing is built tw
 Lanes (P-15): 11.1, then 11.2, then 11.3 the pass. Ghost's direction, SP-022; moved from Phase 8 (8.3, 8.4) by
 SP-023, so the Tickets window and the attention band's tickets land in the reworked fleet window.
 
-### 11.2 Tickets in the windows and on the command line
-
-The tickets where people work (SP-022).
-
-Check: a Tickets window opened from the fleet window lists the open tickets ordered by the nearest target, a breach in red; the asset window shows its asset's ticket with Acknowledge, Comment and Resolve (Resolve taking a root cause from the closed list); `solarpunk ticket list|ack|comment|resolve`; each window's screenshot read back under xvfb; the fast loop green.
-
 ### 11.3 Tune-up pass 11
 
 Check: `docs/when/tune-up.md` followed in full; the metrics table written; the navigation log's "Last review" set.

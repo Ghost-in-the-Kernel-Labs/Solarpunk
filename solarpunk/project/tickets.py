@@ -3,11 +3,18 @@ A ticket opens with its fault (orchestrator.assign_fault) and closes with a root
 4.1); in between, these calls acknowledge, start, resolve and reopen it, set who works it, comment on it, and report
 the tickets past a target. Each is one call into the ticket ledger, so the rules are written once (MOD-02)."""
 import sqlite3
-from datetime import datetime
+from dataclasses import dataclass
+from datetime import datetime, timezone
 
-from solarpunk.leaf.tickets import TicketStatus
+from solarpunk.leaf.root_causes import lookup_root_cause
+from solarpunk.leaf.tickets import TARGETS, TargetState, TicketStatus, target_state
+from solarpunk.project.orchestrator import close_work_order
+from solarpunk.workorders.ledger import WorkOrderError
 from solarpunk.workorders import tickets as ticket_ledger
 from solarpunk.workorders.tickets import Breach, Comment, Ticket
+
+LATE_STATES = (TargetState.LATE, TargetState.OVERDUE)
+WAITING_STATES = (TargetState.PENDING, TargetState.OVERDUE)
 
 
 def ticket_of(conn: sqlite3.Connection, wo_id: int) -> Ticket:
@@ -48,3 +55,62 @@ def tickets_past_target(conn: sqlite3.Connection, moment: datetime) -> tuple[Bre
     """The open tickets' late or overdue targets at an instant: the demo's outage, opened 11:30 and not acknowledged,
     is overdue on acknowledgement at 13:00 (P1, due 12:30)."""
     return ticket_ledger.past_target(conn, moment)
+
+
+@dataclass(frozen=True)
+class TicketView:
+    """An open ticket with its two targets' states and due instants at an instant (SOL-14), for the Tickets window and
+    `solarpunk ticket list`: the demo's outage at 13:00 has its acknowledgement OVERDUE (due 12:30) and its response
+    PENDING (due 15:30); next_due is the sooner of the two not yet met, and breached says whether either is late or
+    overdue."""
+
+    ticket: Ticket
+    acknowledge: TargetState | None
+    acknowledge_due: datetime | None
+    respond: TargetState | None
+    respond_due: datetime | None
+
+    @property
+    def breached(self) -> bool:
+        """Whether a target is late or overdue."""
+        return self.acknowledge in LATE_STATES or self.respond in LATE_STATES
+
+    @property
+    def next_due(self) -> datetime | None:
+        """The sooner due instant of the targets not yet met, None when both happened or the ticket has no priority."""
+        open_targets = [due for state, due in ((self.acknowledge, self.acknowledge_due), (self.respond, self.respond_due))
+                        if state in WAITING_STATES and due is not None]
+        return min(open_targets, default=None)
+
+
+def view_of(found: Ticket, moment: datetime) -> TicketView:
+    """One ticket's view at an instant; a ticket with no priority has no targets."""
+    if found.priority is None:
+        return TicketView(found, None, None, None, None)
+    targets = TARGETS[found.priority]
+    ack_due, respond_due = found.opened + targets.acknowledge, found.opened + targets.respond
+    return TicketView(found, target_state(found.opened, targets.acknowledge, found.acknowledged, moment), ack_due,
+                      target_state(found.opened, targets.respond, found.responded, moment), respond_due)
+
+
+def tickets_by_target(conn: sqlite3.Connection, moment: datetime) -> tuple[TicketView, ...]:
+    """The open tickets at an instant, the nearest target first (an overdue one before a pending one, as its due is
+    earlier), those with no target waiting last, ties by work order: SOL-14's order for the Tickets window (11.2)."""
+    views = [view_of(found, moment) for found in ticket_ledger.open_tickets(conn)]
+    far = datetime.max.replace(tzinfo=timezone.utc)
+    return tuple(sorted(views, key=lambda v: (v.next_due or far, v.ticket.wo_id)))
+
+
+def resolve_ticket(conn: sqlite3.Connection, wo_id: int, done: str, root_cause: str, moment: datetime) -> Ticket:
+    """Resolves a ticket with what was done and closes it with a root cause from the closed list, in one act at an
+    instant (11.2's Resolve): a ticket not yet in progress moves there first, then to resolved with the words, then to
+    closed with the cause, which closes its fault (4.1). A cause outside the list (UnknownRootCause) or no words
+    (WorkOrderError) writes nothing."""
+    lookup_root_cause(root_cause)
+    if not done.strip():
+        raise WorkOrderError(f"work order {wo_id} resolves with evidence of what was done")
+    if ticket_ledger.ticket(conn, wo_id).status in (TicketStatus.OPEN, TicketStatus.ACKNOWLEDGED):
+        ticket_ledger.move(conn, wo_id, TicketStatus.IN_PROGRESS, moment)
+    ticket_ledger.move(conn, wo_id, TicketStatus.RESOLVED, moment, done)
+    close_work_order(conn, wo_id, root_cause, moment)
+    return ticket_ledger.ticket(conn, wo_id)

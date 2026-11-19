@@ -1,0 +1,110 @@
+"""The tickets in the windows (11.2, SOL-14): the words headless (ticket_text: a target in words, a ticket's row, the
+panel's line, the root causes), then under a display over the demo store at 13:00: the Tickets window's rows, the
+nearest target first, a breach red, a double click opening the asset; the asset window's ticket panel acknowledging,
+commenting (an author needed) and resolving (a cause needed), which closes the fault and turns the asset green.
+Skips "no tkinter" or "no display" as test_ui.py does."""
+import importlib.util
+import tempfile
+import unittest
+from pathlib import Path
+
+from solarpunk import project
+from solarpunk.leaf.clock import at
+from solarpunk.leaf.codes import AssetStatus
+from solarpunk.ui import demo, ticket_text
+
+HAS_TKINTER = importlib.util.find_spec("tkinter") is not None
+if HAS_TKINTER:
+    import tkinter
+
+    from solarpunk.ui import __main__ as entry
+    from solarpunk.ui import asset_window, tickets_window
+
+ONE = at(2026, 6, 1, 13)
+OVERDUE = "OVERDUE, due 2026-06-01 12:30 UTC"
+PENDING = "pending, due 2026-06-01 15:30 UTC"
+
+
+class TheWords(unittest.TestCase):
+    def test_a_target_in_words(self) -> None:
+        self.assertEqual(ticket_text.target_cell(project.TargetState.OVERDUE, at(2026, 6, 1, 12, 30)), OVERDUE)
+        self.assertEqual(ticket_text.target_cell(project.TargetState.PENDING, at(2026, 6, 1, 15, 30)), PENDING)
+        self.assertEqual(ticket_text.target_cell(project.TargetState.MET, at(2026, 6, 1, 12, 30)), "met")
+        self.assertEqual(ticket_text.target_cell(None, None), "—")
+
+    def test_the_root_causes(self) -> None:
+        choices = ticket_text.cause_choices()
+        self.assertEqual(len(choices), len(project.RootCause))
+        self.assertEqual([ticket_text.cause_of(c) for c in choices], [c.value for c in project.RootCause])
+        self.assertEqual(ticket_text.cause_of(""), "")
+
+
+@unittest.skipUnless(HAS_TKINTER, "no tkinter")
+class TheWindows(unittest.TestCase):
+    def setUp(self) -> None:
+        """The demo store with its simulator, in a hidden root, or skipped with no display."""
+        try:
+            self.root = tkinter.Tk()
+        except tkinter.TclError:
+            self.skipTest("no display")
+        self.root.withdraw()
+        self.addCleanup(self.root.destroy)
+        server, port = demo.start_simulator(demo.simulator_samples())
+        self.addCleanup(server.server_close)
+        self.addCleanup(server.shutdown)
+        folder = tempfile.TemporaryDirectory()
+        self.addCleanup(folder.cleanup)
+        demo.build_demo_store(Path(folder.name) / demo.DB_NAME, port)
+        self.conn = project.open_or_create(Path(folder.name) / demo.DB_NAME)
+        self.addCleanup(self.conn.close)
+
+    def test_the_tickets_window_lists_the_nearest_target_first_a_breach_red(self) -> None:
+        project.assign_fault(self.conn, demo.FED, "INV-001", at(2026, 6, 1, 12, 50), demo.INVERTER_ENGINEER)
+        opened: list[str] = []
+        window = tickets_window.TicketsWindow(self.root, self.conn, opened.append, now=lambda: ONE)
+        self.root.update()
+        first, second = window.tree.get_children()
+        self.assertEqual(window.tree.item(first, "values"),
+                         ("3", demo.DOWN, "P1", "open", OVERDUE, PENDING, "2026-06-01 11:30 UTC"))
+        self.assertEqual(window.tree.item(first, "tags"), (tickets_window.BREACHED_TAG,))
+        self.assertEqual(window.tree.item(second, "values")[1], demo.FED)
+        self.assertEqual(window.tree.item(second, "tags"), "")
+        window.tree.selection_set(second)
+        window.open_chosen()
+        self.assertEqual(opened, [demo.FED])
+
+    def test_the_panel_acknowledges_comments_and_resolves(self) -> None:
+        changes: list[int] = []
+        window = asset_window.AssetWindow(self.root, self.conn, demo.DOWN, lambda: changes.append(1))
+        panel = window.ticket_panel
+        panel.now = lambda: ONE
+        panel.refresh()
+        self.assertEqual(panel.line.cget("text"), f"Ticket 3 · P1 · open · acknowledge {OVERDUE} · respond {PENDING}")
+        panel.ack_button.invoke()
+        self.assertEqual(project.ticket_of(self.conn, 3).acknowledged, ONE)
+        self.assertIn("acknowledge late", panel.line.cget("text"))
+        panel.comment_box.insert(0, "on my way")
+        panel.comment_button.invoke()
+        self.assertEqual(panel.message.cget("text"), "a comment on work order 3 needs an author and words")
+        panel.by_box.set(demo.INVERTER_ENGINEER)
+        panel.comment_button.invoke()
+        self.assertEqual([c.body for c in project.ticket_comments(self.conn, 3)], ["on my way"])
+        panel.done_box.insert(0, "AC breaker reset")
+        panel.resolve_button.invoke()
+        self.assertEqual(panel.message.cget("text"), "choose a root cause from the list")
+        panel.cause_box.set(ticket_text.cause_choices()[0])
+        panel.resolve_button.invoke()
+        self.assertEqual((panel.message.cget("text"), panel.line.cget("text")), ("", "No open ticket"))
+        self.assertIs(project.asset_status(self.conn, demo.DOWN), AssetStatus.YELLOW)  # outage closed; ping still fails
+        self.assertEqual(len(changes), 3)
+
+    def test_the_program_opens_the_tickets_window(self) -> None:
+        top = tkinter.Toplevel(self.root)
+        fleet = entry.open_fleet(top, self.conn)
+        fleet.tickets_button.invoke()
+        self.root.update()
+        self.assertEqual(len([w for w in top.winfo_children() if isinstance(w, tickets_window.TicketsWindow)]), 1)
+
+
+if __name__ == "__main__":
+    unittest.main()
