@@ -123,6 +123,21 @@ class FleetWindow:
         self.frame.pack(fill=tkinter.BOTH, expand=True)
         self.band = ttk.Frame(self.frame)
         self.band_buttons: dict[str, ttk.Button] = {}
+        self.make_list()
+        self.make_bars()
+        self.lay_out()
+        self.tooltip = self.make_tooltip(root)
+        self.canvas.bind("<Button-1>", self.on_click)
+        self.canvas.bind("<Motion>", self.on_motion)
+        self.canvas.bind("<Leave>", self.hide_tooltip)
+        self.header.bind("<Button-1>", self.on_heading)
+        self.bind_keys(root.winfo_toplevel())
+        self.refresh()
+        self.fit(root.winfo_toplevel())
+
+    def make_list(self) -> None:
+        """The fonts, the list's canvas, the heading strip above it and the scrollbar beside it (the list made before
+        the strip, so a window's first canvas is the list)."""
         self.font = tkfont.nametofont("TkDefaultFont")
         self.heading_font = self.font.copy()
         self.heading_font.configure(weight="bold")
@@ -131,6 +146,10 @@ class FleetWindow:
         self.header = tkinter.Canvas(self.frame, width=CANVAS_WIDTH, height=HEADING_HEIGHT, highlightthickness=0)
         self.scrollbar = ttk.Scrollbar(self.frame, orient=tkinter.VERTICAL, command=self.canvas.yview)
         self.canvas.configure(yscrollcommand=self.scrollbar.set)
+
+    def make_bars(self) -> None:
+        """The toolbar with Refresh at its right, and the status bar: the store and its last run on the left, the
+        summary on the right (9.5)."""
         self.toolbar = ttk.Frame(self.frame)
         self.refresh_button = ttk.Button(self.toolbar, text=REFRESH, command=self.refresh)
         self.refresh_button.pack(side=tkinter.RIGHT)
@@ -139,6 +158,10 @@ class FleetWindow:
         self.store_label.pack(side=tkinter.LEFT, padx=4)
         self.status_line = ttk.Label(self.status_bar)
         self.status_line.pack(side=tkinter.RIGHT, padx=4)
+
+    def lay_out(self) -> None:
+        """Top to bottom: the toolbar, the band, the filter row, the headings, the list and its scrollbar (which
+        stretch), the status bar."""
         self.toolbar.grid(row=0, column=0, columnspan=2, sticky="ew")
         self.band.grid(row=1, column=0, sticky="w", pady=(2, 4))
         self.make_filters()
@@ -149,14 +172,6 @@ class FleetWindow:
         self.status_bar.grid(row=5, column=0, columnspan=2, sticky="ew")
         self.frame.rowconfigure(4, weight=1)
         self.frame.columnconfigure(0, weight=1)
-        self.tooltip = self.make_tooltip(root)
-        self.canvas.bind("<Button-1>", self.on_click)
-        self.canvas.bind("<Motion>", self.on_motion)
-        self.canvas.bind("<Leave>", self.hide_tooltip)
-        self.header.bind("<Button-1>", self.on_heading)
-        self.bind_keys(root.winfo_toplevel())
-        self.refresh()
-        self.fit(root.winfo_toplevel())
 
     def fit(self, window: tkinter.Misc) -> None:
         """Sizes the list to the fleet, at least 6 rows and at most 20 before it scrolls, and gives the window a

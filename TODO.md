@@ -55,10 +55,6 @@ Lanes (P-15): 9.1 to 9.5 in order (each touches `solarpunk/ui/app.py`), then 9.6
 from the 2026-11-18 advisor's review of the root window: the list says what colour an asset is, not why, nor what waits
 on a person.
 
-### 9.6 Tune-up pass 9
-
-Check: `docs/when/tune-up.md` followed in full; the metrics table written; the navigation log's "Last review" set.
-
 ## Phase 10: runs per asset
 
 Lanes (P-15): 10.1 first (the contract section), then 10.2 (the surface every view reads), then 10.3 (the button and

@@ -11,39 +11,9 @@ to the ruling grade; record the review in the journal; set the line below to the
 review ran at (`git rev-parse --short HEAD`, not the tune-up's own, which does not exist yet). Each entry's **Opened** list, read against the routing row its task matched, is the measure
 of whether a fresh agent found its way: files, in order; `CLAUDE.md` does not count.
 
-Last review: 76fbb21 (2026-11-19, Tune-up pass 8)
+Last review: 09e5dc4 (2026-11-19, Tune-up pass 9)
 
 ## Entries
 
 An entry is `### <date> · <task> · <agent>` and four lines: **Task**, **Opened** (files, in order), **Complaints**,
 **Suggestions**.
-
-### 2026-11-19 · 9.1 headings and readable cells · Claude
-- **Task**: the fleet window's headings, instants in words, "no feed", columns from their text.
-- **Opened**: `TODO.md`, `solarpunk/ui/app.py`, `solarpunk/project/surface.py`, `test/solarpunk/test_ui.py`, `DEMO.md`.
-- **Complaints**: none; the window row named the files. DEMO.md quoting the window's words was found by grep, not by the row.
-- **Suggestions**: the window row could name DEMO.md as a document that quotes the windows' text.
-
-### 2026-11-19 · 9.2 the cause column · Claude
-- **Task**: a Cause column saying why a row is red or yellow, with the demo's causes as goldens.
-- **Opened**: `TODO.md`, `solarpunk/project/surface.py`, `solarpunk/project/orchestrator.py`, `solarpunk/ui/app.py`, `test/solarpunk/test_demo.py`.
-- **Complaints**: the window row says the pure half is `chart.py` or `glyph.py`; text for the fleet list had no pure home, so one was made (`cells.py`).
-- **Suggestions**: the window row could name `solarpunk/ui/cells.py` as the pure half of the fleet list's words.
-
-### 2026-11-19 · 9.3 the attention band · Claude
-- **Task**: three counts above the fleet list, each a filter.
-- **Opened**: `TODO.md`, `solarpunk/ui/__main__.py`, `solarpunk/ui/app.py`, `solarpunk/project/surface.py`, `solarpunk/project/orchestrator.py`.
-- **Complaints**: none.
-- **Suggestions**: none.
-
-### 2026-11-19 · 9.4 sort and filter · Claude
-- **Task**: worst first, column sort, search and boxes, keys and a selection in the fleet window.
-- **Opened**: `TODO.md`, `solarpunk/ui/app.py`, `solarpunk/ui/cells.py`, `test/solarpunk/test_ui_band.py`.
-- **Complaints**: none; the window row's rule to read the screenshot back caught the one bug.
-- **Suggestions**: none.
-
-### 2026-11-19 · 9.5 the status bar · Claude
-- **Task**: a status bar with the store and last run, Refresh in the toolbar, the window fitted to its rows.
-- **Opened**: `TODO.md`, `solarpunk/ui/__main__.py`, `solarpunk/ui/app.py`, `solarpunk/remote/results.py`, `test/solarpunk/test_demo.py`.
-- **Complaints**: window tests find widgets by position (the first canvas, the first label), so a layout change breaks them for no reason of their own.
-- **Suggestions**: name the widgets a test needs (as the status bar now is) and find them by name.

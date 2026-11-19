@@ -11,7 +11,7 @@ Ghost's statement of where the product is going: five areas under one click (J-0
 own nightly regime (SP-012, J-038; the section below). Tune-up pass 5: cold gate 9.95 min, warm 0.80 min, fast loop
 23.1 s (J-039).
 
-**The first open item is 9.6, Tune-up pass 9** (`TODO.md`; 9.5, the status bar, landed in J-070; 9.4, sort and filter, landed in J-069; 9.3, the attention band, landed in J-068; 9.2, the cause column, landed in J-066; 9.1, headings and readable cells, landed in J-065; Phase 8 closed by its pass, J-064; 8.2, the ticket ledger, landed in J-063; 8.1, the ticket contract SOL-14, in J-061; SP-022: local tickets, then accounts and auth, then the
+**The first open item is 10.1, what a run and a count are** (`TODO.md`; Phase 9 closed by its pass, J-072; 9.5, the status bar, landed in J-070; 9.4, sort and filter, landed in J-069; 9.3, the attention band, landed in J-068; 9.2, the cause column, landed in J-066; 9.1, headings and readable cells, landed in J-065; Phase 8 closed by its pass, J-064; 8.2, the ticket ledger, landed in J-063; 8.1, the ticket contract SOL-14, in J-061; SP-022: local tickets, then accounts and auth, then the
 tests' record, the security pass, and a central server; Phase 8's cause by email was withdrawn by SP-021; Phase 7 closed by its pass, J-056; 7.5, the suggestions in the window and on the command line,
 landed in J-054; 7.4, the suggestions themselves, in J-053; SP-017's 7.2 and 7.3 in J-051 and J-052; 7.1, who assigned a fault, landed in J-050; until 7.4 the receiver holds every good push for an engineer and stores nothing): Phase 7 is Ghost's
 fault assignment (SP-015): tests
@@ -93,10 +93,13 @@ email on the asset, a mailer to those engineers on degradation, and the Save/Can
    order, having no fault, is P3 (J-063), also Claude's proposal. Closing a fault alone (`solarpunk fault close`) leaves
    its ticket open, to be closed with a root cause; until Phase 11 the command line cannot move a ticket.
 9. The fast loop's margin (Tune-up pass 8, J-064): settled by SP-025 (J-071), `test/test_gates.py` moved to the full
-   gate's "the slow tests" step on Ghost's word. Still open: run the fast loop with `-W error::DeprecationWarning`, which would have caught 8.2's Python 3.14
+   gate's "the slow tests" step on Ghost's word. Also open (Tune-up pass 9, J-072): the Python stack's fast checks
+   do not run `scripts/checks/readability.py`, so a function grew past its 39 lines over five landings and only the
+   pass's full gate refused it; running the check in `stacks/python/gate.sh --fast` costs under a second (a change to
+   a gate script, so a decision). Still open: run the fast loop with `-W error::DeprecationWarning`, which would have caught 8.2's Python 3.14
    placeholder warning at once (a change to `scripts/fast.sh`, so a decision).
 
-## Advisories under the gate's threshold (Tune-up pass 8; unchanged since pass 0)
+## Advisories under the gate's threshold (Tune-up pass 9; unchanged since pass 0)
 
 The Python stack's gate runs no audit step (`pip-audit` is not in the lock; `stacks/python/README.md` names it for a
 dependency review, not the gate), so none were reported; the 20 pins are tools alone (pytest, ruff, mutmut and theirs).
