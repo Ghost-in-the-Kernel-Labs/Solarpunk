@@ -35,3 +35,9 @@ An entry is `### <date> · <task> · <agent>` and four lines: **Task**, **Opened
 - **Opened**: `TODO.md`, `solarpunk/ui/app.py`, `solarpunk/ui/asset_window.py`, `solarpunk/ui/__main__.py`.
 - **Complaints**: none.
 - **Suggestions**: none.
+
+### 2026-11-19 · 10.4 runs by test · Claude
+- **Task**: the By test timeline in the Runs window.
+- **Opened**: `TODO.md`, `solarpunk/ui/chart.py`, `solarpunk/ui/runs_window.py`.
+- **Complaints**: none.
+- **Suggestions**: none.
