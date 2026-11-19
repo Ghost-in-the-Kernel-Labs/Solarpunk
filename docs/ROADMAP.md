@@ -57,8 +57,8 @@ The core's principles, copied from Ghost-Core when this project was stamped; add
 ## 4. What is deliberately not built
 
 - A web front end, or anything a browser opens: the UI is native (tkinter) on Windows and Linux (Ghost, 2026-11-17).
-  A REST service was here too until SP-022: a central server with an authenticated API is Phase 12, after the security
-  pass (Phase 11).
+  A REST service was here too until SP-022: a central server with an authenticated API is Phase 14, after the security
+  pass (Phase 13; renumbered by SP-023).
 - A connection to a real SCADA, CMMS or revenue meter: telemetry is synthetic and deterministic; an adapter is a
   later project's.
 - A claim of conformance or certification to ISO 9001 or ISO 55000: the register says which requirements the
@@ -334,73 +334,101 @@ tracking, assignment, closeout evidence).
 - **8.2 The ticket ledger (`solarpunk/workorders/`, `solarpunk/project/`).** A work order grows into a ticket: status,
   priority, working assignee, acknowledged and responded instants, comments, closeout evidence; assigning a fault opens
   its ticket; closing a ticket needs a root cause from the closed list and closes its fault (4.1); the KPIs unchanged.
-- **8.3 The adapter and the local tracker.** A sink and source interface (create, update, comment, transition; changes
+- **8.3 Tune-up pass 8.**
+
+### Phase 9: the fleet window as an operations root
+
+Ghost's direction of 2026-11-19 (SP-023), from an advisor's review of the root window (2026-11-18): the fleet list shows
+what colour each asset is, but not why, what waits on a person, or which store and run it shows. Most answers are in
+the store already. Site KPIs at the root wait on a decision of their own (their period and baseline; a number beside
+its counts and gaps), as do a "Run now" button (a worker thread and its own connection), grouping by site and parent
+(with the question of `ttk.Treeview` over the drawn list), and over- and under-maintaining signals (schedules, not
+built). It adds to operations visibility (1) and maintenance execution (3).
+
+- **9.1 Headings and readable cells (`solarpunk/ui/app.py`).** Column headings; instants in UTC words; "no feed" for an
+  asset with no endpoint beside "never run"; column widths from the text, so a long name does not overrun.
+- **9.2 The cause column (`solarpunk/ui/app.py`, `solarpunk/project/surface.py`).** A red row names its open outage and
+  since when, a yellow row its suggestion or failing test.
+- **9.3 The attention band (`solarpunk/ui/app.py`, `solarpunk/project/`).** At most four counts above the list (open
+  outages, suggestions awaiting an engineer, open work orders), each a filter; Phase 10 adds tickets past target.
+- **9.4 Sort and filter (`solarpunk/ui/app.py`).** Worst first, a search box, status and kind boxes, keyboard
+  shortcuts; the sorting and matching pure and tested headless.
+- **9.5 The status bar (`solarpunk/ui/app.py`).** The store's name and the fleet's last run at the foot; Refresh to
+  the toolbar; the window sized to its content.
+- **9.6 Tune-up pass 9.**
+
+### Phase 10: tickets in the windows
+
+The adapter and the windows of Ghost's local tickets (SP-022), moved from Phase 8 by SP-023 so they land in the
+reworked fleet window.
+
+- **10.1 The adapter and the local tracker.** A sink and source interface (create, update, comment, transition; changes
   since a cursor), an outbox written with the ledger change, the local adapter first, and a contract suite every adapter
   must pass. A new module is Ghost's to approve when the item starts (`docs/modules.json`).
-- **8.4 Tickets in the windows and on the command line (`solarpunk/ui/`, `solarpunk/cli/`).** A Tickets window from the
+- **10.2 Tickets in the windows and on the command line (`solarpunk/ui/`, `solarpunk/cli/`).** A Tickets window from the
   fleet window, ordered by the nearest target; the asset window's ticket with acknowledge, comment and resolve;
   `solarpunk ticket list|ack|comment|resolve`.
-- **8.5 Tune-up pass 8.**
+- **10.3 Tune-up pass 10.**
 
-### Phase 9: accounts and authentication
+### Phase 11: accounts and authentication
 
 Ghost's direction of 2026-11-18 (SP-022): every act is attributed to a signed-in account, so SP-015's "who" is
-authenticated rather than chosen from a dropdown. On one machine first; the network is Phase 12.
+authenticated rather than chosen from a dropdown. On one machine first; the network is Phase 14.
 
-- **9.1 Accounts (`docs/CONTRACT.md`, a module Ghost approves at the item's start).** Users with an email, a name, a
+- **11.1 Accounts (`docs/CONTRACT.md`, a module Ghost approves at the item's start).** Users with an email, a name, a
   role (engineer, operator, admin) and an active flag; passwords hashed with `hashlib.scrypt`, salted, never stored,
   logged or shown; an engineer address the fleet names with no account is flagged.
-- **9.2 Signing in (`solarpunk/ui/`, `solarpunk/cli/`).** The windows open on a sign-in; the command line asks with
+- **11.2 Signing in (`solarpunk/ui/`, `solarpunk/cli/`).** The windows open on a sign-in; the command line asks with
   `getpass`; a failed sign-in is recorded, never its password.
-- **9.3 Attribution from the account (`solarpunk/project/`).** Assigning, accepting, dismissing and every ticket action
+- **11.3 Attribution from the account (`solarpunk/project/`).** Assigning, accepting, dismissing and every ticket action
   take the signed-in account: an engineer acts as themself, an operator enters on a named engineer's word (recorded as
   such), an admin assigns nothing unless also an engineer; the "Assigned by" dropdown gives way to the account.
-- **9.4 Account administration.** Create, reset a password, deactivate (never delete: records keep their names); the
+- **11.4 Account administration.** Create, reset a password, deactivate (never delete: records keep their names); the
   first admin made by a command on the machine.
-- **9.5 Tune-up pass 9.**
+- **11.5 Tune-up pass 11.**
 
-### Phase 10: the tests' record, at the root and per asset
+### Phase 12: the tests' record, at the root and per asset
 
 Ghost's directions of 2026-11-18 (SP-016, SP-019): what a test is and the suites it runs in, then the tests that run against the fleet are shown with what they have done, at
 the root of the window and on each asset, the last 100 runs reviewable, an asset's history searchable and graphed; every
 result kept. It adds to `docs/GOAL.md`'s SCADA analytics (2) and quality management (4: audit evidence).
 
-- **10.1 What a test looks like (`docs/REMOTE-TESTS.md`, `scripts/checks/remote_tests.py`; SP-019).** The contract of a remote
+- **12.1 What a test looks like (`docs/REMOTE-TESTS.md`, `scripts/checks/remote_tests.py`; SP-019).** The contract of a remote
   test: its module's fields (`KINDS`, `CLAUSES`, `SUGGESTS`, `run`), that `run` reads only the asset and samples it is
   given (no store, no network, no clock), the shape of its reason (the first offending record, or a count), its
   thresholds as named constants with why, its docstring's pass and fail cases, its line in the maintenance list; a check
   holds every module in the folder to it, with a planted break.
-- **10.2 The suites folder (`solarpunk/remote/suites/`, `solarpunk/remote/`, `solarpunk/project/`, `solarpunk/cli/`; SP-019,
+- **12.2 The suites folder (`solarpunk/remote/suites/`, `solarpunk/remote/`, `solarpunk/project/`, `solarpunk/cli/`; SP-019,
   SP-020).** A suite is a Python module of declarations (`TESTS`, `KINDS`, `SITES`, `CADENCE`), no logic; the scheduled
   run runs the suites due; `solarpunk suite list|run|add`; the default suite `all` is today's run.
-- **10.3 A test's own reads (`solarpunk/feed/`, `solarpunk/remote/`; SP-020).** A test may declare `ACQUIRE`, such as
+- **12.3 A test's own reads (`solarpunk/feed/`, `solarpunk/remote/`; SP-020).** A test may declare `ACQUIRE`, such as
   `Burst(field="power_kw", every_s=1, for_s=60)`; the feed and its simulator gain a live-read mode, the runner takes
   the reads and hands them to the test's pure `run`; a test without `ACQUIRE` judges the stored samples as today.
-- **10.4 Reactions (`solarpunk/remote/`, `solarpunk/project/`; SP-020).** A test's `REACTIONS` per kind from a closed
+- **12.4 Reactions (`solarpunk/remote/`, `solarpunk/project/`; SP-020).** A test's `REACTIONS` per kind from a closed
   vocabulary (suggest, mail, run a follow-up suite, open a preventive work order), replacing `SUGGESTS`; checked at
   load, no unknown action or suite, no suite that starts itself; `solarpunk test list` prints them; nothing commands
   equipment.
-- **10.5 The record's surface and the timing (`solarpunk/remote/`, `solarpunk/project/`).** Each test's run is timed and
+- **12.5 The record's surface and the timing (`solarpunk/remote/`, `solarpunk/project/`).** Each test's run is timed and
   its duration stored beside its result (a `duration_ms` column a store made before gains, empty for its old rows);
   project gives `tests_overview` (each test: kinds, assets it runs on, last run, last duration, passes and failures),
   `test_log(name, limit=100)` (its newest runs across the fleet) and `asset_log(asset_id, limit=100, search=None)` (the
   asset's newest results, filtered by test, result and words in the reason). Nothing is deleted.
-- **10.6 Last run in the asset window (`solarpunk/ui/asset_window.py`).** The diagnostics table gains each test's last-run
+- **12.6 Last run in the asset window (`solarpunk/ui/asset_window.py`).** The diagnostics table gains each test's last-run
   instant (and duration); a test never run reads "never".
-- **10.7 The Tests window (`solarpunk/ui/tests_window.py`).** "Tests" beside "Reports" in the fleet window: every remote
+- **12.7 The Tests window (`solarpunk/ui/tests_window.py`).** "Tests" beside "Reports" in the fleet window: every remote
   test with its kinds, asset count, last run, duration and pass/fail counts; selecting one shows its last 100 runs
   (asset, instant, result, reason, duration), failures red.
-- **10.8 The asset's history (`solarpunk/ui/history.py`).** From the asset window, "History": the asset's last 100 results
+- **12.8 The asset's history (`solarpunk/ui/history.py`).** From the asset window, "History": the asset's last 100 results
   in a table with a search box (test, result, words in the reason), and a timeline drawn on a canvas, one row per test,
   one mark per run, green a pass and red a failure, its time axis in UTC; the pure half headless, as `chart.py` is.
-- **10.9 Tune-up pass 10.**
+- **12.9 Tune-up pass 12.**
 
-### Phase 11: the network's security
+### Phase 13: the network's security
 
 Ghost's item of 2026-11-18: the demonstration's network is not a production one. Moved after reports and
 diagnostics by SP-013, after fault assignment by SP-015, after the tests' record by SP-016, and after email causes by SP-018.
 
-- **11.1 Network security: an engineering pass over the feed and the receiver.** Both speak plain TCP with no device
+- **13.1 Network security: an engineering pass over the feed and the receiver.** Both speak plain TCP with no device
   identity; the receiver defaults to localhost, which suits the demonstration alone. The pass is a document first
   (the wire today, the threats, a proposed decision for each of: authenticated asset connections, transport
   encryption, authorization of fault submissions, replay protection, network segmentation and deployment
@@ -410,17 +438,17 @@ diagnostics by SP-013, after fault assignment by SP-015, after the tests' record
   models at the device, DNP3 on 20000 or IEC 60870-5-104 on 2404 from the plant to the utility, OPC UA on 4840 to the
   historian); the security references are Modbus/TCP Security (mutual TLS on 802), IEC 62351, IEC 62443 zones and
   conduits, and NERC CIP-003 for a large US plant. It adds a sixth threat to the five: the feed client trusts whatever
-  answers at the host and port (spoofed telemetry). Since SP-022 it also designs the central server of Phase 12: its
+  answers at the host and port (spoofed telemetry). Since SP-022 it also designs the central server of Phase 14: its
   authenticated API, accounts and tokens on the wire, TLS, and whether the server may use a vetted dependency.
-- **11.2 Tune-up pass 11.**
+- **13.2 Tune-up pass 13.**
 
-### Phase 12: the network
+### Phase 14: the network
 
 Ghost's direction of 2026-11-18 (SP-022): one Solarpunk server holds the store; the desktop windows on many machines,
-and later a phone app, are its clients over one authenticated API. Planned from Phase 11's decisions, so its items are
+and later a phone app, are its clients over one authenticated API. Planned from Phase 13's decisions, so its items are
 written when they are in force.
 
-- **12.1 The server's plan.** The items that build the server, its API, the desktop as its client and the app's surface,
-  each with its check, written from Phase 11's decisions.
-- **12.2 Tune-up pass 12.**
+- **14.1 The server's plan.** The items that build the server, its API, the desktop as its client and the app's surface,
+  each with its check, written from Phase 13's decisions.
+- **14.2 Tune-up pass 14.**
 

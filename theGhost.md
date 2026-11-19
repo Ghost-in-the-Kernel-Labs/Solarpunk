@@ -666,5 +666,15 @@ The core decisions above are inherited (Core C-001 to C-040); this project's beg
 - **Held by:** `docs/ROADMAP.md` §4 and Phases 8, 9, 11, 12; `TODO.md`.
 - **Source:** Ghost, in chat, 2026-11-18.
 - **Status:** in force
-- **See also:** SP-007, SP-015, SP-021, SP-011
+- **See also:** SP-007, SP-015, SP-021, SP-011, SP-023 (its phase numbers after 8.2 shifted by two)
 - **subject:** tickets and accounts
+
+### SP-023: The fleet window becomes an operations root, as Phase 9, after the ticket ledger
+- **Decision:** a new Phase 9 reworks the fleet window from an asset list into an operations root: column headings and readable cells (9.1), a cause column saying why a row is red or yellow (9.2), an attention band counting what waits on a person (9.3), sort and filter (9.4), and a status bar naming the store and its last run (9.5), then its tune-up pass. It comes right after 8.2, the ticket ledger: Phase 8 closes with 8.1, 8.2 and its pass (8.3); the adapter and the ticket windows (were 8.3 and 8.4) become Phase 10, so they land in the reworked window; accounts, the tests' record, the security pass and the network move from Phases 9 to 12 to Phases 11 to 14, their order unchanged. Site KPIs at the root, a "Run now" button, grouping by site and parent (with `ttk.Treeview` over the drawn list) and over- and under-maintaining signals are deferred, each to a decision of its own.
+- **Why:** an advisor's review of the root window (2026-11-18): the list says what colour an asset is, not why, nor what waits on a person; most answers are in the store already. Ghost, 2026-11-19: "add the UI slice as a phase after 8.2", and of the placement, right after 8.2 with the ticket work split, over after Phase 8.
+- **Supersedes:** SP-022, in part: its phase numbers after 8.2. Its order (tickets, accounts, the tests' record, security, the network) stands, so its Status stays `in force` and its See also names SP-023.
+- **Held by:** `docs/ROADMAP.md` Phases 8 to 14; `TODO.md`; `README.md`.
+- **Source:** Ghost, in chat, 2026-11-19.
+- **Status:** in force
+- **See also:** SP-022, SP-007, SP-015
+- **subject:** front end

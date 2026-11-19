@@ -66,3 +66,4 @@ Written by `scripts/decisions_index.py` from `theGhost.md`; do not edit here. Se
 | SP-020 | Suites are Python modules of declarations; a test may acquire its own reads; reactions are a closed vocabulary | in force | test suites |
 | SP-021 | Email that updates tickets is withdrawn; issues go to a proper ticketing system, to be chosen | in force | ticketing |
 | SP-022 | Local tickets first; then accounts and auth; then, after the security pass, a central server with many clients | in force | tickets and accounts |
+| SP-023 | The fleet window becomes an operations root, as Phase 9, after the ticket ledger | in force | front end |
