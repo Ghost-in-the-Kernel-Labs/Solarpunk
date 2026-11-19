@@ -62,10 +62,12 @@ from solarpunk.project.surface import (
     asset_rows,
     assign_engineer,
     attention,
+    fleet_last_run,
     codes_for_kind,
     kinds,
     ping_asset,
     register_asset,
+    store_name,
 )
 from solarpunk.remote.registry import RemoteTest
 from solarpunk.remote.suggestions import Suggestion, SuggestionError
@@ -130,6 +132,7 @@ __all__ = [
     "dismiss_suggestion",
     "faults_listing",
     "fleet_assets",
+    "fleet_last_run",
     "fleet_listing",
     "generate_and_store",
     "is_cover",
@@ -155,6 +158,7 @@ __all__ = [
     "report_rows",
     "report_sites",
     "scheduled_run",
+    "store_name",
     "set_ticket_assignee",
     "suggest_from_run",
     "suggest_pushed",

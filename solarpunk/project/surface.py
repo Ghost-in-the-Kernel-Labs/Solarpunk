@@ -5,6 +5,7 @@ makes too, so no UI lane edits the orchestrator."""
 import sqlite3
 from dataclasses import dataclass
 from datetime import datetime
+from pathlib import Path
 
 from solarpunk.faults import ledger
 from solarpunk.feed import client as feed
@@ -26,6 +27,7 @@ from solarpunk.workorders.tickets import Ticket
 from solarpunk.workorders.ledger import WorkOrder
 
 NO_FAILURE = "—"
+IN_MEMORY = "in memory"
 FAILED = "fail"
 NOT_RUN = "not run"
 PASSED = "pass"
@@ -115,6 +117,17 @@ def attention(conn: sqlite3.Connection) -> Attention:
     # Invariant: SOL-11 (a derate is not an outage)
     outages = tuple(f for f in ledger.open_faults(conn) if f.catalogue_row().severity is Severity.OUTAGE)
     return Attention(outages, suggestion_table.open_suggestions(conn), ticket_ledger.open_tickets(conn))
+
+
+def store_name(conn: sqlite3.Connection) -> str:
+    """The store's file name, for the status bar (9.5): "demo.db" for the demo's store, "in memory" for one in memory."""
+    path = next((row[2] for row in conn.execute("PRAGMA database_list") if row[1] == "main"), "")
+    return Path(path).name if path else IN_MEMORY
+
+
+def fleet_last_run(conn: sqlite3.Connection) -> datetime | None:
+    """The instant of the fleet's latest run, or None before any: 2026-06-01 13:00 UTC in the demo."""
+    return result_table.last_run_at(conn)
 
 
 def asset_rows(conn: sqlite3.Connection) -> tuple[AssetRow, ...]:

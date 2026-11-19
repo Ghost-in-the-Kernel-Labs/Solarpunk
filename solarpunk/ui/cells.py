@@ -11,6 +11,7 @@ INSTANT_FORMAT = "%Y-%m-%d %H:%M UTC"
 BAND = (("outages", "Open outages"), ("suggestions", "Awaiting an engineer"), ("orders", "Open work orders"))
 BAND_TEXT = "{label}: {count}"
 SHOWING = "; showing {label} alone"
+STORE_LINE = "{store}, last run {instant}"
 NO_CAUSE = "—"
 NEVER_RUN = "never run"
 NO_FEED = "no feed"
@@ -67,3 +68,9 @@ def row_text(row: AssetRow) -> tuple[str, str, str, str, str, str, str]:
     endpoint."""
     last_run = never_text(row) if row.last_run_at is None else instant_text(row.last_run_at)
     return (row.asset_id, row.name, row.kind.name.lower(), row.status.value, cause_text(row), last_run, row.failing)
+
+
+def store_line(store: str, last_run: datetime | None) -> str:
+    """The status bar's left side (9.5): "demo.db, last run 2026-06-01 13:00 UTC"; a store never run "fleet.db, never
+    run"."""
+    return f"{store}, {NEVER_RUN}" if last_run is None else STORE_LINE.format(store=store, instant=instant_text(last_run))

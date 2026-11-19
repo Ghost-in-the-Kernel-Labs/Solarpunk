@@ -41,3 +41,9 @@ An entry is `### <date> · <task> · <agent>` and four lines: **Task**, **Opened
 - **Opened**: `TODO.md`, `solarpunk/ui/app.py`, `solarpunk/ui/cells.py`, `test/solarpunk/test_ui_band.py`.
 - **Complaints**: none; the window row's rule to read the screenshot back caught the one bug.
 - **Suggestions**: none.
+
+### 2026-11-19 · 9.5 the status bar · Claude
+- **Task**: a status bar with the store and last run, Refresh in the toolbar, the window fitted to its rows.
+- **Opened**: `TODO.md`, `solarpunk/ui/__main__.py`, `solarpunk/ui/app.py`, `solarpunk/remote/results.py`, `test/solarpunk/test_demo.py`.
+- **Complaints**: window tests find widgets by position (the first canvas, the first label), so a layout change breaks them for no reason of their own.
+- **Suggestions**: name the widgets a test needs (as the status bar now is) and find them by name.

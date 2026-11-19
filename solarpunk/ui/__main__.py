@@ -56,12 +56,11 @@ def run_line(report: project.RunReport) -> str:
 
 def open_fleet(root: tkinter.Tk, conn: sqlite3.Connection) -> FleetWindow:
     """The fleet window wired to the others: a click opens AssetWindow(root, conn, id, on_change=refresh), the "Add asset"
-    button packed above the list opens AddAssetWindow(root, conn, on_saved) which refreshes after a save, and "Reports"
-    beside it opens ReportsWindow(root, conn) (6.3)."""
+    button in the window's toolbar opens AddAssetWindow(root, conn, on_saved) which refreshes after a save, and "Reports"
+    beside it opens ReportsWindow(root, conn) (6.3); Refresh stands at the toolbar's right (9.5)."""
     window = FleetWindow(root, conn)
     window.on_open_asset = lambda asset_id: AssetWindow(root, conn, asset_id, window.refresh)
-    bar = ttk.Frame(root)
-    bar.pack(fill=tkinter.X, before=window.frame)
+    bar = window.toolbar  # Refresh stands at its right since 9.5
     window.add_button = ttk.Button(bar, text=ADD_ASSET,
                                    command=lambda: AddAssetWindow(root, conn, lambda asset_id: window.refresh()))
     window.add_button.pack(side=tkinter.LEFT)

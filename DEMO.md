@@ -59,6 +59,7 @@ derate on OAHE-INV-001 (10:00 to 10:45). The run is stamped 2026-06-01 13:00 UTC
 
 1. **Read the band above the list.** "Open outages: 1", "Awaiting an engineer: 1", "Open work orders: 1": what waits
    on a person. Click one and the list keeps only its assets (the outage: OAHE-INV-002); click it again for all eleven.
+   The status bar at the foot names the store and its last run ("demo.db, last run 2026-06-01 13:00 UTC").
 2. **Read the headings, then mouse over a row.** Each column is named (Asset, Name, Kind, Status, Cause, Last run, Failing),
    and the Cause says why a row is its colour: OAHE-INV-002 "INV-001 since 2026-06-01 11:30 UTC", OAHE-SEN-001
    "suggested SEN-001";

@@ -186,7 +186,7 @@ class TheDemoWindow(DemoFixture):
             """Records the title and the status line, then closes the window: look(root) leaves one entry in seen."""
             root.update()
             frame = root.winfo_children()[0]
-            line = next(w for w in frame.winfo_children() if isinstance(w, tkinter.ttk.Label))
+            line = frame.children["status_bar"].winfo_children()[-1]  # the status bar at the foot (9.5)
             seen.append((root.title(), line.cget("text")))
             root.destroy()
 

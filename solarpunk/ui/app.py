@@ -13,7 +13,7 @@ from tkinter import ttk
 
 from solarpunk import project
 from solarpunk.leaf.codes import AssetKind, AssetStatus
-from solarpunk.ui.cells import band_assets, band_counts, filtered, instant_text, never_text, row_text, showing
+from solarpunk.ui.cells import band_assets, band_counts, filtered, instant_text, never_text, row_text, showing, store_line
 from solarpunk.ui.order import matching, sorted_by
 from solarpunk.ui.glyph import colour_of, draw_panel
 
@@ -29,6 +29,11 @@ HEADING_TAG = "heading"
 SORT_MARK = {False: " ▲", True: " ▼"}
 CANVAS_WIDTH = 820
 CANVAS_HEIGHT = 420
+FEWEST_ROWS = 6
+MOST_ROWS = 20
+MIN_WIDTH = 820
+MIN_HEIGHT = 420
+STATUS_BAR = "status_bar"
 TOOLTIP_OFFSET = 14
 REFRESH = "Refresh"
 TOOLTIP_RUN = "Last status: {status} at {instant}"
@@ -126,17 +131,23 @@ class FleetWindow:
         self.header = tkinter.Canvas(self.frame, width=CANVAS_WIDTH, height=HEADING_HEIGHT, highlightthickness=0)
         self.scrollbar = ttk.Scrollbar(self.frame, orient=tkinter.VERTICAL, command=self.canvas.yview)
         self.canvas.configure(yscrollcommand=self.scrollbar.set)
-        self.refresh_button = ttk.Button(self.frame, text=REFRESH, command=self.refresh)
-        self.status_line = ttk.Label(self.frame)
-        self.band.grid(row=0, column=0, sticky="w", pady=(2, 4))
+        self.toolbar = ttk.Frame(self.frame)
+        self.refresh_button = ttk.Button(self.toolbar, text=REFRESH, command=self.refresh)
+        self.refresh_button.pack(side=tkinter.RIGHT)
+        self.status_bar = ttk.Frame(self.frame, name=STATUS_BAR, relief=tkinter.SUNKEN, borderwidth=1)
+        self.store_label = ttk.Label(self.status_bar)
+        self.store_label.pack(side=tkinter.LEFT, padx=4)
+        self.status_line = ttk.Label(self.status_bar)
+        self.status_line.pack(side=tkinter.RIGHT, padx=4)
+        self.toolbar.grid(row=0, column=0, columnspan=2, sticky="ew")
+        self.band.grid(row=1, column=0, sticky="w", pady=(2, 4))
         self.make_filters()
-        self.filters.grid(row=1, column=0, sticky="w", pady=(0, 4))
-        self.header.grid(row=2, column=0, sticky="ew")
-        self.canvas.grid(row=3, column=0, sticky="nsew")
-        self.scrollbar.grid(row=3, column=1, sticky="ns")
-        self.refresh_button.grid(row=4, column=0, sticky="w")
-        self.status_line.grid(row=5, column=0, sticky="w")
-        self.frame.rowconfigure(3, weight=1)
+        self.filters.grid(row=2, column=0, sticky="w", pady=(0, 4))
+        self.header.grid(row=3, column=0, sticky="ew")
+        self.canvas.grid(row=4, column=0, sticky="nsew")
+        self.scrollbar.grid(row=4, column=1, sticky="ns")
+        self.status_bar.grid(row=5, column=0, columnspan=2, sticky="ew")
+        self.frame.rowconfigure(4, weight=1)
         self.frame.columnconfigure(0, weight=1)
         self.tooltip = self.make_tooltip(root)
         self.canvas.bind("<Button-1>", self.on_click)
@@ -145,6 +156,14 @@ class FleetWindow:
         self.header.bind("<Button-1>", self.on_heading)
         self.bind_keys(root.winfo_toplevel())
         self.refresh()
+        self.fit(root.winfo_toplevel())
+
+    def fit(self, window: tkinter.Misc) -> None:
+        """Sizes the list to the fleet, at least 6 rows and at most 20 before it scrolls, and gives the window a
+        minimum size of 820 by 420 (9.5): the demo's eleven rows open without dead space below them."""
+        rows = min(max(len(self.all_rows), FEWEST_ROWS), MOST_ROWS)
+        self.canvas.configure(height=rows * ROW_HEIGHT)
+        window.minsize(MIN_WIDTH, MIN_HEIGHT)
 
     def make_filters(self) -> None:
         """The filter row (9.4): a search box, a status box and a kind box; each change redraws the list."""
@@ -193,6 +212,7 @@ class FleetWindow:
         "#c0392b"."""
         self.all_rows = project.asset_rows(self.conn)
         self.found = project.attention(self.conn)
+        self.store_label.configure(text=store_line(project.store_name(self.conn), project.fleet_last_run(self.conn)))
         self.redraw()
 
     def banded(self) -> tuple[project.AssetRow, ...]:

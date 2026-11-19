@@ -55,12 +55,6 @@ Lanes (P-15): 9.1 to 9.5 in order (each touches `solarpunk/ui/app.py`), then 9.6
 from the 2026-11-18 advisor's review of the root window: the list says what colour an asset is, not why, nor what waits
 on a person.
 
-### 9.5 The status bar
-
-Which store, and when it last ran (SP-023).
-
-Check: the summary line moves to a status bar at the window's foot with the store's file name and the fleet's last run instant ("demo.db, last run 2026-06-01 13:00 UTC"; an empty store "never run"); Refresh moves to the toolbar beside Add asset and Reports; the window opens sized to its content with a minimum size; the screenshot read back; the fast loop green.
-
 ### 9.6 Tune-up pass 9
 
 Check: `docs/when/tune-up.md` followed in full; the metrics table written; the navigation log's "Last review" set.
