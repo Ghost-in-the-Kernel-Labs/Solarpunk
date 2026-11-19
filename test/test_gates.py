@@ -4,12 +4,18 @@ gate's record unless a docs/-only change says so in its trailer, and commits the
 Ghost and committer Claude, on the parent it named, so a HEAD that moved refuses it; scripts/gate.sh ends with one
 verdict line, and in a scratch repository writes the tree record only when every step passed on a tree that did not
 change, logs its steps and times, and runs one at a time; no routing document names raw git commit; scripts/fast.sh
-runs only the test modules it is given (C-032)."""
+runs only the test modules it is given (C-032). A slow test since SP-025 (about 10 s of the fast loop's 30): the fast
+loop skips it, the full gate's "the slow tests" step runs it with GHOST_SLOW=1."""
+import os
 import re
 import subprocess
 import tempfile
 import unittest
 from pathlib import Path
+
+# Decision: SP-025 (this module runs in the full gate, not the fast loop)
+if not os.environ.get("GHOST_SLOW"):
+    raise unittest.SkipTest("a slow test: the full gate runs it (GHOST_SLOW=1 scripts/fast.sh test_gates)")
 
 from scripts.checks import gate_record
 from test.support import ROOT
@@ -277,7 +283,7 @@ class TheFastLoop(unittest.TestCase):
 
 
 # The steps a scratch gate (test/support_git.py gated_repo) prints, the slow tests among them when Core's gate has them.
-SLOW = "test.test_stamp" in (ROOT / "scripts" / "gate.sh").read_text()
+SLOW = '"the slow tests"' in (ROOT / "scripts" / "gate.sh").read_text()
 GATE_STEPS = ["the fast loop", "the key scan"] + (["the slow tests"] if SLOW else []) + ["docs/decisions.md", "docs/journal/INDEX.md", "the metrics"]
 
 
@@ -299,7 +305,7 @@ class TheTreeRecord(unittest.TestCase):
         self.assertEqual([re.sub(r"\(\d+\.\d\d s\)", "(N s)", line) for line in lines[:-1]], [f"== {s}: passed (N s)" for s in GATE_STEPS])
         self.assertRegex(lines[-1], r"^gate: passed; fast loop \d+\.\d\ds, \d+\.\d\d min, 1 commits since the last tune-up$")
         log = (root / "build" / "gate.log").read_text()
-        self.assertEqual("stub fast loop ran test.test_stamp" in log, SLOW)
+        self.assertEqual("stub fast loop ran test_gates" in log, SLOW)
         self.assertEqual(log.count("stub step ran"), 3)
         self.assertTrue(log.endswith(lines[-1] + "\n"))
 

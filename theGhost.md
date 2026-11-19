@@ -688,3 +688,12 @@ The core decisions above are inherited (Core C-001 to C-040); this project's beg
 - **Status:** in force
 - **See also:** SP-016, SP-023, SP-022, SP-007
 - **subject:** front end
+
+### SP-025: The gated commit's tests run in the full gate, not the fast loop
+- **Decision:** `test/test_gates.py` (the gated commit and the gate proven on scratch repositories, about 10 s) skips itself unless `GHOST_SLOW` is set; the full gate (`scripts/gate.sh`, every tune-up pass) runs it in a step of its own, "the slow tests", with `GHOST_SLOW=1`; the fast checks (`scripts/gate.sh --fast`, every landing) run none. The scratch gate's stub fast loop acts on its hooks only on its plain run, so the new step does not run them twice.
+- **Why:** the fast loop had grown past its 30 s target (29.2 s at Tune-up pass 8, 30.0 to 31.3 s across 9.1 to 9.5, the cold gate refusing at 36.7 s); this module was a third of it. Ghost, 2026-11-19: "move test_gates to the full gate". The gate's refusals are still proven at each tune-up pass, and the fast checks of every landing exercise the real gate.
+- **Held by:** `scripts/gate.sh` (the step), `test/test_gates.py` (the skip and the step list), `test/support_git.py` (the stub), `docs/AGENT.md` AGT-02.
+- **Source:** Ghost, in chat, 2026-11-19.
+- **Status:** in force
+- **See also:** SP-017, C-032, C-040
+- **subject:** gates

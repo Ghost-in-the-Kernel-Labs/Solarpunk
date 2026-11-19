@@ -74,3 +74,4 @@ Written from `docs/journal/` by `scripts/journal_index.py`; do not edit by hand.
 | J-068 | 9.3: the attention band, what waits on a person | feature | `J-000-099.md` |
 | J-069 | 9.4: sort and filter the fleet list | feature | `J-000-099.md` |
 | J-070 | 9.5: the fleet window's status bar and toolbar | feature | `J-000-099.md` |
+| J-071 | The gated commit's tests moved to the full gate (SP-025) | decision | `J-000-099.md` |

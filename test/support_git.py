@@ -68,10 +68,11 @@ def attempt(root: Path, subject: str) -> subprocess.CompletedProcess:
 # the file red exists. A stamped project's gate has no slow tests (scripts/stamp.py drop_stamp_gate).
 # SP-017's hooks, each off unless its variable is set: EDIT_ME names a file in the real tree the stub appends to (an edit
 # made while the gate runs), SLEEP_S makes it hang, NOTE makes it print a `note:` line.
+# The hooks act on the plain fast loop alone, not on the slow tests' run of named modules (SP-025).
 STUB_FAST = ("#!/usr/bin/env bash\necho \"stub fast loop ran $*\"\n"
-             "[ -z \"${EDIT_ME:-}\" ] || echo edited >> \"$EDIT_ME\"\n"
-             "[ -z \"${SLEEP_S:-}\" ] || sleep \"$SLEEP_S\"\n"
-             "[ -z \"${NOTE:-}\" ] || echo \"note: $NOTE\"\n"
+             "[ -z \"${EDIT_ME:-}\" ] || [ \"$#\" -ne 0 ] || echo edited >> \"$EDIT_ME\"\n"
+             "[ -z \"${SLEEP_S:-}\" ] || [ \"$#\" -ne 0 ] || sleep \"$SLEEP_S\"\n"
+             "[ -z \"${NOTE:-}\" ] || [ \"$#\" -ne 0 ] || echo \"note: $NOTE\"\n"
              "[ ! -f red ]\n")
 STUB_PY = "import pathlib, time\nprint('stub step ran')\nif pathlib.Path('touch-me').exists():\n    pathlib.Path('changed.txt').write_text(str(time.time_ns()))\n"
 

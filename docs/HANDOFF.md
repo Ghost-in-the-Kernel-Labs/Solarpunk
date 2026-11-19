@@ -92,10 +92,8 @@ email on the asset, a mailer to those engineers on degradation, and the Save/Can
    acknowledged within 1 h and worked on within 4 h; DERATE (P2) 4 h and 24 h; INFO (P3) 24 h and 72 h. A preventive work
    order, having no fault, is P3 (J-063), also Claude's proposal. Closing a fault alone (`solarpunk fault close`) leaves
    its ticket open, to be closed with a root cause; until Phase 11 the command line cannot move a ticket.
-9. The fast loop's margin (Tune-up pass 8, J-064): warm 29.2 s against its 30 s target (26.9 s at pass 7), and the
-   cold gate refused at 36.7 s. The slowest file is `test/test_gates.py` (10 s alone). Moving it to the full gate is a
-   tune-up's to make, but it holds the gate's own refusals, so it waits on your word; or the target is yours to move.
-   Also proposed: run the fast loop with `-W error::DeprecationWarning`, which would have caught 8.2's Python 3.14
+9. The fast loop's margin (Tune-up pass 8, J-064): settled by SP-025 (J-071), `test/test_gates.py` moved to the full
+   gate's "the slow tests" step on Ghost's word. Still open: run the fast loop with `-W error::DeprecationWarning`, which would have caught 8.2's Python 3.14
    placeholder warning at once (a change to `scripts/fast.sh`, so a decision).
 
 ## Advisories under the gate's threshold (Tune-up pass 8; unchanged since pass 0)
