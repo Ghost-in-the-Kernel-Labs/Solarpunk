@@ -20,7 +20,7 @@ from solarpunk.remote import registry as remote_registry
 from solarpunk.remote import results
 from solarpunk.telemetry import generate as generator
 from solarpunk.telemetry import samples as sample_table
-from solarpunk.ui import demo
+from solarpunk.ui import cells, demo
 
 ENGINEER = "site@oahe.example"  # SP-015: a fault names the engineer who assigned it; the fixtures' site engineer
 
@@ -91,6 +91,9 @@ class TheDemoStore(DemoFixture):
         self.assertIs(rows[INV2].status, AssetStatus.RED)
         self.assertIs(rows[SENSOR].status, AssetStatus.YELLOW)
         self.assertEqual(rows[SENSOR].failing, "reachable")
+        # 9.2: each colour says why, from the same one call
+        self.assertEqual([cells.cause_text(rows[a]) for a in (INV1, INV2, SENSOR)],
+                         ["—", "INV-001 since 2026-06-01 11:30 UTC", "suggested SEN-001"])
         self.assertEqual([r.asset_id for r in rows.values() if r.status is not AssetStatus.GREEN], [INV2, SENSOR])
         self.assertEqual({a: s for a, s in state.run_report.statuses.items()}, {a: r.status for a, r in rows.items()})
 

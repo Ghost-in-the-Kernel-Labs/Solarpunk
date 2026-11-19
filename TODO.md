@@ -55,12 +55,6 @@ Lanes (P-15): 9.1 to 9.5 in order (each touches `solarpunk/ui/app.py`), then 9.6
 from the 2026-11-18 advisor's review of the root window: the list says what colour an asset is, not why, nor what waits
 on a person.
 
-### 9.2 The cause column
-
-A red or yellow row says why (SP-023).
-
-Check: a red row names its open outage's code and since when, a yellow row its open suggestion's code or else its failing test, a green row "—"; in the demo OAHE-INV-002 reads "INV-001 since 2026-06-01 11:30 UTC" and OAHE-SEN-001 "suggested SEN-001"; the cause comes from one project call that changes no status (`test/solarpunk/test_demo.py` goldens); the fast loop green.
-
 ### 9.3 The attention band
 
 What waits on a person, counted at the top (SP-023).

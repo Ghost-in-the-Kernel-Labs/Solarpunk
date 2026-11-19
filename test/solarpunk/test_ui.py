@@ -111,9 +111,9 @@ class TheGlyph(unittest.TestCase):
 class TheWords(unittest.TestCase):
     def test_row_text_run_and_never_run(self) -> None:
         self.assertEqual(app.row_text(row(AssetStatus.YELLOW, True)),
-                         (INV2, "Inverter 2", "inverter", "yellow", "2026-06-01 12:00 UTC", "reachable"))
+                         (INV2, "Inverter 2", "inverter", "yellow", "reachable", "2026-06-01 12:00 UTC", "reachable"))
         self.assertEqual(app.row_text(row(AssetStatus.GREEN, False)),
-                         (INV2, "Inverter 2", "inverter", "green", "never run", "—"))
+                         (INV2, "Inverter 2", "inverter", "green", "—", "never run", "—"))
 
     def test_the_tooltip_run_and_never_run(self) -> None:
         self.assertEqual(app.tooltip_text(row(AssetStatus.YELLOW, True)),
@@ -141,7 +141,7 @@ class TheWords(unittest.TestCase):
         self.assertEqual([glyph.colour_of(r.status) for r in rows[:3]], [GREEN, YELLOW, RED])
         self.assertEqual(app.tooltip_text(rows[1]), "Last status: yellow at 2026-06-01 12:00 UTC")
         self.assertEqual(app.tooltip_text(rows[3]), "Last status: green, no feed")  # no endpoint (9.1)
-        self.assertEqual(app.row_text(rows[1])[5], "reachable")
+        self.assertEqual(app.row_text(rows[1])[6], "reachable")
 
 
 @unittest.skipUnless(HAS_TKINTER, "no tkinter")
@@ -189,7 +189,9 @@ class TheFleetWindow(unittest.TestCase):
             self.assertEqual(words[0], asset_id)
 
     def test_the_rows_scroll_and_the_status_line(self) -> None:
-        self.assertEqual(self.window.canvas.cget("scrollregion"), "0 0 820 196")
+        width = self.window.canvas.cget("width")  # as wide as its columns since 9.1, never under 820
+        self.assertGreaterEqual(int(width), 820)
+        self.assertEqual(self.window.canvas.cget("scrollregion"), f"0 0 {width} 196")
         self.assertEqual(self.window.status_line.cget("text"), "7 assets: 5 green, 1 yellow, 1 red")
         self.assertEqual(self.window.refresh_button.cget("text"), "Refresh")
 

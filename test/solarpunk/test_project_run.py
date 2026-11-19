@@ -318,7 +318,7 @@ class TheSurface(RunFixture):
         ids = [row.asset_id for row in project.asset_rows(self.conn)]
         self.assertEqual(ids, sorted(ids))
         self.assertEqual(rows[INV2], project.AssetRow(INV2, "Inverter 2", AssetKind.INVERTER, AssetStatus.YELLOW,
-                                                      RUN_AT, "reachable"))
+                                                      RUN_AT, "reachable", suggested="INV-001"))
         self.assertEqual(rows[INV1], project.AssetRow(INV1, "Inverter 1", AssetKind.INVERTER, AssetStatus.GREEN,
                                                       RUN_AT, "—"))
         self.assertIs(rows[INV3].status, AssetStatus.RED)

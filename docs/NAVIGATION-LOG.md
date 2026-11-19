@@ -23,3 +23,9 @@ An entry is `### <date> · <task> · <agent>` and four lines: **Task**, **Opened
 - **Opened**: `TODO.md`, `solarpunk/ui/app.py`, `solarpunk/project/surface.py`, `test/solarpunk/test_ui.py`, `DEMO.md`.
 - **Complaints**: none; the window row named the files. DEMO.md quoting the window's words was found by grep, not by the row.
 - **Suggestions**: the window row could name DEMO.md as a document that quotes the windows' text.
+
+### 2026-11-19 · 9.2 the cause column · Claude
+- **Task**: a Cause column saying why a row is red or yellow, with the demo's causes as goldens.
+- **Opened**: `TODO.md`, `solarpunk/project/surface.py`, `solarpunk/project/orchestrator.py`, `solarpunk/ui/app.py`, `test/solarpunk/test_demo.py`.
+- **Complaints**: the window row says the pure half is `chart.py` or `glyph.py`; text for the fleet list had no pure home, so one was made (`cells.py`).
+- **Suggestions**: the window row could name `solarpunk/ui/cells.py` as the pure half of the fleet list's words.

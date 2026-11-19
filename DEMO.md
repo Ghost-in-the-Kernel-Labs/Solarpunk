@@ -57,7 +57,9 @@ derate on OAHE-INV-001 (10:00 to 10:45). The run is stamped 2026-06-01 13:00 UTC
 
 ## What to click, in order
 
-1. **Read the headings, then mouse over a row.** Each column is named (Asset, Name, Kind, Status, Last run, Failing);
+1. **Read the headings, then mouse over a row.** Each column is named (Asset, Name, Kind, Status, Cause, Last run, Failing),
+   and the Cause says why a row is its colour: OAHE-INV-002 "INV-001 since 2026-06-01 11:30 UTC", OAHE-SEN-001
+   "suggested SEN-001";
    the tooltip gives the last status and the run's instant ("Last status: yellow at 2026-06-01 13:00 UTC"); a string,
    a tracker or the meter, having no endpoint the run can reach, reads "no feed", where an asset with one not yet run
    would read "never run".

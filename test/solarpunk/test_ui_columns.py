@@ -1,4 +1,4 @@
-"""The fleet window's headings and readable cells (9.1, SP-023): the six headings, instants in the windows' words, "no
+"""The fleet window's headings, readable cells and causes (9.1, 9.2, SP-023): the six headings, instants in the windows' words, "no
 feed" for an asset with no endpoint beside "never run" for one the run has not reached yet, and each column as wide as
 its widest text; headless with a made-up measure, then under a display with a 20-character name, where no drawn text
 overruns the next column. Skips "no tkinter" or "no display" as test_ui.py does."""
@@ -9,6 +9,8 @@ from dataclasses import replace
 from solarpunk import project
 from solarpunk.leaf.clock import at
 from solarpunk.leaf.codes import AssetKind, AssetStatus
+from solarpunk.leaf.faults import Fault
+from solarpunk.ui import cells
 
 HAS_TKINTER = importlib.util.find_spec("tkinter") is not None
 if HAS_TKINTER:
@@ -44,18 +46,18 @@ def made_up(has_feed: bool, run: bool) -> "project.AssetRow":
 
 @unittest.skipUnless(HAS_TKINTER, "no tkinter")
 class TheWords(unittest.TestCase):
-    def test_the_six_headings(self) -> None:
-        self.assertEqual(app.HEADINGS, ("Asset", "Name", "Kind", "Status", "Last run", "Failing"))
+    def test_the_seven_headings(self) -> None:
+        self.assertEqual(app.HEADINGS, ("Asset", "Name", "Kind", "Status", "Cause", "Last run", "Failing"))
 
     def test_an_instant_reads_in_words_and_no_feed_differs_from_never_run(self) -> None:
-        self.assertEqual(app.row_text(made_up(True, True))[4], "2026-06-01 12:00 UTC")
-        self.assertEqual(app.row_text(made_up(True, False))[4], "never run")
-        self.assertEqual(app.row_text(made_up(False, False))[4], "no feed")
+        self.assertEqual(app.row_text(made_up(True, True))[5], "2026-06-01 12:00 UTC")
+        self.assertEqual(app.row_text(made_up(True, False))[5], "never run")
+        self.assertEqual(app.row_text(made_up(False, False))[5], "no feed")
         self.assertEqual(app.tooltip_text(made_up(False, False)), "Last status: green, no feed")
 
     def test_each_column_is_as_wide_as_its_widest_text_and_a_gap(self) -> None:
-        self.assertEqual(app.column_xs([], seven), (40, 91, 135, 179, 237, 309))
-        lines = [("OAHE-INV-001", LONG_NAME, "inverter", "green", "2026-06-01 12:00 UTC", "—")]
+        self.assertEqual(app.column_xs([], seven), (40, 91, 135, 179, 237, 288, 360))
+        lines = [("OAHE-INV-001", LONG_NAME, "inverter", "green", "—", "2026-06-01 12:00 UTC", "—")]
         xs = app.column_xs(lines, seven)
         self.assertEqual(xs[1] - xs[0], 7 * 12 + 16)
         self.assertEqual(xs[2] - xs[1], 7 * len(LONG_NAME) + 16)
@@ -65,9 +67,29 @@ class TheWords(unittest.TestCase):
 
     def test_the_width_holds_the_last_column_and_is_never_under_820(self) -> None:
         self.assertEqual(app.width_for(app.column_xs([], seven), [], seven), 820)
-        wide = [("x",) * 5 + ("y" * 200,)]
+        wide = [("x",) * 6 + ("y" * 200,)]
         xs = app.column_xs(wide, seven)
         self.assertEqual(app.width_for(xs, wide, seven), xs[-1] + 1400 + 12)
+
+
+class TheCause(unittest.TestCase):
+    """cells.cause_text needs no tkinter, so the fast loop's Python runs these (9.2)."""
+
+    def row(self, status: AssetStatus, outage: Fault | None = None, suggested: str | None = None) -> "project.AssetRow":
+        """OAHE-INV-002 run at 12:00 with reachable failing, in a status, with its outage and suggestion if given."""
+        return project.AssetRow("OAHE-INV-002", "Inverter 2", AssetKind.INVERTER, status, at(2026, 6, 1, 12),
+                                "reachable", True, outage, suggested)
+
+    def test_red_names_its_outage_and_since_when(self) -> None:
+        outage = Fault(4, "OAHE-INV-002", "INV-001", at(2026, 6, 1, 11, 30), None, "site@oahe.example", None)
+        self.assertEqual(cells.cause_text(self.row(AssetStatus.RED, outage=outage)), "INV-001 since 2026-06-01 11:30 UTC")
+
+    def test_yellow_names_its_suggestion_or_else_its_failing_test(self) -> None:
+        self.assertEqual(cells.cause_text(self.row(AssetStatus.YELLOW, suggested="SEN-001")), "suggested SEN-001")
+        self.assertEqual(cells.cause_text(self.row(AssetStatus.YELLOW)), "reachable")
+
+    def test_green_has_no_cause(self) -> None:
+        self.assertEqual(cells.cause_text(self.row(AssetStatus.GREEN, suggested="SEN-001")), "—")
 
 
 class TheRow(unittest.TestCase):

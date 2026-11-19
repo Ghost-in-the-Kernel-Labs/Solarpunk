@@ -8,12 +8,12 @@ never runs into the next column."""
 import sqlite3
 import tkinter
 from collections.abc import Callable, Iterable
-from datetime import datetime
 from tkinter import font as tkfont
 from tkinter import ttk
 
 from solarpunk import project
 from solarpunk.leaf.codes import AssetStatus
+from solarpunk.ui.cells import cause_text, instant_text
 from solarpunk.ui.glyph import colour_of, draw_panel
 
 ROW_HEIGHT = 28
@@ -22,10 +22,9 @@ GLYPH_TOP = 6
 FIRST_X = 40
 COLUMN_GAP = 16
 RIGHT_MARGIN = 12
-HEADINGS = ("Asset", "Name", "Kind", "Status", "Last run", "Failing")
+HEADINGS = ("Asset", "Name", "Kind", "Status", "Cause", "Last run", "Failing")
 HEADING_HEIGHT = 24
 HEADING_TAG = "heading"
-INSTANT_FORMAT = "%Y-%m-%d %H:%M UTC"
 CANVAS_WIDTH = 820
 CANVAS_HEIGHT = 420
 TOOLTIP_OFFSET = 14
@@ -40,22 +39,18 @@ ROW_TAG = "row:{asset_id}"
 TOOLTIP_BACKGROUND = "#ffffe0"
 
 
-def instant_text(moment: datetime) -> str:
-    """An instant as the windows write it: at(2026, 6, 1, 12) gives "2026-06-01 12:00 UTC"."""
-    return moment.strftime(INSTANT_FORMAT)
-
-
 def never_text(row: project.AssetRow) -> str:
     """Why a row has no run: "never run" for an asset with an endpoint, "no feed" for one the run cannot reach."""
     return NEVER_RUN if row.has_feed else NO_FEED
 
 
-def row_text(row: project.AssetRow) -> tuple[str, str, str, str, str, str]:
-    """A row's six words: AssetRow("OAHE-INV-002", "Inverter 2", INVERTER, YELLOW, 12:00 UTC, "reachable") gives
-    ("OAHE-INV-002", "Inverter 2", "inverter", "yellow", "2026-06-01 12:00 UTC", "reachable"); never run gives
-    "never run" in the fifth place, or "no feed" for an asset with no endpoint."""
+def row_text(row: project.AssetRow) -> tuple[str, str, str, str, str, str, str]:
+    """A row's seven words: AssetRow("OAHE-INV-002", "Inverter 2", INVERTER, YELLOW, 12:00 UTC, "reachable") gives
+    ("OAHE-INV-002", "Inverter 2", "inverter", "yellow", "reachable", "2026-06-01 12:00 UTC", "reachable"), its cause
+    fifth (9.2, cells.cause_text); never run gives "never run" in the sixth place, or "no feed" for an asset with no
+    endpoint."""
     last_run = never_text(row) if row.last_run_at is None else instant_text(row.last_run_at)
-    return (row.asset_id, row.name, row.kind.name.lower(), row.status.value, last_run, row.failing)
+    return (row.asset_id, row.name, row.kind.name.lower(), row.status.value, cause_text(row), last_run, row.failing)
 
 
 def tooltip_text(row: project.AssetRow) -> str:

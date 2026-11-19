@@ -14,7 +14,7 @@ from solarpunk.leaf.assets import Asset
 from solarpunk.leaf.codes import AssetKind, AssetStatus, FaultCode, codes_for
 from solarpunk.leaf.faults import Fault
 from solarpunk.leaf.telemetry import Sample
-from solarpunk.project.orchestrator import asset_status, fleet_assets, is_cover, known
+from solarpunk.project.orchestrator import asset_status, fleet_assets, is_cover, known, open_outages
 from solarpunk.remote import results as result_table
 from solarpunk.remote.registry import tests_for
 from solarpunk.remote import suggestions as suggestion_table
@@ -37,7 +37,8 @@ class AssetRow:
     """One row of the fleet window: AssetRow("OAHE-INV-002", "Inverter 2", AssetKind.INVERTER, AssetStatus.YELLOW,
     2026-06-01T12:00Z, "reachable"); an asset never run has last_run_at None, one with nothing failing "—"; has_feed
     says whether it has an endpoint (host and port) the scheduled run can reach, so "never run" and "no feed" differ
-    (9.1)."""
+    (9.1); outage is the open OUTAGE fault that makes it red, suggested the code of its first open suggestion (9.2), so
+    a window can say why a row is its colour without a second call."""
 
     asset_id: str
     name: str
@@ -46,6 +47,8 @@ class AssetRow:
     last_run_at: datetime | None
     failing: str
     has_feed: bool = True
+    outage: Fault | None = None
+    suggested: str | None = None
 
 
 @dataclass(frozen=True)
@@ -88,7 +91,10 @@ def row_of(conn: sqlite3.Connection, asset: Asset) -> AssetRow:
     failing = next((found.test_name for found in latest if not found.passed), NO_FAILURE)
     status = asset_status(conn, asset.asset_id)
     has_feed = asset.host is not None and asset.port is not None
-    return AssetRow(asset.asset_id, asset.name, asset.kind, status, last_run_at, failing, has_feed)
+    outage = open_outages(conn).get(asset.asset_id)
+    suggestions = suggestion_table.open_suggestions(conn, asset.asset_id)
+    suggested = suggestions[0].code if suggestions else None
+    return AssetRow(asset.asset_id, asset.name, asset.kind, status, last_run_at, failing, has_feed, outage, suggested)
 
 
 def asset_rows(conn: sqlite3.Connection) -> tuple[AssetRow, ...]:
