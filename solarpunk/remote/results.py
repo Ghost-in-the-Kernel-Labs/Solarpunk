@@ -28,6 +28,7 @@ LATEST = (
     " ORDER BY passed, test_name"
 )
 LAST_RUN = "SELECT max(run_at) FROM results"
+RESULT_COLUMNS = "test_name, asset_id, run_at, passed, reason"
 SAMPLES = "SELECT asset_id, at, irradiance_w_m2, power_kw, gap FROM samples WHERE asset_id = ? ORDER BY at"
 ASSET = (
     "SELECT asset_id, kind, site, parent_id, name, rated_kw, host, port, location, engineer_email"
@@ -76,6 +77,14 @@ def latest_for(conn: sqlite3.Connection, asset_id: str) -> tuple[Recorded, ...]:
     """The asset's results from its most recent run, failing first, then by test name: after a run at 10:00 and one
     at 11:00 where on_grid failed, (on_grid failed, reachable passed) both at 11:00; an asset never run gives ()."""
     rows = conn.execute(LATEST, (asset_id, asset_id)).fetchall()
+    return tuple(Recorded(r[0], r[1], datetime.fromisoformat(r[2]), bool(r[3]), r[4]) for r in rows)
+
+
+def results_of(conn: sqlite3.Connection, asset_id: str) -> tuple[Recorded, ...]:
+    """Every result stored for the asset, newest run first, then in the order stored: after runs at 10:00 and 11:00,
+    the 11:00 results come first; an asset never run gives (). Nothing is deleted to make it (SP-016)."""
+    rows = conn.execute(f"SELECT {RESULT_COLUMNS} FROM results WHERE asset_id = ? ORDER BY run_at DESC, result_id",
+                        (asset_id,)).fetchall()
     return tuple(Recorded(r[0], r[1], datetime.fromisoformat(r[2]), bool(r[3]), r[4]) for r in rows)
 
 

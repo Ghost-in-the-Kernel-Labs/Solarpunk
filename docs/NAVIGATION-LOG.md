@@ -23,3 +23,9 @@ An entry is `### <date> · <task> · <agent>` and four lines: **Task**, **Opened
 - **Opened**: `TODO.md`, `docs/CONTRACT.md`, `test/test_contract.py`, `solarpunk/leaf/clock.py`.
 - **Complaints**: no row says how to see the demo store's rows; it was built and read with SQL from a scratch folder.
 - **Suggestions**: none yet; one agent's.
+
+### 2026-11-19 · 10.2 the runs' surface · Claude
+- **Task**: four project calls reading runs, power and error counts, held to SOL-15.
+- **Opened**: `TODO.md`, `solarpunk/remote/results.py`, `solarpunk/remote/suggestions.py`, `solarpunk/faults/ledger.py`, `solarpunk/telemetry/samples.py`.
+- **Complaints**: none; the product row for the fleet and faults named the ledger, and `docs/modules.json` said what project may import.
+- **Suggestions**: none.

@@ -62,12 +62,6 @@ the window), then 10.4, 10.5 and 10.6 in parallel, then 10.7 (the fleet's view),
 SP-024: a Runs button beside each asset, its runs, and the runs grouped and graphed. It takes over the asset's history
 that Phase 13 (then 12.5's `asset_log` and 12.8) planned, so nothing is built twice.
 
-### 10.2 The runs' surface
-
-One project call per view, each tested headless (SP-024, SP-016).
-
-Check: `project.asset_runs(conn, asset_id, limit=100, search=None)` gives the asset's runs newest first, each with its results, failures first, the search matching a test's name, "pass"/"fail" and words in a reason; `project.asset_power(conn, asset_id, period)` the asset's samples and its gap count; `project.asset_code_counts(conn, asset_id, period)` faults and suggestions by code; `project.code_counts_by_asset(conn, code, period)` each asset's faults and suggestions of one code; each held to 10.1's worked examples; over a store with more than 100 runs, newest first, nothing deleted; the fast loop green.
-
 ### 10.3 The Runs button and window
 
 Beside each asset, its runs (SP-024).

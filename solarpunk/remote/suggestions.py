@@ -7,7 +7,7 @@ import sqlite3
 from dataclasses import dataclass
 from datetime import datetime
 
-from solarpunk.leaf.clock import utc
+from solarpunk.leaf.clock import Period, utc
 from solarpunk.leaf.codes import lookup
 
 DEVICE = "device"
@@ -100,6 +100,14 @@ def open_suggestions(conn: sqlite3.Connection, asset_id: str | None = None) -> t
     """The open suggestions, of one asset or of all by asset, a device's first, then the newest: after a pushed SEN-001
     and a run's suggestion on OAHE-SEN-001, open_suggestions(conn, "OAHE-SEN-001")[0].source is "device"."""
     rows = conn.execute(OPEN_ALL).fetchall() if asset_id is None else conn.execute(OPEN_FOR, (asset_id,)).fetchall()
+    return tuple(_row(row) for row in rows)
+
+
+def raised_in(conn: sqlite3.Connection, period: Period) -> tuple[Suggestion, ...]:
+    """Every suggestion raised inside the half-open period, open, accepted or dismissed, in suggestion_id order (SOL-15:
+    a dismissed suggestion was raised all the same)."""
+    rows = conn.execute(f"SELECT {COLUMNS} FROM suggestions WHERE raised_at >= ? AND raised_at < ? ORDER BY suggestion_id",
+                        (utc(period.start).isoformat(), utc(period.end).isoformat())).fetchall()
     return tuple(_row(row) for row in rows)
 
 

@@ -286,4 +286,5 @@ Worked examples, over the demo store (`python3 -m solarpunk.ui --demo`, one run 
     power, OAHE-INV-001, the day    288 samples: records 279, gaps 9 (the first at 04:25, one at 10:40)
 
 Held by `test/solarpunk/test_runs_contract.py`, which reads each example's numbers from the demo store and finds each
-example's line in this section; the surface that builds them is 10.2's.
+example's line in this section, and by `solarpunk/project/runs.py` (10.2: `asset_runs`, `asset_power`,
+`asset_code_counts`, `code_counts_by_asset`) with `test/solarpunk/test_runs.py`, which reads the same examples through it.
