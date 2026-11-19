@@ -11,7 +11,7 @@ Ghost's statement of where the product is going: five areas under one click (J-0
 own nightly regime (SP-012, J-038; the section below). Tune-up pass 5: cold gate 9.95 min, warm 0.80 min, fast loop
 23.1 s (J-039).
 
-**The first open item is 8.3, Tune-up pass 8** (`TODO.md`; 8.2, the ticket ledger, landed in J-063; 8.1, the ticket contract SOL-14, in J-061; SP-022: local tickets, then accounts and auth, then the
+**The first open item is 9.1, headings and readable cells** (`TODO.md`; Phase 8 closed by its pass, J-064; 8.2, the ticket ledger, landed in J-063; 8.1, the ticket contract SOL-14, in J-061; SP-022: local tickets, then accounts and auth, then the
 tests' record, the security pass, and a central server; Phase 8's cause by email was withdrawn by SP-021; Phase 7 closed by its pass, J-056; 7.5, the suggestions in the window and on the command line,
 landed in J-054; 7.4, the suggestions themselves, in J-053; SP-017's 7.2 and 7.3 in J-051 and J-052; 7.1, who assigned a fault, landed in J-050; until 7.4 the receiver holds every good push for an engineer and stores nothing): Phase 7 is Ghost's
 fault assignment (SP-015): tests
@@ -92,8 +92,13 @@ email on the asset, a mailer to those engineers on degradation, and the Save/Can
    acknowledged within 1 h and worked on within 4 h; DERATE (P2) 4 h and 24 h; INFO (P3) 24 h and 72 h. A preventive work
    order, having no fault, is P3 (J-063), also Claude's proposal. Closing a fault alone (`solarpunk fault close`) leaves
    its ticket open, to be closed with a root cause; until Phase 10 the command line cannot move a ticket.
+9. The fast loop's margin (Tune-up pass 8, J-064): warm 29.2 s against its 30 s target (26.9 s at pass 7), and the
+   cold gate refused at 36.7 s. The slowest file is `test/test_gates.py` (10 s alone). Moving it to the full gate is a
+   tune-up's to make, but it holds the gate's own refusals, so it waits on your word; or the target is yours to move.
+   Also proposed: run the fast loop with `-W error::DeprecationWarning`, which would have caught 8.2's Python 3.14
+   placeholder warning at once (a change to `scripts/fast.sh`, so a decision).
 
-## Advisories under the gate's threshold (Tune-up pass 6; unchanged since pass 0)
+## Advisories under the gate's threshold (Tune-up pass 8; unchanged since pass 0)
 
 The Python stack's gate runs no audit step (`pip-audit` is not in the lock; `stacks/python/README.md` names it for a
 dependency review, not the gate), so none were reported; the 20 pins are tools alone (pytest, ruff, mutmut and theirs).

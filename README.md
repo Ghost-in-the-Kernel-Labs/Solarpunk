@@ -41,7 +41,7 @@ moving only once origin takes it (SP-014), and the full `scripts/gate.sh` runs a
 - Phase 5, one word to run it (`solarpunk`, `solarpunk --help`, the `test` commands): done.
 - Phase 6, reports and diagnostics (the power-output report, four inverter diagnostics, their windows): done.
 - Phase 7, faults suggested by tests, assigned by engineers (and the gate hardened): done.
-- Phase 8, local tickets (status flow, priorities, response targets, the ticket ledger): in progress (SP-022).
+- Phase 8, local tickets (status flow, priorities, response targets, the ticket ledger): done (SP-022).
 - Phase 9, the fleet window as an operations root (headings, causes, what waits on a person): not started (SP-023).
 - Phase 10, tickets in the windows (the adapter, the local tracker, a Tickets window): not started (SP-022, SP-023).
 - Phase 11, accounts and authentication (every act attributed to a signed-in account): not started (SP-022).

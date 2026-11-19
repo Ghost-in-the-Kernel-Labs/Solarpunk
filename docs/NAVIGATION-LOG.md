@@ -11,21 +11,9 @@ to the ruling grade; record the review in the journal; set the line below to the
 review ran at (`git rev-parse --short HEAD`, not the tune-up's own, which does not exist yet). Each entry's **Opened** list, read against the routing row its task matched, is the measure
 of whether a fresh agent found its way: files, in order; `CLAUDE.md` does not count.
 
-Last review: c1a43dd (2026-11-18, Tune-up pass 7)
+Last review: 76fbb21 (2026-11-19, Tune-up pass 8)
 
 ## Entries
 
 An entry is `### <date> · <task> · <agent>` and four lines: **Task**, **Opened** (files, in order), **Complaints**,
 **Suggestions**.
-
-### 2026-11-18 · 8.1 the ticket contract · Claude
-- **Task**: SOL-14, the ticket contract, and the leaf module that holds it.
-- **Opened**: `docs/paths/product.md`, `docs/CONTRACT.md`, `solarpunk/leaf/codes.py`, `solarpunk/leaf/clock.py`, `test/solarpunk/test_kpi.py`.
-- **Complaints**: product.md has no row for "a new contract section and its leaf types"; the KPI row came closest.
-- **Suggestions**: a row "A contract section held to the leaf" pointing at `docs/CONTRACT.md` and `test/solarpunk/test_tickets_contract.py` as the shape of a table-reading test.
-
-### 2026-11-19 · 8.2 the ticket ledger · Claude
-- **Task**: the ticket ledger: columns, moves, comments, the past-target query, the ticket opened with the fault.
-- **Opened**: `TODO.md`, `solarpunk/workorders/ledger.py`, `solarpunk/project/orchestrator.py`, `test/solarpunk/test_workorders.py`, `test/solarpunk/iso/test_iso9001.py`, `solarpunk/ui/demo.py`.
-- **Complaints**: the product row for work orders did not name the ISO test that holds 4.1's close, which the check required unchanged; it was found by grep. The fast loop runs without warnings shown, so a Python 3.14 deprecation surfaced only in the window tests' pytest summary.
-- **Suggestions**: the row now names the ticket files; a fast-loop run with `-W error::DeprecationWarning` would catch the next one earlier (a proposal for a tune-up).

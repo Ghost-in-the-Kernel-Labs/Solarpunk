@@ -49,10 +49,6 @@ Lanes (P-15): 7.1 (done, J-050), then 7.2 and 7.3 (SP-017, put ahead by Ghost), 
 Lanes (P-15): 8.1 first (the contract), then 8.2, then 8.3 the pass. Ghost's direction, SP-021 and
 SP-022; the adapter and the windows moved to Phase 10 by SP-023, so the fleet window is reworked first.
 
-### 8.3 Tune-up pass 8
-
-Check: `docs/when/tune-up.md` followed in full; the metrics table written; the navigation log's "Last review" set.
-
 ## Phase 9: the fleet window as an operations root
 
 Lanes (P-15): 9.1 to 9.5 in order (each touches `solarpunk/ui/app.py`), then 9.6 the pass. Ghost's direction, SP-023,
