@@ -55,12 +55,6 @@ Lanes (P-15): 9.1 to 9.5 in order (each touches `solarpunk/ui/app.py`), then 9.6
 from the 2026-11-18 advisor's review of the root window: the list says what colour an asset is, not why, nor what waits
 on a person.
 
-### 9.1 Headings and readable cells
-
-The fleet list reads without a click (SP-023).
-
-Check: the list has column headings (Asset, Name, Kind, Status, Last run, Failing); an instant reads "2026-06-01 13:00 UTC", not ISO; an asset with no endpoint reads "no feed" where one with an endpoint and no run reads "never run" (`AssetRow` gains whether it has an endpoint); no cell overruns its column with a 20-character name (the column widths from the text, not fixed x positions), the screenshot read back under xvfb; the pure half (headings, cell text) tested headless; the fast loop green.
-
 ### 9.2 The cause column
 
 A red or yellow row says why (SP-023).

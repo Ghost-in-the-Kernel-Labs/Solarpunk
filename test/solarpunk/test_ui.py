@@ -111,13 +111,13 @@ class TheGlyph(unittest.TestCase):
 class TheWords(unittest.TestCase):
     def test_row_text_run_and_never_run(self) -> None:
         self.assertEqual(app.row_text(row(AssetStatus.YELLOW, True)),
-                         (INV2, "Inverter 2", "inverter", "yellow", "2026-06-01T12:00:00+00:00", "reachable"))
+                         (INV2, "Inverter 2", "inverter", "yellow", "2026-06-01 12:00 UTC", "reachable"))
         self.assertEqual(app.row_text(row(AssetStatus.GREEN, False)),
                          (INV2, "Inverter 2", "inverter", "green", "never run", "—"))
 
     def test_the_tooltip_run_and_never_run(self) -> None:
         self.assertEqual(app.tooltip_text(row(AssetStatus.YELLOW, True)),
-                         "Last status: yellow at 2026-06-01T12:00:00+00:00")
+                         "Last status: yellow at 2026-06-01 12:00 UTC")
         self.assertEqual(app.tooltip_text(row(AssetStatus.RED, False)), "Last status: red, never run")
 
     def test_the_summary_counts_each_colour(self) -> None:
@@ -139,8 +139,8 @@ class TheWords(unittest.TestCase):
         self.assertEqual(tuple(r.asset_id for r in rows), IDS)
         self.assertEqual(app.summary(rows), "7 assets: 5 green, 1 yellow, 1 red")
         self.assertEqual([glyph.colour_of(r.status) for r in rows[:3]], [GREEN, YELLOW, RED])
-        self.assertEqual(app.tooltip_text(rows[1]), "Last status: yellow at 2026-06-01T12:00:00+00:00")
-        self.assertEqual(app.tooltip_text(rows[3]), "Last status: green, never run")
+        self.assertEqual(app.tooltip_text(rows[1]), "Last status: yellow at 2026-06-01 12:00 UTC")
+        self.assertEqual(app.tooltip_text(rows[3]), "Last status: green, no feed")  # no endpoint (9.1)
         self.assertEqual(app.row_text(rows[1])[5], "reachable")
 
 
@@ -219,14 +219,14 @@ class TheFleetWindow(unittest.TestCase):
         self.assertEqual(tip.winfo_toplevel().state(), "withdrawn")
         self.window.canvas.event_generate("<Motion>", x=100, y=28 + 5)
         self.root.update()
-        self.assertEqual(tip.cget("text"), "Last status: yellow at 2026-06-01T12:00:00+00:00")
+        self.assertEqual(tip.cget("text"), "Last status: yellow at 2026-06-01 12:00 UTC")
         self.assertEqual(tip.winfo_toplevel().state(), "normal")
         self.window.canvas.event_generate("<Motion>", x=100, y=7 * 28 + 5)
         self.root.update()
         self.assertEqual(tip.winfo_toplevel().state(), "withdrawn")
         self.window.canvas.event_generate("<Motion>", x=100, y=3 * 28 + 5)
         self.root.update()
-        self.assertEqual(tip.cget("text"), "Last status: green, never run")
+        self.assertEqual(tip.cget("text"), "Last status: green, no feed")  # no endpoint (9.1)
         self.assertEqual(tip.winfo_toplevel().state(), "normal")
         self.window.canvas.event_generate("<Leave>")
         self.root.update()

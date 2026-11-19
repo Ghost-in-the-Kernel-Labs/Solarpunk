@@ -1,11 +1,15 @@
-"""The fleet window (3.1, SP-007): every asset in id order, one 28 px row each on a scrolling Canvas, the solar-panel
-glyph in its status colour, then its id, name, kind, status, last run and failing test; a mouseover shows the last
-status and the run's instant, a click hands the asset's id to on_open_asset (3.4 wires the asset window to it), Refresh
-rereads the store. All the window shows comes from one call, project.asset_rows; the text is made by the pure functions
-row_text, tooltip_text and summary, tested headless, and the widgets only place it."""
+"""The fleet window (3.1, SP-007): every asset in id order, one 28 px row each on a scrolling Canvas under a strip of
+column headings (9.1), the solar-panel glyph in its status colour, then its id, name, kind, status, last run and
+failing test; a mouseover shows the last status and the run's instant, a click hands the asset's id to on_open_asset
+(3.4 wires the asset window to it), Refresh rereads the store. All the window shows comes from one call,
+project.asset_rows; the text is made by the pure functions row_text, tooltip_text, summary and column_xs, tested
+headless, and the widgets only place it. A column is as wide as its widest text, heading included, so a long name
+never runs into the next column."""
 import sqlite3
 import tkinter
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
+from datetime import datetime
+from tkinter import font as tkfont
 from tkinter import ttk
 
 from solarpunk import project
@@ -15,34 +19,70 @@ from solarpunk.ui.glyph import colour_of, draw_panel
 ROW_HEIGHT = 28
 GLYPH_X = 8
 GLYPH_TOP = 6
-COLUMN_XS = (40, 150, 260, 340, 410, 650)
+FIRST_X = 40
+COLUMN_GAP = 16
+RIGHT_MARGIN = 12
+HEADINGS = ("Asset", "Name", "Kind", "Status", "Last run", "Failing")
+HEADING_HEIGHT = 24
+HEADING_TAG = "heading"
+INSTANT_FORMAT = "%Y-%m-%d %H:%M UTC"
 CANVAS_WIDTH = 820
 CANVAS_HEIGHT = 420
 TOOLTIP_OFFSET = 14
 NEVER_RUN = "never run"
+NO_FEED = "no feed"
 REFRESH = "Refresh"
 TOOLTIP_RUN = "Last status: {status} at {instant}"
-TOOLTIP_NEVER = "Last status: {status}, never run"
+TOOLTIP_NEVER = "Last status: {status}, {never}"
 SUMMARY = "{total} assets: {green} green, {yellow} yellow, {red} red"
 GLYPH_TAG = "glyph:{asset_id}"
 ROW_TAG = "row:{asset_id}"
 TOOLTIP_BACKGROUND = "#ffffe0"
 
 
+def instant_text(moment: datetime) -> str:
+    """An instant as the windows write it: at(2026, 6, 1, 12) gives "2026-06-01 12:00 UTC"."""
+    return moment.strftime(INSTANT_FORMAT)
+
+
+def never_text(row: project.AssetRow) -> str:
+    """Why a row has no run: "never run" for an asset with an endpoint, "no feed" for one the run cannot reach."""
+    return NEVER_RUN if row.has_feed else NO_FEED
+
+
 def row_text(row: project.AssetRow) -> tuple[str, str, str, str, str, str]:
     """A row's six words: AssetRow("OAHE-INV-002", "Inverter 2", INVERTER, YELLOW, 12:00 UTC, "reachable") gives
-    ("OAHE-INV-002", "Inverter 2", "inverter", "yellow", "2026-06-01T12:00:00+00:00", "reachable"); never run gives
-    "never run" in the fifth place."""
-    last_run = NEVER_RUN if row.last_run_at is None else row.last_run_at.isoformat()
+    ("OAHE-INV-002", "Inverter 2", "inverter", "yellow", "2026-06-01 12:00 UTC", "reachable"); never run gives
+    "never run" in the fifth place, or "no feed" for an asset with no endpoint."""
+    last_run = never_text(row) if row.last_run_at is None else instant_text(row.last_run_at)
     return (row.asset_id, row.name, row.kind.name.lower(), row.status.value, last_run, row.failing)
 
 
 def tooltip_text(row: project.AssetRow) -> str:
-    """The mouseover's line: a yellow row run at 12:00 UTC gives "Last status: yellow at 2026-06-01T12:00:00+00:00";
-    a green row never run gives "Last status: green, never run"."""
+    """The mouseover's line: a yellow row run at 12:00 UTC gives "Last status: yellow at 2026-06-01 12:00 UTC";
+    a green row never run gives "Last status: green, never run", one with no endpoint "Last status: green, no feed"."""
     if row.last_run_at is None:
-        return TOOLTIP_NEVER.format(status=row.status.value)
-    return TOOLTIP_RUN.format(status=row.status.value, instant=row.last_run_at.isoformat())
+        return TOOLTIP_NEVER.format(status=row.status.value, never=never_text(row))
+    return TOOLTIP_RUN.format(status=row.status.value, instant=instant_text(row.last_run_at))
+
+
+def column_xs(lines: Iterable[tuple[str, ...]], measure: Callable[[str], int]) -> tuple[int, ...]:
+    """Each column's left x, the first at 40, each next one the widest text before it (heading included) plus a 16 px
+    gap: with measure = 7 px a character, column_xs([("Asset", "Name")], measure) is (40, 91)."""
+    widths = [0] * len(HEADINGS)
+    for line in (HEADINGS, *lines):
+        for index, text in enumerate(line):
+            widths[index] = max(widths[index], measure(text))
+    xs = [FIRST_X]
+    for width in widths[:-1]:
+        xs.append(xs[-1] + width + COLUMN_GAP)
+    return tuple(xs)
+
+
+def width_for(xs: tuple[int, ...], lines: Iterable[tuple[str, ...]], measure: Callable[[str], int]) -> int:
+    """The width that holds every column, the last one's widest text and a 12 px margin, never under 820."""
+    last = max((measure(line[-1]) for line in (HEADINGS, *lines)), default=0)
+    return max(CANVAS_WIDTH, xs[-1] + last + RIGHT_MARGIN)
 
 
 def summary(rows: tuple[project.AssetRow, ...]) -> str:
@@ -76,16 +116,22 @@ class FleetWindow:
         self.rows: tuple[project.AssetRow, ...] = ()
         self.frame = ttk.Frame(root)
         self.frame.pack(fill=tkinter.BOTH, expand=True)
+        self.font = tkfont.nametofont("TkDefaultFont")
+        self.heading_font = self.font.copy()
+        self.heading_font.configure(weight="bold")
+        self.xs = column_xs((), self.measure)
         self.canvas = tkinter.Canvas(self.frame, width=CANVAS_WIDTH, height=CANVAS_HEIGHT, highlightthickness=0)
+        self.header = tkinter.Canvas(self.frame, width=CANVAS_WIDTH, height=HEADING_HEIGHT, highlightthickness=0)
         self.scrollbar = ttk.Scrollbar(self.frame, orient=tkinter.VERTICAL, command=self.canvas.yview)
         self.canvas.configure(yscrollcommand=self.scrollbar.set)
         self.refresh_button = ttk.Button(self.frame, text=REFRESH, command=self.refresh)
         self.status_line = ttk.Label(self.frame)
-        self.canvas.grid(row=0, column=0, sticky="nsew")
-        self.scrollbar.grid(row=0, column=1, sticky="ns")
-        self.refresh_button.grid(row=1, column=0, sticky="w")
-        self.status_line.grid(row=2, column=0, sticky="w")
-        self.frame.rowconfigure(0, weight=1)
+        self.header.grid(row=0, column=0, sticky="ew")
+        self.canvas.grid(row=1, column=0, sticky="nsew")
+        self.scrollbar.grid(row=1, column=1, sticky="ns")
+        self.refresh_button.grid(row=2, column=0, sticky="w")
+        self.status_line.grid(row=3, column=0, sticky="w")
+        self.frame.rowconfigure(1, weight=1)
         self.frame.columnconfigure(0, weight=1)
         self.tooltip = self.make_tooltip(root)
         self.canvas.bind("<Button-1>", self.on_click)
@@ -103,21 +149,33 @@ class FleetWindow:
         label.pack()
         return label
 
+    def measure(self, text: str) -> int:
+        """The pixel width of text in the wider of the two fonts the window writes in (the headings' bold)."""
+        return max(self.font.measure(text), self.heading_font.measure(text))
+
     def refresh(self) -> None:
-        """Rereads the store and redraws every row: after a fault opens an outage on OAHE-INV-001, refresh() turns its
-        glyph "#c0392b"."""
+        """Rereads the store and redraws the headings and every row, the columns as wide as their text: after a fault
+        opens an outage on OAHE-INV-001, refresh() turns its glyph "#c0392b"."""
         self.rows = project.asset_rows(self.conn)
+        lines = [row_text(row) for row in self.rows]
+        self.xs = column_xs(lines, self.measure)
+        width = width_for(self.xs, lines, self.measure)
+        self.header.delete(tkinter.ALL)
+        for x, text in zip(self.xs, HEADINGS):
+            self.header.create_text(x, HEADING_HEIGHT // 2, text=text, anchor=tkinter.W, font=self.heading_font,
+                                    tags=(HEADING_TAG,))
+        self.header.configure(width=width)
         self.canvas.delete(tkinter.ALL)
         for index, row in enumerate(self.rows):
             self.draw_row(index, row)
-        self.canvas.configure(scrollregion=(0, 0, CANVAS_WIDTH, len(self.rows) * ROW_HEIGHT))
+        self.canvas.configure(width=width, scrollregion=(0, 0, width, len(self.rows) * ROW_HEIGHT))
         self.status_line.configure(text=summary(self.rows))
 
     def draw_row(self, index: int, row: project.AssetRow) -> None:
         """Draws one row at index * 28 px: the glyph tagged "glyph:<id>", the six words tagged "row:<id>"."""
         top = index * ROW_HEIGHT
         draw_panel(self.canvas, GLYPH_X, top + GLYPH_TOP, colour_of(row.status), GLYPH_TAG.format(asset_id=row.asset_id))
-        for x, text in zip(COLUMN_XS, row_text(row)):
+        for x, text in zip(self.xs, row_text(row)):
             self.canvas.create_text(x, top + ROW_HEIGHT // 2, text=text, anchor=tkinter.W,
                                     tags=(ROW_TAG.format(asset_id=row.asset_id),))
 

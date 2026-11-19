@@ -17,3 +17,9 @@ Last review: 76fbb21 (2026-11-19, Tune-up pass 8)
 
 An entry is `### <date> · <task> · <agent>` and four lines: **Task**, **Opened** (files, in order), **Complaints**,
 **Suggestions**.
+
+### 2026-11-19 · 9.1 headings and readable cells · Claude
+- **Task**: the fleet window's headings, instants in words, "no feed", columns from their text.
+- **Opened**: `TODO.md`, `solarpunk/ui/app.py`, `solarpunk/project/surface.py`, `test/solarpunk/test_ui.py`, `DEMO.md`.
+- **Complaints**: none; the window row named the files. DEMO.md quoting the window's words was found by grep, not by the row.
+- **Suggestions**: the window row could name DEMO.md as a document that quotes the windows' text.

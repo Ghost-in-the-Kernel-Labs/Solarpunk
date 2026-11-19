@@ -208,3 +208,9 @@ Done 2026-11-19 (J-063). Check: `solarpunk/workorders/` stores a ticket's status
 ### 8.3 Tune-up pass 8
 
 Done 2026-11-19 (J-064). Check: `docs/when/tune-up.md` followed in full; the metrics table written; the navigation log's "Last review" set. ✓ Cold gate 1.3 min, refused at the fast loop (36.7 s cold against 30); warm gate 1.13 min, fast loop 29.2 s, 9 of 9 measured, none regressed; the table written from the warm run; two debriefs read; the log wiped, Last review set.
+
+## Phase 9: the fleet window as an operations root
+
+### 9.1 Headings and readable cells
+
+Done 2026-11-19 (J-065). Check: the list has column headings (Asset, Name, Kind, Status, Last run, Failing); an instant reads "2026-06-01 13:00 UTC", not ISO; an asset with no endpoint reads "no feed" where one with an endpoint and no run reads "never run" (`AssetRow` gains whether it has an endpoint); no cell overruns its column with a 20-character name (the column widths from the text, not fixed x positions), the screenshot read back under xvfb; the pure half (headings, cell text) tested headless; the fast loop green. ✓ A heading strip above the list in bold; `instant_text`, `never_text`, `column_xs`, `width_for` in `solarpunk/ui/app.py`; `AssetRow.has_feed` (default True, so rows made before keep their meaning); the tooltip in the same words; `test/solarpunk/test_ui_columns.py` (8 tests: a made-up 7 px measure headless, the real font under xvfb with "Central inverter 2-B"); the demo's screenshot read: nine "no feed", three runs at "2026-06-01 13:00 UTC", "Irradiance sensor" clear of its column; DEMO.md's click order updated.

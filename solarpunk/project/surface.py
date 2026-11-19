@@ -35,7 +35,9 @@ NEVER_RUN_REASON = "no result yet: the scheduled run has not tested this asset"
 @dataclass(frozen=True)
 class AssetRow:
     """One row of the fleet window: AssetRow("OAHE-INV-002", "Inverter 2", AssetKind.INVERTER, AssetStatus.YELLOW,
-    2026-06-01T12:00Z, "reachable"); an asset never run has last_run_at None, one with nothing failing "—"."""
+    2026-06-01T12:00Z, "reachable"); an asset never run has last_run_at None, one with nothing failing "—"; has_feed
+    says whether it has an endpoint (host and port) the scheduled run can reach, so "never run" and "no feed" differ
+    (9.1)."""
 
     asset_id: str
     name: str
@@ -43,6 +45,7 @@ class AssetRow:
     status: AssetStatus
     last_run_at: datetime | None
     failing: str
+    has_feed: bool = True
 
 
 @dataclass(frozen=True)
@@ -78,12 +81,14 @@ class Diagnostic:
 
 def row_of(conn: sqlite3.Connection, asset: Asset) -> AssetRow:
     """One asset's row from its latest results: OAHE-INV-002 after a run at 12:00 whose reachable failed gives
-    AssetRow(…, YELLOW, 12:00 UTC, "reachable"); a string never run gives (…, GREEN, None, "—")."""
+    AssetRow(…, YELLOW, 12:00 UTC, "reachable"); a string never run gives (…, GREEN, None, "—", False), having no
+    endpoint."""
     latest = result_table.latest_for(conn, asset.asset_id)
     last_run_at = latest[0].run_at if latest else None
     failing = next((found.test_name for found in latest if not found.passed), NO_FAILURE)
     status = asset_status(conn, asset.asset_id)
-    return AssetRow(asset.asset_id, asset.name, asset.kind, status, last_run_at, failing)
+    has_feed = asset.host is not None and asset.port is not None
+    return AssetRow(asset.asset_id, asset.name, asset.kind, status, last_run_at, failing, has_feed)
 
 
 def asset_rows(conn: sqlite3.Connection) -> tuple[AssetRow, ...]:
