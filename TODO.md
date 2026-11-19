@@ -62,12 +62,6 @@ the window), then 10.4, 10.5 and 10.6 in parallel, then 10.7 (the fleet's view),
 SP-024: a Runs button beside each asset, its runs, and the runs grouped and graphed. It takes over the asset's history
 that Phase 13 (then 12.5's `asset_log` and 12.8) planned, so nothing is built twice.
 
-### 10.1 What a run and a count are
-
-The numbers the Runs window shows, written before they are built (SP-024).
-
-Check: `docs/CONTRACT.md` gains a section: a run of an asset is the results stored at one instant for it (one per test, and the ping's failed `reachable`); an error count is the faults opened and the suggestions raised with a code on an asset in a period, faults and suggestions counted apart, a dismissed suggestion still counted, nothing deleted; a power series is the asset's samples in a period with its gaps named, never filled; each with a worked example over the demo store (OAHE-INV-002's run at 13:00, OAHE-SEN-001's one SEN-001 suggestion); the fast loop green.
-
 ### 10.2 The runs' surface
 
 One project call per view, each tested headless (SP-024, SP-016).

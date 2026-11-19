@@ -234,3 +234,9 @@ Done 2026-11-19 (J-070). Check: the summary line moves to a status bar at the wi
 ### 9.6 Tune-up pass 9
 
 Done 2026-11-19 (J-072). Check: `docs/when/tune-up.md` followed in full; the metrics table written; the navigation log's "Last review" set. ✓ The first cold gate refused at the Python stack's readability rule (`FleetWindow.__init__` 52 lines of 39), fixed forward by splitting it into `make_list`, `make_bars` and `lay_out`, the window tests green and the demo's screenshot identical to 9.5's pixel for pixel; then cold gate 1.10 min, warm 1.08 min, fast loop 21.1 s, slow tests 10.8 s, 9 of 9 measured, none regressed; five debriefs read; the window row brought up to date; the log wiped, Last review set.
+
+## Phase 10: runs per asset
+
+### 10.1 What a run and a count are
+
+Done 2026-11-19 (J-073). Check: `docs/CONTRACT.md` gains a section: a run of an asset is the results stored at one instant for it (one per test, and the ping's failed `reachable`); an error count is the faults opened and the suggestions raised with a code on an asset in a period, faults and suggestions counted apart, a dismissed suggestion still counted, nothing deleted; a power series is the asset's samples in a period with its gaps named, never filled; each with a worked example over the demo store (OAHE-INV-002's run at 13:00, OAHE-SEN-001's one SEN-001 suggestion); the fast loop green. ✓ SOL-15, seven worked examples read from the demo store (INV-002's run of 8 results with two `reachable`, the sensor's of 4, three assets' error counts, INV-001 across the fleet, INV-001's day of power: 288 samples, 279 records, 9 gaps); `test/solarpunk/test_runs_contract.py` (6 tests) reads each example's numbers from the store and finds its line in the section, with a planted break.

@@ -17,3 +17,9 @@ Last review: 09e5dc4 (2026-11-19, Tune-up pass 9)
 
 An entry is `### <date> · <task> · <agent>` and four lines: **Task**, **Opened** (files, in order), **Complaints**,
 **Suggestions**.
+
+### 2026-11-19 · 10.1 what a run and a count are · Claude
+- **Task**: SOL-15, the Runs window's readings, with worked examples over the demo store.
+- **Opened**: `TODO.md`, `docs/CONTRACT.md`, `test/test_contract.py`, `solarpunk/leaf/clock.py`.
+- **Complaints**: no row says how to see the demo store's rows; it was built and read with SQL from a scratch folder.
+- **Suggestions**: none yet; one agent's.

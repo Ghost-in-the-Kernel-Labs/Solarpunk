@@ -249,3 +249,41 @@ Solarpunk keeps what the KPIs and the clause register read; a tracker's change t
 Solarpunk's rules accept or refuse, never a write. Held by `solarpunk/leaf/tickets.py` (the statuses, the moves, the
 priorities, the targets, the four states) and `test/solarpunk/test_tickets_contract.py`, which reads the three tables
 above and the leaf and refuses any difference.
+
+## SOL-15 A run, an error count and a power series are read from the store, never kept apart from it
+
+What the Runs window shows (Phase 10, SP-024), defined before it is built. Nothing here is a new stored record: each
+is a reading of the results, the faults, the suggestions and the samples the store already holds, made each time it is
+asked for, so it cannot disagree with them; nothing is deleted to make it, and a window shows the newest 100 where
+more are kept (SP-016).
+
+**A run** of an asset is every result stored for it at one instant: one per remote test its kind runs, and, when its
+feed did not answer, the ping's failed `reachable` beside the test's own (two `reachable` results in one run is
+right: one says the feed was down, the other what the stored samples showed). A run **failed** when any of its
+results failed. An asset's runs are listed newest first; a run's results failures first, then by test name.
+
+**An error count** of an asset over a period is, per catalogue code, the faults opened on it inside the period and
+the suggestions raised on it inside the period, counted apart and never added together (a fault is an engineer's
+diagnosis, a suggestion a rule's or a device's guess, SP-015). A suggestion counts whether it is open, accepted or
+dismissed (it was raised all the same), and the fault an accepted one became counts once more as a fault. A fault
+counts by its opening instant, a suggestion by its raising instant, the period half-open `[start, end)` (SOL-06). The
+fleet's count of one code is the same, per asset, over every asset that has one.
+
+**A power series** of an asset over a period is its samples inside the period in time order, each a power or a gap;
+a gap is named and counted beside the series, never filled, joined across or read as zero (SOL-13's rule for the
+curve). `records` counts the samples carrying a power, `gaps` the gap samples, as SOL-13 does.
+
+Worked examples, over the demo store (`python3 -m solarpunk.ui --demo`, one run at 2026-06-01 13:00 UTC):
+
+    OAHE-INV-002's run at 13:00     8 results, failed: reachable failed ("127.0.0.1:9 is unreachable", the ping),
+                                    reachable passed ("156 records"), and its six other tests passed
+    OAHE-SEN-001's run at 13:00     4 results, failed: two reachable failed ("127.0.0.1:9 is unreachable",
+                                    "no records"), irradiance_in_range and on_grid passed
+    errors, OAHE-SEN-001, the day   faults: none; suggestions: SEN-001 1 (open)
+    errors, OAHE-INV-002, the day   faults: INV-001 1 (open since 11:30); suggestions: none
+    errors, OAHE-INV-001, the day   faults: INV-002 1 (10:05 to 10:45); suggestions: none
+    INV-001 across the fleet        OAHE-INV-002: faults 1, suggestions 0; no other asset
+    power, OAHE-INV-001, the day    288 samples: records 279, gaps 9 (the first at 04:25, one at 10:40)
+
+Held by `test/solarpunk/test_runs_contract.py`, which reads each example's numbers from the demo store and finds each
+example's line in this section; the surface that builds them is 10.2's.

@@ -76,3 +76,4 @@ Written from `docs/journal/` by `scripts/journal_index.py`; do not edit by hand.
 | J-070 | 9.5: the fleet window's status bar and toolbar | feature | `J-000-099.md` |
 | J-071 | The gated commit's tests moved to the full gate (SP-025) | decision | `J-000-099.md` |
 | J-072 | Tune-up pass 9: Phase 9 closed; a function past the readability rule fixed forward | measurement | `J-000-099.md` |
+| J-073 | 10.1: what a run, an error count and a power series are (SOL-15) | feature | `J-000-099.md` |
