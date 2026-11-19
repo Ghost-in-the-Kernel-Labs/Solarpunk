@@ -105,9 +105,9 @@ Lanes (P-15): 12.1, then 12.2 and 12.4 in parallel, then 12.3, then 12.5 the pas
 
 ### 12.1 Accounts
 
-Who may act, stored without ever storing a password (SP-022).
+Who may act, where, and on what they last saw, stored without ever storing a password (SP-022, SP-026).
 
-Check: the module entry for accounts approved by Ghost in `docs/modules.json` before any code; an accounts table (email, name, role engineer, operator or admin, active, created) and a password check by `hashlib.scrypt` with a per-account salt and its parameters stored beside the hash; no password or hash in any log line, message, mail or test literal (a test's password assembled at runtime); an engineer address the fleet names with no engineer account is flagged by a query; the fast loop green.
+Check: the module entry for accounts approved by Ghost in `docs/modules.json` before any code; a contract section first, with a worked example of each rule below; an accounts table (email, name, role engineer, operator, viewer or admin, active, created) and a password check by `hashlib.scrypt` with a per-account salt and its parameters stored beside the hash; no password or hash in any log line, message, mail or test literal (a test's password assembled at runtime); an engineer address the fleet names with no engineer account is flagged by a query. Viewer: reads everything its sites hold and acts on nothing (every write refused, by name). Per-site scope: an account names the sites it may see and act on, or all; an asset, a fault, a suggestion and a ticket of another site is neither listed to it nor written by it; an admin's scope is all. Versions: an asset, a fault, a suggestion and a ticket each carry a version that every write raises by one; a write names the version it was read at, and one read at an older version is refused ("changed by someone else since you read it; refresh"), writing nothing; a store made before gains the columns at version 1; the fast loop green.
 
 ### 12.2 Signing in
 

@@ -666,7 +666,7 @@ The core decisions above are inherited (Core C-001 to C-040); this project's beg
 - **Held by:** `docs/ROADMAP.md` §4 and Phases 8, 9, 11, 12; `TODO.md`.
 - **Source:** Ghost, in chat, 2026-11-18.
 - **Status:** in force
-- **See also:** SP-007, SP-015, SP-021, SP-011, SP-023 (its phase numbers after 8.2 shifted by two)
+- **See also:** SP-007, SP-015, SP-021, SP-011, SP-023 (its phase numbers after 8.2 shifted by two); SP-026 (accounts widened: versions, viewer, site scope)
 - **subject:** tickets and accounts
 
 ### SP-023: The fleet window becomes an operations root, as Phase 9, after the ticket ledger
@@ -697,3 +697,13 @@ The core decisions above are inherited (Core C-001 to C-040); this project's beg
 - **Status:** in force
 - **See also:** SP-017, C-032, C-040
 - **subject:** gates
+
+### SP-026: Accounts are built for many users: versions, a viewer role and per-site scope
+- **Decision:** the accounts item (12.1) is widened before it is built. A fourth role, **viewer**, reads everything its sites hold and acts on nothing. Every account has a **site scope**: the sites it may see and act on, or all (an admin's is all); a record of another site is neither listed to it nor written by it. An asset, a fault, a suggestion and a ticket each carry a **version** that every write raises by one; a write names the version it was read at, and one read at an older version is refused with "changed by someone else since you read it; refresh", writing nothing. All three are written into the contract with worked examples before any code, and built on one machine first, so the central server (Phase 15) inherits them. A company sign-in (Entra ID, Google) is left to the security pass (Phase 14).
+- **Why:** Ghost, 2026-11-19, asked what many users logging in to Solarpunk needs. The plan already held accounts (12), the security pass (14) and a central server (15); what it lacked: two people acting on one record from screens of different ages (the ticket rules refuse a forbidden move, not a stale one), people who must read but not act (managers, auditors), and engineers whose work is one site's. Each is cheaper in the accounts' first design than added to a running server. Ghost: "widen 12.1 with versions, viewer and per-site roles".
+- **Supersedes:** none; SP-022's accounts are widened, its order kept.
+- **Held by:** `docs/ROADMAP.md` 12.1; `TODO.md` 12.1.
+- **Source:** Ghost, in chat, 2026-11-19.
+- **Status:** in force
+- **See also:** SP-022, SP-015, SP-024
+- **subject:** tickets and accounts

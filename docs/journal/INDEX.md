@@ -81,3 +81,4 @@ Written from `docs/journal/` by `scripts/journal_index.py`; do not edit by hand.
 | J-075 | 10.3: the Runs button and window | feature | `J-000-099.md` |
 | J-076 | 10.4: runs by test, a timeline in the Runs window | feature | `J-000-099.md` |
 | J-077 | 10.5: power over time, the Runs window's Power tab | feature | `J-000-099.md` |
+| J-078 | Accounts widened for many users: versions, a viewer role, per-site scope (SP-026) | decision | `J-000-099.md` |

@@ -399,8 +399,12 @@ Ghost's direction of 2026-11-18 (SP-022): every act is attributed to a signed-in
 authenticated rather than chosen from a dropdown. On one machine first; the network is Phase 15.
 
 - **12.1 Accounts (`docs/CONTRACT.md`, a module Ghost approves at the item's start).** Users with an email, a name, a
-  role (engineer, operator, admin) and an active flag; passwords hashed with `hashlib.scrypt`, salted, never stored,
-  logged or shown; an engineer address the fleet names with no account is flagged.
+  role (engineer, operator, viewer, admin) and an active flag; passwords hashed with `hashlib.scrypt`, salted, never
+  stored, logged or shown; an engineer address the fleet names with no account is flagged. Widened by SP-026: a viewer
+  reads and acts on nothing; each account sees and acts on its own sites, or all; and an asset, a fault, a suggestion
+  and a ticket carry a version, so a write made from a stale screen is refused rather than overwriting another
+  person's change. Built on one machine first, so the central server (Phase 15) inherits the rules rather than adding
+  them. Large enough that the item may be split when it starts (Ghost's call then).
 - **12.2 Signing in (`solarpunk/ui/`, `solarpunk/cli/`).** The windows open on a sign-in; the command line asks with
   `getpass`; a failed sign-in is recorded, never its password.
 - **12.3 Attribution from the account (`solarpunk/project/`).** Assigning, accepting, dismissing and every ticket action
