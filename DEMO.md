@@ -98,6 +98,8 @@ derate on OAHE-INV-001 (10:00 to 10:45). The run is stamped 2026-06-01 13:00 UTC
    the other's share. **Save as CSV** writes the same file as `solarpunk report OAHE <start> <end> --csv`. Swap the
    start and end and press Show: the refusal is shown in red.
 
+   **Errors** (beside Reports) counts one code across the fleet: INV-001 over the demo day is one row, OAHE-INV-002 with
+   "1 fault" and "0 suggestions", worst first; a click on a row opens that asset's Runs window.
 ## The five-minute talk track
 
 2. **Line of sight (ISO 55000).** The site's purpose is energy delivered; that becomes a KPI contract

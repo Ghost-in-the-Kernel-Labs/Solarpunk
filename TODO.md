@@ -62,12 +62,6 @@ the window), then 10.4, 10.5 and 10.6 in parallel, then 10.7 (the fleet's view),
 SP-024: a Runs button beside each asset, its runs, and the runs grouped and graphed. It takes over the asset's history
 that Phase 13 (then 12.5's `asset_log` and 12.8) planned, so nothing is built twice.
 
-### 10.7 Error counts across the fleet
-
-For one code, how many times each asset caused it (SP-024).
-
-Check: an "Errors" button beside Reports in the fleet window opens a window: choose a code from the catalogue and a period, a bar per asset that raised it, faults and suggestions told apart, counts written beside the bars, worst first; clicking a bar opens that asset's Runs window; the screenshot read back; the fast loop green.
-
 ### 10.8 Tune-up pass 10
 
 Check: `docs/when/tune-up.md` followed in full; the metrics table written; the navigation log's "Last review" set.

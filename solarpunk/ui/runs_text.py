@@ -4,7 +4,8 @@ says, and the Power tab's curve and its line of counts (10.5). runs_window.py la
 and project.asset_power."""
 from datetime import date, datetime
 
-from solarpunk.project import CodeCount, PowerSeries, Recorded, Run
+from solarpunk.leaf.codes import CATALOGUE
+from solarpunk.project import AssetCount, CodeCount, PowerSeries, Recorded, Run
 from solarpunk.ui.cells import NO_FEED, instant_text
 
 TITLE = "Runs — {asset_id} {name}"
@@ -21,6 +22,7 @@ NO_POWER = "no power samples on {day}"
 BAD_DAY = "a day reads like 2026-06-01"
 BAD_DAYS = "days read like 2026-06-01, the first not after the last"
 NO_ERRORS = "no faults or suggestions from {first} to {last}"
+NO_ASSET_ERRORS = "no asset raised {code} from {first} to {last}"
 
 
 def title(asset_id: str, name: str) -> str:
@@ -94,3 +96,31 @@ def no_errors(first: date, last: date) -> str:
 def code_counts(found: tuple[CodeCount, ...]) -> tuple[tuple[str, int, int], ...]:
     """The bars' (label, faults, suggestions), in code order: the demo's sensor gives (("SEN-001", 0, 1),)."""
     return tuple((count.code, count.faults, count.suggestions) for count in found)
+
+
+def code_choices() -> tuple[str, ...]:
+    """The code box's choices, the whole catalogue, each its code and meaning: the first is "SIT-001 Site offline"…"""
+    return tuple(f"{row.code} {row.meaning}" for row in CATALOGUE)
+
+
+def code_of(choice: str) -> str:
+    """The code a choice names: code_of("INV-001 Inverter offline: …") is "INV-001"."""
+    return choice.split(" ", 1)[0]
+
+
+def asset_counts(found: tuple[AssetCount, ...]) -> tuple[tuple[str, int, int], ...]:
+    """The bars' (label, faults, suggestions), worst first as found: INV-001 over the demo day gives
+    (("OAHE-INV-002", 1, 0),)."""
+    return tuple((count.asset_id, count.faults, count.suggestions) for count in found)
+
+
+def no_asset_errors(code: str, first: date, last: date) -> str:
+    """The fleet's Errors window with nothing counted: "no asset raised INV-005 from 2026-06-01 to 2026-06-01"."""
+    return NO_ASSET_ERRORS.format(code=code, first=first.isoformat(), last=last.isoformat())
+
+
+def row_of(tags: tuple[str, ...], tag: str = "bar") -> str | None:
+    """The row a clicked item belongs to, from its tags (bars.draw_bars tags each "bar:<label>"): ("bar",
+    "bar:OAHE-INV-002", "current") gives "OAHE-INV-002"; an item of no row gives None."""
+    prefix = f"{tag}:"
+    return next((found[len(prefix):] for found in tags if found.startswith(prefix)), None)

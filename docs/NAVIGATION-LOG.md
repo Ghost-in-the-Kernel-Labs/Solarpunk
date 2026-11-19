@@ -53,3 +53,9 @@ An entry is `### <date> · <task> · <agent>` and four lines: **Task**, **Opened
 - **Opened**: `TODO.md`, `solarpunk/ui/runs_window.py`, `solarpunk/ui/runs_text.py`, `solarpunk/project/runs.py`.
 - **Complaints**: none.
 - **Suggestions**: none.
+
+### 2026-11-19 · 10.7 error counts across the fleet · Claude
+- **Task**: the fleet's Errors window over `code_counts_by_asset`, its rows opening the Runs window.
+- **Opened**: `TODO.md`, `solarpunk/ui/__main__.py`, `solarpunk/ui/bars.py`, `solarpunk/leaf/codes.py`.
+- **Complaints**: none.
+- **Suggestions**: none.

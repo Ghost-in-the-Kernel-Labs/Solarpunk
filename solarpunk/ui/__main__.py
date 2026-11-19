@@ -18,6 +18,7 @@ from solarpunk.leaf.codes import AssetStatus
 from solarpunk.ui import demo
 from solarpunk.ui.add_asset import AddAssetWindow
 from solarpunk.ui.app import FleetWindow
+from solarpunk.ui.errors_window import ErrorsWindow
 from solarpunk.ui.runs_window import RunsWindow
 from solarpunk.ui.asset_window import AssetWindow
 from solarpunk.ui.reports import ReportsWindow
@@ -28,6 +29,7 @@ TITLE = "Solarpunk fleet"
 DEMO_TITLE = "Solarpunk fleet — demo (OAHE, 2026-06-01)"
 ADD_ASSET = "Add asset"
 REPORTS = "Reports"
+ERRORS = "Errors"
 STORE_LINE = "demo: store {name} rebuilt\n"
 SIMULATOR_LINE = "demo: simulator on 127.0.0.1:{port}\n"
 RUN_LINE = "demo: run - {green} green, {yellow} yellow, {red} red\n"
@@ -58,7 +60,8 @@ def run_line(report: project.RunReport) -> str:
 def open_fleet(root: tkinter.Tk, conn: sqlite3.Connection) -> FleetWindow:
     """The fleet window wired to the others: a click opens AssetWindow(root, conn, id, on_change=refresh), the "Add asset"
     button in the window's toolbar opens AddAssetWindow(root, conn, on_saved) which refreshes after a save, and "Reports"
-    beside it opens ReportsWindow(root, conn) (6.3); Refresh stands at the toolbar's right (9.5)."""
+    beside it opens ReportsWindow(root, conn) (6.3), then "Errors" the fleet's ErrorsWindow, whose rows open a Runs window
+    (10.7); Refresh stands at the toolbar's right (9.5)."""
     window = FleetWindow(root, conn)
     window.on_open_asset = lambda asset_id: AssetWindow(root, conn, asset_id, window.refresh)
     window.on_open_runs = lambda asset_id: RunsWindow(root, conn, asset_id)  # 10.3
@@ -68,6 +71,8 @@ def open_fleet(root: tkinter.Tk, conn: sqlite3.Connection) -> FleetWindow:
     window.add_button.pack(side=tkinter.LEFT)
     window.reports_button = ttk.Button(bar, text=REPORTS, command=lambda: ReportsWindow(root, conn))
     window.reports_button.pack(side=tkinter.LEFT)
+    window.errors_button = ttk.Button(bar, text=ERRORS, command=lambda: ErrorsWindow(root, conn, window.on_open_runs))
+    window.errors_button.pack(side=tkinter.LEFT)  # 10.7
     return window
 
 

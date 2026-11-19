@@ -80,7 +80,7 @@ class TheWindow(DemoStore):
 
     def test_refresh_stands_in_the_toolbar_beside_add_asset_and_reports(self) -> None:
         buttons = [w.cget("text") for w in self.window.toolbar.winfo_children()]
-        self.assertEqual(sorted(buttons), ["Add asset", "Refresh", "Reports"])
+        self.assertEqual(sorted(buttons), ["Add asset", "Errors", "Refresh", "Reports"])  # Errors since 10.7
         self.assertEqual(self.window.toolbar.grid_info()["row"], 0)
 
     def test_the_list_fits_the_fleet_and_the_window_has_a_minimum_size(self) -> None:
