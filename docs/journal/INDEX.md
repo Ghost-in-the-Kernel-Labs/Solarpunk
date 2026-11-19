@@ -78,3 +78,4 @@ Written from `docs/journal/` by `scripts/journal_index.py`; do not edit by hand.
 | J-072 | Tune-up pass 9: Phase 9 closed; a function past the readability rule fixed forward | measurement | `J-000-099.md` |
 | J-073 | 10.1: what a run, an error count and a power series are (SOL-15) | feature | `J-000-099.md` |
 | J-074 | 10.2: the runs' surface, four calls held to SOL-15 | feature | `J-000-099.md` |
+| J-075 | 10.3: the Runs button and window | feature | `J-000-099.md` |

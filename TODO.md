@@ -62,12 +62,6 @@ the window), then 10.4, 10.5 and 10.6 in parallel, then 10.7 (the fleet's view),
 SP-024: a Runs button beside each asset, its runs, and the runs grouped and graphed. It takes over the asset's history
 that Phase 13 (then 12.5's `asset_log` and 12.8) planned, so nothing is built twice.
 
-### 10.3 The Runs button and window
-
-Beside each asset, its runs (SP-024).
-
-Check: each row of the fleet list has a "Runs" cell that opens `solarpunk/ui/runs_window.py` for that asset (a click elsewhere on the row still opens the asset window); the window lists the asset's last 100 runs, newest first, a run with a failure in red, and selecting a run shows its results with their reasons; a search box narrows the list; an asset never run reads "no runs yet" (or "no feed"); `test/solarpunk/test_ui_runs.py` under xvfb over the demo store; the screenshot read back; the fast loop green.
-
 ### 10.4 Runs by test
 
 Each test's results over time, as a timeline (SP-024, SP-016).

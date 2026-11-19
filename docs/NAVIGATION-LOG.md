@@ -29,3 +29,9 @@ An entry is `### <date> · <task> · <agent>` and four lines: **Task**, **Opened
 - **Opened**: `TODO.md`, `solarpunk/remote/results.py`, `solarpunk/remote/suggestions.py`, `solarpunk/faults/ledger.py`, `solarpunk/telemetry/samples.py`.
 - **Complaints**: none; the product row for the fleet and faults named the ledger, and `docs/modules.json` said what project may import.
 - **Suggestions**: none.
+
+### 2026-11-19 · 10.3 the Runs button and window · Claude
+- **Task**: a Runs link per fleet row and the Runs window over `project.asset_runs`.
+- **Opened**: `TODO.md`, `solarpunk/ui/app.py`, `solarpunk/ui/asset_window.py`, `solarpunk/ui/__main__.py`.
+- **Complaints**: none.
+- **Suggestions**: none.

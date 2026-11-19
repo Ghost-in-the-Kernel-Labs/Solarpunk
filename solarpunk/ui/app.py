@@ -44,6 +44,9 @@ ROW_TAG = "row:{asset_id}"
 TOOLTIP_BACKGROUND = "#ffffe0"
 SELECTED_FILL = "#cfe2f3"
 SELECTED_TAG = "selected"
+RUNS = "Runs"
+RUNS_TAG = "runs:{asset_id}"
+LINK_COLOUR = "#1f5fbf"
 ANY_STATUS = "any status"
 ANY_KIND = "any kind"
 SEARCH = "Search (Ctrl+F)"
@@ -84,6 +87,12 @@ def width_for(xs: tuple[int, ...], lines: Iterable[tuple[str, ...]], measure: Ca
     return max(CANVAS_WIDTH, xs[-1] + last + RIGHT_MARGIN)
 
 
+def runs_x(xs: tuple[int, ...], lines: Iterable[tuple[str, ...]], measure: Callable[[str], int]) -> int:
+    """Where each row's "Runs" link stands (10.3): past the last column's widest text and a 16 px gap; with 7 px a
+    character and no rows, column_xs's last x plus "Failing ▲" (63 px) plus 16."""
+    return xs[-1] + max(measure(line[-1]) for line in (marked_headings(), *lines)) + COLUMN_GAP
+
+
 def summary(rows: tuple[project.AssetRow, ...]) -> str:
     """The status line: four green rows, one yellow and one red give "6 assets: 4 green, 1 yellow, 1 red"; no rows give
     "0 assets: 0 green, 0 yellow, 0 red"."""
@@ -112,6 +121,8 @@ class FleetWindow:
         self.conn = conn
         self.opened: list[str] = []
         self.on_open_asset = self.opened.append if on_open_asset is None else on_open_asset
+        self.runs_opened: list[str] = []
+        self.on_open_runs: Callable[[str], None] = self.runs_opened.append  # 10.3: __main__ opens the Runs window
         self.rows: tuple[project.AssetRow, ...] = ()
         self.all_rows: tuple[project.AssetRow, ...] = ()
         self.filter_key: str | None = None
@@ -141,6 +152,8 @@ class FleetWindow:
         self.font = tkfont.nametofont("TkDefaultFont")
         self.heading_font = self.font.copy()
         self.heading_font.configure(weight="bold")
+        self.link_font = self.font.copy()
+        self.link_font.configure(underline=True)
         self.xs = column_xs((), self.measure)
         self.canvas = tkinter.Canvas(self.frame, width=CANVAS_WIDTH, height=CANVAS_HEIGHT, highlightthickness=0)
         self.header = tkinter.Canvas(self.frame, width=CANVAS_WIDTH, height=HEADING_HEIGHT, highlightthickness=0)
@@ -251,7 +264,8 @@ class FleetWindow:
         self.rows = self.kept()
         lines = [row_text(row) for row in self.all_rows]
         self.xs = column_xs(lines, self.measure)
-        width = width_for(self.xs, lines, self.measure)
+        self.runs_x = runs_x(self.xs, lines, self.measure)
+        width = max(width_for(self.xs, lines, self.measure), self.runs_x + self.measure(RUNS) + RIGHT_MARGIN)
         self.header.delete(tkinter.ALL)
         for index, (x, text) in enumerate(zip(self.xs, HEADINGS)):
             sorted_here = index == self.sort_column and (index, self.sort_reverse) != (0, False)  # id order is unmarked
@@ -318,12 +332,15 @@ class FleetWindow:
         self.redraw()
 
     def draw_row(self, index: int, row: project.AssetRow) -> None:
-        """Draws one row at index * 28 px: the glyph tagged "glyph:<id>", the six words tagged "row:<id>"."""
+        """Draws one row at index * 28 px: the glyph tagged "glyph:<id>", the seven words tagged "row:<id>", and the
+        "Runs" link tagged "runs:<id>" (10.3)."""
         top = index * ROW_HEIGHT
         draw_panel(self.canvas, GLYPH_X, top + GLYPH_TOP, colour_of(row.status), GLYPH_TAG.format(asset_id=row.asset_id))
         for x, text in zip(self.xs, row_text(row)):
             self.canvas.create_text(x, top + ROW_HEIGHT // 2, text=text, anchor=tkinter.W,
                                     tags=(ROW_TAG.format(asset_id=row.asset_id),))
+        self.canvas.create_text(self.runs_x, top + ROW_HEIGHT // 2, text=RUNS, anchor=tkinter.W, fill=LINK_COLOUR,
+                                font=self.link_font, tags=(RUNS_TAG.format(asset_id=row.asset_id),))
 
     def row_under(self, event: tkinter.Event) -> project.AssetRow | None:
         """The row under the pointer, the canvas scrolled or not: an event at y 30 on an unscrolled canvas is row 1."""
@@ -332,11 +349,15 @@ class FleetWindow:
 
     def on_click(self, event: tkinter.Event) -> None:
         """A click on a row hands its id to on_open_asset: a click at y 30 calls on_open_asset("OAHE-INV-001") when
-        that is the second row; a click below the last row calls nothing."""
+        that is the second row; on its "Runs" link, to on_open_runs (10.3); a click below the last row calls nothing."""
         row = self.row_under(event)
-        if row is not None:
-            self.selected = row.asset_id
-            self.redraw()
+        if row is None:
+            return
+        self.selected = row.asset_id
+        self.redraw()
+        if self.canvas.canvasx(event.x) >= self.runs_x:
+            self.on_open_runs(row.asset_id)
+        else:
             self.on_open_asset(row.asset_id)
 
     def on_motion(self, event: tkinter.Event) -> None:

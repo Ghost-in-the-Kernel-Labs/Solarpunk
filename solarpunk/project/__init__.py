@@ -70,6 +70,7 @@ from solarpunk.project.surface import (
     store_name,
 )
 from solarpunk.remote.registry import RemoteTest
+from solarpunk.remote.results import Recorded
 from solarpunk.remote.suggestions import Suggestion, SuggestionError
 from solarpunk.workorders.ledger import WorkOrder, WorkOrderError
 from solarpunk.project.runs import (
@@ -113,6 +114,7 @@ __all__ = [
     "PowerSeries",
     "Priority",
     "RegistryError",
+    "Recorded",
     "RemoteTest",
     "RootCause",
     "Run",

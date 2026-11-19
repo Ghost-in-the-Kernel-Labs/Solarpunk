@@ -18,6 +18,7 @@ from solarpunk.leaf.codes import AssetStatus
 from solarpunk.ui import demo
 from solarpunk.ui.add_asset import AddAssetWindow
 from solarpunk.ui.app import FleetWindow
+from solarpunk.ui.runs_window import RunsWindow
 from solarpunk.ui.asset_window import AssetWindow
 from solarpunk.ui.reports import ReportsWindow
 
@@ -60,6 +61,7 @@ def open_fleet(root: tkinter.Tk, conn: sqlite3.Connection) -> FleetWindow:
     beside it opens ReportsWindow(root, conn) (6.3); Refresh stands at the toolbar's right (9.5)."""
     window = FleetWindow(root, conn)
     window.on_open_asset = lambda asset_id: AssetWindow(root, conn, asset_id, window.refresh)
+    window.on_open_runs = lambda asset_id: RunsWindow(root, conn, asset_id)  # 10.3
     bar = window.toolbar  # Refresh stands at its right since 9.5
     window.add_button = ttk.Button(bar, text=ADD_ASSET,
                                    command=lambda: AddAssetWindow(root, conn, lambda asset_id: window.refresh()))
