@@ -1,7 +1,10 @@
 """The Runs window's words (10.3, SOL-15, SP-024), with no tkinter so the fast loop tests them: a run's line in the list
 (its instant, its count of results, its verdict), a result's line, the window's title, and what an asset with no runs
-says. runs_window.py lays them out over one project call, project.asset_runs."""
-from solarpunk.project import Recorded, Run
+says, and the Power tab's curve and its line of counts (10.5). runs_window.py lays them out over project.asset_runs
+and project.asset_power."""
+from datetime import date, datetime
+
+from solarpunk.project import PowerSeries, Recorded, Run
 from solarpunk.ui.cells import NO_FEED, instant_text
 
 TITLE = "Runs — {asset_id} {name}"
@@ -13,6 +16,9 @@ NO_RUNS = "no runs yet"
 NO_MATCH = "no run matches “{words}”"
 PASS = "pass"
 FAIL = "FAIL"
+POWER_LINE = "{samples} samples: records {records}, gaps {gaps}; peak {peak} kW"
+NO_POWER = "no power samples on {day}"
+BAD_DAY = "a day reads like 2026-06-01"
 
 
 def title(asset_id: str, name: str) -> str:
@@ -40,3 +46,30 @@ def empty_text(has_feed: bool, search: str) -> str:
     if search.strip():
         return NO_MATCH.format(words=search.strip())
     return NO_RUNS if has_feed else NO_FEED
+
+
+def power_curve(series: PowerSeries) -> tuple[tuple[datetime, float], ...]:
+    """The samples that carry a power, as (instant, kW), in time order: a gap is left out, so the drawn line breaks
+    there (chart.segments) and never shows it as zero (SOL-15)."""
+    return tuple((s.at, s.power_kw) for s in series.samples if s.power_kw is not None)
+
+
+def peak_of(series: PowerSeries) -> float | None:
+    """The largest power the series carries, None with none."""
+    return max((power for _, power in power_curve(series)), default=None)
+
+
+def power_line(series: PowerSeries) -> str:
+    """The words beside the chart: OAHE-INV-001's demo day gives "288 samples: records 279, gaps 9; peak 94.35 kW" (its
+    peak as stored); a series with no samples "no power samples on 2026-06-01"."""
+    if not series.samples:
+        return NO_POWER.format(day=series.period.start.date().isoformat())
+    return POWER_LINE.format(samples=len(series.samples), records=series.records, gaps=series.gaps, peak=peak_of(series))
+
+
+def day_of(text: str) -> date | None:
+    """The day a box holds, or None when it is not one: day_of(" 2026-06-01 ") is date(2026, 6, 1); "June" is None."""
+    try:
+        return date.fromisoformat(text.strip())
+    except ValueError:
+        return None

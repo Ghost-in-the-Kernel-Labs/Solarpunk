@@ -10,6 +10,8 @@ from tkinter import ttk
 
 from solarpunk import project
 from solarpunk.ui import runs_text, timeline
+from solarpunk.ui.chart import CANVAS_HEIGHT, CANVAS_WIDTH
+from solarpunk.ui.reports import draw_power
 
 RED_TEXT = "#c0392b"
 FAILED_TAG = "failed"
@@ -25,6 +27,9 @@ BY_TEST_TAB = "By test"
 AXIS_COLOUR = "#606060"
 MARK_TAG = "mark"
 UTC = "UTC"
+POWER_TAB = "Power"
+DAY = "Day (UTC)"
+SHOW = "Show"
 
 
 class RunsWindow(tk.Toplevel):
@@ -60,9 +65,42 @@ class RunsWindow(tk.Toplevel):
                                   highlightthickness=0)
         self.timeline.pack(fill="both", expand=True, padx=4, pady=4)
         self.label_font = tkfont.nametofont("TkDefaultFont")
+        self.make_power_tab()
         self.run_tree.bind("<<TreeviewSelect>>", lambda _e: self.show_results())
         self.search_text.trace_add("write", lambda *_: self.fill())
         self.fill()
+
+    def make_power_tab(self) -> None:
+        """The Power tab (10.5): a day box opening on the day of the store's last run, Show, a line of counts, and the
+        asset's power curve for that day, drawn as the reports window draws a site's."""
+        tab = ttk.Frame(self.tabs)
+        self.tabs.add(tab, text=POWER_TAB)
+        bar = ttk.Frame(tab)
+        bar.pack(fill="x", padx=4, pady=4)
+        ttk.Label(bar, text=DAY).pack(side="left")
+        self.day_text = tk.StringVar(value=project.report_day(self.conn).isoformat())
+        ttk.Entry(bar, textvariable=self.day_text, width=12).pack(side="left", padx=4)
+        self.show_button = ttk.Button(bar, text=SHOW, command=self.draw_power)
+        self.show_button.pack(side="left")
+        self.power_line = ttk.Label(bar)
+        self.power_line.pack(side="left", padx=8)
+        self.power_canvas = tk.Canvas(tab, width=CANVAS_WIDTH, height=CANVAS_HEIGHT, background="white",
+                                      highlightthickness=0)
+        self.power_canvas.pack(padx=4, pady=4)
+        self.draw_power()
+
+    def draw_power(self) -> None:
+        """Reads the asset's samples for the chosen day and draws them, a gap a break, counted in the line beside; a box
+        that holds no day says how one reads, and nothing is drawn."""
+        self.power_canvas.delete(tk.ALL)
+        day = runs_text.day_of(self.day_text.get())
+        if day is None:
+            self.power_line.configure(text=runs_text.BAD_DAY)
+            return
+        series = project.asset_power(self.conn, self.asset_id, project.day_period(day))
+        self.power_line.configure(text=runs_text.power_line(series))
+        if series.samples:
+            draw_power(self.power_canvas, runs_text.power_curve(series), series.period, runs_text.peak_of(series))
 
     def tree(self, parent: tk.Misc, columns: tuple[str, ...], headings: tuple[str, ...], widths: tuple[int, ...],
              height: int) -> ttk.Treeview:

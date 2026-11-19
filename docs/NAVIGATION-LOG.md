@@ -41,3 +41,9 @@ An entry is `### <date> · <task> · <agent>` and four lines: **Task**, **Opened
 - **Opened**: `TODO.md`, `solarpunk/ui/chart.py`, `solarpunk/ui/runs_window.py`.
 - **Complaints**: none.
 - **Suggestions**: none.
+
+### 2026-11-19 · 10.5 power over time · Claude
+- **Task**: the Power tab, its curve drawn as the reports window draws one.
+- **Opened**: `TODO.md`, `solarpunk/ui/chart.py`, `solarpunk/ui/reports.py`, `solarpunk/ui/runs_window.py`.
+- **Complaints**: a whole-screen screenshot compares more than the window changed; rendering the one window alone was needed for a fair proof.
+- **Suggestions**: none yet; one agent's.

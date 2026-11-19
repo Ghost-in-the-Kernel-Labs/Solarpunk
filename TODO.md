@@ -62,12 +62,6 @@ the window), then 10.4, 10.5 and 10.6 in parallel, then 10.7 (the fleet's view),
 SP-024: a Runs button beside each asset, its runs, and the runs grouped and graphed. It takes over the asset's history
 that Phase 13 (then 12.5's `asset_log` and 12.8) planned, so nothing is built twice.
 
-### 10.5 Power over time
-
-The asset's power, graphed for a chosen day (SP-024).
-
-Check: a "Power" view in the Runs window for an asset with samples: the asset's power against time for a chosen day, drawn with `solarpunk/ui/chart.py`, a gap drawn as a gap and counted beside the chart, never joined across; an asset with no samples says so; the screenshot read back; the fast loop green.
-
 ### 10.6 Errors by code
 
 How often this asset raised each code (SP-024).

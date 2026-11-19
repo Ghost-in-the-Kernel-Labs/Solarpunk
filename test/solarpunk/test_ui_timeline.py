@@ -85,7 +85,7 @@ class TheTab(unittest.TestCase):
     def test_the_tab_draws_a_mark_per_run_per_test_in_its_colour(self) -> None:
         window = runs_window.RunsWindow(self.root, self.conn, demo.DOWN)
         self.root.update()
-        self.assertEqual([window.tabs.tab(t, "text") for t in window.tabs.tabs()], ["Runs", "By test"])
+        self.assertEqual([window.tabs.tab(t, "text") for t in window.tabs.tabs()][:2], ["Runs", "By test"])  # then 10.5's
         canvas = window.timeline
         items = canvas.find_withtag(runs_window.MARK_TAG)
         self.assertEqual(len(items), 2 * 7)  # two runs, seven tests each

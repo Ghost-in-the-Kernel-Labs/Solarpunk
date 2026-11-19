@@ -74,6 +74,8 @@ derate on OAHE-INV-001 (10:00 to 10:45). The run is stamped 2026-06-01 13:00 UTC
    "1 failed", in red; below it the run's results, the ping's failed `reachable` first ("127.0.0.1:9 is unreachable"),
    then the seven that passed, the test's own `reachable` among them. Type "fail" or a test's name to narrow the list.
    Its **By test** tab draws the runs as a timeline: a row per test, a green or red mark per run, the hours in UTC.
+   OAHE-INV-001's **Power** tab draws its day: "288 samples: records 279, gaps 9; peak 94.35 kW", the line broken at
+   each gap (10:40, 13:25, 17:35, 17:50), never drawn down to zero.
 4. **Close it, click OAHE-INV-001, and assign a fault.** Its seven diagnostics all pass, fed by the simulator. Pick
    INV-004 (firmware update pending, INFO) and press Assign without an engineer: it is refused, since only an engineer
    assigns a fault (SP-015). Choose inverter@oahe.example under "Assigned by" (and an operator under "Entered by" if it

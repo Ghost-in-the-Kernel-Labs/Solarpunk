@@ -11,6 +11,7 @@ from datetime import datetime
 from tkinter import filedialog, ttk
 
 from solarpunk import project
+from solarpunk.leaf.clock import Period
 from solarpunk.ui.chart import (
     CANVAS_HEIGHT,
     CANVAS_WIDTH,
@@ -32,6 +33,32 @@ HEADINGS = ("Asset", "Rated kW", "Energy kWh", "Peak kW", "kWh/kWp", "Capacity f
 LINE_COLOUR = "#2e8b57"
 AXIS_COLOUR = "#555555"
 ERROR_COLOUR = "#c0392b"
+CURVE_TAG = "curve"
+
+
+def draw_power(canvas: tkinter.Canvas, curve: tuple[tuple[datetime, float], ...], period: Period,
+               peak: float | None) -> None:
+    """A power curve on a 720 by 260 canvas (6.3, and 10.5's Power tab): the axes, their labels (0, half and the top in
+    kW; the hour ticks in UTC) and the curve, run by run, a gap a break in the line (chart.segments), never a zero or a
+    bridge; a run of one point is a dot, tagged "curve" as the lines are."""
+    top = axis_top(peak)
+    bottom, right = CANVAS_HEIGHT - MARGIN, CANVAS_WIDTH - MARGIN
+    canvas.create_line(MARGIN, MARGIN, MARGIN, bottom, right, bottom, fill=AXIS_COLOUR)
+    for power in (0, top / 2, top):
+        y = y_of(power, top, CANVAS_HEIGHT)
+        canvas.create_text(MARGIN - 4, y, text=f"{power:g}", anchor=tkinter.E, fill=AXIS_COLOUR)
+    canvas.create_text(MARGIN, MARGIN - 14, text="kW", anchor=tkinter.W, fill=AXIS_COLOUR)
+    for tick in tick_hours(period):
+        x = x_of(tick, period, CANVAS_WIDTH)
+        canvas.create_line(x, bottom, x, bottom + 4, fill=AXIS_COLOUR)
+        canvas.create_text(x, bottom + 14, text=tick.strftime("%H:%M"), fill=AXIS_COLOUR)
+    canvas.create_text(right, bottom + 30, text="UTC", anchor=tkinter.E, fill=AXIS_COLOUR)
+    for run in segments(curve, period, top):
+        if len(run) == 1:
+            x, y = run[0]
+            canvas.create_oval(x - 1.5, y - 1.5, x + 1.5, y + 1.5, fill=LINE_COLOUR, outline=LINE_COLOUR, tags=(CURVE_TAG,))
+        else:
+            canvas.create_line(*[value for point in run for value in point], fill=LINE_COLOUR, width=2, tags=(CURVE_TAG,))
 
 
 class ReportsWindow:
@@ -101,27 +128,8 @@ class ReportsWindow:
         self.draw_curve(self.report)
 
     def draw_curve(self, found: project.PowerReport) -> None:
-        """The axes, their labels (0, half and the top in kW; the hour ticks in UTC) and the curve, run by run."""
-        top = axis_top(found.site.peak_kw)
-        bottom, right = CANVAS_HEIGHT - MARGIN, CANVAS_WIDTH - MARGIN
-        self.canvas.create_line(MARGIN, MARGIN, MARGIN, bottom, right, bottom, fill=AXIS_COLOUR)
-        for power in (0, top / 2, top):
-            y = y_of(power, top, CANVAS_HEIGHT)
-            self.canvas.create_text(MARGIN - 4, y, text=f"{power:g}", anchor=tkinter.E, fill=AXIS_COLOUR)
-        self.canvas.create_text(MARGIN, MARGIN - 14, text="kW", anchor=tkinter.W, fill=AXIS_COLOUR)
-        for tick in tick_hours(found.period):
-            x = x_of(tick, found.period, CANVAS_WIDTH)
-            self.canvas.create_line(x, bottom, x, bottom + 4, fill=AXIS_COLOUR)
-            self.canvas.create_text(x, bottom + 14, text=tick.strftime("%H:%M"), fill=AXIS_COLOUR)
-        self.canvas.create_text(right, bottom + 30, text="UTC", anchor=tkinter.E, fill=AXIS_COLOUR)
-        for run in segments(found.curve, found.period, top):
-            if len(run) == 1:
-                x, y = run[0]
-                self.canvas.create_oval(x - 1.5, y - 1.5, x + 1.5, y + 1.5, fill=LINE_COLOUR, outline=LINE_COLOUR,
-                                        tags=("curve",))
-            else:
-                self.canvas.create_line(*[value for point in run for value in point], fill=LINE_COLOUR, width=2,
-                                        tags=("curve",))
+        """The axes, their labels and the site's curve, drawn by draw_power."""
+        draw_power(self.canvas, found.curve, found.period, found.site.peak_kw)
 
     def save(self) -> str | None:
         """Asks for a path and writes project.report_csv there, UTF-8; returns the path, or None when the dialog was
