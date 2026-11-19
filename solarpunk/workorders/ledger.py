@@ -10,17 +10,38 @@ from datetime import datetime
 
 from solarpunk.leaf.clock import Period, utc
 from solarpunk.leaf.root_causes import RootCause, lookup_root_cause
+from solarpunk.leaf.tickets import Priority
 
 CORRECTIVE = "corrective"
 PREVENTIVE = "preventive"
+# The ticket's columns (8.2, SOL-14), by name, with their definitions: a store made before gains them (tickets.upgrade).
+TICKET_COLUMNS: tuple[tuple[str, str], ...] = (
+    ("status", "status TEXT NOT NULL DEFAULT 'open'"),
+    ("priority", "priority TEXT NULL"),
+    ("assignee", "assignee TEXT NULL"),
+    ("acknowledged", "acknowledged TEXT NULL"),
+    ("responded", "responded TEXT NULL"),
+    ("resolved", "resolved TEXT NULL"),
+    ("evidence", "evidence TEXT NULL"),
+)
 CREATE_TABLE = (
     "CREATE TABLE work_orders (wo_id INTEGER PRIMARY KEY, asset_id TEXT NOT NULL, fault_id INTEGER NULL,"
     " kind TEXT NOT NULL CHECK (kind IN ('corrective', 'preventive')), opened TEXT NOT NULL, closed TEXT NULL,"
-    " root_cause TEXT NULL, note TEXT NOT NULL)"
+    " root_cause TEXT NULL, note TEXT NOT NULL" + "".join(", " + column for _name, column in TICKET_COLUMNS) + ")"
+)
+CREATE_COMMENTS = (
+    "CREATE TABLE IF NOT EXISTS ticket_comments (comment_id INTEGER PRIMARY KEY, wo_id INTEGER NOT NULL, author TEXT NOT NULL,"
+    " at TEXT NOT NULL, body TEXT NOT NULL)"
 )
 SELECT_ORDERS = "SELECT wo_id, asset_id, fault_id, kind, opened, closed, root_cause, note FROM work_orders"
-INSERT_ORDER = "INSERT INTO work_orders (asset_id, fault_id, kind, opened, note) VALUES (?, ?, ?, ?, ?)"
-CLOSE_ORDER = "UPDATE work_orders SET closed = ?, root_cause = ? WHERE wo_id = ?"
+INSERT_ORDER = "INSERT INTO work_orders (asset_id, fault_id, kind, opened, note, priority) VALUES (?, ?, ?, ?, ?, ?)"
+# The one-step close-out of 4.1 (SOL-14): the allowed moves at one instant, an instant already stamped kept.
+CLOSE_ORDER = (
+    "UPDATE work_orders SET closed = :stamp, root_cause = :cause, status = 'closed',"
+    " acknowledged = coalesce(acknowledged, :stamp), responded = coalesce(responded, :stamp),"
+    " resolved = coalesce(resolved, :stamp) WHERE wo_id = :wo_id"
+)
+TICKET_STAMPS = "SELECT opened, acknowledged, responded, resolved FROM work_orders WHERE wo_id = ?"
 BY_ID = " WHERE wo_id = ?"
 OPEN_FOR_FAULT = " WHERE fault_id = ? AND kind = 'corrective' AND closed IS NULL"
 STILL_OPEN = " WHERE closed IS NULL"
@@ -50,8 +71,9 @@ class WorkOrderError(ValueError):
 
 
 def schema() -> tuple[str, ...]:
-    """The ledger's schema statements, for leaf.store.apply: schema()[0] starts with "CREATE TABLE work_orders"."""
-    return (CREATE_TABLE,)
+    """The ledger's schema statements, for leaf.store.apply: schema()[0] starts with "CREATE TABLE work_orders", schema()[1]
+    with "CREATE TABLE ticket_comments"."""
+    return (CREATE_TABLE, CREATE_COMMENTS)
 
 
 def _stamp(moment: datetime) -> str:
@@ -81,15 +103,18 @@ def get(conn: sqlite3.Connection, wo_id: int | None) -> WorkOrder:
     return found[0]
 
 
-def _insert(conn: sqlite3.Connection, asset_id: str, fault_id: int | None, kind: str, opened: str, note: str) -> WorkOrder:
+def _insert(conn: sqlite3.Connection, asset_id: str, fault_id: int | None, kind: str, opened: str, note: str,
+            priority: Priority | None = None) -> WorkOrder:
     """Stores one open order and returns it: _insert(conn, "OAHE-INV-003", None, "preventive", "2026-06-01T10:10:00+00:00",
-    "clean") is WorkOrder(1, "OAHE-INV-003", None, "preventive", 10:10 UTC, None, None, "clean")."""
-    cursor = conn.execute(INSERT_ORDER, (asset_id, fault_id, kind, opened, note))
+    "clean") is WorkOrder(1, "OAHE-INV-003", None, "preventive", 10:10 UTC, None, None, "clean"), its ticket open with
+    the priority given (none when not given)."""
+    cursor = conn.execute(INSERT_ORDER, (asset_id, fault_id, kind, opened, note, None if priority is None else priority.value))
     conn.commit()
     return get(conn, cursor.lastrowid)
 
 
-def open_corrective(conn: sqlite3.Connection, asset_id: str, fault_id: int, opened: datetime, note: str) -> WorkOrder:
+def open_corrective(conn: sqlite3.Connection, asset_id: str, fault_id: int, opened: datetime, note: str,
+                    priority: Priority | None = None) -> WorkOrder:
     """Opens a corrective order for a fault on an asset: open_corrective(conn, "OAHE-INV-003", 4, 10:10 UTC, "fuse") is
     WorkOrder(1, "OAHE-INV-003", 4, "corrective", 10:10 UTC, None, None, "fuse"). Refuses a naive or non-UTC instant
     (NotUtc) and a second open corrective order for the same fault (WorkOrderError)."""
@@ -97,20 +122,29 @@ def open_corrective(conn: sqlite3.Connection, asset_id: str, fault_id: int, open
     clash = _select(conn, OPEN_FOR_FAULT, (fault_id,))
     if clash:
         raise WorkOrderError(f"fault {fault_id} already has open work order {clash[0].wo_id}")
-    return _insert(conn, asset_id, fault_id, CORRECTIVE, stamp, note)
+    return _insert(conn, asset_id, fault_id, CORRECTIVE, stamp, note, priority)
 
 
-def open_preventive(conn: sqlite3.Connection, asset_id: str, opened: datetime, note: str) -> WorkOrder:
+def open_preventive(conn: sqlite3.Connection, asset_id: str, opened: datetime, note: str,
+                    priority: Priority | None = None) -> WorkOrder:
     """Opens a preventive order on an asset, with no fault: open_preventive(conn, "OAHE-TRK-001", 10:10 UTC, "grease")
     is WorkOrder(1, "OAHE-TRK-001", None, "preventive", 10:10 UTC, None, None, "grease"); a naive instant raises NotUtc."""
-    return _insert(conn, asset_id, None, PREVENTIVE, _stamp(opened), note)
+    return _insert(conn, asset_id, None, PREVENTIVE, _stamp(opened), note, priority)
+
+
+def last_stamp(conn: sqlite3.Connection, wo_id: int) -> datetime:
+    """The latest instant the order's ticket was stamped (opened, acknowledged, responded, resolved): an order opened 10:00
+    and acknowledged 10:40 gives 10:40; no later move may come before it (SOL-14)."""
+    row = conn.execute(TICKET_STAMPS, (wo_id,)).fetchone()
+    return max(datetime.fromisoformat(text) for text in row if text is not None)
 
 
 def close(conn: sqlite3.Connection, wo_id: int, root_cause: str, closed: datetime) -> WorkOrder:
     """Closes an open order with its root-cause code: close(conn, 1, "RC-COMPONENT", 10:30 UTC) gives the order with
     closed 10:30 UTC and root_cause RootCause.COMPONENT. Refuses, writing nothing, a code outside the list
     (UnknownRootCause), a naive instant (NotUtc), an unknown order id, a close at or before the opening and a second
-    close (WorkOrderError)."""
+    close (WorkOrderError). Its ticket closes too: from any earlier status by the allowed moves at that one instant,
+    the acknowledged, responded and resolved instants already stamped kept (SOL-14)."""
     # Invariant: SOL-04's rule for causes (SP-011): no order closes without a code from the closed list
     cause = lookup_root_cause(root_cause)
     stamp = _stamp(closed)
@@ -119,7 +153,24 @@ def close(conn: sqlite3.Connection, wo_id: int, root_cause: str, closed: datetim
         raise WorkOrderError(f"work order {wo_id} is already closed")
     if closed <= order.opened:
         raise WorkOrderError(f"work order {wo_id} cannot close at {stamp}, at or before it opened")
-    conn.execute(CLOSE_ORDER, (stamp, cause.value, wo_id))
+    if closed < last_stamp(conn, wo_id):
+        raise WorkOrderError(f"work order {wo_id} cannot close at {stamp}, before its ticket's last move")
+    conn.execute(CLOSE_ORDER, {"stamp": stamp, "cause": cause.value, "wo_id": wo_id})
+    conn.commit()
+    return get(conn, wo_id)
+
+
+def open_for_fault(conn: sqlite3.Connection, fault_id: int) -> WorkOrder | None:
+    """The fault's open corrective order, or None: after assign_fault opened fault 1's, open_for_fault(conn, 1).fault_id
+    is 1."""
+    found = _select(conn, OPEN_FOR_FAULT, (fault_id,))
+    return found[0] if found else None
+
+
+def set_note(conn: sqlite3.Connection, wo_id: int, note: str) -> WorkOrder:
+    """Replaces an order's note, the words saying what the work is: set_note(conn, 1, "swap the fuse").note is that."""
+    get(conn, wo_id)
+    conn.execute("UPDATE work_orders SET note = ? WHERE wo_id = ?", (note, wo_id))
     conn.commit()
     return get(conn, wo_id)
 

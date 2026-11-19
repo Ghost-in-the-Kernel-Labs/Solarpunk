@@ -68,10 +68,24 @@ from solarpunk.project.surface import (
 from solarpunk.remote.registry import RemoteTest
 from solarpunk.remote.suggestions import Suggestion, SuggestionError
 from solarpunk.workorders.ledger import WorkOrder, WorkOrderError
+from solarpunk.project.tickets import (
+    comment_on_ticket,
+    move_ticket,
+    open_tickets,
+    set_ticket_assignee,
+    ticket_comments,
+    ticket_of,
+    tickets_past_target,
+)
+from solarpunk.leaf.tickets import BadMove, Priority, TargetState, TicketStatus
+from solarpunk.workorders.tickets import Breach, Comment, Ticket
 
 __all__ = [
     "AssetDetail",
     "AssetRow",
+    "BadMove",
+    "Breach",
+    "Comment",
     "Diagnostic",
     "Fault",
     "FeedError",
@@ -79,6 +93,7 @@ __all__ = [
     "OUTPUT_FIELDS",
     "PowerOutput",
     "PowerReport",
+    "Priority",
     "RegistryError",
     "RemoteTest",
     "RootCause",
@@ -86,6 +101,9 @@ __all__ = [
     "SiteKpis",
     "Suggestion",
     "SuggestionError",
+    "TargetState",
+    "Ticket",
+    "TicketStatus",
     "UnknownAsset",
     "UnknownEngineer",
     "UnknownRootCause",
@@ -102,6 +120,7 @@ __all__ = [
     "close_fault",
     "close_work_order",
     "codes_for_kind",
+    "comment_on_ticket",
     "day_period",
     "demo_fleet",
     "dismiss_suggestion",
@@ -114,11 +133,13 @@ __all__ = [
     "known_engineers",
     "kpis_for",
     "load_fleet",
+    "move_ticket",
     "open_or_create",
     "open_outages",
     "open_preventive_work_order",
     "open_store",
     "open_suggestions",
+    "open_tickets",
     "open_work_order_from_fault",
     "period",
     "ping_asset",
@@ -130,7 +151,11 @@ __all__ = [
     "report_rows",
     "report_sites",
     "scheduled_run",
+    "set_ticket_assignee",
     "suggest_from_run",
     "suggest_pushed",
+    "ticket_comments",
+    "ticket_of",
+    "tickets_past_target",
     "work_orders_for",
 ]

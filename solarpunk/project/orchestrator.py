@@ -25,7 +25,9 @@ from solarpunk.remote import results as result_table
 from solarpunk.remote import suggestions as suggestion_table
 from solarpunk.telemetry import generate as generator
 from solarpunk.telemetry import samples as sample_table
+from solarpunk.leaf.tickets import Priority, priority_of
 from solarpunk.workorders import ledger as work_ledger
+from solarpunk.workorders import tickets as ticket_ledger
 from solarpunk.workorders.ledger import WorkOrder, WorkOrderError
 
 
@@ -91,7 +93,23 @@ def open_or_create(path: str | Path) -> sqlite3.Connection:
         if name not in present:
             store.apply(conn, statements)
     ledger.upgrade(conn)
+    ticket_ledger.upgrade(conn)
+    backfill_priorities(conn)
     return conn
+
+
+def backfill_priorities(conn: sqlite3.Connection) -> None:
+    """Gives each ticket stored before 8.2 its priority: a corrective one's from its fault's code, a preventive one P3
+    (SOL-14); a ticket that has one is left as it is."""
+    for wo_id in ticket_ledger.without_priority(conn):
+        ticket_ledger.set_priority(conn, wo_id, priority_for(conn, work_ledger.get(conn, wo_id)))
+
+
+def priority_for(conn: sqlite3.Connection, order: WorkOrder) -> Priority:
+    """A work order's priority (SOL-14): a corrective order's from its fault's severity (an INV-001 outage is P1), a
+    preventive order's P3 (Claude's proposal, Ghost's to set)."""
+    fault = next((f for f in ledger.by_asset(conn, order.asset_id) if f.fault_id == order.fault_id), None)
+    return Priority.P3 if fault is None else priority_of(lookup(fault.code).severity)
 
 
 def demo_fleet() -> tuple[Asset, ...]:
@@ -143,14 +161,19 @@ def assign_fault(conn: sqlite3.Connection, asset_id: str, code: str, opened: dat
     entered by the operator named in recorded_by (SP-015): assign_fault(conn, "OAHE-INV-001", "INV-001", 10:10 UTC,
     "inverter@oahe.example") is Fault(1, "OAHE-INV-001", "INV-001", 10:10, None, "inverter@oahe.example", None);
     "OAHE-INV-009" raises UnknownAsset and an address no asset names raises UnknownEngineer, each storing nothing. Any
-    engineer the fleet holds may assign; is_cover says when it is not the asset's own."""
+    engineer the fleet holds may assign; is_cover says when it is not the asset's own. The fault's corrective ticket
+    opens with it, at its instant, noted with the code's meaning and its priority from the code's severity (SOL-14)."""
     # Decision: SP-015 (only an engineer assigns a fault, and the record says which)
     # Invariant: SOL-04 (the ledger refuses an unknown code); SOL-05 (no fault on an asset the fleet lacks)
     known(conn, asset_id)
     if assigned_by not in known_engineers(conn):
         raise UnknownEngineer(f"{assigned_by or 'nobody'} is not an engineer the fleet holds")
     entered = recorded_by.strip() if recorded_by is not None else None
-    return ledger.assign(conn, asset_id, code, opened, assigned_by, entered or None)
+    fault = ledger.assign(conn, asset_id, code, opened, assigned_by, entered or None)
+    # Decision: SP-022 (a ticket opens when an engineer assigns a fault, in the same call; never from a suggestion)
+    found = lookup(code)
+    work_ledger.open_corrective(conn, asset_id, fault.fault_id, fault.opened, found.meaning, priority_of(found.severity))
+    return fault
 
 
 def check_fault(conn: sqlite3.Connection, asset_id: str, code: str) -> None:
@@ -179,13 +202,18 @@ def open_work_order_from_fault(conn: sqlite3.Connection, fault_id: int, opened: 
     """Opens a corrective work order for a fault the ledger holds open, on that fault's asset: for open fault 1 on
     OAHE-INV-001 opened 10:10, open_work_order_from_fault(conn, 1, 10:20 UTC, "fuse") is WorkOrder(1, "OAHE-INV-001", 1,
     "corrective", 10:20, None, None, "fuse"); a fault not open in the ledger raises LedgerError, an order opened before
-    its fault WorkOrderError, and neither stores anything."""
+    its fault WorkOrderError, and neither stores anything. A fault assigned since 8.2 has its order already (assign_fault
+    opened it): this call gives that order with its note set to the one given, opened when the fault was."""
     fault = next((found for found in ledger.open_faults(conn) if found.fault_id == fault_id), None)
     if fault is None:
         raise ledger.LedgerError(f"fault {fault_id} is not open in the ledger")
     if opened < fault.opened:
         raise WorkOrderError(f"a work order for fault {fault_id} cannot open before the fault did")
-    return work_ledger.open_corrective(conn, fault.asset_id, fault_id, opened, note)
+    existing = work_ledger.open_for_fault(conn, fault_id)
+    if existing is not None:
+        return work_ledger.set_note(conn, existing.wo_id, note)
+    return work_ledger.open_corrective(conn, fault.asset_id, fault_id, opened, note,
+                                       priority_of(lookup(fault.code).severity))
 
 
 def open_preventive_work_order(conn: sqlite3.Connection, asset_id: str, opened: datetime, note: str) -> WorkOrder:
@@ -193,7 +221,7 @@ def open_preventive_work_order(conn: sqlite3.Connection, asset_id: str, opened: 
     10:10 UTC, "grease").kind is "preventive"; "OAHE-INV-009" raises UnknownAsset, stores nothing."""
     # Invariant: SOL-05 (no record on an asset the fleet lacks)
     known(conn, asset_id)
-    return work_ledger.open_preventive(conn, asset_id, opened, note)
+    return work_ledger.open_preventive(conn, asset_id, opened, note, Priority.P3)
 
 
 def close_work_order(conn: sqlite3.Connection, wo_id: int, root_cause: str, closed: datetime) -> WorkOrder:

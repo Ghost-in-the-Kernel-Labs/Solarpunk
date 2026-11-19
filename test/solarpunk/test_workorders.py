@@ -36,8 +36,10 @@ def fresh() -> sqlite3.Connection:
 
 
 def stored(conn: sqlite3.Connection) -> list[tuple[object, ...]]:
-    """The raw rows of the work_orders table in id order: stored(fresh()) is []."""
-    return [tuple(row) for row in conn.execute("SELECT * FROM work_orders ORDER BY wo_id")]
+    """The raw rows of the work_orders table in id order, the order's own columns (4.1) without the ticket's (8.2):
+    stored(fresh()) is []."""
+    return [tuple(row) for row in conn.execute(
+        "SELECT wo_id, asset_id, fault_id, kind, opened, closed, root_cause, note FROM work_orders ORDER BY wo_id")]
 
 
 class TheRootCauseList(unittest.TestCase):
@@ -78,12 +80,19 @@ class TheSchema(unittest.TestCase):
             ("closed", "TEXT", 0, None, 0),
             ("root_cause", "TEXT", 0, None, 0),
             ("note", "TEXT", 1, None, 0),
+            ("status", "TEXT", 1, "'open'", 0),
+            ("priority", "TEXT", 0, None, 0),
+            ("assignee", "TEXT", 0, None, 0),
+            ("acknowledged", "TEXT", 0, None, 0),
+            ("responded", "TEXT", 0, None, 0),
+            ("resolved", "TEXT", 0, None, 0),
+            ("evidence", "TEXT", 0, None, 0),
         ])
 
     def test_a_kind_outside_the_two_is_refused_by_the_table(self) -> None:
         conn = fresh()
         with self.assertRaises(sqlite3.IntegrityError):
-            conn.execute(ledger.INSERT_ORDER, (INV, None, "reactive", OPENED.isoformat(), "x"))
+            conn.execute(ledger.INSERT_ORDER, (INV, None, "reactive", OPENED.isoformat(), "x", None))
 
 
 class Opening(unittest.TestCase):
@@ -274,7 +283,7 @@ class ProjectWorkOrders(unittest.TestCase):
             with self.assertRaises(project.LedgerError) as caught:
                 project.open_work_order_from_fault(conn, fault_id, at(2026, 6, 1, 14), "x")
             self.assertEqual(str(caught.exception), f"fault {fault_id} is not open in the ledger")
-        self.assertEqual(len(stored(conn)), 0)
+        self.assertEqual(len(stored(conn)), 1)  # the ticket assign_fault opened (8.2), alone
 
     def test_an_order_cannot_open_before_its_fault(self) -> None:
         conn = self.fleet()
@@ -282,7 +291,7 @@ class ProjectWorkOrders(unittest.TestCase):
         with self.assertRaises(project.WorkOrderError) as caught:
             project.open_work_order_from_fault(conn, fault.fault_id, at(2026, 6, 1, 11, 55), "x")
         self.assertEqual(str(caught.exception), f"a work order for fault {fault.fault_id} cannot open before the fault did")
-        self.assertEqual(len(stored(conn)), 0)
+        self.assertEqual(len(stored(conn)), 1)  # the ticket assign_fault opened (8.2), alone
 
     def test_closing_a_corrective_order_closes_its_fault_in_one_call(self) -> None:
         conn = self.fleet()

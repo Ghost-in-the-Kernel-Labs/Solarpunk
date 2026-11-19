@@ -219,7 +219,19 @@ happened at 14:30: `late`, by 30 minutes. At 13:00, before the response, the res
 was `overdue`. A DERATE ticket (P2) opened at 10:00 and still open at 15:00 has its acknowledgement `overdue` (due 14:00)
 and its response `pending` (due 10:00 the next day).
 
-When a remote tracker is joined behind an adapter (8.3), each field has one owner, and the other side's copy is for
+In the ledger (8.2), every work order is a ticket. A corrective one opens with its fault, in the same call that assigns
+it, its priority from the fault's code; a preventive one, having no fault, is P3 (Claude's proposal, Ghost's to set). A
+move out of `open` stamps the acknowledged instant, the first move into `in progress` the responded instant; `resolved`
+stamps the resolved instant and needs closeout evidence (words saying what was done), and a move back to `in progress`
+clears both. No instant may come before the ticket's opening. Closing takes a root cause from the closed list (4.1) and
+closes the fault if it is still open. Closing a ticket that has not reached `resolved` (the one-step close-out of 4.1)
+is the allowed moves taken at the one instant: `open` to `in progress` to `resolved` to `closed`, an instant already
+stamped kept. So a ticket closed at 13:00 that nobody acknowledged has its acknowledgement and response at 13:00, and
+its targets read what that says. Comments carry their author and instant and are never edited or deleted. A ticket is
+past a target when, at the instant asked, a target is `late` or `overdue`. Closing the fault alone (`solarpunk fault
+close`) ends the downtime and leaves the ticket open, to be closed with its root cause.
+
+When a remote tracker is joined behind an adapter (10.1), each field has one owner, and the other side's copy is for
 display only:
 
 | Field | Owner |

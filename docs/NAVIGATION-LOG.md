@@ -23,3 +23,9 @@ An entry is `### <date> · <task> · <agent>` and four lines: **Task**, **Opened
 - **Opened**: `docs/paths/product.md`, `docs/CONTRACT.md`, `solarpunk/leaf/codes.py`, `solarpunk/leaf/clock.py`, `test/solarpunk/test_kpi.py`.
 - **Complaints**: product.md has no row for "a new contract section and its leaf types"; the KPI row came closest.
 - **Suggestions**: a row "A contract section held to the leaf" pointing at `docs/CONTRACT.md` and `test/solarpunk/test_tickets_contract.py` as the shape of a table-reading test.
+
+### 2026-11-19 · 8.2 the ticket ledger · Claude
+- **Task**: the ticket ledger: columns, moves, comments, the past-target query, the ticket opened with the fault.
+- **Opened**: `TODO.md`, `solarpunk/workorders/ledger.py`, `solarpunk/project/orchestrator.py`, `test/solarpunk/test_workorders.py`, `test/solarpunk/iso/test_iso9001.py`, `solarpunk/ui/demo.py`.
+- **Complaints**: the product row for work orders did not name the ISO test that holds 4.1's close, which the check required unchanged; it was found by grep. The fast loop runs without warnings shown, so a Python 3.14 deprecation surfaced only in the window tests' pytest summary.
+- **Suggestions**: the row now names the ticket files; a fast-loop run with `-W error::DeprecationWarning` would catch the next one earlier (a proposal for a tune-up).

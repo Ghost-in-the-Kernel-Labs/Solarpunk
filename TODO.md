@@ -49,12 +49,6 @@ Lanes (P-15): 7.1 (done, J-050), then 7.2 and 7.3 (SP-017, put ahead by Ghost), 
 Lanes (P-15): 8.1 first (the contract), then 8.2, then 8.3 the pass. Ghost's direction, SP-021 and
 SP-022; the adapter and the windows moved to Phase 10 by SP-023, so the fleet window is reworked first.
 
-### 8.2 The ticket ledger
-
-A work order grows into a ticket, opened when an engineer assigns a fault (SP-022).
-
-Check: `solarpunk/workorders/` stores a ticket's status, priority, working assignee, acknowledged and responded instants, comments (each with its author and instant, never edited or deleted) and closeout evidence; a store made before gains the columns on opening; `project.assign_fault` opens the fault's corrective ticket in the same call, a suggestion never opens one; a move the contract forbids is refused; closing needs a root cause from the closed list and closes the fault (4.1); a ticket past a target is reported by a query; the KPIs are unchanged (the ISO and KPI tests unchanged); the fast loop green.
-
 ### 8.3 Tune-up pass 8
 
 Check: `docs/when/tune-up.md` followed in full; the metrics table written; the navigation log's "Last review" set.
@@ -81,7 +75,7 @@ Check: a red row names its open outage's code and since when, a yellow row its o
 
 What waits on a person, counted at the top (SP-023).
 
-Check: above the list, at most four counts: open outages, suggestions awaiting an engineer, open work orders; each equals the length of its project listing (the demo: 1, 1, 0); clicking a count filters the list to its assets and clicking it again clears the filter; a count of zero is shown, not hidden; the fast loop green.
+Check: above the list, at most four counts: open outages, suggestions awaiting an engineer, open work orders; each equals the length of its project listing (the demo: 1, 1, 1, its outage's ticket the open work order since 8.2); clicking a count filters the list to its assets and clicking it again clears the filter; a count of zero is shown, not hidden; the fast loop green.
 
 ### 9.4 Sort and filter
 

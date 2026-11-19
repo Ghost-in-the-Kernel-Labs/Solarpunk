@@ -37,11 +37,11 @@ SITE_ENGINEER = "site@oahe.example"
 INVERTER_ENGINEER = "inverter@oahe.example"
 OPERATOR = "operator@oahe.example"
 # The faults (SP-015: each names the engineer who assigned it): (asset, code, opened hour, opened minute, closed hour,
-# closed minute, engineer). The open outage on OAHE-INV-002 was called in by INV-001's engineer, covering (INV-002's own
+# closed minute, engineer, root cause, what was done). Each closed one's ticket (8.2) is closed with its root cause. The open outage on OAHE-INV-002 was called in by INV-001's engineer, covering (INV-002's own
 # chain is the site's engineer alone), and entered by the operator: one record showing both.
 CLOSED_FAULTS = (
-    (SITE_ID, "SIT-002", 12, 0, 13, 0, SITE_ENGINEER),
-    (FED, "INV-002", 10, 5, 10, 45, INVERTER_ENGINEER),
+    (SITE_ID, "SIT-002", 12, 0, 13, 0, SITE_ENGINEER, "RC-GRID", "curtailment lifted by the grid operator"),
+    (FED, "INV-002", 10, 5, 10, 45, INVERTER_ENGINEER, "RC-WEATHER", "cooled after the midday peak; filters checked"),
 )
 OPEN_OUTAGE = (DOWN, "INV-001", 11, 30, INVERTER_ENGINEER, OPERATOR)
 NO_FEED_KINDS = (AssetKind.TRACKER, AssetKind.METER)
@@ -90,12 +90,17 @@ def start_simulator(samples: tuple[Sample, ...]) -> tuple[socketserver.TCPServer
 
 
 def add_faults(conn: sqlite3.Connection) -> None:
-    """The demo's ledger: SIT-002 on the site 12:00 to 13:00 and INV-002 on OAHE-INV-001 10:05 to 10:45, both closed,
-    then INV-001 on OAHE-INV-002 from 11:30, open, called in by INV-001's engineer and entered by the operator;
-    afterwards faults_listing(conn, True) is that one outage."""
-    for asset_id, code, opened_h, opened_m, closed_h, closed_m, engineer in CLOSED_FAULTS:
-        fault = project.assign_fault(conn, asset_id, code, at(2026, 6, 1, opened_h, opened_m), engineer)
-        project.close_fault(conn, fault.fault_id, at(2026, 6, 1, closed_h, closed_m))
+    """The demo's ledger: SIT-002 on the site 12:00 to 13:00 and INV-002 on OAHE-INV-001 10:05 to 10:45, both closed
+    through their tickets (resolved with what was done, then closed with a root cause), then INV-001 on OAHE-INV-002
+    from 11:30, open, called in by INV-001's engineer and entered by the operator; afterwards faults_listing(conn, True)
+    is that one outage and open_tickets(conn) its one ticket."""
+    for asset_id, code, opened_h, opened_m, closed_h, closed_m, engineer, cause, done in CLOSED_FAULTS:
+        project.assign_fault(conn, asset_id, code, at(2026, 6, 1, opened_h, opened_m), engineer)
+        (order,) = [o for o in project.work_orders_for(conn, asset_id) if o.closed is None]
+        closed = at(2026, 6, 1, closed_h, closed_m)
+        project.move_ticket(conn, order.wo_id, project.TicketStatus.IN_PROGRESS, closed)
+        project.move_ticket(conn, order.wo_id, project.TicketStatus.RESOLVED, closed, done)
+        project.close_work_order(conn, order.wo_id, cause, closed)
     asset_id, code, opened_h, opened_m, engineer, operator = OPEN_OUTAGE
     project.assign_fault(conn, asset_id, code, at(2026, 6, 1, opened_h, opened_m), engineer, operator)
 

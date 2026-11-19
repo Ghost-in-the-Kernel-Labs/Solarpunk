@@ -66,3 +66,4 @@ Written from `docs/journal/` by `scripts/journal_index.py`; do not edit by hand.
 | J-060 | Local tickets, then accounts and auth, then a central server after the security pass (SP-022) | decision | `J-000-099.md` |
 | J-061 | 8.1: the ticket contract, SOL-14, held to the leaf | feature | `J-000-099.md` |
 | J-062 | The fleet window as an operations root, Phase 9 after the ticket ledger (SP-023) | decision | `J-000-099.md` |
+| J-063 | 8.2: the ticket ledger, a work order grown into a ticket | feature | `J-000-099.md` |
