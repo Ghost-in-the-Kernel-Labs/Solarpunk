@@ -707,3 +707,13 @@ The core decisions above are inherited (Core C-001 to C-040); this project's beg
 - **Status:** in force
 - **See also:** SP-022, SP-015, SP-024
 - **subject:** tickets and accounts
+
+### SP-027: The tracker adapters are a module of their own; the outbox is the work-order ledger's
+- **Decision:** a new module, `tickets` (`solarpunk/tickets/`), importing the leaf alone, holds what every tracker implements: a sink (create, update, comment, transition), a source (people's changes since a cursor), the delivery of one outbox event to the sink method its kind names, and the first adapter, a local tracker kept in the store in tables of its own. Project may import it. The outbox is not in it: it is a table of the work-order ledger, each ticket change writing its event before the change's own commit, so a change and its event are stored together or not at all without one transaction held across two modules. Project drains the outbox oldest first into a sink and stamps each event taken; a tracker that cannot be reached stops the drain and never the ledger; the scheduled run drains into the local tracker until a remote one is joined. The four event kinds, `OutboxEvent` and `RemoteChange` are leaf types.
+- **Why:** TODO 11.1's check asked for the adapters' module to be approved by Ghost before any code (`docs/modules.json`: a new module is an architecture decision). Asked, Ghost approved this shape over an outbox in the new module (two commits by two modules, needing a transaction held across them) and over holding 11.1.
+- **Supersedes:** none.
+- **Held by:** `docs/modules.json`; `test/test_modules.py`; `test/solarpunk/test_adapter_contract.py` (the suite every adapter passes); `test/solarpunk/test_outbox.py`.
+- **Source:** Ghost, in chat, 2026-11-19.
+- **Status:** in force
+- **See also:** SP-022, SP-010, SP-026
+- **subject:** tickets and accounts

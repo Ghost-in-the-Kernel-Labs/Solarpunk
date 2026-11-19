@@ -10,7 +10,7 @@ from datetime import datetime
 
 from solarpunk.leaf.clock import Period, utc
 from solarpunk.leaf.root_causes import RootCause, lookup_root_cause
-from solarpunk.leaf.tickets import Priority
+from solarpunk.leaf.tickets import CREATE, TRANSITION, Priority
 
 CORRECTIVE = "corrective"
 PREVENTIVE = "preventive"
@@ -28,6 +28,12 @@ CREATE_TABLE = (
     "CREATE TABLE work_orders (wo_id INTEGER PRIMARY KEY, asset_id TEXT NOT NULL, fault_id INTEGER NULL,"
     " kind TEXT NOT NULL CHECK (kind IN ('corrective', 'preventive')), opened TEXT NOT NULL, closed TEXT NULL,"
     " root_cause TEXT NULL, note TEXT NOT NULL" + "".join(", " + column for _name, column in TICKET_COLUMNS) + ")"
+)
+# The outbox (11.1, SP-027): each ticket change's event, written before the change's own commit, so a change and its
+# event are stored together or not at all; sent is stamped when a tracker took it.
+CREATE_OUTBOX = (
+    "CREATE TABLE IF NOT EXISTS ticket_outbox (event_id INTEGER PRIMARY KEY, wo_id INTEGER NOT NULL, kind TEXT NOT NULL,"
+    " at TEXT NOT NULL, detail TEXT NOT NULL, sent TEXT NULL)"
 )
 CREATE_COMMENTS = (
     "CREATE TABLE IF NOT EXISTS ticket_comments (comment_id INTEGER PRIMARY KEY, wo_id INTEGER NOT NULL, author TEXT NOT NULL,"
@@ -72,8 +78,8 @@ class WorkOrderError(ValueError):
 
 def schema() -> tuple[str, ...]:
     """The ledger's schema statements, for leaf.store.apply: schema()[0] starts with "CREATE TABLE work_orders", schema()[1]
-    with "CREATE TABLE ticket_comments"."""
-    return (CREATE_TABLE, CREATE_COMMENTS)
+    with "CREATE TABLE IF NOT EXISTS ticket_comments", schema()[2] the outbox's (11.1)."""
+    return (CREATE_TABLE, CREATE_COMMENTS, CREATE_OUTBOX)
 
 
 def _stamp(moment: datetime) -> str:
@@ -103,12 +109,19 @@ def get(conn: sqlite3.Connection, wo_id: int | None) -> WorkOrder:
     return found[0]
 
 
+def outbox_add(conn: sqlite3.Connection, wo_id: int, kind: str, at: str, detail: str) -> None:
+    """Writes one ticket change's event to the outbox without committing: the caller commits it with the change, so the
+    two are stored together or not at all (SP-027)."""
+    conn.execute("INSERT INTO ticket_outbox (wo_id, kind, at, detail) VALUES (?, ?, ?, ?)", (wo_id, kind, at, detail))
+
+
 def _insert(conn: sqlite3.Connection, asset_id: str, fault_id: int | None, kind: str, opened: str, note: str,
             priority: Priority | None = None) -> WorkOrder:
     """Stores one open order and returns it: _insert(conn, "OAHE-INV-003", None, "preventive", "2026-06-01T10:10:00+00:00",
     "clean") is WorkOrder(1, "OAHE-INV-003", None, "preventive", 10:10 UTC, None, None, "clean"), its ticket open with
     the priority given (none when not given)."""
     cursor = conn.execute(INSERT_ORDER, (asset_id, fault_id, kind, opened, note, None if priority is None else priority.value))
+    outbox_add(conn, cursor.lastrowid, CREATE, opened, note)
     conn.commit()
     return get(conn, cursor.lastrowid)
 
@@ -156,6 +169,7 @@ def close(conn: sqlite3.Connection, wo_id: int, root_cause: str, closed: datetim
     if closed < last_stamp(conn, wo_id):
         raise WorkOrderError(f"work order {wo_id} cannot close at {stamp}, before its ticket's last move")
     conn.execute(CLOSE_ORDER, {"stamp": stamp, "cause": cause.value, "wo_id": wo_id})
+    outbox_add(conn, wo_id, TRANSITION, stamp, cause.value)
     conn.commit()
     return get(conn, wo_id)
 

@@ -268,3 +268,9 @@ Done 2026-11-19 (J-080). Check: an "Errors" button beside Reports in the fleet w
 ### 10.8 Tune-up pass 10
 
 Done 2026-11-19 (J-081). Check: `docs/when/tune-up.md` followed in full; the metrics table written; the navigation log's "Last review" set. ✓ Cold gate 1.28 min, warm 1.23 min, fast loop 22.7 s, slow tests 11.1 s, 9 of 9 measured, none regressed, both gates passing first time; seven debriefs read; the window row names the Runs and Errors windows' pure modules; the log wiped, Last review set.
+
+## Phase 11: tickets in the windows
+
+### 11.1 The adapter and the local tracker
+
+Done 2026-11-19 (J-082). Check: the module entry for the adapters approved by Ghost in `docs/modules.json` before any code; a sink (create, update, comment, transition) and a source (changes since a cursor) interface; an outbox table written in the same transaction as the ledger change and drained by the scheduled run, so a tracker that is down never blocks the ledger; the local adapter; a contract suite of tests every adapter must pass, run against the local one; the fast loop green. ✓ SP-027: the `tickets` module (imports the leaf alone), approved by Ghost; `solarpunk/tickets/adapter.py` (the sink and source, `deliver`, `Unreachable`, `UnknownTicket`), `solarpunk/tickets/local.py` (the local tracker, its own tables); `ticket_outbox` in the work-order ledger, each change's event written before its commit (`ledger.outbox_add`, `solarpunk/workorders/outbox.py`); `project.drain_outbox`, called by the scheduled run (`RunReport.tickets_sent`, a tracker down an error line); `OutboxEvent`, `RemoteChange` and the event kinds in the leaf; `test/solarpunk/test_adapter_contract.py` (7 tests, a suite a later adapter subclasses) and `test/solarpunk/test_outbox.py` (6 tests); SOL-14 says how a change reaches a tracker.

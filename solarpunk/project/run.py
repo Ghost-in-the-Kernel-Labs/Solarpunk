@@ -19,6 +19,7 @@ from solarpunk.leaf.telemetry import Sample
 from solarpunk.mailer import mail as mailer
 from solarpunk.mailer import transport
 from solarpunk.project.orchestrator import fleet_assets, open_outages
+from solarpunk.project.tracker import drain_outbox, local_tracker
 from solarpunk.project.suggest import suggest_from_run
 from solarpunk.remote import results as result_table
 from solarpunk.remote import run as remote
@@ -45,6 +46,7 @@ class RunReport:
     statuses: dict[str, AssetStatus]
     mails: int
     errors: tuple[str, ...]
+    tickets_sent: int = 0
 
 
 @dataclass(frozen=True)
@@ -186,7 +188,11 @@ def scheduled_run(conn: sqlite3.Connection, run_at: datetime, settings_path: Pat
     statuses = suggested_yellow(conn, statuses)
     sent, mail_errors = (0, ()) if settings is None else mail_all(conn, assets, statuses, settings, run_at)
     written = len(pinged.unreachable) + sum(len(tests_for(asset.kind)) for asset in fed)
-    return RunReport(pinged.pinged, pinged.records, written, statuses, sent, pinged.errors + mail_errors)
+    # Decision: SP-027 (the run drains the ticket outbox into the tracker; a tracker down is an error line, not a stop)
+    drained = drain_outbox(conn, local_tracker(conn), run_at)
+    down = () if drained.stopped_by is None else (f"tracker: {drained.stopped_by}; {drained.waiting} changes wait",)
+    return RunReport(pinged.pinged, pinged.records, written, statuses, sent, pinged.errors + mail_errors + down,
+                     drained.sent)
 
 
 

@@ -5,11 +5,11 @@ reports the tickets past a target. Closing is the ledger's `close`, with a root 
 own module's ledger alone (MOD-05): project sets a ticket's priority from its fault and opens it with the fault."""
 import sqlite3
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 
 from solarpunk.leaf.clock import utc
-from solarpunk.leaf.tickets import TARGETS, Priority, TargetState, TicketStatus, check_move, target_state
-from solarpunk.workorders.ledger import CREATE_COMMENTS, TICKET_COLUMNS, WorkOrderError, get, last_stamp
+from solarpunk.leaf.tickets import COMMENT, TRANSITION, UPDATE, TARGETS, Priority, TargetState, TicketStatus, check_move, target_state
+from solarpunk.workorders.ledger import CREATE_COMMENTS, CREATE_OUTBOX, TICKET_COLUMNS, outbox_add, WorkOrderError, get, last_stamp
 
 SELECT_TICKET = (
     "SELECT wo_id, asset_id, kind, status, priority, assignee, opened, acknowledged, responded, resolved, closed,"
@@ -18,6 +18,8 @@ SELECT_TICKET = (
 SELECT_COMMENTS = "SELECT comment_id, wo_id, author, at, body FROM ticket_comments WHERE wo_id = ? ORDER BY comment_id"
 INSERT_COMMENT = "INSERT INTO ticket_comments (wo_id, author, at, body) VALUES (?, ?, ?, ?)"
 LATE = (TargetState.LATE, TargetState.OVERDUE)
+ASSIGNEE = "assignee {name}"
+NOBODY = "nobody"
 ACKNOWLEDGE = "acknowledge"
 RESPOND = "respond"
 
@@ -72,6 +74,7 @@ def upgrade(conn: sqlite3.Connection) -> None:
     if "status" in added:
         conn.execute("UPDATE work_orders SET status = 'closed' WHERE closed IS NOT NULL")
     conn.execute(CREATE_COMMENTS)
+    conn.execute(CREATE_OUTBOX)
     conn.commit()
 
 
@@ -133,6 +136,7 @@ def move(conn: sqlite3.Connection, wo_id: int, target: TicketStatus, moment: dat
         conn.execute(f"UPDATE work_orders SET status = :status, acknowledged = coalesce(acknowledged, :stamp),"
                      f" responded = {responded} WHERE wo_id = :wo_id",
                      {"status": target.value, "stamp": stamp, "wo_id": wo_id})
+    outbox_add(conn, wo_id, TRANSITION, stamp, target.value)
     conn.commit()
     return ticket(conn, wo_id)
 
@@ -150,12 +154,14 @@ def set_priority(conn: sqlite3.Connection, wo_id: int, priority: Priority) -> Ti
     return ticket(conn, wo_id)
 
 
-def set_assignee(conn: sqlite3.Connection, wo_id: int, assignee: str | None) -> Ticket:
-    """Sets the person working the ticket (a tracker's field, SOL-14), or clears it with None or blank:
-    set_assignee(conn, 1, "crew B").assignee is "crew B"."""
+def set_assignee(conn: sqlite3.Connection, wo_id: int, assignee: str | None, moment: datetime | None = None) -> Ticket:
+    """Sets the person working the ticket (a tracker's field, SOL-14), or clears it with None or blank, at an instant
+    (now when not given, for the outbox's event): set_assignee(conn, 1, "crew B").assignee is "crew B"."""
     get(conn, wo_id)
     name = None if assignee is None or not assignee.strip() else assignee.strip()
     conn.execute("UPDATE work_orders SET assignee = ? WHERE wo_id = ?", (name, wo_id))
+    at = utc(moment).isoformat() if moment is not None else datetime.now(timezone.utc).isoformat()
+    outbox_add(conn, wo_id, UPDATE, at, ASSIGNEE.format(name=name or NOBODY))
     conn.commit()
     return ticket(conn, wo_id)
 
@@ -170,6 +176,7 @@ def comment(conn: sqlite3.Connection, wo_id: int, author: str, moment: datetime,
     if utc(moment) < order.opened:
         raise WorkOrderError(f"a comment on work order {wo_id} cannot come before it opened")
     cursor = conn.execute(INSERT_COMMENT, (wo_id, author.strip(), utc(moment).isoformat(), body.strip()))
+    outbox_add(conn, wo_id, COMMENT, utc(moment).isoformat(), f"{author.strip()}: {body.strip()}")
     conn.commit()
     return next(c for c in comments(conn, wo_id) if c.comment_id == cursor.lastrowid)
 

@@ -27,9 +27,11 @@ def move_ticket(conn: sqlite3.Connection, wo_id: int, status: TicketStatus, mome
     return ticket_ledger.move(conn, wo_id, status, moment, evidence)
 
 
-def set_ticket_assignee(conn: sqlite3.Connection, wo_id: int, assignee: str | None) -> Ticket:
-    """Sets or clears who works a ticket: set_ticket_assignee(conn, 1, "crew B").assignee is "crew B"."""
-    return ticket_ledger.set_assignee(conn, wo_id, assignee)
+def set_ticket_assignee(conn: sqlite3.Connection, wo_id: int, assignee: str | None,
+                        moment: datetime | None = None) -> Ticket:
+    """Sets or clears who works a ticket, at an instant (now when not given; the outbox's event carries it):
+    set_ticket_assignee(conn, 1, "crew B").assignee is "crew B"."""
+    return ticket_ledger.set_assignee(conn, wo_id, assignee, moment)
 
 
 def comment_on_ticket(conn: sqlite3.Connection, wo_id: int, author: str, moment: datetime, body: str) -> Comment:

@@ -70,3 +70,4 @@ Written by `scripts/decisions_index.py` from `theGhost.md`; do not edit here. Se
 | SP-024 | Runs per asset, as Phase 10: a Runs button beside each asset, its runs grouped and graphed | in force | front end |
 | SP-025 | The gated commit's tests run in the full gate, not the fast loop | in force | gates |
 | SP-026 | Accounts are built for many users: versions, a viewer role and per-site scope | in force | tickets and accounts |
+| SP-027 | The tracker adapters are a module of their own; the outbox is the work-order ledger's | in force | tickets and accounts |

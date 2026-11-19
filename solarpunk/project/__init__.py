@@ -83,6 +83,7 @@ from solarpunk.project.runs import (
     asset_runs,
     code_counts_by_asset,
 )
+from solarpunk.project.tracker import Drained, drain_outbox, local_tracker, tickets_waiting
 from solarpunk.project.tickets import (
     comment_on_ticket,
     move_ticket,
@@ -105,6 +106,7 @@ __all__ = [
     "CodeCount",
     "Comment",
     "Diagnostic",
+    "Drained",
     "Fault",
     "FeedError",
     "LedgerError",
@@ -113,8 +115,8 @@ __all__ = [
     "PowerReport",
     "PowerSeries",
     "Priority",
-    "RegistryError",
     "Recorded",
+    "RegistryError",
     "RemoteTest",
     "RootCause",
     "Run",
@@ -150,6 +152,7 @@ __all__ = [
     "day_period",
     "demo_fleet",
     "dismiss_suggestion",
+    "drain_outbox",
     "faults_listing",
     "fleet_assets",
     "fleet_last_run",
@@ -160,6 +163,7 @@ __all__ = [
     "known_engineers",
     "kpis_for",
     "load_fleet",
+    "local_tracker",
     "move_ticket",
     "open_or_create",
     "open_outages",
@@ -185,5 +189,6 @@ __all__ = [
     "ticket_comments",
     "ticket_of",
     "tickets_past_target",
+    "tickets_waiting",
     "work_orders_for",
 ]

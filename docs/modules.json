@@ -110,7 +110,8 @@
         "remote",
         "schedule",
         "mailer",
-        "workorders"
+        "workorders",
+        "tickets"
       ],
       "entryPoints": []
     },
@@ -176,6 +177,14 @@
     "workorders": {
       "folder": "solarpunk/workorders",
       "purpose": "The work-order ledger: corrective orders opened from a fault, preventive ones from a signal, each closed only with a root-cause code from the leaf's closed list (4.1, SP-011).",
+      "mayImport": [
+        "leaf"
+      ],
+      "entryPoints": []
+    },
+    "tickets": {
+      "folder": "solarpunk/tickets",
+      "purpose": "The tracker adapters (11.1, SP-022, SP-027): the sink (create, update, comment, transition) and source (changes since a cursor) every tracker implements, the local tracker first, and the delivery of one outbox event to a sink; the outbox itself is the work-order ledger's, written in the ledger change's own transaction.",
       "mayImport": [
         "leaf"
       ],

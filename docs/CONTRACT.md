@@ -245,6 +245,10 @@ display only:
 | comments | tracker |
 | scheduling | tracker |
 
+A ticket change reaches a tracker by the outbox (11.1, SP-027): each change writes its event (create, update, comment,
+transition) in its own commit, and a drain hands the events to the tracker oldest first, stamping each one taken; a
+tracker that cannot be reached leaves them waiting and never stops a change in the ledger. A tracker's `create` is
+idempotent: a work order delivered twice is one issue.
 Solarpunk keeps what the KPIs and the clause register read; a tracker's change to a field Solarpunk owns is a proposal
 Solarpunk's rules accept or refuse, never a write. Held by `solarpunk/leaf/tickets.py` (the statuses, the moves, the
 priorities, the targets, the four states) and `test/solarpunk/test_tickets_contract.py`, which reads the three tables

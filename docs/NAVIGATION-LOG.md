@@ -17,3 +17,9 @@ Last review: 883c4d5 (2026-11-19, Tune-up pass 10)
 
 An entry is `### <date> · <task> · <agent>` and four lines: **Task**, **Opened** (files, in order), **Complaints**,
 **Suggestions**.
+
+### 2026-11-19 · 11.1 the tracker adapters and the outbox · Claude
+- **Task**: the `tickets` module, the outbox in the work-order ledger, the local tracker, the drain, the contract suite.
+- **Opened**: `TODO.md`, `docs/modules.json`, `solarpunk/workorders/ledger.py`, `solarpunk/workorders/tickets.py`, `solarpunk/project/run.py`.
+- **Complaints**: `docs/modules.json`'s "adding" text says how to propose a module but not where its approval is written; a decision record was used.
+- **Suggestions**: the "adding" text could say "the approval is a decision in theGhost.md naming the entry".

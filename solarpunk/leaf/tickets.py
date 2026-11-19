@@ -100,3 +100,41 @@ def target_state(opened: datetime, target: timedelta, happened: datetime | None,
     if happened is not None:
         return TargetState.MET if utc(happened) <= due else TargetState.LATE
     return TargetState.PENDING if utc(at) <= due else TargetState.OVERDUE
+
+
+# The outbox's four kinds of event (11.1, SP-027), one per sink method: a ticket opened, a field of it changed (its
+# priority or working assignee), a comment added, a move between statuses.
+CREATE = "create"
+UPDATE = "update"
+COMMENT = "comment"
+TRANSITION = "transition"
+EVENT_KINDS = (CREATE, UPDATE, COMMENT, TRANSITION)
+
+
+@dataclass(frozen=True)
+class OutboxEvent:
+    """One change of a ticket waiting to reach a tracker, written in the change's own transaction (SP-027):
+    OutboxEvent(1, 1, "create", 11:30 UTC, "OAHE-INV-002", "Inverter offline: …") is the demo outage's ticket opening.
+    detail is the words the kind carries: the note for a create, "assignee crew B" for an update, "<author>: <words>"
+    for a comment, the new status for a transition, or the root cause for a close ("RC-COMPONENT")."""
+
+    event_id: int
+    wo_id: int
+    kind: str
+    at: datetime
+    asset_id: str
+    detail: str
+
+
+@dataclass(frozen=True)
+class RemoteChange:
+    """A change a person made in a tracker, read back by a source since a cursor: RemoteChange("local:1", 1,
+    "comment", 12:05 UTC, "crew B", "on site"). Solarpunk's rules accept or refuse it later (SOL-14); reading it changes
+    nothing."""
+
+    ref: str
+    wo_id: int
+    kind: str
+    at: datetime
+    author: str
+    detail: str

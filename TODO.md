@@ -67,12 +67,6 @@ that Phase 13 (then 12.5's `asset_log` and 12.8) planned, so nothing is built tw
 Lanes (P-15): 11.1, then 11.2, then 11.3 the pass. Ghost's direction, SP-022; moved from Phase 8 (8.3, 8.4) by
 SP-023, so the Tickets window and the attention band's tickets land in the reworked fleet window.
 
-### 11.1 The adapter and the local tracker
-
-The ticket ledger behind an interface every tracker implements, the local one first (SP-022).
-
-Check: the module entry for the adapters approved by Ghost in `docs/modules.json` before any code; a sink (create, update, comment, transition) and a source (changes since a cursor) interface; an outbox table written in the same transaction as the ledger change and drained by the scheduled run, so a tracker that is down never blocks the ledger; the local adapter; a contract suite of tests every adapter must pass, run against the local one; the fast loop green.
-
 ### 11.2 Tickets in the windows and on the command line
 
 The tickets where people work (SP-022).
