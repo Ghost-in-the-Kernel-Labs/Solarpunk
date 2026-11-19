@@ -4,7 +4,7 @@ says, and the Power tab's curve and its line of counts (10.5). runs_window.py la
 and project.asset_power."""
 from datetime import date, datetime
 
-from solarpunk.project import PowerSeries, Recorded, Run
+from solarpunk.project import CodeCount, PowerSeries, Recorded, Run
 from solarpunk.ui.cells import NO_FEED, instant_text
 
 TITLE = "Runs — {asset_id} {name}"
@@ -19,6 +19,8 @@ FAIL = "FAIL"
 POWER_LINE = "{samples} samples: records {records}, gaps {gaps}; peak {peak} kW"
 NO_POWER = "no power samples on {day}"
 BAD_DAY = "a day reads like 2026-06-01"
+BAD_DAYS = "days read like 2026-06-01, the first not after the last"
+NO_ERRORS = "no faults or suggestions from {first} to {last}"
 
 
 def title(asset_id: str, name: str) -> str:
@@ -73,3 +75,22 @@ def day_of(text: str) -> date | None:
         return date.fromisoformat(text.strip())
     except ValueError:
         return None
+
+
+def days_of(first: str, last: str) -> tuple[date, date] | None:
+    """The two days a From and a To box hold, the last counted whole: ("2026-06-01", "2026-06-01") is one day; a box
+    that holds no day, or a last before the first, is None."""
+    start, end = day_of(first), day_of(last)
+    if start is None or end is None or end < start:
+        return None
+    return start, end
+
+
+def no_errors(first: date, last: date) -> str:
+    """What the Errors tab says with nothing counted: "no faults or suggestions from 2026-06-01 to 2026-06-01"."""
+    return NO_ERRORS.format(first=first.isoformat(), last=last.isoformat())
+
+
+def code_counts(found: tuple[CodeCount, ...]) -> tuple[tuple[str, int, int], ...]:
+    """The bars' (label, faults, suggestions), in code order: the demo's sensor gives (("SEN-001", 0, 1),)."""
+    return tuple((count.code, count.faults, count.suggestions) for count in found)

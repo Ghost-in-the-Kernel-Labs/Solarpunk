@@ -9,7 +9,7 @@ from tkinter import font as tkfont
 from tkinter import ttk
 
 from solarpunk import project
-from solarpunk.ui import runs_text, timeline
+from solarpunk.ui import bars, runs_text, timeline
 from solarpunk.ui.chart import CANVAS_HEIGHT, CANVAS_WIDTH
 from solarpunk.ui.reports import draw_power
 
@@ -30,6 +30,8 @@ UTC = "UTC"
 POWER_TAB = "Power"
 DAY = "Day (UTC)"
 SHOW = "Show"
+ERRORS_TAB = "Errors"
+FROM, TO = "From", "To"
 
 
 class RunsWindow(tk.Toplevel):
@@ -66,6 +68,7 @@ class RunsWindow(tk.Toplevel):
         self.timeline.pack(fill="both", expand=True, padx=4, pady=4)
         self.label_font = tkfont.nametofont("TkDefaultFont")
         self.make_power_tab()
+        self.make_errors_tab()
         self.run_tree.bind("<<TreeviewSelect>>", lambda _e: self.show_results())
         self.search_text.trace_add("write", lambda *_: self.fill())
         self.fill()
@@ -101,6 +104,43 @@ class RunsWindow(tk.Toplevel):
         self.power_line.configure(text=runs_text.power_line(series))
         if series.samples:
             draw_power(self.power_canvas, runs_text.power_curve(series), series.period, runs_text.peak_of(series))
+
+    def make_errors_tab(self) -> None:
+        """The Errors tab (10.6): From and To days (both counted whole, opening on the day of the store's last run),
+        Show, a line for an empty or a bad choice, and a bar per code, faults and suggestions apart (SOL-15)."""
+        tab = ttk.Frame(self.tabs)
+        self.tabs.add(tab, text=ERRORS_TAB)
+        bar = ttk.Frame(tab)
+        bar.pack(fill="x", padx=4, pady=4)
+        day = project.report_day(self.conn).isoformat()
+        self.first_day, self.last_day = tk.StringVar(value=day), tk.StringVar(value=day)
+        for words, variable in ((FROM, self.first_day), (TO, self.last_day)):
+            ttk.Label(bar, text=words).pack(side="left")
+            ttk.Entry(bar, textvariable=variable, width=12).pack(side="left", padx=4)
+        self.errors_button = ttk.Button(bar, text=SHOW, command=self.draw_errors)
+        self.errors_button.pack(side="left")
+        self.errors_line = ttk.Label(bar)
+        self.errors_line.pack(side="left", padx=8)
+        self.errors_canvas = tk.Canvas(tab, width=bars.WIDTH, height=bars.height_of(1), background="white",
+                                       highlightthickness=0)
+        self.errors_canvas.pack(padx=4, pady=4)
+        self.draw_errors()
+
+    def draw_errors(self) -> None:
+        """Counts the asset's faults and suggestions by code over the chosen days and draws a row of bars per code; a
+        bad choice or nothing counted is said in the line, and no bar is drawn."""
+        self.errors_canvas.delete(tk.ALL)
+        days = runs_text.days_of(self.first_day.get(), self.last_day.get())
+        if days is None:
+            self.errors_line.configure(text=runs_text.BAD_DAYS)
+            return
+        period = project.period(project.day_period(days[0]).start, project.day_period(days[1]).end)
+        counts = runs_text.code_counts(project.asset_code_counts(self.conn, self.asset_id, period))
+        self.errors_line.configure(text="" if counts else runs_text.no_errors(*days))
+        if counts:
+            left = bars.left_of([self.label_font.measure(label) for label, _, _ in counts])
+            self.errors_canvas.configure(height=bars.height_of(len(counts)))
+            bars.draw_bars(self.errors_canvas, bars.bar_rows(counts, left=left))
 
     def tree(self, parent: tk.Misc, columns: tuple[str, ...], headings: tuple[str, ...], widths: tuple[int, ...],
              height: int) -> ttk.Treeview:

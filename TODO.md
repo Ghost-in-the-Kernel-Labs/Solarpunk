@@ -62,12 +62,6 @@ the window), then 10.4, 10.5 and 10.6 in parallel, then 10.7 (the fleet's view),
 SP-024: a Runs button beside each asset, its runs, and the runs grouped and graphed. It takes over the asset's history
 that Phase 13 (then 12.5's `asset_log` and 12.8) planned, so nothing is built twice.
 
-### 10.6 Errors by code
-
-How often this asset raised each code (SP-024).
-
-Check: an "Errors" view in the Runs window: a bar per code over a chosen period, faults and suggestions told apart, each bar's count written beside it (10.1's numbers); an asset with none says so; the pure half tested headless; the screenshot read back; the fast loop green.
-
 ### 10.7 Error counts across the fleet
 
 For one code, how many times each asset caused it (SP-024).

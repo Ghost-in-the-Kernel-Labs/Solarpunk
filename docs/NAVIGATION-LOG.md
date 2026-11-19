@@ -47,3 +47,9 @@ An entry is `### <date> · <task> · <agent>` and four lines: **Task**, **Opened
 - **Opened**: `TODO.md`, `solarpunk/ui/chart.py`, `solarpunk/ui/reports.py`, `solarpunk/ui/runs_window.py`.
 - **Complaints**: a whole-screen screenshot compares more than the window changed; rendering the one window alone was needed for a fair proof.
 - **Suggestions**: none yet; one agent's.
+
+### 2026-11-19 · 10.6 errors by code · Claude
+- **Task**: the Errors tab: bars per code, faults and suggestions apart.
+- **Opened**: `TODO.md`, `solarpunk/ui/runs_window.py`, `solarpunk/ui/runs_text.py`, `solarpunk/project/runs.py`.
+- **Complaints**: none.
+- **Suggestions**: none.
