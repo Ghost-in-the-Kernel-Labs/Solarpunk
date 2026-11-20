@@ -2,6 +2,36 @@
 
 Read `CLAUDE.md` first, then this. `TODO.md` is the chain in order; `docs/DONE.md` is what is finished.
 
+## Start here (2026-11-20, the session that ended at bf76dc6)
+
+The last session closed Phase 9 again and landed 12.2 and 12.3; `main` is clean and pushed, every landing through
+the fast gate. Next, by Phase 12's lanes: **12.5, account administration** (`solarpunk account init` makes the first
+admin once, on the machine; `account add|reset|deactivate|list`; accounts are never deleted), **then 12.4,
+attribution** (every act as the signed-in account; `--by` and the "Assigned by" dropdown gone; and, widened on Ghost's
+word, every window that writes a record passes the version it read), then 12.6 the pass.
+
+What that session landed, newest first (the journal has each):
+- 12.3 signing in (J-094, SP-032): a store with no active account asks nobody and says "no accounts yet: anyone at this
+  machine acts" (the demo holds none); with one, the windows open on a sign-in and an acting command takes `--as
+  EMAIL` and asks with `getpass`; failed sign-ins kept by account and instant, never a password. Acts are still
+  attributed as before: that is 12.4.
+- 12.2 versions (J-093): a version on every asset, fault, suggestion and ticket, a stale write refused with SOL-16's
+  words. Enforced in project and the modules; **no window passes a version yet**, so no screen is protected until 12.4.
+- 9.9 Tune-up commit 9 (J-092): cold 1.32 min, warm 1.30 min, fast loop 24.3 s, 9 of 9 metrics, none regressed.
+- 9.8 Manage tests (J-091): the button between Add asset and Reports; a broken script listed in red, not raised.
+- SP-031 (J-090): the icon is Ghost's painted art, `solarpunk/ui/art/`, the repository's first binary files (CC0).
+- 9.7 (J-089): the icon on every window; `solarpunk --shortcut` puts a desktop shortcut wearing it.
+
+Mind, before adding:
+- Two metrics sit at their edge: mandatory context 1,197 of 1,200 words (trim before adding to `CLAUDE.md` or a file it
+  makes mandatory) and the largest file 398 of 400 lines (`test/solarpunk/test_project_run.py`: a new test of the
+  scheduled run goes in a new file). `solarpunk/project/orchestrator.py` is at 391.
+- One fast loop ran 31 s on a loaded machine; two reruns ran 26 s. Watch it at the next measure.
+- The navigation log holds debriefs for 9.7, 9.8 (wiped at 9.9), 12.2 and 12.3 for the next pass; 12.1's agent's two
+  suggestions are carried in J-092.
+- Not run from here: the shortcut and Open folder on Windows or a Mac (no such machine in a cloud session); the
+  window's title bar (the test display has no window manager).
+
 ## Where the project stands (2026-11-18, after Tune-up pass 5)
 
 Phases 0 to 5 are closed. Phases 0 to 4 were one night's work; Phase 5 was built with Ghost in the chat after he ran
@@ -98,6 +128,13 @@ email on the asset, a mailer to those engineers on degradation, and the Save/Can
    pass's full gate refused it; running the check in `stacks/python/gate.sh --fast` costs under a second (a change to
    a gate script, so a decision). Still open: run the fast loop with `-W error::DeprecationWarning`, which would have caught 8.2's Python 3.14
    placeholder warning at once (a change to `scripts/fast.sh`, so a decision).
+10. The scheduled run still stops at the first test script that cannot load, naming it (SP-010), though the Manage
+    tests window lists it and carries on (9.8, J-091). Say whether the run should skip a broken script, report it,
+    and run the rest; it would be a roadmap item.
+11. The icon's visor covers both eyes, not one as the brief said (SP-031, J-090); left as painted. Send it back to the
+    art agent if you want the one-eye glass; new files replace `solarpunk/ui/art/` under the same decision.
+12. Six old `claude/*` session branches remain on GitHub, every one already in `main`; deleting one from a cloud
+    session did nothing. Delete them from GitHub's branches page when convenient.
 
 ## Advisories under the gate's threshold (Tune-up commit 9; unchanged since pass 0)
 
