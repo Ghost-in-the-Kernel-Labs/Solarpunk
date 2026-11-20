@@ -90,11 +90,11 @@ def permit_ticket(conn: sqlite3.Connection, account: Account, wo_id: int) -> Tic
 
 
 def move_ticket_as(conn: sqlite3.Connection, account: Account, wo_id: int, status: TicketStatus,
-                   moment: datetime, evidence: str | None = None) -> Ticket:
+                   moment: datetime, evidence: str | None = None, read_at: int | None = None) -> Ticket:
     """Moves a ticket as move_ticket does, once the account may act on it: site@oahe.example acknowledging OAHE-INV-002's
     ticket at 11:40 UTC gives it acknowledged at 11:40; auditor@oahe.example is refused and nothing moves."""
     permit_ticket(conn, account, wo_id)
-    return move_ticket(conn, wo_id, status, moment, evidence)
+    return move_ticket(conn, wo_id, status, moment, evidence, read_at)
 
 
 def fleet_for(conn: sqlite3.Connection, account: Account) -> tuple[Asset, ...]:

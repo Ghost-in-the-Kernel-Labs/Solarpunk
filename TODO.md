@@ -77,12 +77,6 @@ SP-023, so the Tickets window and the attention band's tickets land in the rewor
 Lanes (P-15): 12.1, then 12.2 (versions), then 12.3 and 12.5 in parallel, then 12.4, then 12.6 the pass. Ghost's direction,
 SP-022; 12.1 split in two by SP-028 (accounts, then versions).
 
-### 12.2 Versions
-
-A write made from a stale screen is refused rather than overwriting another person's change (SP-026, SP-028).
-
-Check: an asset, a fault, a suggestion and a ticket each carry a version, its column in the module that owns the record, raised by one in the same write as every change to it; a write names the version it was read at, and one read at an older version is refused ("changed by someone else since you read it; refresh"), writing nothing; a store made before gains the columns at version 1; the contract section of 12.1 gains the rule and a worked example; the fast loop green.
-
 ### 12.3 Signing in
 
 The windows and the command line know who is at them (SP-022).

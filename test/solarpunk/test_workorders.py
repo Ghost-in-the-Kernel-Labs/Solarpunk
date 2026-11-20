@@ -87,6 +87,7 @@ class TheSchema(unittest.TestCase):
             ("responded", "TEXT", 0, None, 0),
             ("resolved", "TEXT", 0, None, 0),
             ("evidence", "TEXT", 0, None, 0),
+            ("version", "INTEGER", 1, "1", 0),  # 12.2
         ])
 
     def test_a_kind_outside_the_two_is_refused_by_the_table(self) -> None:
@@ -146,7 +147,8 @@ class Closing(unittest.TestCase):
 
     def test_a_listed_code_closes_the_order(self) -> None:
         closed = ledger.close(self.conn, 1, "RC-COMPONENT", LATER)
-        self.assertEqual(closed, WorkOrder(1, INV, 4, "corrective", OPENED, LATER, RootCause.COMPONENT, "replace the fuse"))
+        self.assertEqual(closed, WorkOrder(1, INV, 4, "corrective", OPENED, LATER, RootCause.COMPONENT, "replace the fuse",
+                                           version=2))
         self.assertEqual(stored(self.conn)[0][5:7], ("2026-06-01T10:30:00+00:00", "RC-COMPONENT"))
         self.assertIs(closed.closed.tzinfo if closed.closed else None, timezone.utc)
 
@@ -271,7 +273,7 @@ class ProjectWorkOrders(unittest.TestCase):
         fault = self.outage(conn)
         order = project.open_work_order_from_fault(conn, fault.fault_id, at(2026, 6, 1, 12), "swap the fuse")
         self.assertEqual(order, project.WorkOrder(1, INV1, fault.fault_id, "corrective", at(2026, 6, 1, 12), None, None,
-                                                  "swap the fuse"))
+                                                  "swap the fuse", version=2))  # the note set: a change
         self.assertEqual(project.work_orders_for(conn, INV1), (order,))
         self.assertEqual(project.work_orders_for(conn, INV2_OAHE), ())
 

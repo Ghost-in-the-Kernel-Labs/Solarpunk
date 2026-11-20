@@ -23,6 +23,7 @@ class Fault:
     closed: datetime | None
     assigned_by: str = UNRECORDED
     recorded_by: str | None = None
+    version: int = 1  # 12.2: raised by one with every change the ledger stores
 
     def __post_init__(self) -> None:
         """The code in the catalogue, the instants UTC, closed after opened: Fault(1, id, "INV-999", …) raises UnknownFaultCode."""

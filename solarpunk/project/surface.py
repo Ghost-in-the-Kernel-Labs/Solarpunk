@@ -186,10 +186,11 @@ def register_asset(conn: sqlite3.Connection, asset: Asset) -> None:
     registry.register(conn, asset)
 
 
-def assign_engineer(conn: sqlite3.Connection, asset_id: str, email: str) -> None:
+def assign_engineer(conn: sqlite3.Connection, asset_id: str, email: str, read_at: int | None = None) -> None:
     """Sets an asset's engineer as the fleet does: assign_engineer(conn, "OAHE-INV-002", "b@x.org") makes it its
-    engineer; an unregistered id raises RegistryError, a malformed address ValueError."""
-    registry.assign_engineer(conn, asset_id, email)
+    engineer; an unregistered id raises RegistryError, a malformed address ValueError, an asset read at an older
+    version StaleWrite (12.2)."""
+    registry.assign_engineer(conn, asset_id, email, read_at)
 
 
 def codes_for_kind(kind: AssetKind) -> tuple[FaultCode, ...]:

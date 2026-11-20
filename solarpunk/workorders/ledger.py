@@ -8,6 +8,7 @@ from collections import Counter
 from dataclasses import dataclass
 from datetime import datetime
 
+from solarpunk.leaf import versions
 from solarpunk.leaf.clock import Period, utc
 from solarpunk.leaf.root_causes import RootCause, lookup_root_cause
 from solarpunk.leaf.tickets import CREATE, TRANSITION, Priority
@@ -23,6 +24,7 @@ TICKET_COLUMNS: tuple[tuple[str, str], ...] = (
     ("responded", "responded TEXT NULL"),
     ("resolved", "resolved TEXT NULL"),
     ("evidence", "evidence TEXT NULL"),
+    (versions.COLUMN, versions.COLUMN_SQL),  # 12.2: a ticket's version, raised with every change to it
 )
 CREATE_TABLE = (
     "CREATE TABLE work_orders (wo_id INTEGER PRIMARY KEY, asset_id TEXT NOT NULL, fault_id INTEGER NULL,"
@@ -39,14 +41,15 @@ CREATE_COMMENTS = (
     "CREATE TABLE IF NOT EXISTS ticket_comments (comment_id INTEGER PRIMARY KEY, wo_id INTEGER NOT NULL, author TEXT NOT NULL,"
     " at TEXT NOT NULL, body TEXT NOT NULL)"
 )
-SELECT_ORDERS = "SELECT wo_id, asset_id, fault_id, kind, opened, closed, root_cause, note FROM work_orders"
+SELECT_ORDERS = "SELECT wo_id, asset_id, fault_id, kind, opened, closed, root_cause, note, version FROM work_orders"
 INSERT_ORDER = "INSERT INTO work_orders (asset_id, fault_id, kind, opened, note, priority) VALUES (?, ?, ?, ?, ?, ?)"
 # The one-step close-out of 4.1 (SOL-14): the allowed moves at one instant, an instant already stamped kept.
 CLOSE_ORDER = (
     "UPDATE work_orders SET closed = :stamp, root_cause = :cause, status = 'closed',"
     " acknowledged = coalesce(acknowledged, :stamp), responded = coalesce(responded, :stamp),"
-    " resolved = coalesce(resolved, :stamp) WHERE wo_id = :wo_id"
+    " resolved = coalesce(resolved, :stamp), " + versions.BUMP + " WHERE wo_id = :wo_id"
 )
+SET_NOTE = f"UPDATE work_orders SET note = ?, {versions.BUMP} WHERE wo_id = ?"
 TICKET_STAMPS = "SELECT opened, acknowledged, responded, resolved FROM work_orders WHERE wo_id = ?"
 BY_ID = " WHERE wo_id = ?"
 OPEN_FOR_FAULT = " WHERE fault_id = ? AND kind = 'corrective' AND closed IS NULL"
@@ -69,6 +72,7 @@ class WorkOrder:
     closed: datetime | None
     root_cause: RootCause | None
     note: str
+    version: int = 1  # 12.2: the ticket's version, the same column
 
 
 class WorkOrderError(ValueError):
@@ -94,10 +98,11 @@ def _select(conn: sqlite3.Connection, where: str, params: tuple[str | int | None
     every open order; _select(conn, "", ()) holds them all."""
     rows = conn.execute(SELECT_ORDERS + where + IN_ID_ORDER, params).fetchall()
     found = []
-    for wo_id, asset_id, fault_id, kind, opened, closed, cause, note in rows:
+    for wo_id, asset_id, fault_id, kind, opened, closed, cause, note, version in rows:
         closed_at = None if closed is None else datetime.fromisoformat(closed)
         root_cause = None if cause is None else lookup_root_cause(cause)
-        found.append(WorkOrder(wo_id, asset_id, fault_id, kind, datetime.fromisoformat(opened), closed_at, root_cause, note))
+        found.append(WorkOrder(wo_id, asset_id, fault_id, kind, datetime.fromisoformat(opened), closed_at, root_cause, note,
+                               version))
     return tuple(found)
 
 
@@ -152,16 +157,26 @@ def last_stamp(conn: sqlite3.Connection, wo_id: int) -> datetime:
     return max(datetime.fromisoformat(text) for text in row if text is not None)
 
 
-def close(conn: sqlite3.Connection, wo_id: int, root_cause: str, closed: datetime) -> WorkOrder:
+def check_read(conn: sqlite3.Connection, wo_id: int, read_at: int | None) -> WorkOrder:
+    """The order, once a screen that read its ticket at read_at may act on it (12.2): one changed since raises
+    StaleWrite("ticket 1 changed by someone else since you read it; refresh"); an unknown id WorkOrderError."""
+    order = get(conn, wo_id)
+    versions.check(f"ticket {wo_id}", order.version, read_at)
+    return order
+
+
+def close(conn: sqlite3.Connection, wo_id: int, root_cause: str, closed: datetime,
+          read_at: int | None = None) -> WorkOrder:
     """Closes an open order with its root-cause code: close(conn, 1, "RC-COMPONENT", 10:30 UTC) gives the order with
     closed 10:30 UTC and root_cause RootCause.COMPONENT. Refuses, writing nothing, a code outside the list
     (UnknownRootCause), a naive instant (NotUtc), an unknown order id, a close at or before the opening and a second
-    close (WorkOrderError). Its ticket closes too: from any earlier status by the allowed moves at that one instant,
-    the acknowledged, responded and resolved instants already stamped kept (SOL-14)."""
+    close (WorkOrderError), and a ticket read at an older version (StaleWrite, 12.2). Its ticket closes too: from any
+    earlier status by the allowed moves at that one instant, the acknowledged, responded and resolved instants already
+    stamped kept (SOL-14), and its version raised."""
     # Invariant: SOL-04's rule for causes (SP-011): no order closes without a code from the closed list
     cause = lookup_root_cause(root_cause)
     stamp = _stamp(closed)
-    order = get(conn, wo_id)
+    order = check_read(conn, wo_id, read_at)
     if order.closed is not None:
         raise WorkOrderError(f"work order {wo_id} is already closed")
     if closed <= order.opened:
@@ -181,10 +196,11 @@ def open_for_fault(conn: sqlite3.Connection, fault_id: int) -> WorkOrder | None:
     return found[0] if found else None
 
 
-def set_note(conn: sqlite3.Connection, wo_id: int, note: str) -> WorkOrder:
-    """Replaces an order's note, the words saying what the work is: set_note(conn, 1, "swap the fuse").note is that."""
-    get(conn, wo_id)
-    conn.execute("UPDATE work_orders SET note = ? WHERE wo_id = ?", (note, wo_id))
+def set_note(conn: sqlite3.Connection, wo_id: int, note: str, read_at: int | None = None) -> WorkOrder:
+    """Replaces an order's note, the words saying what the work is, and raises its version: set_note(conn, 1, "swap the
+    fuse").note is that; read at an older version, StaleWrite and nothing written (12.2)."""
+    check_read(conn, wo_id, read_at)
+    conn.execute(SET_NOTE, (note, wo_id))
     conn.commit()
     return get(conn, wo_id)
 

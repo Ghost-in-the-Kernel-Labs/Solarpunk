@@ -16,3 +16,9 @@ Last review: 5cd02bd (2026-11-20, Tune-up commit 9)
 ## Entries
 
 An entry is `
+
+### 2026-11-20 · 12.2 versions · Claude
+- **Task**: 12.2 Versions: a version on each record, raised with every change, a stale write refused.
+- **Opened**: `TODO.md`, `theGhost.md` (SP-028), `solarpunk/fleet/registry.py`, `solarpunk/faults/ledger.py`, `solarpunk/remote/suggestions.py`, `solarpunk/workorders/ledger.py`, `solarpunk/workorders/tickets.py`, `solarpunk/project/orchestrator.py`, `docs/CONTRACT.md`, `test/solarpunk/test_accounts.py`.
+- **Complaints**: the writes on a record are spread over its module and project with no list of them; finding all nine took a grep for UPDATE.
+- **Suggestions**: none.

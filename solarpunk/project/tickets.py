@@ -28,17 +28,18 @@ def open_tickets(conn: sqlite3.Connection) -> tuple[Ticket, ...]:
 
 
 def move_ticket(conn: sqlite3.Connection, wo_id: int, status: TicketStatus, moment: datetime,
-                evidence: str | None = None) -> Ticket:
+                evidence: str | None = None, read_at: int | None = None) -> Ticket:
     """Moves a ticket as SOL-14 allows: move_ticket(conn, 1, ACKNOWLEDGED, 10:40 UTC).acknowledged is 10:40; resolving
-    needs evidence; a forbidden move raises BadMove and a move to closed WorkOrderError (close_work_order closes)."""
-    return ticket_ledger.move(conn, wo_id, status, moment, evidence)
+    needs evidence; a forbidden move raises BadMove, a move to closed WorkOrderError (close_work_order closes), a
+    ticket read at an older version StaleWrite (12.2)."""
+    return ticket_ledger.move(conn, wo_id, status, moment, evidence, read_at)
 
 
 def set_ticket_assignee(conn: sqlite3.Connection, wo_id: int, assignee: str | None,
-                        moment: datetime | None = None) -> Ticket:
+                        moment: datetime | None = None, read_at: int | None = None) -> Ticket:
     """Sets or clears who works a ticket, at an instant (now when not given; the outbox's event carries it):
-    set_ticket_assignee(conn, 1, "crew B").assignee is "crew B"."""
-    return ticket_ledger.set_assignee(conn, wo_id, assignee, moment)
+    set_ticket_assignee(conn, 1, "crew B").assignee is "crew B"; read at an older version, StaleWrite (12.2)."""
+    return ticket_ledger.set_assignee(conn, wo_id, assignee, moment, read_at)
 
 
 def comment_on_ticket(conn: sqlite3.Connection, wo_id: int, author: str, moment: datetime, body: str) -> Comment:

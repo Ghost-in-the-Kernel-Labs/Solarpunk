@@ -49,29 +49,30 @@ def suggest_pushed(conn: sqlite3.Connection, asset_id: str, code: str, now: date
 
 
 def accept_suggestion(conn: sqlite3.Connection, suggestion_id: int, engineer: str, recorded_by: str | None = None,
-                      opened: datetime | None = None) -> Fault:
+                      opened: datetime | None = None, read_at: int | None = None) -> Fault:
     """Opens the suggested fault as the engineer, entered by the operator when it was called in, opened at the
     suggestion's instant unless another is given, and marks the suggestion accepted with the fault's id: the demo's
     SEN-001 suggestion accepted by site@oahe.example gives an open SEN-001 fault assigned by site@oahe.example. A refusal
     (an engineer the fleet does not hold, a second open fault of the code) changes nothing; one no longer open raises
-    SuggestionError."""
+    SuggestionError, one read at an older version StaleWrite before any fault is opened (12.2)."""
     # Decision: SP-015 (only an engineer assigns; the suggestion keeps the link to the fault it became)
-    found = suggestion_table.get(conn, suggestion_id)
+    found = suggestion_table.check_read(conn, suggestion_id, read_at)
     if found.state != suggestion_table.OPEN:
         raise suggestion_table.SuggestionError(f"suggestion {suggestion_id} is already {found.state}")
     fault = assign_fault(conn, found.asset_id, found.code, opened or found.raised_at, engineer, recorded_by)
-    suggestion_table.mark_accepted(conn, suggestion_id, engineer, fault.fault_id)
+    suggestion_table.mark_accepted(conn, suggestion_id, engineer, fault.fault_id, read_at)
     return fault
 
 
-def dismiss_suggestion(conn: sqlite3.Connection, suggestion_id: int, engineer: str, reason: str) -> Suggestion:
+def dismiss_suggestion(conn: sqlite3.Connection, suggestion_id: int, engineer: str, reason: str,
+                       read_at: int | None = None) -> Suggestion:
     """Dismisses the suggestion as the engineer, with why: dismiss_suggestion(conn, 1, "site@oahe.example", "sensor
     cleaned").state is "dismissed"; an engineer the fleet does not hold raises UnknownEngineer, a blank reason
-    SuggestionError, each changing nothing."""
+    SuggestionError, one read at an older version StaleWrite (12.2), each changing nothing."""
     # Decision: SP-015 (a dismissal is an engineer's decision, recorded with who and why)
     if engineer not in known_engineers(conn):
         raise UnknownEngineer(f"{engineer or 'nobody'} is not an engineer the fleet holds")
-    return suggestion_table.mark_dismissed(conn, suggestion_id, engineer, reason)
+    return suggestion_table.mark_dismissed(conn, suggestion_id, engineer, reason, read_at)
 
 
 def open_suggestions(conn: sqlite3.Connection, asset_id: str | None = None) -> tuple[Suggestion, ...]:

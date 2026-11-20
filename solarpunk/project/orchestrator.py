@@ -95,8 +95,8 @@ def open_or_create(path: str | Path) -> sqlite3.Connection:
     for name, statements in LATER_TABLES:
         if name not in present:
             store.apply(conn, statements)
-    ledger.upgrade(conn)
-    ticket_ledger.upgrade(conn)
+    for upgrade in (registry.upgrade, ledger.upgrade, ticket_ledger.upgrade, suggestion_table.upgrade):
+        upgrade(conn)  # each table gains the columns it lacks: a ticket's 8.2 ones, every record's version (12.2)
     backfill_priorities(conn)
     return conn
 
@@ -196,9 +196,10 @@ def is_cover(conn: sqlite3.Connection, fault: Fault) -> bool:
     return fault.assigned_by not in registry.engineers_for(conn, fault.asset_id)
 
 
-def close_fault(conn: sqlite3.Connection, fault_id: int, closed: datetime) -> Fault:
-    """Closes an open fault as the ledger does: close_fault(conn, 1, 10:30 UTC).closed is 10:30 UTC."""
-    return ledger.close(conn, fault_id, closed)
+def close_fault(conn: sqlite3.Connection, fault_id: int, closed: datetime, read_at: int | None = None) -> Fault:
+    """Closes an open fault as the ledger does: close_fault(conn, 1, 10:30 UTC).closed is 10:30 UTC; a fault read at an
+    older version raises StaleWrite and closes nothing (12.2)."""
+    return ledger.close(conn, fault_id, closed, read_at)
 
 
 def open_work_order_from_fault(conn: sqlite3.Connection, fault_id: int, opened: datetime, note: str) -> WorkOrder:
@@ -227,12 +228,14 @@ def open_preventive_work_order(conn: sqlite3.Connection, asset_id: str, opened: 
     return work_ledger.open_preventive(conn, asset_id, opened, note, Priority.P3)
 
 
-def close_work_order(conn: sqlite3.Connection, wo_id: int, root_cause: str, closed: datetime) -> WorkOrder:
+def close_work_order(conn: sqlite3.Connection, wo_id: int, root_cause: str, closed: datetime,
+                     read_at: int | None = None) -> WorkOrder:
     """Closes a work order with its root-cause code and, for a corrective order whose fault is still open, that fault
     at the same instant, in one call: close_work_order(conn, 1, "RC-COMPONENT", 10:30 UTC) leaves order 1 and its
-    fault both closed at 10:30; an unknown code raises UnknownRootCause and closes neither."""
+    fault both closed at 10:30; an unknown code raises UnknownRootCause, a ticket read at an older version StaleWrite
+    (12.2), and closes neither."""
     # Decision: SP-011 (closing a corrective order closes its fault, in project, in one call)
-    order = work_ledger.close(conn, wo_id, root_cause, closed)
+    order = work_ledger.close(conn, wo_id, root_cause, closed, read_at)
     if order.fault_id is not None and any(f.fault_id == order.fault_id for f in ledger.open_faults(conn)):
         ledger.close(conn, order.fault_id, closed)
     return order

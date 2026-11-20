@@ -103,6 +103,7 @@ from solarpunk.workorders.tickets import Breach, Comment, Ticket
 from solarpunk.accounts.passwords import WeakPassword
 from solarpunk.accounts.table import AccountError
 from solarpunk.leaf.accounts import ALL_SITES, Account, Role
+from solarpunk.leaf.versions import StaleWrite
 from solarpunk.project.access import (
     NotPermitted,
     account_of,
@@ -148,6 +149,7 @@ __all__ = [
     "Recorded",
     "RegistryError",
     "RemoteTest",
+    "StaleWrite",
     "Surveyed",
     "Role",
     "RootCause",

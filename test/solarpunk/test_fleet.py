@@ -71,7 +71,7 @@ class TheTable(Registry):
         conn = self.empty()
         names = [row[1] for row in conn.execute("PRAGMA table_info(assets)")]
         self.assertEqual(names, ["asset_id", "kind", "site", "parent_id", "name", "rated_kw", "host", "port",
-                                 "location", "engineer_email"])
+                                 "location", "engineer_email", "version"])
         self.assertEqual(count(conn), 0)
 
     def test_the_parent_references_assets(self) -> None:

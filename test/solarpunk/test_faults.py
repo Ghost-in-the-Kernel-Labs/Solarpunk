@@ -41,6 +41,7 @@ class TheSchema(unittest.TestCase):
             ("closed", "TEXT", 0, None, 0),
             ("assigned_by", "TEXT", 1, "'unrecorded'", 0),
             ("recorded_by", "TEXT", 0, None, 0),
+            ("version", "INTEGER", 1, "1", 0),  # 12.2
         ])
 
     def test_upgrade_adds_the_sp015_columns_to_an_old_table_and_its_rows_read_unrecorded(self) -> None:
@@ -61,13 +62,13 @@ class Assigning(unittest.TestCase):
         conn = fresh()
         fault = ledger.assign(conn, INV, "INV-001", at(2026, 6, 1, 10, 10))
         self.assertEqual(fault, Fault(1, INV, "INV-001", at(2026, 6, 1, 10, 10), None))
-        self.assertEqual(stored(conn), [(1, INV, "INV-001", "2026-06-01T10:10:00+00:00", None, "unrecorded", None)])
+        self.assertEqual(stored(conn), [(1, INV, "INV-001", "2026-06-01T10:10:00+00:00", None, "unrecorded", None, 1)])
 
     def test_assign_stores_who_assigned_and_who_entered_it(self) -> None:
         conn = fresh()
         fault = ledger.assign(conn, INV, "INV-001", at(2026, 6, 1, 10, 10), "tech@oahe.example", "operator@oahe.example")
         self.assertEqual((fault.assigned_by, fault.recorded_by), ("tech@oahe.example", "operator@oahe.example"))
-        self.assertEqual(stored(conn)[0][5:], ("tech@oahe.example", "operator@oahe.example"))
+        self.assertEqual(stored(conn)[0][5:7], ("tech@oahe.example", "operator@oahe.example"))
 
     def test_instants_round_trip_as_aware_utc(self) -> None:
         conn = fresh()
@@ -135,7 +136,7 @@ class Closing(unittest.TestCase):
 
     def test_close_returns_the_closed_fault(self) -> None:
         closed = ledger.close(self.conn, 1, at(2026, 6, 1, 10, 30))
-        self.assertEqual(closed, Fault(1, INV, "INV-001", at(2026, 6, 1, 10, 10), at(2026, 6, 1, 10, 30)))
+        self.assertEqual(closed, Fault(1, INV, "INV-001", at(2026, 6, 1, 10, 10), at(2026, 6, 1, 10, 30), version=2))
         self.assertEqual(stored(self.conn)[0][4], "2026-06-01T10:30:00+00:00")
 
     def test_an_unknown_fault_id_is_refused(self) -> None:

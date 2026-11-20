@@ -9,11 +9,13 @@ from datetime import datetime, timezone
 
 from solarpunk.leaf.clock import utc
 from solarpunk.leaf.tickets import COMMENT, TRANSITION, UPDATE, TARGETS, Priority, TargetState, TicketStatus, check_move, target_state
-from solarpunk.workorders.ledger import CREATE_COMMENTS, CREATE_OUTBOX, TICKET_COLUMNS, outbox_add, WorkOrderError, get, last_stamp
+from solarpunk.leaf.versions import BUMP
+from solarpunk.workorders.ledger import (CREATE_COMMENTS, CREATE_OUTBOX, TICKET_COLUMNS, WorkOrderError, check_read, get,
+                                         last_stamp, outbox_add)
 
 SELECT_TICKET = (
     "SELECT wo_id, asset_id, kind, status, priority, assignee, opened, acknowledged, responded, resolved, closed,"
-    " evidence FROM work_orders"
+    " evidence, version FROM work_orders"
 )
 SELECT_COMMENTS = "SELECT comment_id, wo_id, author, at, body FROM ticket_comments WHERE wo_id = ? ORDER BY comment_id"
 INSERT_COMMENT = "INSERT INTO ticket_comments (wo_id, author, at, body) VALUES (?, ?, ?, ?)"
@@ -41,6 +43,7 @@ class Ticket:
     resolved: datetime | None
     closed: datetime | None
     evidence: str | None
+    version: int = 1  # 12.2: raised by one with every change to the ticket
 
 
 @dataclass(frozen=True)
@@ -85,10 +88,10 @@ def _instant(text: str | None) -> datetime | None:
 
 def _ticket(row: tuple) -> Ticket:
     """One stored row as a Ticket, its instants aware and its status and priority the leaf's."""
-    wo_id, asset_id, kind, status, priority, assignee, opened, acked, responded, resolved, closed, evidence = row
+    wo_id, asset_id, kind, status, priority, assignee, opened, acked, responded, resolved, closed, evidence, version = row
     return Ticket(wo_id, asset_id, kind, TicketStatus(status), None if priority is None else Priority(priority), assignee,
                   datetime.fromisoformat(opened), _instant(acked), _instant(responded), _instant(resolved),
-                  _instant(closed), evidence)
+                  _instant(closed), evidence, version)
 
 
 def ticket(conn: sqlite3.Connection, wo_id: int) -> Ticket:
@@ -103,9 +106,12 @@ def open_tickets(conn: sqlite3.Connection) -> tuple[Ticket, ...]:
     return tuple(_ticket(row) for row in conn.execute(SELECT_TICKET + " WHERE status != 'closed' ORDER BY wo_id"))
 
 
-def _checked(conn: sqlite3.Connection, wo_id: int, target: TicketStatus, moment: datetime) -> Ticket:
-    """The ticket, once the move to target is one SOL-14 allows by this call and the instant is not before its last
-    stamp: a move to closed raises WorkOrderError (closing takes a root cause: the ledger's close)."""
+def _checked(conn: sqlite3.Connection, wo_id: int, target: TicketStatus, moment: datetime,
+             read_at: int | None) -> Ticket:
+    """The ticket, once it was read at its current version (12.2), the move to target is one SOL-14 allows by this call
+    and the instant is not before its last stamp: a move to closed raises WorkOrderError (closing takes a root cause:
+    the ledger's close)."""
+    check_read(conn, wo_id, read_at)
     found = ticket(conn, wo_id)
     if target is TicketStatus.CLOSED:
         raise WorkOrderError(f"work order {wo_id} closes with a root cause, by close")
@@ -116,25 +122,27 @@ def _checked(conn: sqlite3.Connection, wo_id: int, target: TicketStatus, moment:
     return found
 
 
-def move(conn: sqlite3.Connection, wo_id: int, target: TicketStatus, moment: datetime, evidence: str | None = None) -> Ticket:
+def move(conn: sqlite3.Connection, wo_id: int, target: TicketStatus, moment: datetime, evidence: str | None = None,
+         read_at: int | None = None) -> Ticket:
     """Moves a ticket as SOL-14 allows and stamps the move: move(conn, 1, ACKNOWLEDGED, 10:40 UTC).acknowledged is 10:40;
     to IN_PROGRESS stamps responded (and acknowledged) if not yet stamped, and from RESOLVED clears resolved and the
     evidence; to RESOLVED needs evidence. A forbidden move raises BadMove, a move to CLOSED, an instant before the last
-    move, or resolving without evidence WorkOrderError; a refused move writes nothing."""
-    found = _checked(conn, wo_id, target, moment)
+    move, or resolving without evidence WorkOrderError, a ticket read at an older version StaleWrite (12.2); a refused
+    move writes nothing, and every move raises the version."""
+    found = _checked(conn, wo_id, target, moment, read_at)
     stamp = utc(moment).isoformat()
     if target is TicketStatus.RESOLVED:
         if evidence is None or not evidence.strip():
             raise WorkOrderError(f"work order {wo_id} resolves with evidence of what was done")
-        conn.execute("UPDATE work_orders SET status = ?, resolved = ?, evidence = ? WHERE wo_id = ?",
+        conn.execute(f"UPDATE work_orders SET status = ?, resolved = ?, evidence = ?, {BUMP} WHERE wo_id = ?",
                      (target.value, stamp, evidence.strip(), wo_id))
     elif found.status is TicketStatus.RESOLVED:
-        conn.execute("UPDATE work_orders SET status = ?, resolved = NULL, evidence = NULL WHERE wo_id = ?",
+        conn.execute(f"UPDATE work_orders SET status = ?, resolved = NULL, evidence = NULL, {BUMP} WHERE wo_id = ?",
                      (target.value, wo_id))
     else:
         responded = "coalesce(responded, :stamp)" if target is TicketStatus.IN_PROGRESS else "responded"
         conn.execute(f"UPDATE work_orders SET status = :status, acknowledged = coalesce(acknowledged, :stamp),"
-                     f" responded = {responded} WHERE wo_id = :wo_id",
+                     f" responded = {responded}, {BUMP} WHERE wo_id = :wo_id",
                      {"status": target.value, "stamp": stamp, "wo_id": wo_id})
     outbox_add(conn, wo_id, TRANSITION, stamp, target.value)
     conn.commit()
@@ -149,17 +157,19 @@ def without_priority(conn: sqlite3.Connection) -> tuple[int, ...]:
 def set_priority(conn: sqlite3.Connection, wo_id: int, priority: Priority) -> Ticket:
     """Sets a ticket's priority (project does, from its fault's severity): set_priority(conn, 1, P1).priority is P1."""
     get(conn, wo_id)
-    conn.execute("UPDATE work_orders SET priority = ? WHERE wo_id = ?", (priority.value, wo_id))
+    conn.execute(f"UPDATE work_orders SET priority = ?, {BUMP} WHERE wo_id = ?", (priority.value, wo_id))
     conn.commit()
     return ticket(conn, wo_id)
 
 
-def set_assignee(conn: sqlite3.Connection, wo_id: int, assignee: str | None, moment: datetime | None = None) -> Ticket:
+def set_assignee(conn: sqlite3.Connection, wo_id: int, assignee: str | None, moment: datetime | None = None,
+                 read_at: int | None = None) -> Ticket:
     """Sets the person working the ticket (a tracker's field, SOL-14), or clears it with None or blank, at an instant
-    (now when not given, for the outbox's event): set_assignee(conn, 1, "crew B").assignee is "crew B"."""
-    get(conn, wo_id)
+    (now when not given, for the outbox's event), raising its version: set_assignee(conn, 1, "crew B").assignee is
+    "crew B"; read at an older version, StaleWrite and nothing written (12.2)."""
+    check_read(conn, wo_id, read_at)
     name = None if assignee is None or not assignee.strip() else assignee.strip()
-    conn.execute("UPDATE work_orders SET assignee = ? WHERE wo_id = ?", (name, wo_id))
+    conn.execute(f"UPDATE work_orders SET assignee = ?, {BUMP} WHERE wo_id = ?", (name, wo_id))
     at = utc(moment).isoformat() if moment is not None else datetime.now(timezone.utc).isoformat()
     outbox_add(conn, wo_id, UPDATE, at, ASSIGNEE.format(name=name or NOBODY))
     conn.commit()

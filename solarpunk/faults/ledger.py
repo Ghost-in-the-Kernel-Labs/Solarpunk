@@ -6,16 +6,19 @@ import sqlite3
 from collections import Counter
 from datetime import datetime
 
+from solarpunk.leaf import versions
 from solarpunk.leaf.clock import Period, utc
 from solarpunk.leaf.codes import lookup
 from solarpunk.leaf.faults import UNRECORDED, Fault
 
-SELECT_FAULTS = "SELECT fault_id, asset_id, code, opened, closed, assigned_by, recorded_by FROM faults"
+SELECT_FAULTS = "SELECT fault_id, asset_id, code, opened, closed, assigned_by, recorded_by, version FROM faults"
 # The columns SP-015 added, each with the statement that adds it to a table made before: upgrade() applies the missing.
 LATER_COLUMNS = (
     ("assigned_by", "ALTER TABLE faults ADD COLUMN assigned_by TEXT NOT NULL DEFAULT 'unrecorded'"),
     ("recorded_by", "ALTER TABLE faults ADD COLUMN recorded_by TEXT NULL"),
+    (versions.COLUMN, f"ALTER TABLE faults ADD COLUMN {versions.COLUMN_SQL}"),  # 12.2
 )
+CLOSE_FAULT = f"UPDATE faults SET closed = ?, {versions.BUMP} WHERE fault_id = ?"
 INSERT_FAULT = "INSERT INTO faults (asset_id, code, opened, assigned_by, recorded_by) VALUES (?, ?, ?, ?, ?)"
 
 
@@ -28,7 +31,8 @@ def schema() -> tuple[str, ...]:
     """The ledger's schema statements, for leaf.store.apply: schema()[0] starts with "CREATE TABLE faults"."""
     return (
         "CREATE TABLE faults (fault_id INTEGER PRIMARY KEY, asset_id TEXT NOT NULL, code TEXT NOT NULL,"
-        " opened TEXT NOT NULL, closed TEXT NULL, assigned_by TEXT NOT NULL DEFAULT 'unrecorded', recorded_by TEXT NULL)",
+        " opened TEXT NOT NULL, closed TEXT NULL, assigned_by TEXT NOT NULL DEFAULT 'unrecorded', recorded_by TEXT NULL,"
+        f" {versions.COLUMN_SQL})",
     )
 
 
@@ -60,9 +64,9 @@ def _select(conn: sqlite3.Connection, where: str, params: tuple[str | int | None
     INV-001 fault; _select(conn, "", ()) holds them all."""
     rows = conn.execute(SELECT_FAULTS + where + " ORDER BY fault_id", params).fetchall()
     faults = []
-    for fault_id, asset_id, code, opened, closed, assigned_by, recorded_by in rows:
+    for fault_id, asset_id, code, opened, closed, assigned_by, recorded_by, version in rows:
         faults.append(Fault(fault_id, asset_id, code, datetime.fromisoformat(opened), _instant(closed), assigned_by,
-                            recorded_by))
+                            recorded_by, version))
     return tuple(faults)
 
 
@@ -91,17 +95,18 @@ def assign(conn: sqlite3.Connection, asset_id: str, code: str, opened: datetime,
     return _get(conn, cursor.lastrowid)
 
 
-def close(conn: sqlite3.Connection, fault_id: int, closed: datetime) -> Fault:
-    """Closes an open fault: close(conn, 1, 10:30 UTC) is Fault(1, "OAHE-INV-003", "INV-001", 10:10 UTC, 10:30 UTC).
-    Refuses a naive or non-UTC instant (NotUtc), an unknown fault id, a close at or before the opening and a second
-    close (LedgerError)."""
+def close(conn: sqlite3.Connection, fault_id: int, closed: datetime, read_at: int | None = None) -> Fault:
+    """Closes an open fault and raises its version: close(conn, 1, 10:30 UTC) is Fault(1, "OAHE-INV-003", "INV-001",
+    10:10 UTC, 10:30 UTC) at version 2. Refuses a naive or non-UTC instant (NotUtc), an unknown fault id, a close at or
+    before the opening and a second close (LedgerError), and a fault read at an older version (StaleWrite, 12.2)."""
     stamp = _stamp(closed)
     fault = _get(conn, fault_id)
+    versions.check(f"fault {fault_id}", fault.version, read_at)
     if fault.closed is not None:
         raise LedgerError(f"fault {fault_id} is already closed")
     if closed <= fault.opened:
         raise LedgerError(f"fault {fault_id} cannot close at {stamp}, at or before it opened")
-    conn.execute("UPDATE faults SET closed = ? WHERE fault_id = ?", (stamp, fault_id))
+    conn.execute(CLOSE_FAULT, (stamp, fault_id))
     conn.commit()
     return _get(conn, fault_id)
 

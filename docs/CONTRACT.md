@@ -329,3 +329,22 @@ Worked example, over the demo fleet (all of it site OAHE) with three accounts: `
 
 Held by `solarpunk/accounts/` (the table, the password check), `solarpunk/project/access.py` (the role and the scope),
 and `test/solarpunk/test_accounts.py`, which runs this example.
+
+**A stale screen never overwrites another person's change** (12.2, SP-028). An asset, a fault, a suggestion and a
+ticket each carry a **version**, 1 when made, its column in the table of the module that owns the record, raised by one
+in the same write as every change to it: an asset's engineer; a fault's close; a suggestion's accept or dismiss; a
+ticket's move, assignee, note, priority and close. A comment changes no ticket (comments are only ever added, so none
+is lost). A write made from a screen names the version it read; one read at another version is refused with "<record>
+changed by someone else since you read it; refresh" and writes nothing (an accept that is refused opens no fault). A
+write that names no version (the scheduled run; the command line, which acts on what it reads in the same call) is not
+checked. A store made before 12.2 gains the columns on opening, every record at version 1.
+
+Worked example, over the same store: two screens read OAHE-INV-002's ticket (work order 1) at version 1.
+
+    the first screen sets its assignee to "crew B"             allowed: version 2
+    the second screen, read at version 1, acknowledges it      refused: "ticket 1 changed by someone else since you read it; refresh"
+    the ticket after the refusal                               open, assignee crew B, version 2
+    the second screen refreshes, reads version 2, acknowledges allowed: version 3
+
+Held by `solarpunk/leaf/versions.py` (the rule and its words), each owning module's version column, and
+`test/solarpunk/test_versions.py`, which runs this example.

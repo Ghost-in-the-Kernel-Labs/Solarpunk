@@ -19,7 +19,8 @@ class Asset:
     """One asset: Asset("OAHE-INV-003", AssetKind.INVERTER, "OAHE", None, "Inverter 3", 100.0, "10.0.0.3", 5020).
     rated_kw is None for an asset that produces nothing (a sensor, a meter, a tracker, a site); host and port are the
     endpoint its data feed is read from (Phase 2), None for an asset with no feed (a site, a string); location is where
-    the asset physically is, in words; engineer_email is who services it and whom the mailer writes to (Phase 2)."""
+    the asset physically is, in words; engineer_email is who services it and whom the mailer writes to (Phase 2); version
+is the stored record's (12.2)."""
 
     asset_id: str
     kind: AssetKind
@@ -31,6 +32,7 @@ class Asset:
     port: int | None = None
     location: str | None = None
     engineer_email: str | None = None
+    version: int = 1  # 12.2: raised by one with every change the registry stores
 
     def __post_init__(self) -> None:
         """A port is 1 to 65535 and comes with a host: Asset(…, host="10.0.0.3", port=0) raises ValueError."""

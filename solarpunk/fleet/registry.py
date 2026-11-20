@@ -4,6 +4,7 @@ import dataclasses
 import sqlite3
 
 from solarpunk.leaf.assets import Asset, parse_asset_id, site_id
+from solarpunk.leaf import versions
 from solarpunk.leaf.codes import AssetKind
 
 # The SQL lives here, at module level, where mutmut does not reach: SQLite reads keywords and names in any case, so a
@@ -20,15 +21,16 @@ SCHEMA = (
     " host TEXT,"
     " port INTEGER,"
     " location TEXT,"
-    " engineer_email TEXT)",
+    " engineer_email TEXT,"
+    f" {versions.COLUMN_SQL})",
 )
-SELECT = f"SELECT {COLUMNS} FROM assets WHERE {{column}} = ? ORDER BY asset_id"
+SELECT = f"SELECT {COLUMNS}, {versions.COLUMN} FROM assets WHERE {{column}} = ? ORDER BY asset_id"
 BY_ID = SELECT.format(column="asset_id")
 BY_SITE = SELECT.format(column="site")
 BY_KIND = SELECT.format(column="kind")
 BY_PARENT = SELECT.format(column="parent_id")
 INSERT = f"INSERT INTO assets ({COLUMNS}) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-SET_ENGINEER = "UPDATE assets SET engineer_email = ? WHERE asset_id = ?"
+SET_ENGINEER = f"UPDATE assets SET engineer_email = ?, {versions.BUMP} WHERE asset_id = ?"
 
 
 class RegistryError(ValueError):
@@ -41,10 +43,11 @@ def schema() -> tuple[str, ...]:
 
 
 def to_asset(row: sqlite3.Row) -> Asset:
-    """A row read back as a leaf Asset: the row ("OAHE-SEN-001", "SEN", "OAHE", None, "Sensor", None, …) gives
-    Asset("OAHE-SEN-001", AssetKind.SENSOR, "OAHE", None, "Sensor", None)."""
-    asset_id, kind, site, parent_id, name, rated_kw, host, port, location, engineer_email = row
-    return Asset(asset_id, AssetKind(kind), site, parent_id, name, rated_kw, host, port, location, engineer_email)
+    """A row read back as a leaf Asset: the row ("OAHE-SEN-001", "SEN", "OAHE", None, "Sensor", None, …, 1) gives
+    Asset("OAHE-SEN-001", AssetKind.SENSOR, "OAHE", None, "Sensor", None), at version 1."""
+    asset_id, kind, site, parent_id, name, rated_kw, host, port, location, engineer_email, version = row
+    return Asset(asset_id, AssetKind(kind), site, parent_id, name, rated_kw, host, port, location, engineer_email,
+                 version)
 
 
 def select(conn: sqlite3.Connection, query: str, value: str) -> tuple[Asset, ...]:
@@ -128,10 +131,18 @@ def known(conn: sqlite3.Connection, asset_id: str) -> Asset:
     return asset
 
 
-def assign_engineer(conn: sqlite3.Connection, asset_id: str, email: str) -> None:
-    """Sets the engineer who services one asset; the leaf's Asset refuses a malformed address with ValueError:
+def upgrade(conn: sqlite3.Connection) -> None:
+    """Gives an assets table made before 12.2 its version column, every asset at version 1."""
+    versions.add_column(conn, "assets")
+
+
+def assign_engineer(conn: sqlite3.Connection, asset_id: str, email: str, read_at: int | None = None) -> None:
+    """Sets the engineer who services one asset and raises its version; the leaf's Asset refuses a malformed address
+    with ValueError, and an asset read at an older version StaleWrite (12.2), each writing nothing:
     assign_engineer(conn, "OAHE-INV-002", "b@x.org") makes get(conn, "OAHE-INV-002").engineer_email "b@x.org"."""
-    checked = dataclasses.replace(known(conn, asset_id), engineer_email=email)
+    current = known(conn, asset_id)
+    versions.check(f"asset {asset_id}", current.version, read_at)
+    checked = dataclasses.replace(current, engineer_email=email)
     conn.execute(SET_ENGINEER, (checked.engineer_email, asset_id))
     conn.commit()
 
