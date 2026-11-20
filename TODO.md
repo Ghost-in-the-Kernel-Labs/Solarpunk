@@ -57,12 +57,8 @@ on a person.
 
 ## Phase 9: the fleet window as an operations root
 
-Lanes (P-15): 9.9 the tune-up commit. Reopened by SP-030 on Ghost's word, after running the window
+Lanes (P-15): 9.7, then 9.8, then 9.9 the tune-up commit. Reopened by SP-030 on Ghost's word, after running the window
 on his own machine: no icon, and no way from the root to add a test.
-
-### 9.9 Tune-up commit 9
-
-Check: `docs/when/tune-up.md` steps 1, 2, 5 and 6 (a reopened phase of three items or fewer); the metrics table written; the navigation log's "Last review" set.
 
 ## Phase 10: runs per asset
 

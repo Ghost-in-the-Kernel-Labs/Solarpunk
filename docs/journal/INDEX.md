@@ -95,3 +95,4 @@ Written from `docs/journal/` by `scripts/journal_index.py`; do not edit by hand.
 | J-089 | 9.7: the window's icon and the desktop shortcut | feature | `J-000-099.md` |
 | J-090 | The icon becomes Ghost's painted art (SP-031) | decision | `J-000-099.md` |
 | J-091 | 9.8: Manage tests | feature | `J-000-099.md` |
+| J-092 | Tune-up commit 9: Phase 9 closed again | measurement | `J-000-099.md` |
