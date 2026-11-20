@@ -28,3 +28,10 @@ An entry is `
 - **Opened**: `TODO.md`, `solarpunk/accounts/table.py`, `solarpunk/project/orchestrator.py`, `solarpunk/cli/main.py`, `solarpunk/cli/tickets.py`, `solarpunk/ui/app.py`, `solarpunk/ui/__main__.py`, `docs/CONTRACT.md`.
 - **Complaints**: 12.3's check did not say what a store with no accounts does, though 12.5 makes the first; it took a question to Ghost.
 - **Suggestions**: an item that depends on a later one names the dependency in its check.
+
+### 2026-11-20 · SP-033 and SP-034, CLAUDE.md's mandatory context · Claude
+- **Task**: find what eats mandatory context; move the supply-chain rules on the act out of CLAUDE.md; raise the ceiling.
+- **Opened**: `docs/HANDOFF.md`, `TODO.md`, `scripts/checks/metrics.py`, `docs/AGENT.md`, `theGhost.md` (C-034), `docs/SUPPLY-CHAIN.md`, `docs/LESSONS.md`, `docs/paths/process.md`, `scripts/checks/claude_md.py`, `test/test_claude_md.py`, `scripts/checks/supply_chain.py`, `scripts/checks/dependency_review.py`.
+- **Complaints**: the handoff's "Where the project stands" section is dated 2026-11-18 and its first-open-item line is one parenthetical of some forty clauses; the "Start here" section above it is what a reader needs. The mandatory-context metric counts CLAUDE.md alone, not the handoff it sends every agent to.
+- **Suggestions**: cut the handoff's stale section to what is still true; count the handoff in the metric, or make only its "Start here" section required reading.
+

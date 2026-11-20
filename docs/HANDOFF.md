@@ -23,9 +23,10 @@ What that session landed, newest first (the journal has each):
 - 9.7 (J-089): the icon on every window; `solarpunk --shortcut` puts a desktop shortcut wearing it.
 
 Mind, before adding:
-- Two metrics sit at their edge: mandatory context 1,197 of 1,200 words (trim before adding to `CLAUDE.md` or a file it
-  makes mandatory) and the largest file 398 of 400 lines (`test/solarpunk/test_project_run.py`: a new test of the
-  scheduled run goes in a new file). `solarpunk/project/orchestrator.py` is at 391.
+- One metric sits at its edge: the largest file 398 of 400 lines (`test/solarpunk/test_project_run.py`: a new test of
+  the scheduled run goes in a new file). `solarpunk/project/orchestrator.py` is at 391. Mandatory context is off its
+  edge: 1,123 of 1,500 words, by SP-033 (five supply-chain rules on the act moved to `docs/SUPPLY-CHAIN.md`, J-095)
+  and SP-034 (the ceiling raised on Ghost's word).
 - One fast loop ran 31 s on a loaded machine; two reruns ran 26 s. Watch it at the next measure.
 - The navigation log holds debriefs for 9.7, 9.8 (wiped at 9.9), 12.2 and 12.3 for the next pass; 12.1's agent's two
   suggestions are carried in J-092.

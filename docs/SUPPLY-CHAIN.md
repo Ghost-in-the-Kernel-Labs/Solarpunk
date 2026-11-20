@@ -1,9 +1,26 @@
 # Supply chain: what may enter this repository
 
-The binding rules are in `CLAUDE.md`, where every agent reads them on entry (C-034; a pointer to a
-binding rule got skipped once, F-02). This document is why they are what they are, the detail
-behind them, and where this repository stands on each. `test/test_supply_chain.py` holds what can
-be held mechanically.
+The binding rules an agent must obey before it knows it is in the situation are in `CLAUDE.md`, where
+every agent reads them on entry (C-034; a pointer to a binding rule got skipped once, F-02). The five
+that bind only an act the agent chooses are below, under "Rules on the act", behind one When line in
+`CLAUDE.md`; a check in the fast loop refuses each one's breach, so a skipped pointer costs a red run,
+not a breach (SP-033). This document is why the rules are what they are, the detail behind them, and
+where this repository stands on each. `test/test_supply_chain.py` holds what can be held mechanically.
+
+## Rules on the act (binding; SP-033)
+
+Read before you add, remove or update a dependency, write a workflow, or put a fake key in a test.
+`scripts/checks/claude_md.py` holds these lines word for word.
+
+- Never add or remove a dependency without a one-line reason in the decision log and Ghost's approval; never update one unread: an update comes in by `docs/DEPENDENCY-REVIEW.md` (C-035), routine ones automatically, the rest with a question for Ghost.
+- Every GitHub Action is pinned to a full commit SHA. Every workflow starts with `permissions: contents: read`.
+- Never use pull_request_target, self-hosted runners, toJSON(secrets), or scheduled triggers without approval.
+- A fake key in a test is assembled at runtime from fragments, so no key-shaped literal exists in source.
+- The commit path refuses a staged file or diff that matches a key pattern (`scripts/checks/secrets.py`).
+
+Their backstops: a pin with no reviewed row (`scripts/checks/dependency_review.py`); a workflow
+unpinned, without the permissions line, or with any trigger but `workflow_dispatch`
+(`scripts/checks/supply_chain.py`); a key-shaped literal (`scripts/checks/secrets.py`).
 
 **This document is about Solarpunk** (https://github.com/Ghost-in-the-Kernel-Labs/Solarpunk).
 A document distributed to a project's agent applies to that project only: an Opus agent assigned to

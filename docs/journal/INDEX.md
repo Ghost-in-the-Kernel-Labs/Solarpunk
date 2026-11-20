@@ -98,3 +98,4 @@ Written from `docs/journal/` by `scripts/journal_index.py`; do not edit by hand.
 | J-092 | Tune-up commit 9: Phase 9 closed again | measurement | `J-000-099.md` |
 | J-093 | 12.2: versions | feature | `J-000-099.md` |
 | J-094 | 12.3: signing in (SP-032) | feature | `J-000-099.md` |
+| J-095 | SP-033 and SP-034: the supply-chain rules on the act move out of CLAUDE.md; its ceiling is 1,500 | decision | `J-000-099.md` |

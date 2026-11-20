@@ -41,7 +41,7 @@ stamped project inherits these lines and its tune-up pass re-measures the first.
 
 | Metric | Target | Measured | Why it matters to the agent |
 | --- | --- | --- | --- |
-| Mandatory context (words) | < 1,200 | 1197 | every task pays it |
+| Mandatory context (words) | < 1,500 | 1123 | every task pays it |
 | Fast loop (s) | < 30 | 24.3 | run after every edit |
 | Gate (min) | < 10 | 1.3 | paid before every push |
 | Largest source file (lines) | < 400 | 398 | fits a read without paging |

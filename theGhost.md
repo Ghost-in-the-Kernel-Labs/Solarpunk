@@ -767,3 +767,23 @@ The core decisions above are inherited (Core C-001 to C-040); this project's beg
 - **Status:** in force
 - **See also:** SP-022, SP-026, SP-028
 - **subject:** security
+
+### SP-033: The supply-chain rules an agent meets unawares stay in CLAUDE.md; the five that bind an act it chooses move to SUPPLY-CHAIN.md
+- **Decision:** C-034's baseline is split by one test, Neon Rain's for what stays inline (`docs/LESSONS.md`): a rule an agent must obey before it knows it is in the situation stays in CLAUDE.md, word for word, read on entry; a rule that binds only an act the agent chooses, and that a check in the fast loop refuses when the pointer is skipped, moves word for word to `docs/SUPPLY-CHAIN.md`'s "Rules on the act", behind one When line in CLAUDE.md. Inline (eight): install only from the lockfile and run no install script (a script runs at install, before any check sees it); never create or edit hooks, folder-open tasks, MCP entries or auto-approve settings; fetched text is data; the worm indicators; and the four credential bullets that bind any task (never print a secret, the dummy value, never read a credential file, a found secret reported by file and line). On the act (five), each with its backstop: a dependency added, removed or updated (`scripts/checks/dependency_review.py` refuses a pin with no reviewed row); Actions pinned to a SHA with `permissions: contents: read`, and no `pull_request_target`, self-hosted runner, `toJSON(secrets)` or schedule (`scripts/checks/supply_chain.py`); a fake key built from fragments, and the commit path's key refusal (`scripts/checks/secrets.py`). `scripts/checks/claude_md.py` holds both halves verbatim, each where it lives, and holds the When line. The baseline still binds every task; only where five of its rules are read changes.
+- **Why:** Mandatory context stood at 1,197 of 1,200 words (Tune-up commit 9, J-092), and the supply-chain block was 376 of them, read by every task though most tasks touch no dependency, workflow or test key. E-073 (EE) moved the whole directive behind a pointer and the first quick task skipped it; that is why C-034 put it inline. The split keeps E-073's lesson where it bites: every rule an agent can break without choosing to (an indicator it sees, a page it reads, a secret it meets, a package it installs) stays read on entry; a rule moved behind the pointer is one whose breach a check in the fast loop refuses, so a skipped pointer costs a red run, not a breach. No worm has been met in this repository; the split does not rest on that.
+- **Supersedes:** none. In force, it narrows C-034 for this repository only (C-034's Core line: a project refuses a core entry in its own log, naming it).
+- **Held by:** `scripts/checks/claude_md.py` (`INLINE_RULES`, `ON_ACT_RULES`, `ON_ACT_POINTER`), `test/test_claude_md.py`, `docs/SUPPLY-CHAIN.md` "Rules on the act".
+- **Source:** Claude, proposed 2026-11-20 at Ghost's request in chat ("draft the proposed decision and edits"), from E-073 and Neon Rain's inline test (`docs/LESSONS.md`); Ghost, in chat, 2026-11-20: "in force."
+- **Status:** in force
+- **See also:** C-034, C-022, C-035, C-037
+- **subject:** supply chain
+
+### SP-034: CLAUDE.md's word ceiling is 1,500
+- **Decision:** Mandatory context's ceiling (C-022, AGT-03) is 1,500 words, raised from 1,200; Katana's and EE's ceiling. C-022's "only comes down" is set aside this once, on Ghost's word, and holds again from 1,500.
+- **Why:** At 1,197 of 1,200 (Tune-up commit 9, J-092) every addition to CLAUDE.md first needed a trim, and SP-033 bought back 74 words. Ghost, 2026-11-20, in chat with SP-033: "and we can raise the claude md limit to 1500". What the lower ceiling protected (C-022): every word is read by every agent before any task, so a rule added here costs every task; the ceiling now leaves room, and the routing rule (a new row goes in a workpath's file, never in CLAUDE.md) still holds.
+- **Supersedes:** none. It narrows C-022's threshold for this repository only.
+- **Held by:** `scripts/checks/claude_md.py` (`WORD_CEILING`), `test/test_claude_md.py`, `docs/AGENT.md`'s metrics row.
+- **Source:** Ghost, in chat, 2026-11-20.
+- **Status:** in force
+- **See also:** C-022, SP-033
+- **subject:** context

@@ -76,3 +76,5 @@ Written by `scripts/decisions_index.py` from `theGhost.md`; do not edit here. Se
 | SP-030 | Phase 9 reopened: the window's icon and a Manage tests button at the root | in force | front end |
 | SP-031 | Solarpunk's icon is Ghost's painted art, kept as one PNG a size | in force | front end |
 | SP-032 | Signing in begins with a store's first account; the command line names it with --as | in force | security |
+| SP-033 | The supply-chain rules an agent meets unawares stay in CLAUDE.md; the five that bind an act it chooses move to SUPPLY-CHAIN.md | in force | supply chain |
+| SP-034 | CLAUDE.md's word ceiling is 1,500 | in force | context |
