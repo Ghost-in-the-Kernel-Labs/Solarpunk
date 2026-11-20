@@ -26,7 +26,8 @@ On Windows the repository's `solarpunk.cmd` makes it one word, typed in the `Sol
 folder on PATH): `solarpunk` opens the window, `solarpunk --demo` the demo, `solarpunk test run --db demo.db` runs the
 remote tests, `solarpunk test list` and `solarpunk test add <name> --clause <id>` as above, `solarpunk report <site>
 <start> <end>` the power-output report; the clause report is `solarpunk clauses`, and `solarpunk --help` lists every
-command. In the window, "Reports" opens the same report with the site's power curve. `DEMO.md` has the setup, the click
+command. `solarpunk --shortcut`, typed in the folder that holds your store, puts a Solarpunk shortcut wearing her icon on
+the desktop. In the window, "Reports" opens the same report with the site's power curve. `DEMO.md` has the setup, the click
 order and the talk track. `scripts/save.sh` saves a session's work on its own branch, `scripts/gate.sh --fast` is the
 check before a landing, `scripts/commit.sh -a -F <message> --ship` lands it and pushes `main` in one step, `main`
 moving only once origin takes it (SP-014), and the full `scripts/gate.sh` runs at each tune-up (C-040).

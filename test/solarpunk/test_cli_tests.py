@@ -159,7 +159,7 @@ class Help(TestCommands):
     def test_the_list_names_the_window_and_starts_plainly(self) -> None:
         lines = cli.HELP.splitlines()
         self.assertTrue(lines[0].startswith("Solarpunk: the commands."))
-        for typed in ("solarpunk", "solarpunk --demo", "solarpunk --db PATH", "solarpunk --help"):
+        for typed in ("solarpunk", "solarpunk --demo", "solarpunk --db PATH", "solarpunk --shortcut", "solarpunk --help"):
             with self.subTest(typed=typed):
                 self.assertEqual(len([line for line in lines if line.startswith(f"  {typed}  ")]), 1)
 

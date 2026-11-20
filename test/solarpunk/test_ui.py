@@ -147,12 +147,12 @@ class TheWords(unittest.TestCase):
 @unittest.skipUnless(HAS_TKINTER, "no tkinter")
 class TheEntryHeadless(unittest.TestCase):
     def test_the_arguments(self) -> None:
-        self.assertEqual(vars(entry.parse([])), {"db": "solarpunk.db", "demo": False})
-        self.assertEqual(vars(entry.parse(["--db", "f.db", "--demo"])), {"db": "f.db", "demo": True})
+        self.assertEqual(vars(entry.parse([])), {"db": "solarpunk.db", "demo": False, "shortcut": False})
+        self.assertEqual(vars(entry.parse(["--db", "f.db", "--demo"])), {"db": "f.db", "demo": True, "shortcut": False})
         shown = io.StringIO()
         with redirect_stdout(shown), self.assertRaises(SystemExit):
             entry.parse(["--help"])
-        self.assertTrue(shown.getvalue().startswith("usage: solarpunk.ui [-h] [--db DB] [--demo]"))
+        self.assertTrue(shown.getvalue().startswith("usage: solarpunk.ui [-h] [--db DB] [--demo] [--shortcut]"))
 
 
 @unittest.skipUnless(display_available(), "no display")

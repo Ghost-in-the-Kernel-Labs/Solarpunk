@@ -57,14 +57,8 @@ on a person.
 
 ## Phase 9: the fleet window as an operations root
 
-Lanes (P-15): 9.7, then 9.8, then 9.9 the tune-up commit. Reopened by SP-030 on Ghost's word, after running the window
+Lanes (P-15): 9.8, then 9.9 the tune-up commit. Reopened by SP-030 on Ghost's word, after running the window
 on his own machine: no icon, and no way from the root to add a test.
-
-### 9.7 The window's icon
-
-The windows carry Solarpunk's icon in the title bar and the taskbar (SP-030).
-
-Check: the solar-panel glyph drawn as an image at runtime (no binary file in the repository), its pixels a pure function tested headless; every Solarpunk window takes it as its icon (`iconphoto`, which Windows shows in the taskbar too); the screenshot read back; the fast loop green.
 
 ### 9.8 Manage tests
 

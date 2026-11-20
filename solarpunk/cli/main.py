@@ -26,6 +26,7 @@ The window
   solarpunk                                    open the fleet window on solarpunk.db in this folder, made if missing
   solarpunk --demo                             rebuild demo.db and open the demo
   solarpunk --db PATH                          open the window on another store
+  solarpunk --shortcut                         put a Solarpunk shortcut, with its icon, on the desktop
   solarpunk --help                             this list
 
 The remote tests
