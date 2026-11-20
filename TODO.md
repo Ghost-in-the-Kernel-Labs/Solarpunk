@@ -161,7 +161,7 @@ Check: `docs/when/tune-up.md` followed in full; the metrics table written; the n
 
 ## Phase 14: the network's security
 
-Lanes (P-15): 14.1 alone, then the items its decisions call for, then the pass. Moved after Phase 6 by SP-013, after Phase 7 by SP-015 after the tests' record by SP-016, and after tickets and accounts by SP-022.
+Lanes (P-15): 14.1 alone, then 14.2 (company sign-in) and the items its decisions call for, then the pass. Moved after Phase 6 by SP-013, after Phase 7 by SP-015 after the tests' record by SP-016, and after tickets and accounts by SP-022.
 
 ### 14.1 Network security: an engineering pass over the feed and the receiver
 
@@ -178,7 +178,18 @@ production), with Phase 12's accounts as the identities.
 
 Check: `docs/NETWORK-SECURITY.md` holds the pass: what the feed (`solarpunk/feed/`) and the receiver (`solarpunk/receiver/`) do on the wire today, a threat model for each, and for each of the five needs (authenticated asset connections, transport encryption, authorization of fault submissions, replay protection, network segmentation and deployment controls) a proposed decision in `docs/decisions.md` with the options weighed, what the standard library alone can carry and what would need a dependency (Ghost's approval, C-034); the items that build each decision Ghost puts in force are added to this phase before its pass (the pass renumbered to the phase's end). No code changes in this item: the design is Ghost's to rule on first.
 
-### 14.2 Tune-up pass 14
+### 14.2 Company sign-in
+
+Enterprise authentication: an account signs in with the organisation's identity (Microsoft Entra ID, Google) as well as,
+or instead of, a Solarpunk password (SP-026, SP-029).
+
+Check: the pass of 14.1 holds a proposed decision for it (OpenID Connect against the organisation's identity provider,
+or none; whether a dependency is needed, Ghost's approval, C-034); if Ghost puts one in force, an account of 12.1 is
+linked to an outside identity by its email, a sign-in through it gives the same account and its role and sites, a
+Solarpunk password stays for a machine with no provider, and the items that build it are written here before the pass;
+no code until the decision; the fast loop green.
+
+### 14.3 Tune-up pass 14
 
 Check: `docs/when/tune-up.md` followed in full; the metrics table written; the navigation log's "Last review" set.
 
@@ -198,3 +209,142 @@ Check: from the decisions Phase 14 puts in force, the items that build the serve
 
 Check: `docs/when/tune-up.md` followed in full; the metrics table written; the navigation log's "Last review" set.
 
+## Phase 16: condition and maintenance planning
+
+Lanes (P-15): 16.1 first (the contract section and the baselines), then 16.2 and 16.3 in parallel, then 16.4 the pass.
+Ghost's direction, SP-029: asset condition baselines, preventive maintenance scheduling and condition-based maintenance,
+from `docs/GOAL.md` areas 1 and 3.
+
+### 16.1 Asset condition baselines
+
+What normal looks like for each asset, so a reading can be judged against the asset's own past (SP-029).
+
+Check: a contract section first: a baseline per asset and measure (power per irradiance band for an inverter, first),
+the window it is learnt over, the records it needs before it holds, and its worked example over synthetic days; the
+baseline recomputed from stored samples, never kept apart from them; a query giving each asset's reading beside its
+baseline and the gap between them, with the records and gaps that explain it; an asset with too few records says so;
+the fast loop green.
+
+### 16.2 Preventive maintenance scheduling
+
+Preventive work orders opened by a schedule, not by hand (SP-029).
+
+Check: a schedule per asset kind (a task, an interval in days or in running hours) in the asset maintenance list,
+checked against the list as the tests are; the scheduled run opens a preventive work order when one falls due, once,
+never twice for one due date; a query of what is due and overdue; the work orders' tickets carry them to the Tickets
+window; the fast loop green.
+
+### 16.3 Condition-based maintenance
+
+Maintenance decided by what the asset's condition shows (SP-029).
+
+Check: a rule per measure that opens a preventive work order (or suggests one, SP-015) when a reading falls past its
+baseline (16.1) by a stated margin for a stated time, its worked example in the contract; the work order names the
+reading and the baseline that opened it; a rule never fires twice for one excursion; the over- and under-maintaining
+counts of `docs/GOAL.md` (work done with no change in condition, condition worsening with no work) as a query; the fast
+loop green.
+
+### 16.4 Tune-up pass 16
+
+Check: `docs/when/tune-up.md` followed in full; the metrics table written; the navigation log's "Last review" set.
+
+## Phase 17: anomaly detection and alarm correlation
+
+Lanes (P-15): 17.1, then 17.2, then 17.3 the pass. Ghost's direction, SP-029, from `docs/GOAL.md` area 2. Deterministic
+methods with worked examples; no model client (MOD-03) without a decision of its own.
+
+### 17.1 Anomaly detection
+
+A reading unlike the asset's own past or its neighbours' is flagged (SP-029).
+
+Check: a contract section first: each method (a deviation from the 16.1 baseline beyond a stated band; a reading
+unlike the same-kind assets of its site at the same instant), its parameters as named constants with why, and a worked
+example; an anomaly is a suggestion (SP-015), never a fault, its reason naming the reading and what it was held
+against; a test's planted anomaly found and a normal synthetic day not flagged; the fast loop green.
+
+### 17.2 Alarm correlation
+
+Many alarms with one cause are seen as one (SP-029).
+
+Check: a contract section first: alarms (faults, suggestions, failed tests) grouped when they fall within a stated
+window on assets of one parent chain (a site, an inverter and its strings), the group's likely root named (the highest
+asset in the chain that alarmed), with a worked example; the asset and Runs windows show an alarm's group; a group is a
+reading recomputed when asked, never stored apart; the fast loop green.
+
+### 17.3 Tune-up pass 17
+
+Check: `docs/when/tune-up.md` followed in full; the metrics table written; the navigation log's "Last review" set.
+
+## Phase 18: quality management
+
+Lanes (P-15): 18.1, 18.2 and 18.3 in parallel, then 18.4 the pass. Ghost's direction, SP-029: inspection checklists and
+evidence, CAPA effectiveness verification and document control, from `docs/GOAL.md` area 4.
+
+### 18.1 Inspection checklists and evidence
+
+A ticket's work is done against a checklist, and what proves it is kept (SP-029).
+
+Check: a checklist per asset kind and work type in a declared file, checked as the maintenance list is; a ticket of
+that kind carries its checklist, each step done, failed or not applicable with who and when; resolving needs every step
+answered; evidence (a note, a reading, a file's name and hash, never the file in the repository, C-033) attached to a
+step and kept, never edited or deleted; the asset window's ticket panel shows the steps; clause register rows for ISO
+9001 7.5 and 8.5; the fast loop green.
+
+### 18.2 CAPA effectiveness verification
+
+A corrective action is checked to have worked (SP-029).
+
+Check: a contract section first: a closed corrective ticket is verified after a stated period by whether its fault's
+code recurred on its asset (`repeated_causes`), with a worked example; a verification due is listed; a recurrence
+reopens the question as a nonconformity, a quiet period marks the action effective; who verified and when are kept;
+the clause register's ISO 9001 10.2 row names the test; the fast loop green.
+
+### 18.3 Document control
+
+The procedures the work follows are versioned, approved and current (SP-029).
+
+Check: a register of controlled documents (a title, a version, an owner, an approval, a review date), each a document in
+the repository or named by its hash outside it; a superseded version kept, never deleted; a document past its review
+date listed; a checklist (18.1) names the document version it follows; clause register rows for ISO 9001 7.5.2 and
+7.5.3; the fast loop green.
+
+### 18.4 Tune-up pass 18
+
+Check: `docs/when/tune-up.md` followed in full; the metrics table written; the navigation log's "Last review" set.
+
+## Phase 19: contractor performance management
+
+Lanes (P-15): 19.1, then 19.2 the pass. Ghost's direction, SP-029, from `docs/GOAL.md` area 5.
+
+### 19.1 Contractors and their scorecard
+
+Who does the work, and how well (SP-029).
+
+Check: a contractor (a name, the sites and asset kinds it serves) set on a ticket; a scorecard per contractor over a
+period: its tickets' acknowledgement and response targets met and late (SOL-14), its fixes that held (18.2), its open
+backlog, each number beside the counts that explain it, a contract section and worked example first; a report window
+and `solarpunk report contractors`; the fast loop green.
+
+### 19.2 Tune-up pass 19
+
+Check: `docs/when/tune-up.md` followed in full; the metrics table written; the navigation log's "Last review" set.
+
+## Phase 20: multiple inverter vendors
+
+Lanes (P-15): 20.1, then 20.2 the pass. Ghost's direction, SP-029; after the network's security (Phase 14), which rules
+how a device is reached.
+
+### 20.1 Vendor profiles
+
+Inverters of more than one maker read as one fleet (SP-029, superseding in part ROADMAP §4's "no connection to a real
+device").
+
+Check: a vendor profile per maker (its register map over SunSpec models or its own, its units and scale factors, its
+status and fault words mapped to the catalogue) in a declared file, checked as the maintenance list is; an asset names
+its vendor; the feed normalizes every vendor's reading to the leaf's sample, and the simulator serves at least two
+vendors' maps; a reading a profile cannot map is refused by name, never guessed; whether a real device is connected is a
+decision of its own (Phase 14's); the fast loop green.
+
+### 20.2 Tune-up pass 20
+
+Check: `docs/when/tune-up.md` followed in full; the metrics table written; the navigation log's "Last review" set.

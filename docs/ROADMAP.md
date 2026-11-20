@@ -60,7 +60,8 @@ The core's principles, copied from Ghost-Core when this project was stamped; add
   A REST service was here too until SP-022: a central server with an authenticated API is Phase 15, after the security
   pass (Phase 14; renumbered by SP-023 and SP-024).
 - A connection to a real SCADA, CMMS or revenue meter: telemetry is synthetic and deterministic; an adapter is a
-  later project's.
+  later project's. SP-029 puts vendor profiles on the roadmap (Phase 20), normalized and simulated; a real device
+  connected stays a decision of its own.
 - A claim of conformance or certification to ISO 9001 or ISO 55000: the register says which requirements the
   checks can flag, in the project's words; the standards' text is not reproduced (SOL-12).
 - A model client: `docs/modules.json`'s `forbidden` list; a judge, if ever, is a decision first (MOD-03).
@@ -466,7 +467,10 @@ diagnostics by SP-013, after fault assignment by SP-015, after the tests' record
   conduits, and NERC CIP-003 for a large US plant. It adds a sixth threat to the five: the feed client trusts whatever
   answers at the host and port (spoofed telemetry). Since SP-022 it also designs the central server of Phase 15: its
   authenticated API, accounts and tokens on the wire, TLS, and whether the server may use a vetted dependency.
-- **14.2 Tune-up pass 14.**
+- **14.2 Company sign-in (SP-029).** Enterprise authentication: a proposed decision in the pass (OpenID Connect against
+  Entra ID or Google, or none; a dependency, Ghost's approval); if put in force, an account of 12.1 linked to an outside
+  identity by its email, the Solarpunk password kept for a machine with none.
+- **14.3 Tune-up pass 14.**
 
 ### Phase 15: the network
 
@@ -478,3 +482,52 @@ written when they are in force.
   each with its check, written from Phase 14's decisions.
 - **15.2 Tune-up pass 15.**
 
+### Phase 16: condition and maintenance planning
+
+Ghost's direction of 2026-11-20 (SP-029): the gaps `docs/GOAL.md` names in areas 1 and 3, put on the roadmap.
+
+- **16.1 Asset condition baselines.** What normal is for each asset and measure, learnt from its stored samples, a
+  reading shown beside its baseline with the gap and the counts that explain it; a contract section first.
+- **16.2 Preventive maintenance scheduling.** A schedule per asset kind in the maintenance list; the scheduled run opens
+  a preventive work order when one falls due, once; what is due and overdue as a query.
+- **16.3 Condition-based maintenance.** A reading past its baseline by a margin for a time opens (or suggests) preventive
+  work; the over- and under-maintaining counts of `docs/GOAL.md` as a query.
+- **16.4 Tune-up pass 16.**
+
+### Phase 17: anomaly detection and alarm correlation
+
+Ghost's direction of 2026-11-20 (SP-029), `docs/GOAL.md` area 2. Deterministic methods with worked examples; no model
+client (MOD-03) without a decision.
+
+- **17.1 Anomaly detection.** A reading unlike the asset's own baseline or its same-kind neighbours, flagged as a
+  suggestion (SP-015) with its reason.
+- **17.2 Alarm correlation.** Alarms within a window on one parent chain grouped, the highest alarming asset named the
+  likely root; a reading recomputed when asked.
+- **17.3 Tune-up pass 17.**
+
+### Phase 18: quality management
+
+Ghost's direction of 2026-11-20 (SP-029), `docs/GOAL.md` area 4.
+
+- **18.1 Inspection checklists and evidence.** A checklist per kind and work type carried by a ticket, each step
+  answered by who and when, evidence kept and never edited; resolving needs every step answered.
+- **18.2 CAPA effectiveness verification.** A closed corrective ticket verified after a period by whether its cause
+  recurred, effective or reopened as a nonconformity.
+- **18.3 Document control.** A register of controlled documents, versioned, approved, reviewed, a superseded version kept.
+- **18.4 Tune-up pass 18.**
+
+### Phase 19: contractor performance management
+
+Ghost's direction of 2026-11-20 (SP-029), `docs/GOAL.md` area 5.
+
+- **19.1 Contractors and their scorecard.** A contractor on a ticket; its targets met and late, its fixes that held, its
+  backlog, each beside its counts; a window and a report command.
+- **19.2 Tune-up pass 19.**
+
+### Phase 20: multiple inverter vendors
+
+Ghost's direction of 2026-11-20 (SP-029), after the network's security rules how a device is reached.
+
+- **20.1 Vendor profiles.** Each maker's register map, units and fault words in a declared profile, normalized to the
+  leaf's sample by the feed; the simulator serves two makers; whether a real device is connected is a decision of its own.
+- **20.2 Tune-up pass 20.**

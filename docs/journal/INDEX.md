@@ -89,3 +89,4 @@ Written from `docs/journal/` by `scripts/journal_index.py`; do not edit by hand.
 | J-083 | 11.2: tickets in the windows and on the command line | feature | `J-000-099.md` |
 | J-084 | Tune-up pass 11: Phase 11 closed | measurement | `J-000-099.md` |
 | J-085 | The accounts module approved; 12.1 split in two (SP-028) | decision | `J-000-099.md` |
+| J-086 | Thirteen named gaps put on the roadmap: Phases 16 to 20 and a company sign-in (SP-029) | decision | `J-000-099.md` |

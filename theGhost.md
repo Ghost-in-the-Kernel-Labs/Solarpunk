@@ -727,3 +727,13 @@ The core decisions above are inherited (Core C-001 to C-040); this project's beg
 - **Status:** in force
 - **See also:** SP-026, SP-022, SP-027
 - **subject:** tickets and accounts
+
+### SP-029: The platform's named gaps put on the roadmap, as Phases 16 to 20 and a company sign-in in 14
+- **Decision:** thirteen capabilities Ghost listed as not implemented are placed: network security architecture and the centralized multi-site server stay Phases 14 and 15; enterprise authentication becomes 14.2, company sign-in, a proposed decision in the security pass before any code; and five new phases follow the network, in this order: 16 condition and maintenance planning (asset condition baselines, preventive maintenance scheduling, condition-based maintenance), 17 anomaly detection and alarm correlation (deterministic, no model client without a decision, MOD-03), 18 quality management (inspection checklists and evidence, CAPA effectiveness verification, document control), 19 contractor performance management, 20 multiple inverter vendors (vendor profiles over SunSpec or a maker's own map, normalized and simulated). Each new phase's numbers arrive with a contract section and worked example first, as the project's numbers do.
+- **Why:** Ghost, 2026-11-20, asked which of the thirteen were on the roadmap or planned (three were: 14, 15 and, in part, company sign-in; eight were named in `docs/GOAL.md` but unplanned; one, vendors, was excluded by ROADMAP §4), then: "Put these items on the roadmap as todo items." Their order is the coordinator's proposal: after the network, since condition and analytics read what the server will hold, and vendors after the security pass that rules how a device is reached; Ghost may reorder them.
+- **Supersedes:** ROADMAP §4's "a connection to a real SCADA … is a later project's", in part: vendor profiles, normalized and simulated, are Phase 20; a real device connected stays a decision of its own.
+- **Held by:** `docs/ROADMAP.md` §4 and Phases 14 and 16 to 20; `TODO.md`; `README.md`.
+- **Source:** Ghost, in chat, 2026-11-20.
+- **Status:** in force
+- **See also:** SP-022, SP-026, SP-024, SP-015
+- **subject:** roadmap

@@ -50,6 +50,13 @@ moving only once origin takes it (SP-014), and the full `scripts/gate.sh` runs a
   SP-020).
 - Phase 14, the network's security (the feed, the receiver, and the central server's design): not started.
 - Phase 15, the network (a central server with many clients, planned from Phase 14's decisions): not started.
+- Phase 16, condition and maintenance planning (baselines, preventive schedules, condition-based work): not started
+  (SP-029).
+- Phase 17, anomaly detection and alarm correlation: not started (SP-029).
+- Phase 18, quality management (inspection checklists and evidence, CAPA effectiveness, document control): not started
+  (SP-029).
+- Phase 19, contractor performance management: not started (SP-029).
+- Phase 20, multiple inverter vendors (vendor profiles, normalized and simulated): not started (SP-029).
 
 `docs/ROADMAP.md` holds the plan, `TODO.md` the open items in order, `docs/DONE.md` what is finished;
 `test/test_readme.py` holds each line above to those two files.
