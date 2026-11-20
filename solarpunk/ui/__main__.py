@@ -23,6 +23,7 @@ from solarpunk.ui.add_asset import AddAssetWindow
 from solarpunk.ui.app import FleetWindow
 from solarpunk.ui.errors_window import ErrorsWindow
 from solarpunk.ui.runs_window import RunsWindow
+from solarpunk.ui.tests_window import ManageTestsWindow
 from solarpunk.ui.tickets_window import TicketsWindow
 from solarpunk.ui.asset_window import AssetWindow
 from solarpunk.ui.reports import ReportsWindow
@@ -32,6 +33,7 @@ DEFAULT_DB = "solarpunk.db"
 TITLE = "Solarpunk fleet"
 DEMO_TITLE = "Solarpunk fleet — demo (OAHE, 2026-06-01)"
 ADD_ASSET = "Add asset"
+MANAGE_TESTS = "Manage tests"
 REPORTS = "Reports"
 ERRORS = "Errors"
 TICKETS = "Tickets"
@@ -65,8 +67,8 @@ def run_line(report: project.RunReport) -> str:
 
 def open_fleet(root: tkinter.Tk, conn: sqlite3.Connection) -> FleetWindow:
     """The fleet window wired to the others: a click opens AssetWindow(root, conn, id, on_change=refresh), the "Add asset"
-    button in the window's toolbar opens AddAssetWindow(root, conn, on_saved) which refreshes after a save, and "Reports"
-    beside it opens ReportsWindow(root, conn) (6.3), then "Errors" the fleet's ErrorsWindow, whose rows open a Runs window
+    button in the window's toolbar opens AddAssetWindow(root, conn, on_saved) which refreshes after a save, "Manage tests"
+    beside it the ManageTestsWindow over the remote tests' folder (9.8), and "Reports" after it opens ReportsWindow(root, conn) (6.3), then "Errors" the fleet's ErrorsWindow, whose rows open a Runs window
     (10.7), then "Tickets" the TicketsWindow, a double click opening the ticket's asset window (11.2); Refresh stands
     at the toolbar's right (9.5)."""
     window = FleetWindow(root, conn)
@@ -76,6 +78,8 @@ def open_fleet(root: tkinter.Tk, conn: sqlite3.Connection) -> FleetWindow:
     window.add_button = ttk.Button(bar, text=ADD_ASSET,
                                    command=lambda: AddAssetWindow(root, conn, lambda asset_id: window.refresh()))
     window.add_button.pack(side=tkinter.LEFT)
+    window.tests_button = ttk.Button(bar, text=MANAGE_TESTS, command=lambda: ManageTestsWindow(root))
+    window.tests_button.pack(side=tkinter.LEFT)  # 9.8: between Add asset and Reports
     window.reports_button = ttk.Button(bar, text=REPORTS, command=lambda: ReportsWindow(root, conn))
     window.reports_button.pack(side=tkinter.LEFT)
     window.errors_button = ttk.Button(bar, text=ERRORS, command=lambda: ErrorsWindow(root, conn, window.on_open_runs))

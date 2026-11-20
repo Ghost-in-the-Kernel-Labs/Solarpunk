@@ -53,7 +53,8 @@ from solarpunk.project.suggest import (
     suggest_from_run,
     suggest_pushed,
 )
-from solarpunk.project.run import RunReport, add_remote_test, remote_tests, scheduled_run
+from solarpunk.project.run import (RunReport, add_remote_test, remote_tests, remote_tests_folder, scheduled_run,
+                                   survey_remote_tests)
 from solarpunk.project.surface import (
     AssetDetail,
     Attention,
@@ -70,7 +71,7 @@ from solarpunk.project.surface import (
     register_asset,
     store_name,
 )
-from solarpunk.remote.registry import RemoteTest
+from solarpunk.remote.registry import RemoteTest, Surveyed
 from solarpunk.remote.results import Recorded
 from solarpunk.remote.suggestions import Suggestion, SuggestionError
 from solarpunk.workorders.ledger import WorkOrder, WorkOrderError
@@ -147,6 +148,7 @@ __all__ = [
     "Recorded",
     "RegistryError",
     "RemoteTest",
+    "Surveyed",
     "Role",
     "RootCause",
     "Run",
@@ -168,6 +170,7 @@ __all__ = [
     "account_of",
     "accounts",
     "add_remote_test",
+    "survey_remote_tests",
     "asset_code_counts",
     "asset_detail",
     "asset_power",
@@ -223,6 +226,7 @@ __all__ = [
     "power_report",
     "register_asset",
     "remote_tests",
+    "remote_tests_folder",
     "report_csv",
     "report_day",
     "report_rows",

@@ -94,3 +94,4 @@ Written from `docs/journal/` by `scripts/journal_index.py`; do not edit by hand.
 | J-088 | Phase 9 reopened: the window's icon and Manage tests (SP-030) | decision | `J-000-099.md` |
 | J-089 | 9.7: the window's icon and the desktop shortcut | feature | `J-000-099.md` |
 | J-090 | The icon becomes Ghost's painted art (SP-031) | decision | `J-000-099.md` |
+| J-091 | 9.8: Manage tests | feature | `J-000-099.md` |

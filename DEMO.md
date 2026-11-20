@@ -91,8 +91,11 @@ derate on OAHE-INV-001 (10:00 to 10:45). The run is stamped 2026-06-01 13:00 UTC
 6. **The engineer.** In the same window type an address into Engineer and press Save, or Cancel to leave it.
 7. **Add asset** (the button above the list). The Type dropdown is read from the asset maintenance list. Fill an
    id such as OAHE-INV-005, a parent, the IP address 127.0.0.1 and a port, press Save: the new row appears in the
-   fleet window. Then press **Ping**: with nothing listening on that port it says so, plainly.
-8. **Reports** (beside Add asset). The power-output report for OAHE over the demo day: the site's row first (1591.6 kWh,
+   fleet window. Then press **Ping**: with nothing listening on that port it says so, plainly. **Manage tests**
+   (beside it) lists every test script with its kinds, clauses and the codes a failure suggests; a script that cannot
+   load is listed in red with its reason. **Open folder** shows the scripts, **New test** writes one to fill in, and
+   **Reload** finds a script dropped into the folder.
+8. **Reports** (beside Manage tests). The power-output report for OAHE over the demo day: the site's row first (1591.6 kWh,
    peak 187.2 kW, 7.96 kWh per kW of rating, capacity factor 0.33), then each inverter's, each with its records and
    gaps, and the site's power curve over the day in UTC. The line breaks where an inverter has a gap, never dropping to
    the other's share. **Save as CSV** writes the same file as `solarpunk report OAHE <start> <end> --csv`. Swap the

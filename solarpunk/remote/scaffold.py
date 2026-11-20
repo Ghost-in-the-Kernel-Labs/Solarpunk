@@ -78,8 +78,9 @@ def write(folder: Path, name: str, kinds: tuple[AssetKind, ...], clauses: tuple[
     return path
 
 
-def add(name: str, kind_names: tuple[str, ...], clauses: tuple[str, ...]) -> Path:
-    """Scaffolds the test beside the others, its kinds the ones named or, with none named, the maintenance list's:
-    add("tracker_moving", (), ("55000-9.1",)) writes solarpunk/remote/tests/tracker_moving.py for the tracker."""
+def add(name: str, kind_names: tuple[str, ...], clauses: tuple[str, ...], folder: Path | None = None) -> Path:
+    """Scaffolds the test beside the others (or in the folder given), its kinds the ones named or, with none named, the
+    maintenance list's: add("tracker_moving", (), ("55000-9.1",)) writes solarpunk/remote/tests/tracker_moving.py for
+    the tracker."""
     kinds = named_kinds(kind_names) if kind_names else listed_kinds(name)
-    return write(Path(tests.__path__[0]), name, kinds, clauses)
+    return write(folder or Path(tests.__path__[0]), name, kinds, clauses)

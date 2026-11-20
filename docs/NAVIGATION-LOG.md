@@ -29,3 +29,9 @@ An entry is `### <date> · <task> · <agent>` and four lines: **Task**, **Opened
 - **Opened**: `TODO.md`, `solarpunk/ui/__main__.py`, `solarpunk.cmd`, `solarpunk/cli/main.py`, `test/solarpunk/test_ui.py`, `test/solarpunk/test_cli_tests.py`.
 - **Complaints**: none for finding the way; an art brief given over many chat turns has no place to live but the module's docstring.
 - **Suggestions**: none.
+
+### 2026-11-20 · 9.8 Manage tests · Claude
+- **Task**: 9.8 Manage tests: the button, the window over the tests' folder, New test, Reload, Open folder.
+- **Opened**: `TODO.md`, `solarpunk/remote/registry.py`, `solarpunk/remote/scaffold.py`, `solarpunk/project/run.py`, `solarpunk/ui/__main__.py`, `solarpunk/ui/errors_window.py`, `test/solarpunk/test_ui_statusbar.py`.
+- **Complaints**: none.
+- **Suggestions**: none.

@@ -25,7 +25,8 @@ from solarpunk.remote import results as result_table
 from solarpunk.remote import run as remote
 from solarpunk.remote import scaffold
 from solarpunk.remote import suggestions as suggestion_table
-from solarpunk.remote.registry import RemoteTest, discover, tests_for
+from solarpunk.remote import registry as test_registry
+from solarpunk.remote.registry import RemoteTest, Surveyed, discover, tests_for
 from solarpunk.telemetry import samples as sample_table
 
 REACHABLE = "reachable"
@@ -202,8 +203,20 @@ def remote_tests() -> tuple[RemoteTest, ...]:
     return tuple(discover().values())
 
 
-def add_remote_test(name: str, kind_names: tuple[str, ...], clauses: tuple[str, ...]) -> Path:
-    """Scaffolds a new remote test beside the others and returns its file: add_remote_test("tracker_moving", (),
-    ("55000-9.1",)) is solarpunk/remote/tests/tracker_moving.py, its kinds from the asset maintenance list; a name
-    already taken, an unknown kind or no clause raises BadRemoteTest, a ValueError."""
-    return scaffold.add(name, kind_names, clauses)
+def add_remote_test(name: str, kind_names: tuple[str, ...], clauses: tuple[str, ...],
+                    folder: Path | None = None) -> Path:
+    """Scaffolds a new remote test beside the others (or in the folder given) and returns its file:
+    add_remote_test("tracker_moving", (), ("55000-9.1",)) is solarpunk/remote/tests/tracker_moving.py, its kinds from
+    the asset maintenance list; a name already taken, an unknown kind or no clause raises BadRemoteTest, a ValueError."""
+    return scaffold.add(name, kind_names, clauses, folder)
+
+
+def remote_tests_folder() -> Path:
+    """The folder of the remote tests, where a script dropped in is a test (9.8): solarpunk/remote/tests/."""
+    return test_registry.folder()
+
+
+def survey_remote_tests(folder: Path | None = None) -> tuple[Surveyed, ...]:
+    """Every script in the tests' folder (or the one given), each with its test or the reason it cannot load, in name
+    order (9.8): one broken script is listed, never raised, so the window over the folder stands."""
+    return test_registry.survey(folder or test_registry.folder())

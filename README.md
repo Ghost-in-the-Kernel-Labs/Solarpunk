@@ -27,7 +27,8 @@ folder on PATH): `solarpunk` opens the window, `solarpunk --demo` the demo, `sol
 remote tests, `solarpunk test list` and `solarpunk test add <name> --clause <id>` as above, `solarpunk report <site>
 <start> <end>` the power-output report; the clause report is `solarpunk clauses`, and `solarpunk --help` lists every
 command. `solarpunk --shortcut`, typed in the folder that holds your store, puts a Solarpunk shortcut wearing her icon on
-the desktop. In the window, "Reports" opens the same report with the site's power curve. `DEMO.md` has the setup, the click
+the desktop. In the window, "Manage tests" lists the test scripts (a new test is a new Python script in
+`solarpunk/remote/tests/`, and the window's New test writes one to fill in), and "Reports" opens the same report with the site's power curve. `DEMO.md` has the setup, the click
 order and the talk track. `scripts/save.sh` saves a session's work on its own branch, `scripts/gate.sh --fast` is the
 check before a landing, `scripts/commit.sh -a -F <message> --ship` lands it and pushes `main` in one step, `main`
 moving only once origin takes it (SP-014), and the full `scripts/gate.sh` runs at each tune-up (C-040).
