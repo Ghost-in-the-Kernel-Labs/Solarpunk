@@ -26,4 +26,4 @@ ignore = ["B905"]
 source_paths = ["solarpunk/"]
 pytest_add_cli_args_test_selection = ["test/solarpunk/"]
 process_isolation = "forkserver"
-also_copy = ["docs/", "theGhost.md", "TODO.md", "CLAUDE.md", "README.md", "requirements.lock"]
+also_copy = ["docs/", "solarpunk/ui/art/", "theGhost.md", "TODO.md", "CLAUDE.md", "README.md", "requirements.lock"]

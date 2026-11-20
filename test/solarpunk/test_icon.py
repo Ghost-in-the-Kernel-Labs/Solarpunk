@@ -1,4 +1,4 @@
-"""Solarpunk's icon and desktop shortcut (9.7, SP-030): the icon's pixels, its PNG and its ICO headless (icon.py has
+"""Solarpunk's icon and desktop shortcut (9.7, SP-030, SP-031): each size's PNG and the ICO headless (icon.py has
 no tkinter), the shortcut's texts and make() with a runner standing in for PowerShell and temporary folders standing in
 for the user's own, then, under a display, every window wearing the icon. Skips "no tkinter" or "no display" as
 test_ui.py does. PowerShell is never run here."""
@@ -6,7 +6,6 @@ import importlib.util
 import struct
 import tempfile
 import unittest
-import zlib
 from pathlib import Path
 from unittest import mock
 
@@ -22,52 +21,44 @@ FAKE_PNG = b"\x89PNG fake"
 FAKE_ICO = b"\x00\x00\x01\x00 fake"
 
 
-def rows_of(data: bytes) -> tuple[int, int, bytes]:
-    """A PNG's width, height and unfiltered pixel bytes, read back by hand: rows_of(icon.png(16)) is (16, 16, ...)."""
-    width, height = struct.unpack(">II", data[16:24])
-    length = struct.unpack(">I", data[33:37])[0]
-    return width, height, zlib.decompress(data[41:41 + length])
+def header_of(data: bytes) -> tuple[int, int, int, int, int]:
+    """A PNG's width, height, bit depth, colour type and interlace from its IHDR: (16, 16, 8, 6, 0) for the 16 px art,
+    8-bit RGBA, not interlaced (what Tk and Windows both read)."""
+    width, height, depth, colour, _compression, _filter, interlace = struct.unpack(">IIBBBBB", data[16:29])
+    return width, height, depth, colour, interlace
 
 
 class TheIcon(unittest.TestCase):
-    def test_the_badge_is_round_with_clear_corners_and_a_gold_ring(self) -> None:
-        grid = icon.pixels(32)
-        self.assertEqual((len(grid), {len(line) for line in grid}), (32, {32}))
-        self.assertEqual(grid[0][0], icon.CLEAR)
-        self.assertEqual(grid[31][31], icon.CLEAR)
-        self.assertEqual((grid[0][16][:3], grid[0][16][3] > 0), (icon.RING, True))  # the ring, its edge smoothed
-        self.assertEqual(grid[1][16], (*icon.NIGHT, 255))  # the night disc inside it
+    def test_every_size_is_its_own_rgba_png(self) -> None:
+        for size in icon.SIZES:
+            with self.subTest(size=size):
+                data = icon.png(size)
+                self.assertTrue(data.startswith(b"\x89PNG\r\n\x1a\n"))
+                self.assertEqual(data[12:16], b"IHDR")
+                self.assertEqual(header_of(data), (size, size, 8, 6, 0))
 
-    def test_she_is_there_her_plasma_and_her_visor(self) -> None:
-        self.assertEqual(icon.base_colour(32, 1.2)[:3], icon.RING)  # the ring at the top of the badge
-        self.assertEqual(icon.base_colour(2, 2), icon.CLEAR)
-        self.assertTrue(icon.in_lens(26.4, 25.2))
-        self.assertIsNone(icon.visor_at(40, 25))
-        glass = icon.colour_at(25.2, 26.2)
-        self.assertGreater(glass[1], glass[0])  # the cyan tint over her eye
-        self.assertTrue(any(icon.in_hair(x, 14) for x in range(20, 44)))
+    def test_a_size_with_no_art_says_so(self) -> None:
+        with self.assertRaisesRegex(ValueError, "no icon at 20 px"):
+            icon.png(20)
 
-    def test_the_png_reads_back_as_rgba(self) -> None:
-        data = icon.png(16)
-        self.assertTrue(data.startswith(b"\x89PNG\r\n\x1a\n"))
-        self.assertEqual(data[12:16], b"IHDR")
-        width, height, raw = rows_of(data)
-        self.assertEqual((width, height, len(raw)), (16, 16, 16 * (1 + 16 * 4)))
-        first = raw[1 + 4 * 8:1 + 4 * 9]  # the top row's middle pixel, after the row's filter byte
-        self.assertEqual(tuple(first), icon.pixels(16)[0][8])
+    def test_the_art_folder_holds_the_sizes_and_their_sources_and_nothing_else(self) -> None:
+        names = sorted(p.name for p in icon.ART.iterdir())
+        pngs = [f"solarpunk_{size}.png" for size in icon.SIZES]
+        self.assertEqual(names, sorted(pngs + ["solarpunk.svg", "solarpunk_small.svg", "solarpunk_tiny.svg"]))
+        for source in icon.ART.glob("*.svg"):  # plain drawing: nothing that runs or reaches out
+            text = source.read_text(encoding="utf-8").lower()
+            self.assertNotIn("<script", text)
+            self.assertNotIn("href=\"http", text)
 
     def test_the_ico_lists_each_size_and_where_its_png_starts(self) -> None:
-        data = icon.ico((16, 24))
+        data = icon.ico((16, 256))
         self.assertEqual(struct.unpack("<HHH", data[:6]), (0, 1, 2))
         entries = [struct.unpack("<BBBBHHII", data[6 + 16 * i:22 + 16 * i]) for i in range(2)]
-        self.assertEqual([(e[0], e[1], e[5]) for e in entries], [(16, 16, 32), (24, 24, 32)])
-        for side, entry in zip((16, 24), entries):
-            image = data[entry[7]:entry[7] + entry[6]]
-            self.assertEqual(image, icon.png(side))
+        self.assertEqual([(e[0], e[1], e[5]) for e in entries], [(16, 16, 32), (0, 0, 32)])  # 256 is written 0
+        for side, entry in zip((16, 256), entries):
+            self.assertEqual(data[entry[7]:entry[7] + entry[6]], icon.png(side))
         self.assertEqual(entries[1][7], entries[0][7] + entries[0][6])
-
-    def test_more_samples_for_the_small_sizes(self) -> None:
-        self.assertEqual([icon.samples_for(s) for s in (16, 64, 128, 256)], [4, 4, 2, 2])
+        self.assertEqual(struct.unpack("<H", icon.ico()[4:6]), (7,))
 
 
 class TheShortcutsWords(unittest.TestCase):
@@ -156,7 +147,8 @@ class TheWindowWearsIt(unittest.TestCase):
         root.withdraw()
         entry.wear_icon(root)
         self.assertEqual([(i.width(), i.height()) for i in root.icon_images], [(64, 64), (32, 32)])
-        self.assertEqual(root.icon_images[1].get(0, 0), (0, 0, 0))  # a clear corner
+        self.assertTrue(root.icon_images[1].transparency_get(0, 0))  # a clear corner outside the badge
+        self.assertFalse(root.icon_images[1].transparency_get(16, 16))
 
     def test_shortcut_opens_no_window(self) -> None:
         out: list[str] = []

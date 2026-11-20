@@ -747,3 +747,13 @@ The core decisions above are inherited (Core C-001 to C-040); this project's beg
 - **Status:** in force
 - **See also:** SP-019, SP-020, SP-023, SP-010
 - **subject:** front end
+
+### SP-031: Solarpunk's icon is Ghost's painted art, kept as one PNG a size
+- **Decision:** The icon of 9.7 is the art Ghost had painted to his brief, not the drawing in code: `solarpunk/ui/art/` holds one 8-bit RGBA PNG for each of 16, 24, 32, 48, 64, 128 and 256 px and the three SVG sources the small sizes were drawn from; `solarpunk/ui/icon.py` reads them, and the Windows .ico is built from them at `--shortcut`. The 64 and 48 px files take their ring from a clean downscale of the 1024 px master (the sharpened ring had a bright fringe); the master itself stays out (1.2 MB the program never reads). These are the repository's first binary files, allowed because they are Ghost's own and free to redistribute: C-033 keeps out what is not.
+- **Why:** Ghost, 2026-11-20: "I have an art agent with a link up to a dedicated art rendering pipeline", then "The license is mine I generated them with the google art pipeline with full commerical license"; the art's notes record it as painted with Google Gemini 3 Pro Image from an original prompt (no existing character, franchise or artist) and released CC0 1.0 by Ghost.
+- **Supersedes:** SP-030 in part (the icon is no longer drawn at runtime; no binary file in the repository held until now).
+- **Held by:** `test/solarpunk/test_icon.py` (every size an RGBA PNG of its size, the folder holding those and the sources alone, no script or outside link in an SVG).
+- **Source:** Ghost, in chat, 2026-11-20.
+- **Status:** in force
+- **See also:** SP-030, C-033
+- **subject:** front end

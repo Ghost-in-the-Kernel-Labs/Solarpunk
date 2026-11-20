@@ -1,0 +1,131 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <title>Solarpunk</title>
+  <!-- Original artwork for Solarpunk (Ghost-in-the-Kernel-Labs). A field engineer with plasma hair, an AR visor and a wrench. -->
+  <defs>
+    <clipPath id="disc"><circle cx="512" cy="512" r="468"/></clipPath>
+    <linearGradient id="plasma" x1="0.15" y1="1" x2="0.75" y2="0">
+      <stop offset="0" stop-color="#7A2CF0"/>
+      <stop offset="0.35" stop-color="#E83CB8"/>
+      <stop offset="0.62" stop-color="#FF8A2A"/>
+      <stop offset="0.84" stop-color="#FFD24A"/>
+      <stop offset="1" stop-color="#FFF6E0"/>
+    </linearGradient>
+    <linearGradient id="cropped" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#4A1C9A"/>
+      <stop offset="1" stop-color="#7A2CF0"/>
+    </linearGradient>
+    <radialGradient id="sky" cx="0.5" cy="0.38" r="0.7">
+      <stop offset="0" stop-color="#1C2A52"/>
+      <stop offset="1" stop-color="#0E162C"/>
+    </radialGradient>
+    <linearGradient id="skin" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#7A4A30"/>
+      <stop offset="0.55" stop-color="#9C6440"/>
+      <stop offset="1" stop-color="#B57A50"/>
+    </linearGradient>
+    <linearGradient id="steel" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#D7DEE6"/>
+      <stop offset="0.5" stop-color="#8E9AA6"/>
+      <stop offset="1" stop-color="#5B6672"/>
+    </linearGradient>
+    <linearGradient id="lens" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#9CF6EE" stop-opacity="0.95"/>
+      <stop offset="1" stop-color="#50E8DC" stop-opacity="0.8"/>
+    </linearGradient>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="22"/>
+    </filter>
+    <filter id="softglow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="8"/>
+    </filter>
+  </defs>
+
+  <!-- badge -->
+  <circle cx="512" cy="512" r="480" fill="#0E162C"/>
+  <g clip-path="url(#disc)">
+    <rect width="1024" height="1024" fill="url(#sky)"/>
+
+    <!-- wrench, angled up behind her shoulder, jaw open at the top right -->
+    <g transform="translate(640 860) rotate(28)">
+      <rect x="-30" y="-430" width="60" height="460" rx="20" fill="url(#steel)" stroke="#2A323C" stroke-width="10"/>
+      <rect x="-18" y="-330" width="36" height="12" fill="#5B6672"/>
+      <rect x="-18" y="-306" width="36" height="12" fill="#5B6672"/>
+      <rect x="-18" y="-282" width="36" height="12" fill="#5B6672"/>
+      <path d="M-70 -430 L70 -430 L70 -560 L30 -560 L30 -490 L-30 -490 L-30 -575 L-70 -575 Z"
+            fill="url(#steel)" stroke="#2A323C" stroke-width="10" stroke-linejoin="round"/>
+      <path d="M-58 -440 L-58 -560" stroke="#EEF3F8" stroke-width="6" opacity="0.7"/>
+    </g>
+    <!-- plasma rim light behind the whole figure -->
+    <g filter="url(#glow)" opacity="0.85">
+      <path d="M300 1024 C300 860 330 780 410 740 L404 640 C330 600 300 520 312 430 C320 330 380 240 470 210 C590 170 700 230 726 340 C744 420 720 520 680 590 L660 720 C760 760 780 860 790 1024 Z" fill="#FF8A2A"/>
+    </g>
+
+    <!-- shoulders and tank top -->
+    <path d="M250 1024 C262 880 320 800 420 772 L620 772 C720 800 790 880 800 1024 Z" fill="url(#skin)"/>
+    <path d="M330 1024 C340 930 380 860 440 830 C480 880 560 884 610 840 C670 868 712 940 724 1024 Z" fill="#54626E"/>
+    <path d="M440 830 C480 880 560 884 610 840" fill="none" stroke="#3B4650" stroke-width="12"/>
+    <ellipse cx="520" cy="960" rx="46" ry="20" fill="#3B4650" opacity="0.6"/>
+    <ellipse cx="640" cy="930" rx="30" ry="14" fill="#3B4650" opacity="0.5"/>
+
+    <!-- neck -->
+    <path d="M462 650 L456 790 C500 820 560 820 590 790 L582 650 Z" fill="#7E4E32"/>
+
+    <!-- cropped side of the hair (viewer's right), darker plasma -->
+    <path d="M560 236 C650 232 712 290 716 380 C720 450 700 520 668 560 C660 500 652 440 640 400 C620 340 590 300 560 290 Z"
+          fill="url(#cropped)"/>
+    <g opacity="0.55" stroke="#B05CFF" stroke-width="6" fill="none">
+      <path d="M600 280 l20 30"/><path d="M640 300 l18 34"/><path d="M670 340 l14 36"/><path d="M690 390 l8 36"/>
+    </g>
+
+    <!-- face, three-quarter turned to the viewer's left -->
+    <path d="M430 330 C470 290 560 286 616 330 C660 370 668 450 652 530 C640 600 600 668 546 690 C506 706 466 690 444 660 C412 616 396 540 400 460 C402 400 410 360 430 330 Z"
+          fill="url(#skin)"/>
+    <!-- jaw shadow -->
+    <path d="M444 660 C470 690 510 704 546 690 C520 700 480 696 456 676 Z" fill="#6A3E26" opacity="0.7"/>
+    <!-- brows -->
+    <path d="M440 432 C462 414 492 412 512 420" stroke="#2A1810" stroke-width="16" stroke-linecap="round" fill="none"/>
+    <path d="M556 420 C580 410 612 414 628 428" stroke="#2A1810" stroke-width="16" stroke-linecap="round" fill="none"/>
+    <!-- bare eye (viewer's left) -->
+    <path d="M450 470 C468 454 496 454 512 468 C496 482 468 484 450 470 Z" fill="#F3E6D8"/>
+    <circle cx="484" cy="469" r="11" fill="#3A2214"/>
+    <circle cx="488" cy="466" r="3" fill="#FFF6E0"/>
+    <!-- nose and mouth: a dry half-smile -->
+    <path d="M520 480 C516 530 506 560 520 580 C530 586 544 584 552 578" stroke="#5E3620" stroke-width="9" fill="none" stroke-linecap="round"/>
+    <path d="M492 626 C520 640 556 636 584 616" stroke="#5A2C1E" stroke-width="11" fill="none" stroke-linecap="round"/>
+    <path d="M584 616 l10 -8" stroke="#5A2C1E" stroke-width="9" stroke-linecap="round"/>
+    <!-- grease smudge on the cheek -->
+    <path d="M430 560 C450 548 482 552 494 566 C474 574 446 576 430 560 Z" fill="#2B2420" opacity="0.65"/>
+
+    <!-- swept plasma side of the hair (viewer's left), down to the jaw, volume at the crown -->
+    <g filter="url(#softglow)" opacity="0.9">
+      <path d="M392 640 C350 560 340 440 380 340 C420 240 520 196 610 214 C680 228 724 270 738 320 C690 280 620 268 560 290 C500 312 460 360 440 420 C424 470 420 560 440 640 Z" fill="#FFD24A"/>
+    </g>
+    <path d="M392 640 C350 560 340 440 380 340 C420 240 520 196 610 214 C680 228 724 270 738 320 C690 280 620 268 560 290 C500 312 460 360 440 420 C424 470 420 560 440 640 Z"
+          fill="url(#plasma)"/>
+    <!-- flare strands -->
+    <g fill="none" stroke-linecap="round">
+      <path d="M400 560 C380 470 392 380 450 310" stroke="#FFF6E0" stroke-width="10" opacity="0.8"/>
+      <path d="M470 262 C540 230 620 232 690 270" stroke="#FFF6E0" stroke-width="12" opacity="0.85"/>
+      <path d="M420 400 C430 350 470 300 530 280" stroke="#FFD24A" stroke-width="8" opacity="0.8"/>
+      <path d="M690 250 C720 240 748 250 770 270" stroke="#FFD24A" stroke-width="9" opacity="0.8"/>
+      <path d="M372 470 C352 430 350 390 362 350" stroke="#E83CB8" stroke-width="8" opacity="0.8"/>
+    </g>
+
+    <!-- gold hoop earring on the visible ear -->
+    <circle cx="664" cy="560" r="16" fill="none" stroke="#E2B24A" stroke-width="7"/>
+
+    <!-- AR half-visor over her right eye (viewer's right), frame running back to an earpiece -->
+    <path d="M540 448 L640 440 L660 452 L716 456" stroke="#242E3A" stroke-width="18" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    <rect x="696" y="436" width="40" height="52" rx="12" fill="#242E3A"/>
+    <path d="M540 430 L640 424 C650 424 656 432 654 442 L646 504 C644 514 636 520 626 520 L548 522 C538 522 532 514 532 504 L532 440 C532 434 536 430 540 430 Z"
+          fill="url(#lens)" stroke="#242E3A" stroke-width="12"/>
+    <g stroke="#0E3A3A" stroke-width="4" fill="none" opacity="0.8">
+      <circle cx="590" cy="472" r="22"/>
+      <path d="M590 444 v14 M590 486 v14 M562 472 h14 M604 472 h14"/>
+    </g>
+    <path d="M548 440 L600 436" stroke="#E8FFFC" stroke-width="5" opacity="0.8" stroke-linecap="round"/>
+  </g>
+
+  <!-- gold ring -->
+  <circle cx="512" cy="512" r="474" fill="none" stroke="#E2B24A" stroke-width="20"/>
+</svg>

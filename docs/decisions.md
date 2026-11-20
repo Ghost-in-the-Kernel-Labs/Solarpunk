@@ -74,3 +74,4 @@ Written by `scripts/decisions_index.py` from `theGhost.md`; do not edit here. Se
 | SP-028 | The accounts module; versions in each record's own module; 12.1 split in two | in force | tickets and accounts |
 | SP-029 | The platform's named gaps put on the roadmap, as Phases 16 to 20 and a company sign-in in 14 | in force | roadmap |
 | SP-030 | Phase 9 reopened: the window's icon and a Manage tests button at the root | in force | front end |
+| SP-031 | Solarpunk's icon is Ghost's painted art, kept as one PNG a size | in force | front end |
