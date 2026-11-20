@@ -41,3 +41,9 @@ An entry is `
 - **Complaints**: the brief warned of a pinned command count that does not exist; about 120 ResourceWarning lines in the fast loop's output bury what matters. The coordinator's: an agent's worktree under `.claude/worktrees/` trips the supply-chain scan with copies of the planted fixtures.
 - **Suggestions**: run the fast loop with the unclosed stores fixed or the warning filtered; correct `docs/when/hand-out-a-task.md`'s note on the pinned count; a brief's finish runs `scripts/gate.sh --fast`, not the fast loop alone.
 
+### 2026-11-20 · 12.4 attribution, parts A, B and C · Claude (three strong-grade agents, carried by the coordinator)
+- **Task**: 12.4 Attribution from the account: A the signed-in actor, B the windows' versions, C SP-035's move log.
+- **Opened**: A: `TODO.md`, `docs/paths/product.md`, `solarpunk/project/access.py`, `solarpunk/cli/signin.py`, `solarpunk/cli/tickets.py`, `solarpunk/cli/main.py`, `solarpunk/project/orchestrator.py`, `solarpunk/project/suggest.py`, `solarpunk/project/tickets.py`, `docs/CONTRACT.md`, `solarpunk/ui/asset_window.py`, `solarpunk/ui/ticket_panel.py`, `solarpunk/ui/__main__.py`. B: `solarpunk/ui/asset_window.py`, `solarpunk/ui/ticket_panel.py`, `solarpunk/ui/cells.py`, `solarpunk/project/tickets.py`. C: `theGhost.md` (SP-035), `solarpunk/workorders/ledger.py`, `solarpunk/workorders/tickets.py`, `solarpunk/leaf/store.py`, `solarpunk/remote/suggestions.py`, `solarpunk/ui/ticket_text.py`.
+- **Complaints**: a worker's fast checks stop at test_metrics, so lint and the window tests never run unless it writes and then restores docs/AGENT.md; nothing says which interpreter runs the window tests (the default python3 has no tkinter); SOL-16's 12.4 example had no test running it until C added one.
+- **Suggestions**: let the fast checks report a stale metrics row without stopping on an `agent/` branch; name the window tests' interpreter and xvfb in `docs/when/`.
+

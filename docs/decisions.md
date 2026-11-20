@@ -78,3 +78,4 @@ Written by `scripts/decisions_index.py` from `theGhost.md`; do not edit here. Se
 | SP-032 | Signing in begins with a store's first account; the command line names it with --as | in force | security |
 | SP-033 | The supply-chain rules an agent meets unawares stay in CLAUDE.md; the five that bind an act it chooses move to SUPPLY-CHAIN.md | in force | supply chain |
 | SP-034 | CLAUDE.md's word ceiling is 1,500 | in force | context |
+| SP-035 | A ticket's every move is logged with who made it; an operator's dismissal records the operator; with accounts, an engineer account is an engineer | in force | security |

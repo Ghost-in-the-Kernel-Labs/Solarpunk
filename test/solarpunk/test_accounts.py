@@ -245,7 +245,7 @@ class TheSiteScope(Store):
         """The example store with BIGS loaded too, an open INV-001 and a pushed suggestion on BIGS-INV-001."""
         super().setUp()
         project.load_fleet(self.conn, BIGS)
-        project.assign_fault(self.conn, "BIGS-INV-001", "INV-001", OPENED, SITE)
+        project.assign_fault(self.conn, "BIGS-INV-001", "INV-001", OPENED, CREW)  # SP-035: BIGS's engineer account
         project.suggest_pushed(self.conn, "BIGS-INV-001", "INV-001", OPENED)
 
     def sites(self, records: tuple) -> set[str]:

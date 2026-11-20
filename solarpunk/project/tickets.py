@@ -1,7 +1,8 @@
 """The tickets' surface (8.2, SOL-14, SP-022): what the windows and the command line call to read and move a ticket.
 A ticket opens with its fault (orchestrator.assign_fault) and closes with a root cause (orchestrator.close_work_order,
 4.1); in between, these calls acknowledge, start, resolve and reopen it, set who works it, comment on it, and report
-the tickets past a target. Each is one call into the ticket ledger, so the rules are written once (MOD-02)."""
+the tickets past a target. Each move is logged with the actor project hands down, the account's email or None where
+nobody is signed in (SP-035), and its history read back oldest first. Each is one call into the ticket ledger, so the rules are written once (MOD-02)."""
 import sqlite3
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -11,7 +12,7 @@ from solarpunk.leaf.tickets import TARGETS, TargetState, TicketStatus, target_st
 from solarpunk.project.orchestrator import close_work_order
 from solarpunk.workorders.ledger import WorkOrderError
 from solarpunk.workorders import tickets as ticket_ledger
-from solarpunk.workorders.tickets import Breach, Comment, Ticket
+from solarpunk.workorders.tickets import Breach, Comment, Move, Ticket
 
 LATE_STATES = (TargetState.LATE, TargetState.OVERDUE)
 WAITING_STATES = (TargetState.PENDING, TargetState.OVERDUE)
@@ -28,11 +29,16 @@ def open_tickets(conn: sqlite3.Connection) -> tuple[Ticket, ...]:
 
 
 def move_ticket(conn: sqlite3.Connection, wo_id: int, status: TicketStatus, moment: datetime,
-                evidence: str | None = None, read_at: int | None = None) -> Ticket:
-    """Moves a ticket as SOL-14 allows: move_ticket(conn, 1, ACKNOWLEDGED, 10:40 UTC).acknowledged is 10:40; resolving
-    needs evidence; a forbidden move raises BadMove, a move to closed WorkOrderError (close_work_order closes), a
-    ticket read at an older version StaleWrite (12.2)."""
-    return ticket_ledger.move(conn, wo_id, status, moment, evidence, read_at)
+                evidence: str | None = None, read_at: int | None = None, actor: str | None = None) -> Ticket:
+    """Moves a ticket as SOL-14 allows, the move logged as actor's (SP-035): move_ticket(conn, 1, ACKNOWLEDGED, 10:40
+    UTC).acknowledged is 10:40; resolving needs evidence; a forbidden move raises BadMove, a move to closed
+    WorkOrderError (close_work_order closes), a ticket read at an older version StaleWrite (12.2)."""
+    return ticket_ledger.move(conn, wo_id, status, moment, evidence, read_at, actor)
+
+
+def ticket_moves(conn: sqlite3.Connection, wo_id: int) -> tuple[Move, ...]:
+    """A ticket's moves, oldest first, each with its status, instant and actor (None: nobody signed in), SP-035."""
+    return ticket_ledger.moves(conn, wo_id)
 
 
 def set_ticket_assignee(conn: sqlite3.Connection, wo_id: int, assignee: str | None,
@@ -102,16 +108,21 @@ def tickets_by_target(conn: sqlite3.Connection, moment: datetime) -> tuple[Ticke
     return tuple(sorted(views, key=lambda v: (v.next_due or far, v.ticket.wo_id)))
 
 
-def resolve_ticket(conn: sqlite3.Connection, wo_id: int, done: str, root_cause: str, moment: datetime) -> Ticket:
+def resolve_ticket(conn: sqlite3.Connection, wo_id: int, done: str, root_cause: str, moment: datetime,
+                   read_at: int | None = None, actor: str | None = None) -> Ticket:
     """Resolves a ticket with what was done and closes it with a root cause from the closed list, in one act at an
     instant (11.2's Resolve): a ticket not yet in progress moves there first, then to resolved with the words, then to
-    closed with the cause, which closes its fault (4.1). A cause outside the list (UnknownRootCause) or no words
-    (WorkOrderError) writes nothing."""
+    closed with the cause, which closes its fault (4.1). A cause outside the list (UnknownRootCause), no words
+    (WorkOrderError) or a ticket read at an older version (StaleWrite, 12.2) writes nothing: read_at is checked by the
+    act's first move, and the moves after it carry on from the version that move made. Each move is logged as actor's
+    (SP-035)."""
+    # Decision: SP-028 (a write from a screen names the version it read)
     lookup_root_cause(root_cause)
     if not done.strip():
         raise WorkOrderError(f"work order {wo_id} resolves with evidence of what was done")
     if ticket_ledger.ticket(conn, wo_id).status in (TicketStatus.OPEN, TicketStatus.ACKNOWLEDGED):
-        ticket_ledger.move(conn, wo_id, TicketStatus.IN_PROGRESS, moment)
-    ticket_ledger.move(conn, wo_id, TicketStatus.RESOLVED, moment, done)
-    close_work_order(conn, wo_id, root_cause, moment)
+        ticket_ledger.move(conn, wo_id, TicketStatus.IN_PROGRESS, moment, None, read_at, actor)
+        read_at = None
+    ticket_ledger.move(conn, wo_id, TicketStatus.RESOLVED, moment, done, read_at, actor)
+    close_work_order(conn, wo_id, root_cause, moment, actor=actor)
     return ticket_ledger.ticket(conn, wo_id)

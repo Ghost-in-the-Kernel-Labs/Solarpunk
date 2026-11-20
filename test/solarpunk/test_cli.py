@@ -147,7 +147,7 @@ class TheStoreFile(Cli):
         conn = project.open_or_create(self.db)
         names = [row[0] for row in conn.execute("SELECT name FROM sqlite_master WHERE type = 'table' ORDER BY rowid")]
         conn.close()
-        self.assertEqual(names, ["assets", "faults", "samples", "results", "mails", "work_orders", "ticket_comments", "ticket_outbox", "suggestions", "accounts", "failed_sign_ins"])  # every module's table (2.7, 4.1, 7.4, 12.1)
+        self.assertEqual(names, ["assets", "faults", "samples", "results", "mails", "work_orders", "ticket_comments", "ticket_outbox", "ticket_moves", "suggestions", "accounts", "failed_sign_ins"])  # every module's table (2.7, 4.1, 7.4, 12.1)
 
     def test_a_file_missing_a_table_is_not_taken_as_a_store(self) -> None:
         conn = sqlite3.connect(self.db)
@@ -184,11 +184,11 @@ class TheFaults(Cli):
         self.assertEqual(self.ok(["fault", "list"]), [])
 
     def test_only_an_engineer_the_fleet_holds_assigns_and_the_line_says_who(self) -> None:
-        """SP-015: --by is required, an address no asset names is refused, an operator's entry and cover are shown."""
+        """SP-015: with no accounts --by is required (12.4: refused in project's words, as --by is not taken where there
+        are accounts), an address no asset names is refused, an operator's entry and cover are shown."""
         self.ok(["fleet", "load", "--demo"])
-        code, out, err = self.run_cli(["fault", "assign", "OAHE-INV-001", "INV-001", "2026-06-01T10:00:00+00:00"])
-        self.assertEqual((code, out), (2, ""))
-        self.assertIn("the following arguments are required: --by", err)
+        self.refused(["fault", "assign", "OAHE-INV-001", "INV-001", "2026-06-01T10:00:00+00:00"],
+                     "this store has no accounts: name the engineer with --by")
         self.refused(["fault", "assign", "OAHE-INV-001", "INV-001", "2026-06-01T10:00:00+00:00", "--by", "nobody@x.example"],
                      "nobody@x.example is not an engineer the fleet holds")
         self.assertEqual(self.ok(["fault", "assign", "OAHE-SIT-001", "SIT-001", "2026-06-01T10:00:00+00:00",

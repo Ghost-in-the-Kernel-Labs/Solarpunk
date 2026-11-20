@@ -1,6 +1,7 @@
 """The ticket commands (11.2, SOL-14): `ticket list` (the open tickets, the nearest target first, a breach marked),
-`ticket ack ID`, `ticket comment ID --by WHO WORDS…` and `ticket resolve ID --cause CODE --done WORDS…`, each one project
-call (MOD-02) at the instant --at names, now when it names none. main.py adds them to its parser."""
+`ticket ack ID`, `ticket comment ID WORDS…` and `ticket resolve ID --cause CODE --done WORDS…`, each one project call
+(MOD-02) at the instant --at names, now when it names none, as the account signed in (12.4; a store with no accounts
+names a comment's author with --by). main.py adds them to its parser."""
 import argparse
 import sqlite3
 from datetime import datetime, timezone
@@ -47,20 +48,21 @@ def ticket_list(conn: sqlite3.Connection, args: argparse.Namespace, out: TextIO)
 
 def ticket_ack(conn: sqlite3.Connection, args: argparse.Namespace, out: TextIO) -> None:
     """ticket ack 1 [--at INSTANT]: acknowledges the ticket; prints "1 acknowledged"."""
-    found = project.move_ticket(conn, args.wo_id, project.TicketStatus.ACKNOWLEDGED, moment_of(args))
+    found = project.move_ticket_as(conn, args.account, args.wo_id, project.TicketStatus.ACKNOWLEDGED, moment_of(args))
     out.write(f"{found.wo_id} {found.status.value}\n")
 
 
 def ticket_comment(conn: sqlite3.Connection, args: argparse.Namespace, out: TextIO) -> None:
-    """ticket comment 1 --by site@oahe.example on my way: keeps the comment; prints "1 comment 1 by site@oahe.example"."""
-    found = project.comment_on_ticket(conn, args.wo_id, args.by, moment_of(args), " ".join(args.words))
+    """ticket comment 1 --as site@oahe.example on my way: keeps the comment by the account signed in; prints "1 comment 1
+    by site@oahe.example" (12.4); a store with no accounts names the author, --by site@oahe.example."""
+    found = project.comment_on_ticket_as(conn, args.account, args.wo_id, moment_of(args), " ".join(args.words), args.by)
     out.write(f"{args.wo_id} comment {found.comment_id} by {found.author}\n")
 
 
 def ticket_resolve(conn: sqlite3.Connection, args: argparse.Namespace, out: TextIO) -> None:
     """ticket resolve 1 --cause RC-COMPONENT --done fuse swapped: resolves and closes the ticket and its fault; prints
     "1 closed RC-COMPONENT"."""
-    found = project.resolve_ticket(conn, args.wo_id, " ".join(args.done), args.cause, moment_of(args))
+    found = project.resolve_ticket_as(conn, args.account, args.wo_id, " ".join(args.done), args.cause, moment_of(args))
     out.write(f"{found.wo_id} {found.status.value} {args.cause}\n")
 
 
@@ -74,7 +76,7 @@ def add_tickets(commands: argparse._SubParsersAction) -> None:
     ack.set_defaults(handler=ticket_ack)
     comment = acting(ticket.add_parser("comment"))
     comment.add_argument("wo_id", type=int)
-    comment.add_argument("--by", required=True)
+    comment.add_argument("--by")
     comment.add_argument("words", nargs="+")
     comment.set_defaults(handler=ticket_comment)
     resolve = acting(ticket.add_parser("resolve"))

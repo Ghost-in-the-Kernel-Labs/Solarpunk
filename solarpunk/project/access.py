@@ -13,7 +13,8 @@ from solarpunk.leaf.accounts import ALL_SITES, Account, Role, site_of
 from solarpunk.leaf.assets import Asset
 from solarpunk.leaf.faults import Fault
 from solarpunk.leaf.tickets import TicketStatus
-from solarpunk.project.orchestrator import faults_listing, fleet_assets, known_engineers
+from solarpunk.project.engineers import known_engineers
+from solarpunk.project.orchestrator import faults_listing, fleet_assets
 from solarpunk.project.surface import AssetRow, asset_rows
 from solarpunk.project.tickets import move_ticket, open_tickets, ticket_of
 from solarpunk.remote import suggestions as suggestion_table
@@ -23,6 +24,7 @@ from solarpunk.workorders.tickets import Ticket
 
 NO_ADMIN_YET = "this store has no active account: make the first admin with solarpunk account init"
 ADMIN_EXISTS = "this store already has an admin: account init makes only the first; an admin adds the rest"
+SIGN_IN_FIRST = "this store has accounts: sign in to act"
 
 
 class NotPermitted(ValueError):
@@ -94,12 +96,36 @@ def permit_ticket(conn: sqlite3.Connection, account: Account, wo_id: int) -> Tic
     return found
 
 
-def move_ticket_as(conn: sqlite3.Connection, account: Account, wo_id: int, status: TicketStatus,
-                   moment: datetime, evidence: str | None = None, read_at: int | None = None) -> Ticket:
-    """Moves a ticket as move_ticket does, once the account may act on it: site@oahe.example acknowledging OAHE-INV-002's
-    ticket at 11:40 UTC gives it acknowledged at 11:40; auditor@oahe.example is refused and nothing moves."""
+def permit_ticket_work(conn: sqlite3.Connection, account: Account | None, wo_id: int) -> None:
+    """Refuses a ticket act to an account that may not work it (SOL-16, 12.4): an engineer and an operator work the
+    tickets of their sites, as their own act; an admin is refused ("admin@oahe.example is an admin and works no
+    ticket"), a viewer and a site outside the scope as permit_asset says. None (nobody signed in) acts only in a store
+    with no active account (SP-032), else NotPermitted(SIGN_IN_FIRST)."""
+    # Decision: SP-022 (every ticket act carries the signed-in account); SP-032 (no accounts, no sign-in)
+    if account is None:
+        if needs_sign_in(conn):
+            raise NotPermitted(SIGN_IN_FIRST)
+        return
     permit_ticket(conn, account, wo_id)
-    return move_ticket(conn, wo_id, status, moment, evidence, read_at)
+    if account.role not in (Role.ENGINEER, Role.OPERATOR):
+        raise NotPermitted(f"{account.email} is {article(account.role)} and works no ticket")
+
+
+def move_ticket_as(conn: sqlite3.Connection, account: Account | None, wo_id: int, status: TicketStatus,
+                   moment: datetime, evidence: str | None = None, read_at: int | None = None) -> Ticket:
+    """Moves a ticket as move_ticket does, once the account may work it (permit_ticket_work): site@oahe.example
+    acknowledging OAHE-INV-002's ticket at 11:40 UTC gives it acknowledged at 11:40; auditor@oahe.example is refused and
+    nothing moves; None moves it in a store with no account, as before accounts. The move is logged as the account's
+    email, or as nobody signed in for None (SP-035)."""
+    # Decision: SP-035 (a ticket's every move is logged with who made it)
+    permit_ticket_work(conn, account, wo_id)
+    return move_ticket(conn, wo_id, status, moment, evidence, read_at, actor_of(account))
+
+
+def actor_of(account: Account | None) -> str | None:
+    """Who a ticket's move is logged as (SP-035): the account's email, an operator's included, as its own act; None
+    where nobody is signed in."""
+    return None if account is None else account.email
 
 
 def fleet_for(conn: sqlite3.Connection, account: Account) -> tuple[Asset, ...]:

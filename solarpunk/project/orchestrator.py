@@ -1,7 +1,8 @@
 """The orchestrator: one store holding every module's tables, and the joins no lane may make (MOD-05). It checks an
 asset against the fleet before the ledger takes a fault, and reads the fleet, the faults and the samples to hand the
 KPI engine leaf types (Invariants: SOL-04, SOL-05, SOL-07 to SOL-10); an asset's status is the three-colour rule over
-the ledger and the remote results (SP-006, SP-007). The scheduled run is in run.py, the windows' surface in surface.py.
+the ledger and the remote results (SP-006, SP-007). The scheduled run is in run.py, the windows' surface in surface.py,
+who counts as an engineer in engineers.py (SP-035).
 The demo (3.4) reaches the generator and the feed simulator through simulated_day and feed_server, since ui imports
 project and the leaf alone (SP-010). A work order (4.1, SP-011) is opened from a fault the ledger holds open, and closing
 a corrective one closes its fault in the same call."""
@@ -22,6 +23,7 @@ from solarpunk.leaf.codes import AssetKind, AssetStatus, Severity, lookup
 from solarpunk.leaf.faults import UNRECORDED, Fault
 from solarpunk.leaf.telemetry import Sample
 from solarpunk.mailer import mail as mail_table
+from solarpunk.project.engineers import check_engineer
 from solarpunk.remote import results as result_table
 from solarpunk.remote import suggestions as suggestion_table
 from solarpunk.telemetry import generate as generator
@@ -49,11 +51,6 @@ TABLE_NAMES = "SELECT name FROM sqlite_master WHERE type = 'table'"
 
 class UnknownAsset(ValueError):
     """Raised for an asset id the fleet does not hold: UnknownAsset("OAHE-INV-009 is not in the fleet")."""
-
-
-class UnknownEngineer(ValueError):
-    """Raised for a fault assigned by an address the fleet holds for no asset, or by nobody (SP-015):
-    UnknownEngineer("nobody@example.com is not an engineer the fleet holds")."""
 
 
 @dataclass(frozen=True)
@@ -152,26 +149,19 @@ def known(conn: sqlite3.Connection, asset_id: str) -> Asset:
     return asset
 
 
-def known_engineers(conn: sqlite3.Connection) -> tuple[str, ...]:
-    """Every engineer address the fleet holds, distinct and sorted: the OAHE fleet gives ("inverter@oahe.example",
-    "site@oahe.example"); a fleet with no engineer gives ()."""
-    emails = {asset.engineer_email for asset in fleet_assets(conn, None) if asset.engineer_email is not None}
-    return tuple(sorted(emails))
-
-
 def assign_fault(conn: sqlite3.Connection, asset_id: str, code: str, opened: datetime, assigned_by: str,
                  recorded_by: str | None = None) -> Fault:
-    """Opens a fault on an asset the fleet holds, assigned by an engineer the fleet holds and, when it was called in,
-    entered by the operator named in recorded_by (SP-015): assign_fault(conn, "OAHE-INV-001", "INV-001", 10:10 UTC,
-    "inverter@oahe.example") is Fault(1, "OAHE-INV-001", "INV-001", 10:10, None, "inverter@oahe.example", None);
-    "OAHE-INV-009" raises UnknownAsset and an address no asset names raises UnknownEngineer, each storing nothing. Any
-    engineer the fleet holds may assign; is_cover says when it is not the asset's own. The fault's corrective ticket
-    opens with it, at its instant, noted with the code's meaning and its priority from the code's severity (SOL-14)."""
-    # Decision: SP-015 (only an engineer assigns a fault, and the record says which)
+    """Opens a fault on an asset the fleet holds, assigned by an engineer check_engineer passes (with accounts, an
+    active engineer account of the asset's site; with none, one the fleet holds) and, when it was called in, entered by
+    the operator named in recorded_by (SP-015, SP-035): assign_fault(conn, "OAHE-INV-001", "INV-001", 10:10 UTC,
+    "inverter@oahe.example") is Fault(1, "OAHE-INV-001", "INV-001", 10:10, None, "inverter@oahe.example", None) with no
+    account; "OAHE-INV-009" raises UnknownAsset and an engineer refused UnknownEngineer, each storing nothing. is_cover
+    says when the engineer is not the asset's own. The fault's corrective ticket opens with it, at its instant, noted
+    with the code's meaning and its priority from the code's severity (SOL-14)."""
+    # Decision: SP-015 (only an engineer assigns a fault, and the record says which); SP-035 (with accounts, an account)
     # Invariant: SOL-04 (the ledger refuses an unknown code); SOL-05 (no fault on an asset the fleet lacks)
     known(conn, asset_id)
-    if assigned_by not in known_engineers(conn):
-        raise UnknownEngineer(f"{assigned_by or 'nobody'} is not an engineer the fleet holds")
+    check_engineer(conn, assigned_by, asset_id)
     entered = recorded_by.strip() if recorded_by is not None else None
     fault = ledger.assign(conn, asset_id, code, opened, assigned_by, entered or None)
     # Decision: SP-022 (a ticket opens when an engineer assigns a fault, in the same call; never from a suggestion)
@@ -230,13 +220,13 @@ def open_preventive_work_order(conn: sqlite3.Connection, asset_id: str, opened: 
 
 
 def close_work_order(conn: sqlite3.Connection, wo_id: int, root_cause: str, closed: datetime,
-                     read_at: int | None = None) -> WorkOrder:
+                     read_at: int | None = None, actor: str | None = None) -> WorkOrder:
     """Closes a work order with its root-cause code and, for a corrective order whose fault is still open, that fault
     at the same instant, in one call: close_work_order(conn, 1, "RC-COMPONENT", 10:30 UTC) leaves order 1 and its
     fault both closed at 10:30; an unknown code raises UnknownRootCause, a ticket read at an older version StaleWrite
-    (12.2), and closes neither."""
+    (12.2), and closes neither. The close is logged in the ticket's moves as actor's (SP-035)."""
     # Decision: SP-011 (closing a corrective order closes its fault, in project, in one call)
-    order = work_ledger.close(conn, wo_id, root_cause, closed, read_at)
+    order = work_ledger.close(conn, wo_id, root_cause, closed, read_at, actor)
     if order.fault_id is not None and any(f.fault_id == order.fault_id for f in ledger.open_faults(conn)):
         ledger.close(conn, order.fault_id, closed)
     return order

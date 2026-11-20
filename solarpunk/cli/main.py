@@ -13,7 +13,7 @@ from typing import TextIO
 from solarpunk import project
 from solarpunk.cli import signin
 from solarpunk.cli.accounts import add_accounts
-from solarpunk.cli.signin import acting
+from solarpunk.cli.signin import acting, attributed
 from solarpunk.cli.tickets import add_tickets
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -40,17 +40,17 @@ The remote tests
 The fleet and its faults
   fleet load --demo                            register the OAHE example fleet
   fleet list [--site SITE]                     each asset with its kind, name and status
-  fault assign ID CODE OPENED --by ENGINEER    open a fault as its engineer [--recorded-by OPERATOR]
+  fault assign ID CODE OPENED [--for ENGINEER] open a fault as the engineer signed in, or on their word
   fault close FAULT_ID CLOSED                  close a fault
   fault list [--open]                          the faults, or the open ones alone
   fault suggestions [--asset ID]               the faults the tests and the devices suggest, waiting
-  fault accept ID --by ENGINEER                accept a suggestion into a fault [--recorded-by OPERATOR]
-  fault dismiss ID --by ENGINEER --reason WHY  dismiss a suggestion, saying why
+  fault accept ID [--for ENGINEER]             accept a suggestion into a fault, as fault assign does
+  fault dismiss ID --reason WHY                dismiss a suggestion, saying why [--for ENGINEER]
 
 The tickets (each takes --at INSTANT, now by default)
   ticket list                                  the open tickets, the nearest target first, a breach marked
   ticket ack ID                                acknowledge a ticket
-  ticket comment ID --by WHO WORDS             add a comment, kept as written
+  ticket comment ID WORDS                      add a comment, kept as written, by the account signed in
   ticket resolve ID --cause CODE --done WORDS  resolve and close a ticket and its fault with a root cause
 
 The accounts (a password is asked twice, never shown)
@@ -70,7 +70,9 @@ The numbers
 Every command but test run reads solarpunk.db in this folder; for another store,
 python -m solarpunk.cli --db PATH <command>. In a store with accounts, a command that acts
 (load, assign, close, accept, dismiss, generate, ack, comment, resolve, account add, reset,
-deactivate) takes --as EMAIL and asks for its password; test run acts as no person and asks nothing.
+deactivate) takes --as EMAIL and asks for its password, and acts as that account: an engineer as
+themself, an operator on an engineer's word with --for ENGINEER. test run acts as no person and asks
+nothing. A store with no accounts names who acts with --by (an operator's entry: --recorded-by).
 """
 
 
@@ -105,9 +107,11 @@ def fleet_list(conn: sqlite3.Connection, args: argparse.Namespace, out: TextIO) 
 
 
 def fault_assign(conn: sqlite3.Connection, args: argparse.Namespace, out: TextIO) -> None:
-    """fault assign OAHE-INV-001 INV-001 2026-06-01T10:10:00+00:00 --by inverter@oahe.example [--recorded-by OPERATOR]
-    prints "1 OAHE-INV-001 INV-001 2026-06-01T10:10:00+00:00 open by inverter@oahe.example" (SP-015)."""
-    fault = project.assign_fault(conn, args.asset_id, args.code, instant(args.opened), args.by, args.recorded_by)
+    """fault assign OAHE-INV-001 INV-001 2026-06-01T10:10:00+00:00 --as inverter@oahe.example prints "1 OAHE-INV-001
+    INV-001 2026-06-01T10:10:00+00:00 open by inverter@oahe.example" (SP-015); an operator adds --for ENGINEER (12.4);
+    a store with no accounts takes --by ENGINEER [--recorded-by OPERATOR] instead."""
+    fault = project.assign_fault_as(conn, args.account, args.asset_id, args.code, instant(args.opened), args.by,
+                                    args.recorded_by, args.for_engineer)
     out.write(fault_line(fault, project.is_cover(conn, fault)) + "\n")
 
 
@@ -138,16 +142,19 @@ def fault_suggestions(conn: sqlite3.Connection, args: argparse.Namespace, out: T
 
 
 def fault_accept(conn: sqlite3.Connection, args: argparse.Namespace, out: TextIO) -> None:
-    """fault accept 1 --by site@oahe.example [--recorded-by OPERATOR]: opens the suggested fault as the engineer and
-    prints its fault_line, "1 OAHE-SEN-001 SEN-001 2026-06-01T13:00:00+00:00 open by site@oahe.example"."""
-    fault = project.accept_suggestion(conn, args.suggestion_id, args.by, args.recorded_by)
+    """fault accept 1 --as site@oahe.example [--for ENGINEER]: opens the suggested fault as the engineer and prints its
+    fault_line, "1 OAHE-SEN-001 SEN-001 2026-06-01T13:00:00+00:00 open by site@oahe.example" (12.4); with no accounts,
+    --by ENGINEER [--recorded-by OPERATOR]."""
+    fault = project.accept_suggestion_as(conn, args.account, args.suggestion_id, args.by, args.recorded_by,
+                                         args.for_engineer)
     out.write(fault_line(fault, project.is_cover(conn, fault)) + "\n")
 
 
 def fault_dismiss(conn: sqlite3.Connection, args: argparse.Namespace, out: TextIO) -> None:
-    """fault dismiss 1 --by site@oahe.example --reason "fibre repaired" prints "dismissed 1 by site@oahe.example:
-    fibre repaired"."""
-    found = project.dismiss_suggestion(conn, args.suggestion_id, args.by, args.reason)
+    """fault dismiss 1 --as site@oahe.example --reason "fibre repaired" prints "dismissed 1 by site@oahe.example:
+    fibre repaired" (12.4: an operator adds --for ENGINEER; with no accounts, --by ENGINEER)."""
+    found = project.dismiss_suggestion_as(conn, args.account, args.suggestion_id, args.reason, args.by,
+                                          args.for_engineer)
     out.write(f"dismissed {found.suggestion_id} by {found.decided_by}: {found.dismissal}\n")
 
 
@@ -263,8 +270,7 @@ def add_fleet_and_faults(commands: argparse._SubParsersAction) -> None:
     assign.add_argument("asset_id")
     assign.add_argument("code")
     assign.add_argument("opened")
-    assign.add_argument("--by", required=True)
-    assign.add_argument("--recorded-by")
+    attributed(assign)
     assign.set_defaults(handler=fault_assign)
     close = acting(fault.add_parser("close"))
     close.add_argument("fault_id", type=int)
@@ -283,12 +289,11 @@ def add_suggestion_commands(fault: argparse._SubParsersAction) -> None:
     suggested.set_defaults(handler=fault_suggestions)
     accept = acting(fault.add_parser("accept"))
     accept.add_argument("suggestion_id", type=int)
-    accept.add_argument("--by", required=True)
-    accept.add_argument("--recorded-by")
+    attributed(accept)
     accept.set_defaults(handler=fault_accept)
     dismiss = acting(fault.add_parser("dismiss"))
     dismiss.add_argument("suggestion_id", type=int)
-    dismiss.add_argument("--by", required=True)
+    attributed(dismiss, operator=False)
     dismiss.add_argument("--reason", required=True)
     dismiss.set_defaults(handler=fault_dismiss)
 

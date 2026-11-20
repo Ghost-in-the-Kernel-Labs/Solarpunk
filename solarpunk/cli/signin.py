@@ -1,7 +1,7 @@
 """Who is at the command line (12.3, SOL-16, SP-032): a command that acts takes --as EMAIL and, in a store that holds an
-active account, asks for the password with getpass, which never echoes it. A store with no account asks nothing, as
-before accounts; a command that only reads, and the scheduled run (`test run`, which acts as no person), never ask. A
-refusal is a ValueError, so the command line prints it and exits 2."""
+active account, asks for the password with getpass, which never echoes it, and the act is recorded as that account
+(12.4). A store with no account asks nothing, as before accounts; a command that only reads, and the scheduled run
+(`test run`, which acts as no person), never ask. A refusal is a ValueError, so the command line prints it and exits 2."""
 import argparse
 import getpass
 import sqlite3
@@ -24,6 +24,16 @@ class NotSignedIn(ValueError):
 def acting(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
     """Marks a subcommand as one that acts: it takes --as EMAIL, and dispatch signs it in before its handler runs."""
     parser.add_argument("--as", dest=DEST, metavar="EMAIL", default=None)
+    return parser
+
+
+def attributed(parser: argparse.ArgumentParser, operator: bool = True) -> argparse.ArgumentParser:
+    """Who a fault act is recorded as (SP-015, 12.4): --for ENGINEER, an operator's, signed in; --by (and, with
+    operator, --recorded-by) where the store has no accounts. project refuses what the store does not take."""
+    parser.add_argument("--by")
+    if operator:
+        parser.add_argument("--recorded-by")
+    parser.add_argument("--for", dest="for_engineer", metavar="ENGINEER")
     return parser
 
 

@@ -1,11 +1,12 @@
 """The tickets' words in the windows (11.2, SOL-14), with no tkinter so the fast loop tests them: a ticket's line in the
-Tickets window (its targets' states and due instants, a breach marked), the asset window's ticket line, and the root
-cause choices Resolve offers. tickets_window.py and ticket_panel.py lay them out over project.tickets_by_target."""
+Tickets window (its targets' states and due instants, a breach marked), the asset window's ticket line and its history
+(one line per move: when, status, who, SP-035), and the root cause choices Resolve offers. tickets_window.py and
+ticket_panel.py lay them out over project.tickets_by_target."""
 from datetime import datetime
 
 from solarpunk.leaf.root_causes import MEANINGS, RootCause
 from solarpunk.leaf.tickets import TargetState
-from solarpunk.project import TicketView
+from solarpunk.project import Move, TicketView
 from solarpunk.ui.cells import instant_text
 
 COLUMNS = ("ticket", "asset", "priority", "status", "acknowledge", "respond", "opened")
@@ -14,6 +15,9 @@ NO_TARGET = "—"
 NO_TICKET = "No open ticket"
 TICKET_LINE = "Ticket {wo_id} · {priority} · {status} · acknowledge {acknowledge} · respond {respond}"
 WAITING = "{state}, due {due}"
+MOVE_LINE = "{at} · {status} · {who}"
+NOBODY_SIGNED_IN = "nobody signed in"
+NO_MOVES = "No move yet"
 
 
 def target_cell(state: TargetState | None, due: datetime | None) -> str:
@@ -46,6 +50,18 @@ def panel_line(view: TicketView | None) -> str:
     return TICKET_LINE.format(wo_id=found.wo_id, priority=NO_TARGET if found.priority is None else found.priority.value,
                               status=found.status.value, acknowledge=target_cell(view.acknowledge, view.acknowledge_due),
                               respond=target_cell(view.respond, view.respond_due))
+
+
+def move_line(found: Move) -> str:
+    """One move of a ticket's history: "2026-06-01 11:40 UTC · acknowledged · ops@oahe.example"; a move made where
+    nobody was signed in names "nobody signed in" (SP-035)."""
+    return MOVE_LINE.format(at=instant_text(found.at), status=found.status.value, who=found.actor or NOBODY_SIGNED_IN)
+
+
+def history_text(moves: tuple[Move, ...]) -> str:
+    """The ticket's history in the panel, oldest first, one line per move; a ticket never moved says "No move yet"."""
+    # Decision: SP-035 (a ticket's every move is on record with who made it)
+    return "\n".join(move_line(found) for found in moves) or NO_MOVES
 
 
 def cause_choices() -> tuple[str, ...]:

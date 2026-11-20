@@ -74,7 +74,7 @@ class TheCommands(unittest.TestCase):
 
     def test_the_help_lists_the_commands(self) -> None:
         out = self.run_cli(["help"])[1]
-        for line in ("ticket list", "ticket ack ID", "ticket comment ID --by WHO WORDS", "ticket resolve ID --cause CODE"):
+        for line in ("ticket list", "ticket ack ID", "ticket comment ID WORDS", "ticket resolve ID --cause CODE"):
             self.assertIn(line, out)
 
 

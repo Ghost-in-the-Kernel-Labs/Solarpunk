@@ -4,7 +4,7 @@ The scheduled run is in run.py (2.7, SP-006); the reports' surface in reports.py
 3 windows call is in surface.py (SP-007). The errors a surface catches are re-exported here, so receiver and ui catch
 them exactly without importing a lane (MOD-06); so are the work order and the root-cause list (4.1). Who may act, and
 where, is in access.py (12.1, SOL-16): the account calls, the viewer's refusal and the site scope on every reading,
-and the admin's account management (12.5)."""
+and the admin's account management (12.5); who an act is recorded as, the signed-in account, in attribution.py (12.4)."""
 from solarpunk.faults.ledger import LedgerError
 from solarpunk.feed.client import FeedError
 from solarpunk.fleet.registry import RegistryError
@@ -14,7 +14,6 @@ from solarpunk.project.orchestrator import (
     Fault,
     SiteKpis,
     UnknownAsset,
-    UnknownEngineer,
     asset_status,
     assign_fault,
     check_fault,
@@ -27,7 +26,6 @@ from solarpunk.project.orchestrator import (
     fleet_listing,
     generate_and_store,
     is_cover,
-    known_engineers,
     kpis_for,
     load_fleet,
     open_or_create,
@@ -38,6 +36,7 @@ from solarpunk.project.orchestrator import (
     period,
     work_orders_for,
 )
+from solarpunk.project.engineers import UnknownEngineer, known_engineers
 from solarpunk.project.reports import (
     OUTPUT_FIELDS,
     PowerReport,
@@ -95,12 +94,13 @@ from solarpunk.project.tickets import (
     resolve_ticket,
     set_ticket_assignee,
     ticket_comments,
+    ticket_moves,
     ticket_of,
     tickets_by_target,
     tickets_past_target,
 )
 from solarpunk.leaf.tickets import BadMove, Priority, TargetState, TicketStatus
-from solarpunk.workorders.tickets import Breach, Comment, Ticket
+from solarpunk.workorders.tickets import Breach, Comment, Move, Ticket
 from solarpunk.accounts.passwords import WeakPassword
 from solarpunk.accounts.table import AccountError
 from solarpunk.leaf.accounts import ALL_SITES, Account, Role
@@ -128,12 +128,30 @@ from solarpunk.project.access import (
     permit_first_admin,
     permit_suggestion,
     permit_ticket,
+    permit_ticket_work,
     reset_password_as,
     sign_in,
     unaccounted_engineers,
 )
+from solarpunk.project.attribution import (
+    accept_suggestion_as,
+    assign_fault_as,
+    comment_on_ticket_as,
+    dismiss_suggestion_as,
+    recorded_as,
+    resolve_ticket_as,
+    word_engineers,
+)
 
 __all__ = [
+    "word_engineers",
+    "resolve_ticket_as",
+    "recorded_as",
+    "permit_ticket_work",
+    "dismiss_suggestion_as",
+    "comment_on_ticket_as",
+    "assign_fault_as",
+    "accept_suggestion_as",
     "ALL_SITES",
     "Account",
     "AccountError",
@@ -150,6 +168,7 @@ __all__ = [
     "Fault",
     "FeedError",
     "LedgerError",
+    "Move",
     "NotPermitted",
     "OUTPUT_FIELDS",
     "PowerOutput",
@@ -255,6 +274,7 @@ __all__ = [
     "suggest_from_run",
     "suggest_pushed",
     "ticket_comments",
+    "ticket_moves",
     "ticket_of",
     "tickets_by_target",
     "tickets_past_target",

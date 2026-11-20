@@ -88,7 +88,9 @@ derate on OAHE-INV-001 (10:00 to 10:45). The run is stamped 2026-06-01 13:00 UTC
    and the test's rule suggests SEN-001 (readings unreliable) under "Suggested faults": the tests propose, they do not
    assign. Select it, choose site@oahe.example under "Assigned by" and press Accept: the fault opens as that engineer.
    Or give a reason and press Dismiss. `solarpunk fault suggestions` lists the same on the command line.
-6. **The engineer.** In the same window type an address into Engineer and press Save, or Cancel to leave it.
+6. **The engineer.** In the same window type an address into Engineer and press Save, or Cancel to leave it. If
+   someone changed the asset since the window drew it, the save is refused ("changed by someone else since you read
+   it; refresh") and **Refresh** beside the message redraws it; the ticket panel has its own.
 7. **Add asset** (the button above the list). The Type dropdown is read from the asset maintenance list. Fill an
    id such as OAHE-INV-005, a parent, the IP address 127.0.0.1 and a port, press Save: the new row appears in the
    fleet window. Then press **Ping**: with nothing listening on that port it says so, plainly. **Manage tests**

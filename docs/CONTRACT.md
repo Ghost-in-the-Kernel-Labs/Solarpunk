@@ -227,7 +227,11 @@ clears both. No instant may come before the ticket's opening. Closing takes a ro
 closes the fault if it is still open. Closing a ticket that has not reached `resolved` (the one-step close-out of 4.1)
 is the allowed moves taken at the one instant: `open` to `in progress` to `resolved` to `closed`, an instant already
 stamped kept. So a ticket closed at 13:00 that nobody acknowledged has its acknowledgement and response at 13:00, and
-its targets read what that says. Comments carry their author and instant and are never edited or deleted. A ticket is
+its targets read what that says. Comments carry their author and instant and are never edited or deleted. Every move,
+the close included, is logged in the ticket's history with the status it moved to, its instant and the account that
+made it, or none where nobody is signed in (SOL-16, SP-035): a row is only ever added, a refused or stale move adds
+none, the history reads oldest first, and a store made before it gains the empty history on opening, nothing
+back-filled. A ticket is
 past a target when, at the instant asked, a target is `late` or `overdue`. Closing the fault alone (`solarpunk fault
 close`) ends the downtime and leaves the ticket open, to be closed with its root cause.
 
@@ -306,8 +310,8 @@ may see and act on, or all. An admin's scope is all.
 | viewer | nothing: every write is refused, by name |
 | admin | manages accounts; every site |
 
-(Which act each role may make beyond the viewer's none is 12.4's, attribution from the account; 12.1 holds the viewer
-and the site scope.) An account sees an asset, a fault, a suggestion and a ticket only when the asset's site is in its
+(12.1 holds the viewer and the site scope; 12.4 the acts of the others, "Every act is the account's" below.) An
+account sees an asset, a fault, a suggestion and a ticket only when the asset's site is in its
 scope, and acts on none outside it. An account that is not active is refused at its password and acts on nothing.
 An engineer address the fleet names with no active engineer account is flagged by a query, so a fault assigned in its
 name before accounts is not mistaken for an authenticated one.
@@ -355,6 +359,51 @@ command that acts takes `--as EMAIL` and asks its password with `getpass`; a com
 which acts as no person and attributes nothing to one, ask nothing. A refusal says "that email and password do not
 match an active account", whichever part was wrong. A failed sign-in is kept with the account it named, or "no such
 account", and its instant; nothing of the password typed is kept.
+
+**Every act is the account's** (12.4, SP-015, SP-022). In a store with an active account, an act is recorded as the
+account signed in, never as an address chosen. An engineer assigns a fault, and accepts or dismisses a suggestion, as
+themself: `assigned_by` (or `decided_by`) its email, `recorded_by` empty. An operator enters one on an engineer's word
+and names the engineer (`--for ENGINEER` at the command line, "On the word of" in the window): `assigned_by` (or
+`decided_by`) that engineer, `recorded_by` the operator; the engineer named is an active engineer account whose sites
+hold the asset's, else "<email> is not an active engineer of site OAHE", and an engineer naming one is refused, as
+they act as themself. A dismissal on an engineer's word records the operator as a fault does: `decided_by` the
+engineer, `recorded_by` the operator (SP-035). Whoever assigns a fault or decides a suggestion, by any door, is in such
+a store an active engineer account whose sites hold the asset's: the fleet need not also name the address, so a new
+engineer acts once their account is made, and an address the fleet names with no such account is refused,
+"inverter@oahe.example is not an active engineer of site OAHE"; a store with no active account keeps SP-015's rule, an
+engineer the fleet names. An admin and a viewer assign and decide nothing ("admin@oahe.example is an admin and assigns
+no fault"). A ticket is acknowledged, commented on and resolved by an engineer or an operator, as their own act, a
+comment's author the account; an admin is refused ("admin@oahe.example is an admin and works no ticket"). Every move
+of a ticket (acknowledge, start, resolve, reopen, close) is logged with the account that made it, an operator's as
+their own, in a history only ever added to, so who acknowledged and who resolved stay on record, not only the last
+move (SP-035); where nobody is signed in the move is logged as nobody's, and the asset window's ticket panel shows the
+history one line per move, "nobody signed in" for those. Every act stays within the account's sites. `--by` and `--recorded-by` given where there are accounts are refused, "this
+store has accounts: the signed-in account is used, so --by and --recorded-by are not taken", and the window shows an
+engineer no picker; a store with no active account takes them as before, and the scheduled run attributes nothing.
+
+Worked example, over the same store with `ops@oahe.example` an operator of OAHE:
+
+    site@oahe.example assigns INV-001 on OAHE-INV-001          open by site@oahe.example
+    ops@oahe.example assigns INV-002 --for site@oahe.example   open by site@oahe.example entered by ops@oahe.example
+    ops@oahe.example assigns INV-003 --for crew@bigs.example   refused: "crew@bigs.example is not an active engineer of site OAHE"
+    ops@oahe.example comments on its ticket                    the comment by ops@oahe.example
+
+Worked example, a ticket's history and the engineer accounts (SP-035), over the same store with BIGS-INV-001 (site
+BIGS, whose engineer the fleet names nowhere) loaded beside it; the panel's line for each move is on the right:
+
+    ops@oahe.example acknowledges OAHE-INV-001's ticket at 11:40   2026-06-01 11:40 UTC · acknowledged · ops@oahe.example
+    site@oahe.example resolves and closes it at 12:00              2026-06-01 12:00 UTC · in progress · site@oahe.example
+                                                                   2026-06-01 12:00 UTC · resolved · site@oahe.example
+                                                                   2026-06-01 12:00 UTC · closed · site@oahe.example
+    a ticket acknowledged at 11:40 in a store with no account      2026-06-01 11:40 UTC · acknowledged · nobody signed in
+    ops@oahe.example dismisses a suggestion --for site@oahe.example   decided by site@oahe.example, recorded by ops@oahe.example
+    crew@bigs.example assigns INV-001 on BIGS-INV-001              open by crew@bigs.example
+    a fault assigned as inverter@oahe.example, which the fleet names and no account holds
+                                                                   refused: "inverter@oahe.example is not an active engineer of site OAHE"
+
+Held by `solarpunk/project/attribution.py`, `solarpunk/project/engineers.py`, `permit_ticket_work` in
+`solarpunk/project/access.py`, the ticket ledger's history in `solarpunk/workorders/`, `test/solarpunk/test_attribution.py`,
+which runs the first example, and `test/solarpunk/test_ticket_moves.py`, which runs the second.
 
 **An admin manages the accounts** (12.5, SP-022, SP-032). The first admin is made on the machine by `solarpunk account
 init`, which asks a name, an email and a password, and only once: a store that holds an admin, active or not, refuses

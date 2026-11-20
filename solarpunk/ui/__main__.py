@@ -71,12 +71,12 @@ def open_fleet(root: tkinter.Tk, conn: sqlite3.Connection, account: project.Acco
     beside it the ManageTestsWindow over the remote tests' folder (9.8), and "Reports" after it opens ReportsWindow(root, conn) (6.3), then "Errors" the fleet's ErrorsWindow, whose rows open a Runs window
     (10.7), then "Tickets" the TicketsWindow, a double click opening the ticket's asset window (11.2); Refresh stands
     at the toolbar's right (9.5). The account signed in (None in a store with none) is kept on the window and named in
-    its status bar (12.3)."""
+    its status bar (12.3), and every asset window acts as it (12.4)."""
     window = FleetWindow(root, conn)
     window.account = account
     window.account_label = ttk.Label(window.status_bar, text=cells.who_text(account))
     window.account_label.pack(side=tkinter.LEFT, padx=12)
-    window.on_open_asset = lambda asset_id: AssetWindow(root, conn, asset_id, window.refresh)
+    window.on_open_asset = lambda asset_id: AssetWindow(root, conn, asset_id, window.refresh, account)  # 12.4
     window.on_open_runs = lambda asset_id: RunsWindow(root, conn, asset_id)  # 10.3
     bar = window.toolbar  # Refresh stands at its right since 9.5
     window.add_button = ttk.Button(bar, text=ADD_ASSET,

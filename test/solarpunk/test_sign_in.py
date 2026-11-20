@@ -80,7 +80,7 @@ class TheCommandLine(unittest.TestCase):
         self.db = str(Path(folder.name) / "fleet.db")
         conn = project.open_or_create(self.db)
         with_account(conn)
-        project.assign_fault(conn, "OAHE-INV-002", "INV-001", MOMENT, "inverter@oahe.example")
+        project.assign_fault(conn, "OAHE-INV-002", "INV-001", MOMENT, SITE)  # SP-035: an engineer account
         conn.close()
         self.prompts: list[str] = []
 

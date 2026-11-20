@@ -787,3 +787,14 @@ The core decisions above are inherited (Core C-001 to C-040); this project's beg
 - **Status:** in force
 - **See also:** C-022, SP-033
 - **subject:** context
+
+### SP-035: A ticket's every move is logged with who made it; an operator's dismissal records the operator; with accounts, an engineer account is an engineer
+- **Decision:** Three parts of 12.4. (1) A ticket keeps an append-only log of its moves: one row per move (the ticket, the status it moved to, the instant, the account that moved it, or none where nobody is signed in), never updated or deleted, so who acknowledged, started and resolved a ticket is on record, not only the last move; a store made before it gains the empty log on opening, and its history begins then. (2) A suggestion records the operator who entered a decision on an engineer's word, as a fault does (`recorded_by`), added to an older store on opening. (3) In a store with an active account, the engineer who assigns a fault or decides a suggestion is an active engineer account whose sites hold the asset's; an address the fleet names is no longer also required. A store with no active account keeps SP-015's rule as it was (an engineer the fleet names).
+- **Why:** 12.4's check says a ticket records the account, but a ticket's acknowledge and resolve kept no actor (12.4 part A, its report): a log keeps the whole trail, which a single "last moved by" column would overwrite, and it is the record an ISO 9001 audit of nonconformity and corrective action asks for. An operator's dismissal kept the engineer only, unlike a fault. Requiring the fleet to name an engineer as well as an account would leave a new engineer unable to act until someone edited an asset. Ghost, 2026-11-20, in chat, on the three recommendations: "yes to all three".
+- **Supersedes:** none. It narrows SP-015's "an engineer the fleet holds" to stores with no active account.
+- **Held by:** `TODO.md` 12.4; the tests the build adds (`test/solarpunk/test_ticket_moves.py`, `test/solarpunk/test_attribution.py`).
+- **Source:** Ghost, in chat, 2026-11-20.
+- **Status:** in force
+- **See also:** SP-015, SP-022, SP-028, SP-032
+- **subject:** security
+

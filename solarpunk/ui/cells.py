@@ -3,11 +3,17 @@ as the windows write it, and a row's cause: why a red or yellow row is that colo
 them; test_demo.py holds the demo's causes as goldens."""
 from datetime import datetime
 
-from solarpunk.leaf.accounts import Account
+from solarpunk.leaf.accounts import Account, Role
 from solarpunk.leaf.codes import AssetStatus
-from solarpunk.project.surface import AssetRow, Attention
+from solarpunk.project.surface import AssetDetail, AssetRow, Attention
 
 INSTANT_FORMAT = "%Y-%m-%d %H:%M UTC"
+# The asset window's engineer picker (12.4): "Assigned by" where the store has no accounts, "On the word of" for an
+# operator signed in; an engineer signed in acts as themself and sees none.
+ASSIGNED_BY = "Assigned by"
+ON_THE_WORD_OF = "On the word of"
+# A window's Refresh (12.2, SOL-16): rereads what it drew, as a write refused for a stale screen asks.
+REFRESH = "Refresh"
 # The attention band's counts (9.3), in the order they stand: a key, and the words before the count.
 BAND = (("outages", "Open outages"), ("suggestions", "Awaiting an engineer"), ("orders", "Open work orders"))
 BAND_TEXT = "{label}: {count}"
@@ -87,3 +93,29 @@ def who_text(account: Account | None) -> str:
     if account is None:
         return NO_ACCOUNTS
     return f"signed in as {account.email} ({account.role.value})"
+
+
+def picker_title(account: Account | None) -> str | None:
+    """The asset window's engineer picker's title, or None for no picker (12.4, SP-015): no account in the store,
+    "Assigned by"; an operator signed in, "On the word of"; an engineer (who acts as themself), an admin or a viewer
+    signed in, None."""
+    # Decision: SP-015 (an operator enters a fault on an engineer's word)
+    if account is None:
+        return ASSIGNED_BY
+    return ON_THE_WORD_OF if account.role is Role.OPERATOR else None
+
+
+def who_named(account: Account | None, chosen: str, entered: str) -> tuple[str | None, str | None, str | None]:
+    """What the asset window names for project's attribution, (by, recorded_by, for_engineer), from the picker's
+    choice and the "Entered by" box: no account, (chosen, entered or None, None); an operator signed in, (None, None,
+    chosen); anyone else signed in, (None, None, None), the account itself being the actor."""
+    if account is None:
+        return chosen, entered or None, None
+    return None, None, (chosen if account.role is Role.OPERATOR else None)
+
+
+def drawn(detail: AssetDetail, suggestion_id: int) -> int:
+    """The version of a suggestion as the asset window drew it, which Accept and Dismiss name (12.2, SOL-16), so one
+    decided since by someone else is refused: a suggestion just raised gives 1; an id not drawn raises StopIteration."""
+    # Decision: SP-028 (a write from a screen names the version it read)
+    return next(found.version for found in detail.suggestions if found.suggestion_id == suggestion_id)

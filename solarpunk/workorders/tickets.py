@@ -1,8 +1,9 @@
 """The ticket ledger (8.2, SOL-14, SP-022): every work order is a ticket. Its status moves only as the leaf's MOVES allow,
-each move stamping its instant (acknowledged, responded, resolved); resolving needs closeout evidence; the working
-assignee is free text a person sets; comments carry their author and instant and are never edited or deleted; a query
-reports the tickets past a target. Closing is the ledger's `close`, with a root cause (4.1). It imports the leaf and its
-own module's ledger alone (MOD-05): project sets a ticket's priority from its fault and opens it with the fault."""
+each move stamping its instant (acknowledged, responded, resolved) and logged with who made it, a history only ever
+added to (SP-035); resolving needs closeout evidence; the working assignee is free text a person sets; comments carry
+their author and instant and are never edited or deleted; a query reports the tickets past a target. Closing is the
+ledger's `close`, with a root cause (4.1). It imports the leaf and its own module's ledger alone (MOD-05): project sets
+a ticket's priority from its fault and opens it with the fault, and hands each move its actor as a plain email."""
 import sqlite3
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -10,14 +11,15 @@ from datetime import datetime, timezone
 from solarpunk.leaf.clock import utc
 from solarpunk.leaf.tickets import COMMENT, TRANSITION, UPDATE, TARGETS, Priority, TargetState, TicketStatus, check_move, target_state
 from solarpunk.leaf.versions import BUMP
-from solarpunk.workorders.ledger import (CREATE_COMMENTS, CREATE_OUTBOX, TICKET_COLUMNS, WorkOrderError, check_read, get,
-                                         last_stamp, outbox_add)
+from solarpunk.workorders.ledger import (CREATE_COMMENTS, CREATE_MOVES, CREATE_OUTBOX, TICKET_COLUMNS, WorkOrderError,
+                                         check_read, get, last_stamp, outbox_add, record_move)
 
 SELECT_TICKET = (
     "SELECT wo_id, asset_id, kind, status, priority, assignee, opened, acknowledged, responded, resolved, closed,"
     " evidence, version FROM work_orders"
 )
 SELECT_COMMENTS = "SELECT comment_id, wo_id, author, at, body FROM ticket_comments WHERE wo_id = ? ORDER BY comment_id"
+SELECT_MOVES = "SELECT move_id, wo_id, status, at, actor FROM ticket_moves WHERE wo_id = ? ORDER BY move_id"
 INSERT_COMMENT = "INSERT INTO ticket_comments (wo_id, author, at, body) VALUES (?, ?, ?, ?)"
 LATE = (TargetState.LATE, TargetState.OVERDUE)
 ASSIGNEE = "assignee {name}"
@@ -58,6 +60,18 @@ class Comment:
 
 
 @dataclass(frozen=True)
+class Move:
+    """One move in a ticket's history, never updated or deleted (SP-035): Move(1, 1, TicketStatus.ACKNOWLEDGED, 11:40
+    UTC, "ops@oahe.example"); actor is None where nobody was signed in."""
+
+    move_id: int
+    wo_id: int
+    status: TicketStatus
+    at: datetime
+    actor: str | None
+
+
+@dataclass(frozen=True)
 class Breach:
     """A ticket past one of its targets at an instant: Breach(ticket, "acknowledge", TargetState.OVERDUE)."""
 
@@ -67,8 +81,9 @@ class Breach:
 
 
 def upgrade(conn: sqlite3.Connection) -> None:
-    """Gives a work_orders table made before 8.2 the ticket's columns, a closed order's status "closed", and the comments
-    table; a store that has them is left as it is: upgrade(conn) twice changes nothing the second time."""
+    """Gives a work_orders table made before 8.2 the ticket's columns, a closed order's status "closed", and the comments,
+    outbox and moves tables (the moves' empty: a history begins when the store gains it, SP-035); a store that has them
+    is left as it is: upgrade(conn) twice changes nothing the second time."""
     present = {row[1] for row in conn.execute("PRAGMA table_info(work_orders)")}
     added = [name for name, _column in TICKET_COLUMNS if name not in present]
     for name, column in TICKET_COLUMNS:
@@ -78,6 +93,7 @@ def upgrade(conn: sqlite3.Connection) -> None:
         conn.execute("UPDATE work_orders SET status = 'closed' WHERE closed IS NOT NULL")
     conn.execute(CREATE_COMMENTS)
     conn.execute(CREATE_OUTBOX)
+    conn.execute(CREATE_MOVES)
     conn.commit()
 
 
@@ -123,12 +139,13 @@ def _checked(conn: sqlite3.Connection, wo_id: int, target: TicketStatus, moment:
 
 
 def move(conn: sqlite3.Connection, wo_id: int, target: TicketStatus, moment: datetime, evidence: str | None = None,
-         read_at: int | None = None) -> Ticket:
+         read_at: int | None = None, actor: str | None = None) -> Ticket:
     """Moves a ticket as SOL-14 allows and stamps the move: move(conn, 1, ACKNOWLEDGED, 10:40 UTC).acknowledged is 10:40;
     to IN_PROGRESS stamps responded (and acknowledged) if not yet stamped, and from RESOLVED clears resolved and the
     evidence; to RESOLVED needs evidence. A forbidden move raises BadMove, a move to CLOSED, an instant before the last
     move, or resolving without evidence WorkOrderError, a ticket read at an older version StaleWrite (12.2); a refused
-    move writes nothing, and every move raises the version."""
+    move writes nothing, and every move raises the version and is logged as actor's, None where nobody is signed in
+    (SP-035)."""
     found = _checked(conn, wo_id, target, moment, read_at)
     stamp = utc(moment).isoformat()
     if target is TicketStatus.RESOLVED:
@@ -145,6 +162,7 @@ def move(conn: sqlite3.Connection, wo_id: int, target: TicketStatus, moment: dat
                      f" responded = {responded}, {BUMP} WHERE wo_id = :wo_id",
                      {"status": target.value, "stamp": stamp, "wo_id": wo_id})
     outbox_add(conn, wo_id, TRANSITION, stamp, target.value)
+    record_move(conn, wo_id, target.value, stamp, actor)
     conn.commit()
     return ticket(conn, wo_id)
 
@@ -195,6 +213,14 @@ def comments(conn: sqlite3.Connection, wo_id: int) -> tuple[Comment, ...]:
     """A ticket's comments, oldest first."""
     return tuple(Comment(cid, wid, author, datetime.fromisoformat(at), body)
                  for cid, wid, author, at, body in conn.execute(SELECT_COMMENTS, (wo_id,)))
+
+
+def moves(conn: sqlite3.Connection, wo_id: int) -> tuple[Move, ...]:
+    """A ticket's moves, oldest first (SP-035): after ops@oahe.example acknowledges ticket 1 at 11:40, moves(conn, 1) is
+    (Move(1, 1, ACKNOWLEDGED, 11:40 UTC, "ops@oahe.example"),); a ticket nobody has moved, or moved before the store
+    gained the table, has ()."""
+    return tuple(Move(mid, wid, TicketStatus(status), datetime.fromisoformat(at), actor)
+                 for mid, wid, status, at, actor in conn.execute(SELECT_MOVES, (wo_id,)))
 
 
 def breaches(found: Ticket, moment: datetime) -> tuple[Breach, ...]:

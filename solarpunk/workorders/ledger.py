@@ -11,7 +11,7 @@ from datetime import datetime
 from solarpunk.leaf import versions
 from solarpunk.leaf.clock import Period, utc
 from solarpunk.leaf.root_causes import RootCause, lookup_root_cause
-from solarpunk.leaf.tickets import CREATE, TRANSITION, Priority
+from solarpunk.leaf.tickets import CREATE, TRANSITION, Priority, TicketStatus
 
 CORRECTIVE = "corrective"
 PREVENTIVE = "preventive"
@@ -41,6 +41,13 @@ CREATE_COMMENTS = (
     "CREATE TABLE IF NOT EXISTS ticket_comments (comment_id INTEGER PRIMARY KEY, wo_id INTEGER NOT NULL, author TEXT NOT NULL,"
     " at TEXT NOT NULL, body TEXT NOT NULL)"
 )
+# A ticket's moves (12.4, SP-035): one row per status change, with the account that made it (NULL where nobody signed
+# in), written in the change's own transaction and never updated or deleted, so the whole trail is on record.
+CREATE_MOVES = (
+    "CREATE TABLE IF NOT EXISTS ticket_moves (move_id INTEGER PRIMARY KEY, wo_id INTEGER NOT NULL, status TEXT NOT NULL,"
+    " at TEXT NOT NULL, actor TEXT NULL)"
+)
+INSERT_MOVE = "INSERT INTO ticket_moves (wo_id, status, at, actor) VALUES (?, ?, ?, ?)"
 SELECT_ORDERS = "SELECT wo_id, asset_id, fault_id, kind, opened, closed, root_cause, note, version FROM work_orders"
 INSERT_ORDER = "INSERT INTO work_orders (asset_id, fault_id, kind, opened, note, priority) VALUES (?, ?, ?, ?, ?, ?)"
 # The one-step close-out of 4.1 (SOL-14): the allowed moves at one instant, an instant already stamped kept.
@@ -82,8 +89,8 @@ class WorkOrderError(ValueError):
 
 def schema() -> tuple[str, ...]:
     """The ledger's schema statements, for leaf.store.apply: schema()[0] starts with "CREATE TABLE work_orders", schema()[1]
-    with "CREATE TABLE IF NOT EXISTS ticket_comments", schema()[2] the outbox's (11.1)."""
-    return (CREATE_TABLE, CREATE_COMMENTS, CREATE_OUTBOX)
+    with "CREATE TABLE IF NOT EXISTS ticket_comments", schema()[2] the outbox's (11.1), schema()[3] the moves' (12.4)."""
+    return (CREATE_TABLE, CREATE_COMMENTS, CREATE_OUTBOX, CREATE_MOVES)
 
 
 def _stamp(moment: datetime) -> str:
@@ -118,6 +125,13 @@ def outbox_add(conn: sqlite3.Connection, wo_id: int, kind: str, at: str, detail:
     """Writes one ticket change's event to the outbox without committing: the caller commits it with the change, so the
     two are stored together or not at all (SP-027)."""
     conn.execute("INSERT INTO ticket_outbox (wo_id, kind, at, detail) VALUES (?, ?, ?, ?)", (wo_id, kind, at, detail))
+
+
+def record_move(conn: sqlite3.Connection, wo_id: int, status: str, at: str, actor: str | None) -> None:
+    """Appends one move to the ticket's history without committing: the caller commits it with the status change, so a
+    refused or stale move writes no row. actor is the account's email, or None where nobody is signed in."""
+    # Decision: SP-035 (a ticket's every move is logged with who made it; rows are only ever added)
+    conn.execute(INSERT_MOVE, (wo_id, status, at, actor))
 
 
 def _insert(conn: sqlite3.Connection, asset_id: str, fault_id: int | None, kind: str, opened: str, note: str,
@@ -166,13 +180,13 @@ def check_read(conn: sqlite3.Connection, wo_id: int, read_at: int | None) -> Wor
 
 
 def close(conn: sqlite3.Connection, wo_id: int, root_cause: str, closed: datetime,
-          read_at: int | None = None) -> WorkOrder:
+          read_at: int | None = None, actor: str | None = None) -> WorkOrder:
     """Closes an open order with its root-cause code: close(conn, 1, "RC-COMPONENT", 10:30 UTC) gives the order with
     closed 10:30 UTC and root_cause RootCause.COMPONENT. Refuses, writing nothing, a code outside the list
     (UnknownRootCause), a naive instant (NotUtc), an unknown order id, a close at or before the opening and a second
     close (WorkOrderError), and a ticket read at an older version (StaleWrite, 12.2). Its ticket closes too: from any
     earlier status by the allowed moves at that one instant, the acknowledged, responded and resolved instants already
-    stamped kept (SOL-14), and its version raised."""
+    stamped kept (SOL-14), its version raised, and the move to closed logged as actor's (SP-035)."""
     # Invariant: SOL-04's rule for causes (SP-011): no order closes without a code from the closed list
     cause = lookup_root_cause(root_cause)
     stamp = _stamp(closed)
@@ -185,6 +199,7 @@ def close(conn: sqlite3.Connection, wo_id: int, root_cause: str, closed: datetim
         raise WorkOrderError(f"work order {wo_id} cannot close at {stamp}, before its ticket's last move")
     conn.execute(CLOSE_ORDER, {"stamp": stamp, "cause": cause.value, "wo_id": wo_id})
     outbox_add(conn, wo_id, TRANSITION, stamp, cause.value)
+    record_move(conn, wo_id, TicketStatus.CLOSED.value, stamp, actor)
     conn.commit()
     return get(conn, wo_id)
 

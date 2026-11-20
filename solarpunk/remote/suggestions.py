@@ -1,7 +1,7 @@
 """The suggestions table (7.4, SP-015): a likely fault a failing remote test's rules name, or a code an asset pushed,
 waiting for an engineer. A suggestion is never a fault: an engineer accepts it (project opens the fault, through the one
 door that requires an engineer, and the suggestion keeps its id) or dismisses it with a reason, and either is recorded
-with who. One open suggestion per asset and code: raising the same one again returns the open one. The module offers
+with who, and the operator who entered it on the engineer's word (SP-035). One open suggestion per asset and code: raising the same one again returns the open one. The module offers
 its schema; project applies it. It imports the leaf alone (MOD-05)."""
 import sqlite3
 from dataclasses import dataclass
@@ -15,6 +15,8 @@ DEVICE = "device"
 OPEN = "open"
 ACCEPTED = "accepted"
 DISMISSED = "dismissed"
+RECORDED_BY = "recorded_by"
+RECORDED_BY_SQL = "recorded_by TEXT NULL"  # 12.4, SP-035: the operator who entered a decision on an engineer's word
 # The SQL lives here, at module level, where mutmut does not reach (docs/MUTATION.md, J-008).
 SCHEMA = (
     "CREATE TABLE suggestions ("
@@ -28,18 +30,20 @@ SCHEMA = (
     " decided_by TEXT NULL,"
     " fault_id INTEGER NULL,"
     " dismissal TEXT NULL,"
-    f" {versions.COLUMN_SQL})",
+    f" {versions.COLUMN_SQL},"
+    f" {RECORDED_BY_SQL})",
 )
-COLUMNS = "suggestion_id, asset_id, code, source, reason, raised_at, state, decided_by, fault_id, dismissal, version"
+COLUMNS = ("suggestion_id, asset_id, code, source, reason, raised_at, state, decided_by, fault_id, dismissal, version,"
+           " recorded_by")
 INSERT = "INSERT INTO suggestions (asset_id, code, source, reason, raised_at) VALUES (?, ?, ?, ?, ?)"
 BY_ID = f"SELECT {COLUMNS} FROM suggestions WHERE suggestion_id = ?"
 OPEN_OF = f"SELECT {COLUMNS} FROM suggestions WHERE state = 'open' AND asset_id = ? AND code = ?"
 OPEN_ALL = f"SELECT {COLUMNS} FROM suggestions WHERE state = 'open' ORDER BY asset_id, source != 'device', raised_at DESC, suggestion_id"
 OPEN_FOR = (f"SELECT {COLUMNS} FROM suggestions WHERE state = 'open' AND asset_id = ?"
             " ORDER BY source != 'device', raised_at DESC, suggestion_id")
-ACCEPT = (f"UPDATE suggestions SET state = 'accepted', decided_by = ?, fault_id = ?, {versions.BUMP}"
+ACCEPT = (f"UPDATE suggestions SET state = 'accepted', decided_by = ?, recorded_by = ?, fault_id = ?, {versions.BUMP}"
           " WHERE suggestion_id = ? AND state = 'open'")
-DISMISS = (f"UPDATE suggestions SET state = 'dismissed', decided_by = ?, dismissal = ?, {versions.BUMP}"
+DISMISS = (f"UPDATE suggestions SET state = 'dismissed', decided_by = ?, recorded_by = ?, dismissal = ?, {versions.BUMP}"
            " WHERE suggestion_id = ? AND state = 'open'")
 
 
@@ -52,7 +56,7 @@ class SuggestionError(ValueError):
 class Suggestion:
     """One suggestion: Suggestion(1, "OAHE-SEN-001", "SEN-001", "reachable", "127.0.0.1:9 is unreachable", 13:00 UTC,
     "open", None, None, None); source is the test that raised it, or "device" for a pushed code; decided_by, fault_id and
-    dismissal are set when an engineer acts."""
+    dismissal are set when an engineer acts, and recorded_by when an operator entered that on the engineer's word."""
 
     suggestion_id: int
     asset_id: str
@@ -65,6 +69,7 @@ class Suggestion:
     fault_id: int | None
     dismissal: str | None
     version: int = 1  # 12.2: raised by one when an engineer accepts or dismisses it
+    recorded_by: str | None = None  # 12.4, SP-035: the operator who entered the decision, None when the engineer did
 
 
 def schema() -> tuple[str, ...]:
@@ -117,8 +122,12 @@ def raised_in(conn: sqlite3.Connection, period: Period) -> tuple[Suggestion, ...
 
 
 def upgrade(conn: sqlite3.Connection) -> None:
-    """Gives a suggestions table made before 12.2 its version column, every suggestion at version 1."""
+    """Gives a suggestions table made before 12.2 its version column, every suggestion at version 1, and one made
+    before 12.4 its recorded_by column, empty (SP-035); a table that has them is left as it is."""
     versions.add_column(conn, "suggestions")
+    if RECORDED_BY not in {row[1] for row in conn.execute("PRAGMA table_info(suggestions)")}:
+        conn.execute(f"ALTER TABLE suggestions ADD COLUMN {RECORDED_BY_SQL}")
+        conn.commit()
 
 
 def check_read(conn: sqlite3.Connection, suggestion_id: int, read_at: int | None) -> Suggestion:
@@ -142,16 +151,18 @@ def _decide(conn: sqlite3.Connection, statement: str, values: tuple, suggestion_
 
 
 def mark_accepted(conn: sqlite3.Connection, suggestion_id: int, engineer: str, fault_id: int,
-                  read_at: int | None = None) -> Suggestion:
-    """Records that an engineer accepted the suggestion into the fault named: mark_accepted(conn, 1, "a@x", 3).state is
-    "accepted" and .fault_id 3. Whether the engineer may, and the fault itself, are project's (SP-015)."""
-    return _decide(conn, ACCEPT, (engineer, fault_id, suggestion_id), suggestion_id, read_at)
+                  read_at: int | None = None, recorded_by: str | None = None) -> Suggestion:
+    """Records that an engineer accepted the suggestion into the fault named, entered by the operator recorded_by names
+    when it was called in: mark_accepted(conn, 1, "a@x", 3).state is "accepted" and .fault_id 3. Whether the engineer
+    may, and the fault itself, are project's (SP-015)."""
+    return _decide(conn, ACCEPT, (engineer, recorded_by, fault_id, suggestion_id), suggestion_id, read_at)
 
 
 def mark_dismissed(conn: sqlite3.Connection, suggestion_id: int, engineer: str, reason: str,
-                   read_at: int | None = None) -> Suggestion:
-    """Records that an engineer dismissed the suggestion, and why: mark_dismissed(conn, 1, "a@x", "sensor cleaned").state
-    is "dismissed"; a blank reason raises SuggestionError, since a dismissal is a decision that says why."""
+                   read_at: int | None = None, recorded_by: str | None = None) -> Suggestion:
+    """Records that an engineer dismissed the suggestion, and why, entered by the operator recorded_by names when it
+    was called in (SP-035): mark_dismissed(conn, 1, "a@x", "sensor cleaned").state is "dismissed"; a blank reason
+    raises SuggestionError, since a dismissal is a decision that says why."""
     if not reason.strip():
         raise SuggestionError(f"suggestion {suggestion_id}: a dismissal needs a reason")
-    return _decide(conn, DISMISS, (engineer, reason.strip(), suggestion_id), suggestion_id, read_at)
+    return _decide(conn, DISMISS, (engineer, recorded_by, reason.strip(), suggestion_id), suggestion_id, read_at)

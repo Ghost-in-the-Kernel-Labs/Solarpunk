@@ -28,7 +28,8 @@ remote tests, `solarpunk test list` and `solarpunk test add <name> --clause <id>
 <start> <end>` the power-output report; the clause report is `solarpunk clauses`, and `solarpunk --help` lists every
 command. `solarpunk --shortcut`, typed in the folder that holds your store, puts a Solarpunk shortcut wearing her icon on
 the desktop. A store that holds accounts opens on a sign-in, and a command that acts takes `--as EMAIL` and asks
-for its password; a store with none opens as before. `solarpunk account init`, typed on the machine, makes the first
+for its password, and every act is then that account's: an engineer acts as themself, an operator names the engineer
+whose word it is (`--for ENGINEER`; "On the word of" in the window); a store with none opens as before. `solarpunk account init`, typed on the machine, makes the first
 admin, once; an admin then runs `solarpunk account add|reset|deactivate --as EMAIL`, and `solarpunk account list` lists
 them (an account is stopped, never deleted). In the window, "Manage tests" lists the test scripts (a new test is a new Python script in
 `solarpunk/remote/tests/`, and the window's New test writes one to fill in), and "Reports" opens the same report with the site's power curve. `DEMO.md` has the setup, the click
