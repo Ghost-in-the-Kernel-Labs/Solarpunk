@@ -101,3 +101,4 @@ Written from `docs/journal/` by `scripts/journal_index.py`; do not edit by hand.
 | J-095 | SP-033 and SP-034: the supply-chain rules on the act move out of CLAUDE.md; its ceiling is 1,500 | decision | `J-000-099.md` |
 | J-096 | 12.5: account administration (SOL-16, SP-022, SP-032) | feature | `J-000-099.md` |
 | J-097 | 12.4: attribution from the account (SP-015, SP-022, SP-032, SP-035) | feature | `J-000-099.md` |
+| J-098 | 12.6 added: field data from a public PV dataset | direction | `J-000-099.md` |
