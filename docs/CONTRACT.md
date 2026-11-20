@@ -355,3 +355,15 @@ command that acts takes `--as EMAIL` and asks its password with `getpass`; a com
 which acts as no person and attributes nothing to one, ask nothing. A refusal says "that email and password do not
 match an active account", whichever part was wrong. A failed sign-in is kept with the account it named, or "no such
 account", and its instant; nothing of the password typed is kept.
+
+**An admin manages the accounts** (12.5, SP-022, SP-032). The first admin is made on the machine by `solarpunk account
+init`, which asks a name, an email and a password, and only once: a store that holds an admin, active or not, refuses
+it with "this store already has an admin: account init makes only the first; an admin adds the rest". Every other
+change is an active admin's, signed in with `--as`: `account add` makes an account, `account reset` gives one a new
+password (the old one then fails), `account deactivate` stops one. A store with no active account refuses them with
+"this store has no active account: make the first admin with solarpunk account init", so no account is made where
+nobody signed in; any other role is refused by name ("site@oahe.example is an engineer and does not manage accounts").
+An account is never deleted: deactivating keeps its row and its email, so every record that names it keeps the name,
+and it fails sign-in after. The last active admin is not deactivated, so the store is never locked out. A new password
+is asked twice and the two must match. `account list` reads: email, name, role, active, sites and created, never the
+stored line.

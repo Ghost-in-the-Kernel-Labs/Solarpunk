@@ -1,7 +1,8 @@
 """The accounts table (12.1, SOL-16): one row per account, its email the key, its role, whether it is active, when it
 was made, its site scope, and its password's stored line (passwords.stored_line), never the password. A check of a
 password gives the account back or None, saying no more than that. Accounts are never deleted (12.5 stops them). A
-failed sign-in is kept with the account it named and its instant, never what was typed for the password (12.3)."""
+failed sign-in is kept with the account it named and its instant, never what was typed for the password (12.3). A
+password is replaced by a new stored line, and an account is stopped by its active flag, its row kept (12.5)."""
 import sqlite3
 from datetime import datetime
 
@@ -106,3 +107,31 @@ def failures(conn: sqlite3.Connection) -> tuple[tuple[str, datetime], ...]:
 def any_active(conn: sqlite3.Connection) -> bool:
     """Whether the store holds an active account: False for a store with none, so its windows open as before 12.3."""
     return conn.execute("SELECT 1 FROM accounts WHERE active = 1 LIMIT 1").fetchone() is not None
+
+
+def set_password(conn: sqlite3.Connection, email: str, password: str) -> Account:
+    """Replaces an account's stored line with a new password's, fresh salt and all; the account is unchanged
+    otherwise. An email with no account raises AccountError, a weak password WeakPassword, each storing nothing."""
+    found = get(conn, email)
+    conn.execute("UPDATE accounts SET secret = ? WHERE email = ?", (passwords.stored_line(password), found.email))
+    conn.commit()
+    return found
+
+
+def deactivate(conn: sqlite3.Connection, email: str) -> Account:
+    """Stops an account: its active flag false, its row and email kept, so every record that names it keeps the name
+    (SP-022); an email with no account raises AccountError."""
+    found = get(conn, email)
+    conn.execute("UPDATE accounts SET active = 0 WHERE email = ?", (found.email,))
+    conn.commit()
+    return get(conn, found.email)
+
+
+def any_admin(conn: sqlite3.Connection) -> bool:
+    """Whether the store holds an admin account, active or not."""
+    return conn.execute("SELECT 1 FROM accounts WHERE role = ? LIMIT 1", (Role.ADMIN.value,)).fetchone() is not None
+
+
+def active_admins(conn: sqlite3.Connection) -> int:
+    """How many active admin accounts the store holds."""
+    return conn.execute("SELECT COUNT(*) FROM accounts WHERE role = ? AND active = 1", (Role.ADMIN.value,)).fetchone()[0]

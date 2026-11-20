@@ -12,6 +12,7 @@ from typing import TextIO
 
 from solarpunk import project
 from solarpunk.cli import signin
+from solarpunk.cli.accounts import add_accounts
 from solarpunk.cli.signin import acting
 from solarpunk.cli.tickets import add_tickets
 
@@ -52,6 +53,13 @@ The tickets (each takes --at INSTANT, now by default)
   ticket comment ID --by WHO WORDS             add a comment, kept as written
   ticket resolve ID --cause CODE --done WORDS  resolve and close a ticket and its fault with a root cause
 
+The accounts (a password is asked twice, never shown)
+  account init                                 make the first admin, on this machine, once: asks name, email, password
+  account add EMAIL --name NAME --role ROLE    an admin adds an account [--site SITE ...], all sites for an admin
+  account reset EMAIL                          an admin gives an account a new password
+  account deactivate EMAIL                     an admin stops an account; its records keep its name
+  account list                                 every account: email, name, role, active, sites, created
+
 The numbers
   telemetry generate SITE DAY --seed N         store a day of synthetic telemetry
   kpi SITE START END [--meter-kwh X]           availability, performance ratio, energy yield, MTBF and MTTR
@@ -61,8 +69,8 @@ The numbers
 
 Every command but test run reads solarpunk.db in this folder; for another store,
 python -m solarpunk.cli --db PATH <command>. In a store with accounts, a command that acts
-(load, assign, close, accept, dismiss, generate, ack, comment, resolve) takes --as EMAIL and
-asks for its password; test run acts as no person and asks nothing.
+(load, assign, close, accept, dismiss, generate, ack, comment, resolve, account add, reset,
+deactivate) takes --as EMAIL and asks for its password; test run acts as no person and asks nothing.
 """
 
 
@@ -336,6 +344,7 @@ def build_parser() -> argparse.ArgumentParser:
     add_the_rest(commands)
     add_tests(commands)
     add_tickets(commands)  # 11.2
+    add_accounts(commands)  # 12.5
     return parser
 
 

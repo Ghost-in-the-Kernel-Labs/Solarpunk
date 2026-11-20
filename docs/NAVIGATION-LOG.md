@@ -35,3 +35,9 @@ An entry is `
 - **Complaints**: the handoff's "Where the project stands" section is dated 2026-11-18 and its first-open-item line is one parenthetical of some forty clauses; the "Start here" section above it is what a reader needs. The mandatory-context metric counts CLAUDE.md alone, not the handoff it sends every agent to.
 - **Suggestions**: cut the handoff's stale section to what is still true; count the handoff in the metric, or make only its "Start here" section required reading.
 
+### 2026-11-20 · 12.5 account administration · Claude (strong-grade agent, carried by the coordinator)
+- **Task**: 12.5 Account administration: `account init|add|reset|deactivate|list`.
+- **Opened**: `CLAUDE.md`, `solarpunk/accounts/table.py`, `solarpunk/accounts/passwords.py`, `solarpunk/cli/signin.py`, `solarpunk/cli/tickets.py`, `solarpunk/project/access.py`, `solarpunk/project/__init__.py`, `solarpunk/cli/main.py`, `solarpunk.cmd`, `test/solarpunk/test_cli_tests.py`, `test/test_launcher.py`, `docs/paths/product.md`, `README.md`, `docs/CONTRACT.md`, `test/solarpunk/test_accounts.py`, `test/solarpunk/test_sign_in.py`, `solarpunk/leaf/accounts.py`, `docs/modules.json`, `scripts/save.sh`.
+- **Complaints**: the brief warned of a pinned command count that does not exist; about 120 ResourceWarning lines in the fast loop's output bury what matters. The coordinator's: an agent's worktree under `.claude/worktrees/` trips the supply-chain scan with copies of the planted fixtures.
+- **Suggestions**: run the fast loop with the unclosed stores fixed or the warning filtered; correct `docs/when/hand-out-a-task.md`'s note on the pinned count; a brief's finish runs `scripts/gate.sh --fast`, not the fast loop alone.
+

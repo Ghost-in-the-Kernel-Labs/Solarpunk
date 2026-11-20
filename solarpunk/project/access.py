@@ -1,14 +1,15 @@
 """Who may act, and where (12.1, SOL-16, SP-026, SP-028): the role and the site scope held against the records. An
 account sees an asset, a fault, a suggestion and a ticket only when the asset's site is in its scope; a viewer acts on
 nothing, and no account acts outside its sites, each refusal naming the account. The account calls here are thin
-wrappers of the accounts table, so the windows and the command line reach it through project alone (MOD-06). Nothing
-here logs, shows or keeps a password."""
+wrappers of the accounts table, so the windows and the command line reach it through project alone (MOD-06). An admin
+manages the accounts (12.5): the first is made once, on the machine; the rest are added, reset and stopped by an active
+admin, never deleted. Nothing here logs, shows or keeps a password."""
 import sqlite3
 from datetime import datetime
 
 from solarpunk.accounts import table as account_table
 from solarpunk.faults.ledger import LedgerError
-from solarpunk.leaf.accounts import Account, Role, site_of
+from solarpunk.leaf.accounts import ALL_SITES, Account, Role, site_of
 from solarpunk.leaf.assets import Asset
 from solarpunk.leaf.faults import Fault
 from solarpunk.leaf.tickets import TicketStatus
@@ -18,6 +19,10 @@ from solarpunk.project.tickets import move_ticket, open_tickets, ticket_of
 from solarpunk.remote import suggestions as suggestion_table
 from solarpunk.remote.suggestions import Suggestion
 from solarpunk.workorders.tickets import Ticket
+
+
+NO_ADMIN_YET = "this store has no active account: make the first admin with solarpunk account init"
+ADMIN_EXISTS = "this store already has an admin: account init makes only the first; an admin adds the rest"
 
 
 class NotPermitted(ValueError):
@@ -154,3 +159,63 @@ def failed_sign_ins(conn: sqlite3.Connection) -> tuple[tuple[str, datetime], ...
     """Every failed sign-in, oldest first, as (account, instant)."""
     return account_table.failures(conn)
 
+
+def first_admin(conn: sqlite3.Connection, email: str, name: str, password: str, created: datetime) -> Account:
+    """Makes the store's first admin, active, of every site: first_admin(conn, "admin@oahe.example", "Admin", <a
+    password>, 10:00 UTC). A store that holds an admin, active or not, raises AccountError(ADMIN_EXISTS) and stores
+    nothing, so the command on the machine makes one admin once."""
+    permit_first_admin(conn)
+    return account_table.add(conn, email, name, Role.ADMIN, password, (ALL_SITES,), created)
+
+
+def permit_first_admin(conn: sqlite3.Connection) -> None:
+    """Refuses a first admin to a store that holds an admin, active or not: AccountError(ADMIN_EXISTS); a store with
+    none passes, so `account init` can refuse before it asks a password."""
+    # Decision: SP-032 (no accounts, no sign-in; the first admin made on the machine, once, 12.5)
+    if account_table.any_admin(conn):
+        raise account_table.AccountError(ADMIN_EXISTS)
+
+
+def permit_admin(account: Account | None) -> Account:
+    """The account when it is an active admin, else NotPermitted: None (a store with no active account, where nobody is
+    signed in) is refused with NO_ADMIN_YET, so "no accounts, anyone acts" never makes one; a stopped account and every
+    other role are refused by name, "site@oahe.example is an engineer and does not manage accounts"."""
+    # Decision: SP-032 (no accounts, no sign-in: but no account is made without an admin)
+    if account is None:
+        raise NotPermitted(NO_ADMIN_YET)
+    if not account.active:
+        raise NotPermitted(f"{account.email} is not active and acts on nothing")
+    if account.role is not Role.ADMIN:
+        raise NotPermitted(f"{account.email} is {article(account.role)} and does not manage accounts")
+    return account
+
+
+def article(role: Role) -> str:
+    """A role with its article: "an engineer", "an operator", "a viewer", "an admin"."""
+    return ("an " if role.value[0] in "aeiou" else "a ") + role.value
+
+
+def add_account_as(conn: sqlite3.Connection, admin: Account | None, email: str, name: str, role: Role, password: str,
+                   sites: tuple[str, ...], created: datetime) -> Account:
+    """Makes an active account as an admin, as create_account does: refused (NotPermitted) unless admin is an active
+    admin, storing nothing."""
+    permit_admin(admin)
+    return account_table.add(conn, email, name, role, password, sites, created)
+
+
+def reset_password_as(conn: sqlite3.Connection, admin: Account | None, email: str, password: str) -> Account:
+    """Gives an account a new password as an admin: the old one then fails sign-in and the new one passes. Refused
+    (NotPermitted) unless admin is an active admin; an unknown email raises AccountError, a weak password WeakPassword."""
+    permit_admin(admin)
+    return account_table.set_password(conn, email, password)
+
+
+def deactivate_account_as(conn: sqlite3.Connection, admin: Account | None, email: str) -> Account:
+    """Stops an account as an admin: its row and email kept, so every record keeps its name, and it fails sign-in after
+    (SP-022: accounts are never deleted). The last active admin is refused, so the store is never locked out."""
+    # Decision: SP-022 (never delete: records keep their names)
+    permit_admin(admin)
+    found = account_table.get(conn, email)
+    if found.role is Role.ADMIN and found.active and account_table.active_admins(conn) == 1:
+        raise NotPermitted(f"{found.email} is the last active admin; add another admin before deactivating it")
+    return account_table.deactivate(conn, email)

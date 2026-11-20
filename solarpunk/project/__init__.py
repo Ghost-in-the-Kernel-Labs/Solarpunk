@@ -3,7 +3,8 @@ solarpunk/project/orchestrator.py; the only module that imports fleet, faults, t
 The scheduled run is in run.py (2.7, SP-006); the reports' surface in reports.py (6.1, 6.3); the one surface the Phase
 3 windows call is in surface.py (SP-007). The errors a surface catches are re-exported here, so receiver and ui catch
 them exactly without importing a lane (MOD-06); so are the work order and the root-cause list (4.1). Who may act, and
-where, is in access.py (12.1, SOL-16): the account calls, the viewer's refusal and the site scope on every reading."""
+where, is in access.py (12.1, SOL-16): the account calls, the viewer's refusal and the site scope on every reading,
+and the admin's account management (12.5)."""
 from solarpunk.faults.ledger import LedgerError
 from solarpunk.feed.client import FeedError
 from solarpunk.fleet.registry import RegistryError
@@ -108,20 +109,26 @@ from solarpunk.project.access import (
     NotPermitted,
     account_of,
     accounts,
+    add_account_as,
     asset_rows_for,
     check_password,
     create_account,
+    deactivate_account_as,
     failed_sign_ins,
+    first_admin,
     fleet_for,
     move_ticket_as,
     needs_sign_in,
     open_faults_for,
     open_suggestions_for,
     open_tickets_for,
+    permit_admin,
     permit_asset,
     permit_fault,
+    permit_first_admin,
     permit_suggestion,
     permit_ticket,
+    reset_password_as,
     sign_in,
     unaccounted_engineers,
 )
@@ -174,6 +181,7 @@ __all__ = [
     "accept_suggestion",
     "account_of",
     "accounts",
+    "add_account_as",
     "add_remote_test",
     "survey_remote_tests",
     "asset_code_counts",
@@ -194,6 +202,7 @@ __all__ = [
     "codes_for_kind",
     "comment_on_ticket",
     "create_account",
+    "deactivate_account_as",
     "day_period",
     "demo_fleet",
     "dismiss_suggestion",
@@ -223,8 +232,10 @@ __all__ = [
     "open_tickets_for",
     "open_work_order_from_fault",
     "period",
+    "permit_admin",
     "permit_asset",
     "permit_fault",
+    "permit_first_admin",
     "permit_suggestion",
     "permit_ticket",
     "ping_asset",
@@ -236,6 +247,7 @@ __all__ = [
     "report_day",
     "report_rows",
     "report_sites",
+    "reset_password_as",
     "resolve_ticket",
     "scheduled_run",
     "set_ticket_assignee",
@@ -248,6 +260,7 @@ __all__ = [
     "tickets_past_target",
     "tickets_waiting",
     "failed_sign_ins",
+    "first_admin",
     "needs_sign_in",
     "sign_in",
     "unaccounted_engineers",

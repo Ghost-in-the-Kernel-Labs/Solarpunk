@@ -83,12 +83,6 @@ Every act carries the signed-in account (SP-022, SP-015).
 
 Check: assigning a fault, accepting or dismissing a suggestion and every ticket action take the signed-in account in place of a chosen address: an engineer acts as themself, an operator enters on a named engineer's word (recorded as entered by the operator), an admin who is not an engineer assigns nothing; the "Assigned by" dropdown is gone from the window; the CLI's `--by` is the signed-in account; a fault and a ticket record the account; every window that writes an asset, a fault, a suggestion or a ticket passes the version it read (12.2), so a stale screen is refused with SOL-16's words and offers a refresh; the fast loop green.
 
-### 12.5 Account administration
-
-Accounts are made, reset and stopped, never deleted (SP-022).
-
-Check: an admin creates an account, resets a password and deactivates an account (records keep its name; it cannot sign in); the first admin is made by `solarpunk account init` on the machine, once; `solarpunk account add|reset|deactivate|list`; the fast loop green.
-
 ### 12.6 Tune-up pass 12
 
 Check: `docs/when/tune-up.md` followed in full; the metrics table written; the navigation log's "Last review" set.

@@ -4,9 +4,9 @@ Read `CLAUDE.md` first, then this. `TODO.md` is the chain in order; `docs/DONE.m
 
 ## Start here (2026-11-20, the session that ended at bf76dc6)
 
-The last session closed Phase 9 again and landed 12.2 and 12.3; `main` is clean and pushed, every landing through
-the fast gate. Next, by Phase 12's lanes: **12.5, account administration** (`solarpunk account init` makes the first
-admin once, on the machine; `account add|reset|deactivate|list`; accounts are never deleted), **then 12.4,
+The last session closed Phase 9 again and landed 12.2 and 12.3; this one landed SP-033 and SP-034 (J-095) and 12.5,
+account administration (J-096: `solarpunk account init|add|reset|deactivate|list`). `main` is clean and pushed, every
+landing through the fast gate. Next: **12.4,
 attribution** (every act as the signed-in account; `--by` and the "Assigned by" dropdown gone; and, widened on Ghost's
 word, every window that writes a record passes the version it read), then 12.6 the pass.
 
@@ -27,7 +27,8 @@ Mind, before adding:
   the scheduled run goes in a new file). `solarpunk/project/orchestrator.py` is at 391. Mandatory context is off its
   edge: 1,123 of 1,500 words, by SP-033 (five supply-chain rules on the act moved to `docs/SUPPLY-CHAIN.md`, J-095)
   and SP-034 (the ceiling raised on Ghost's word).
-- One fast loop ran 31 s on a loaded machine; two reruns ran 26 s. Watch it at the next measure.
+- The fast loop is over its 30 s here: `main` before 12.5 ran 31 s in this session's container (26 s in the morning's),
+  33 to 36 s with 12.5's 11 tests (about 1.5 s of scrypt). Measure it at 12.6; if it holds over, trim or move slow tests.
 - The navigation log holds debriefs for 9.7, 9.8 (wiped at 9.9), 12.2 and 12.3 for the next pass; 12.1's agent's two
   suggestions are carried in J-092.
 - Not run from here: the shortcut and Open folder on Windows or a Mac (no such machine in a cloud session); the
@@ -42,7 +43,7 @@ Ghost's statement of where the product is going: five areas under one click (J-0
 own nightly regime (SP-012, J-038; the section below). Tune-up pass 5: cold gate 9.95 min, warm 0.80 min, fast loop
 23.1 s (J-039).
 
-**The first open item is 12.5, account administration** (`TODO.md`; 12.3, signing in, landed in J-094 (SP-032: no accounts, no sign-in), 12.4 after 12.5 by the lanes; 12.2, versions, landed in J-093, the windows not yet passing the version they read; Phase 9 closed again by its tune-up commit, J-092; reopened by SP-030 for the icon and Manage tests; 9.8, Manage tests, landed in J-091; the icon became Ghost's painted art by SP-031, J-090; 9.7, the window's icon and the desktop shortcut, landed in J-089; 12.1, accounts, landed in J-087, built by an agent; the module approved and the item split by SP-028; Phase 11 closed by its pass, J-084; 11.2, tickets in the windows and on the command line, landed in J-083; 11.1, the adapter, the outbox and the local tracker, landed in J-082 (SP-027); Phase 10 closed by its pass, J-081; 10.7, error counts across the fleet, landed in J-080; 10.6, errors by code, landed in J-079; 10.5, power over time, landed in J-077; 10.4, runs by test, landed in J-076; 10.3, the Runs button and window, landed in J-075; 10.2, the runs' surface, landed in J-074; 10.1, SOL-15, landed in J-073; Phase 9 closed by its pass, J-072; 9.5, the status bar, landed in J-070; 9.4, sort and filter, landed in J-069; 9.3, the attention band, landed in J-068; 9.2, the cause column, landed in J-066; 9.1, headings and readable cells, landed in J-065; Phase 8 closed by its pass, J-064; 8.2, the ticket ledger, landed in J-063; 8.1, the ticket contract SOL-14, in J-061; SP-022: local tickets, then accounts and auth, then the
+**The first open item is 12.4, attribution from the account** (`TODO.md`; 12.5, account administration, landed in J-096; 12.3, signing in, landed in J-094 (SP-032: no accounts, no sign-in), 12.4 after 12.5 by the lanes; 12.2, versions, landed in J-093, the windows not yet passing the version they read; Phase 9 closed again by its tune-up commit, J-092; reopened by SP-030 for the icon and Manage tests; 9.8, Manage tests, landed in J-091; the icon became Ghost's painted art by SP-031, J-090; 9.7, the window's icon and the desktop shortcut, landed in J-089; 12.1, accounts, landed in J-087, built by an agent; the module approved and the item split by SP-028; Phase 11 closed by its pass, J-084; 11.2, tickets in the windows and on the command line, landed in J-083; 11.1, the adapter, the outbox and the local tracker, landed in J-082 (SP-027); Phase 10 closed by its pass, J-081; 10.7, error counts across the fleet, landed in J-080; 10.6, errors by code, landed in J-079; 10.5, power over time, landed in J-077; 10.4, runs by test, landed in J-076; 10.3, the Runs button and window, landed in J-075; 10.2, the runs' surface, landed in J-074; 10.1, SOL-15, landed in J-073; Phase 9 closed by its pass, J-072; 9.5, the status bar, landed in J-070; 9.4, sort and filter, landed in J-069; 9.3, the attention band, landed in J-068; 9.2, the cause column, landed in J-066; 9.1, headings and readable cells, landed in J-065; Phase 8 closed by its pass, J-064; 8.2, the ticket ledger, landed in J-063; 8.1, the ticket contract SOL-14, in J-061; SP-022: local tickets, then accounts and auth, then the
 tests' record, the security pass, and a central server; Phase 8's cause by email was withdrawn by SP-021; Phase 7 closed by its pass, J-056; 7.5, the suggestions in the window and on the command line,
 landed in J-054; 7.4, the suggestions themselves, in J-053; SP-017's 7.2 and 7.3 in J-051 and J-052; 7.1, who assigned a fault, landed in J-050; until 7.4 the receiver holds every good push for an engineer and stores nothing): Phase 7 is Ghost's
 fault assignment (SP-015): tests
