@@ -87,3 +87,4 @@ Written from `docs/journal/` by `scripts/journal_index.py`; do not edit by hand.
 | J-081 | Tune-up pass 10: Phase 10 closed, both gates passing first time | measurement | `J-000-099.md` |
 | J-082 | 11.1: the tracker adapters, the outbox and the local tracker (SP-027) | feature | `J-000-099.md` |
 | J-083 | 11.2: tickets in the windows and on the command line | feature | `J-000-099.md` |
+| J-084 | Tune-up pass 11: Phase 11 closed | measurement | `J-000-099.md` |

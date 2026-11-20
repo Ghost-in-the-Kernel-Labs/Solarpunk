@@ -11,21 +11,9 @@ to the ruling grade; record the review in the journal; set the line below to the
 review ran at (`git rev-parse --short HEAD`, not the tune-up's own, which does not exist yet). Each entry's **Opened** list, read against the routing row its task matched, is the measure
 of whether a fresh agent found its way: files, in order; `CLAUDE.md` does not count.
 
-Last review: 883c4d5 (2026-11-19, Tune-up pass 10)
+Last review: 5b013a5 (2026-11-20, Tune-up pass 11)
 
 ## Entries
 
 An entry is `### <date> · <task> · <agent>` and four lines: **Task**, **Opened** (files, in order), **Complaints**,
 **Suggestions**.
-
-### 2026-11-19 · 11.1 the tracker adapters and the outbox · Claude
-- **Task**: the `tickets` module, the outbox in the work-order ledger, the local tracker, the drain, the contract suite.
-- **Opened**: `TODO.md`, `docs/modules.json`, `solarpunk/workorders/ledger.py`, `solarpunk/workorders/tickets.py`, `solarpunk/project/run.py`.
-- **Complaints**: `docs/modules.json`'s "adding" text says how to propose a module but not where its approval is written; a decision record was used.
-- **Suggestions**: the "adding" text could say "the approval is a decision in theGhost.md naming the entry".
-
-### 2026-11-19 · 11.2 tickets in the windows and on the command line · Claude
-- **Task**: the Tickets window, the asset window's ticket panel, the ticket commands.
-- **Opened**: `TODO.md`, `solarpunk/cli/main.py`, `solarpunk.cmd`, `solarpunk/ui/asset_window.py`, `solarpunk/ui/__main__.py`.
-- **Complaints**: two files near the 400-line ceiling forced new files mid-task; nothing said so before the work began.
-- **Suggestions**: the product row for a command and for a window could name the file's line count to watch.
