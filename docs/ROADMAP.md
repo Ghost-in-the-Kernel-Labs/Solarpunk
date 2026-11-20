@@ -357,6 +357,10 @@ built). It adds to operations visibility (1) and maintenance execution (3).
 - **9.5 The status bar (`solarpunk/ui/app.py`).** The store's name and the fleet's last run at the foot; Refresh to
   the toolbar; the window sized to its content.
 - **9.6 Tune-up pass 9.**
+- **9.7 The window's icon (SP-030).** The solar-panel glyph drawn as an image at runtime and set on every window.
+- **9.8 Manage tests (SP-030).** A root button opening a window over the remote tests' folder: each script, a broken
+  one with its reason, Open folder, New test (the scaffold), Reload; tests are Python scripts (SP-020).
+- **9.9 Tune-up commit 9.** The reopened phase closed (three items, C-024).
 
 ### Phase 10: runs per asset
 

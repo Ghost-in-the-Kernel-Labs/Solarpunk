@@ -737,3 +737,13 @@ The core decisions above are inherited (Core C-001 to C-040); this project's beg
 - **Status:** in force
 - **See also:** SP-022, SP-026, SP-024, SP-015
 - **subject:** roadmap
+
+### SP-030: Phase 9 reopened: the window's icon and a Manage tests button at the root
+- **Decision:** Phase 9 (the fleet window) is reopened with two items ahead of 12.2: 9.7, Solarpunk's icon on every window, the solar-panel glyph drawn at runtime so no binary file enters the repository; 9.8, a "Manage tests" button between Add asset and Reports opening a window over the remote tests' folder (each script with its kinds, clauses and suggested codes, a script that cannot load listed with its reason; Open folder in the system's file manager; New test writing the scaffold `solarpunk test add` writes; Reload). A test stays a Python script (SP-020), not JSON: a vendor's quirks then live in its test script, not in adapters added to the core. The phase closes by a tune-up commit, 9.9 (C-024).
+- **Why:** Ghost, 2026-11-20, after running the windows on his own machine: "I am not seeing an icon. However, I also do not see a way on root to add a new test module. I should be able to select a button called manage tests on root. Right between add asset and reports. Clicking this should open up a folder of scripts. I should be able to add a python script here that can be executed as a test, or even just a json executable script, although I think python is better, because multi vendor nightmares of coding adapters into the parent for new vendors vs modifying the test scripts are a thing." A script dropped in the folder is code the scheduled run executes: on one machine that is the owner's own code, as the folder's existing tests are; on the central server (Phase 15) who may add one is the security pass's (14.1) to rule.
+- **Supersedes:** none; Phase 13's Tests window (13.7) and suites (13.2) build on this window.
+- **Held by:** `TODO.md` 9.7 to 9.9; `docs/ROADMAP.md` Phase 9.
+- **Source:** Ghost, in chat, 2026-11-20.
+- **Status:** in force
+- **See also:** SP-019, SP-020, SP-023, SP-010
+- **subject:** front end

@@ -55,6 +55,27 @@ Lanes (P-15): 9.1 to 9.5 in order (each touches `solarpunk/ui/app.py`), then 9.6
 from the 2026-11-18 advisor's review of the root window: the list says what colour an asset is, not why, nor what waits
 on a person.
 
+## Phase 9: the fleet window as an operations root
+
+Lanes (P-15): 9.7, then 9.8, then 9.9 the tune-up commit. Reopened by SP-030 on Ghost's word, after running the window
+on his own machine: no icon, and no way from the root to add a test.
+
+### 9.7 The window's icon
+
+The windows carry Solarpunk's icon in the title bar and the taskbar (SP-030).
+
+Check: the solar-panel glyph drawn as an image at runtime (no binary file in the repository), its pixels a pure function tested headless; every Solarpunk window takes it as its icon (`iconphoto`, which Windows shows in the taskbar too); the screenshot read back; the fast loop green.
+
+### 9.8 Manage tests
+
+From the root, the folder of test scripts, and a new test added to it (SP-030, SP-019, SP-020).
+
+Check: a "Manage tests" button between Add asset and Reports opens a window: every script in the remote tests' folder with its kinds, clauses and suggested codes, a script that cannot be loaded listed with its reason in red rather than stopping the window; "Open folder" opens the folder in the system's file manager; "New test" takes a name, kinds and a clause and writes a script to fill in (the scaffold of `solarpunk test add`); "Reload" reads the folder again, so a script dropped in appears; a test is a Python script (SP-020: no JSON); the window's words headless; the screenshot read back; the fast loop green.
+
+### 9.9 Tune-up commit 9
+
+Check: `docs/when/tune-up.md` steps 1, 2, 5 and 6 (a reopened phase of three items or fewer); the metrics table written; the navigation log's "Last review" set.
+
 ## Phase 10: runs per asset
 
 Lanes (P-15): 10.1 first (the contract section), then 10.2 (the surface every view reads), then 10.3 (the button and
