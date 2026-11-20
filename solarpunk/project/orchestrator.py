@@ -95,7 +95,8 @@ def open_or_create(path: str | Path) -> sqlite3.Connection:
     for name, statements in LATER_TABLES:
         if name not in present:
             store.apply(conn, statements)
-    for upgrade in (registry.upgrade, ledger.upgrade, ticket_ledger.upgrade, suggestion_table.upgrade):
+    for upgrade in (registry.upgrade, ledger.upgrade, ticket_ledger.upgrade, suggestion_table.upgrade,
+                    account_table.upgrade):
         upgrade(conn)  # each table gains the columns it lacks: a ticket's 8.2 ones, every record's version (12.2)
     backfill_priorities(conn)
     return conn

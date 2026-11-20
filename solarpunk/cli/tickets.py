@@ -7,6 +7,7 @@ from datetime import datetime, timezone
 from typing import TextIO
 
 from solarpunk import project
+from solarpunk.cli.signin import acting
 
 BREACH = "  PAST TARGET"
 LINE = "{wo_id}  {asset}  {priority}  {status}  acknowledge {ack}  respond {respond}{breach}"
@@ -68,15 +69,15 @@ def add_tickets(commands: argparse._SubParsersAction) -> None:
     ticket = commands.add_parser("ticket").add_subparsers(required=True)
     listing = ticket.add_parser("list")
     listing.set_defaults(handler=ticket_list)
-    ack = ticket.add_parser("ack")
+    ack = acting(ticket.add_parser("ack"))
     ack.add_argument("wo_id", type=int)
     ack.set_defaults(handler=ticket_ack)
-    comment = ticket.add_parser("comment")
+    comment = acting(ticket.add_parser("comment"))
     comment.add_argument("wo_id", type=int)
     comment.add_argument("--by", required=True)
     comment.add_argument("words", nargs="+")
     comment.set_defaults(handler=ticket_comment)
-    resolve = ticket.add_parser("resolve")
+    resolve = acting(ticket.add_parser("resolve"))
     resolve.add_argument("wo_id", type=int)
     resolve.add_argument("--cause", required=True)
     resolve.add_argument("--done", nargs="+", required=True)

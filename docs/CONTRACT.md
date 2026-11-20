@@ -348,3 +348,10 @@ Worked example, over the same store: two screens read OAHE-INV-002's ticket (wor
 
 Held by `solarpunk/leaf/versions.py` (the rule and its words), each owning module's version column, and
 `test/solarpunk/test_versions.py`, which runs this example.
+
+**Signing in** (12.3, SP-032). A store that holds no active account asks nobody: anyone at the machine acts, and the
+window says so. Once it holds one, the windows open on a sign-in and the fleet window opens only after a good one; a
+command that acts takes `--as EMAIL` and asks its password with `getpass`; a command that reads, and the scheduled run,
+which acts as no person and attributes nothing to one, ask nothing. A refusal says "that email and password do not
+match an active account", whichever part was wrong. A failed sign-in is kept with the account it named, or "no such
+account", and its instant; nothing of the password typed is kept.

@@ -3,6 +3,7 @@ as the windows write it, and a row's cause: why a red or yellow row is that colo
 them; test_demo.py holds the demo's causes as goldens."""
 from datetime import datetime
 
+from solarpunk.leaf.accounts import Account
 from solarpunk.leaf.codes import AssetStatus
 from solarpunk.project.surface import AssetRow, Attention
 
@@ -74,3 +75,15 @@ def store_line(store: str, last_run: datetime | None) -> str:
     """The status bar's left side (9.5): "demo.db, last run 2026-06-01 13:00 UTC"; a store never run "fleet.db, never
     run"."""
     return f"{store}, {NEVER_RUN}" if last_run is None else STORE_LINE.format(store=store, instant=instant_text(last_run))
+
+
+NO_ACCOUNTS = "no accounts yet: anyone at this machine acts"
+NO_MATCH = "that email and password do not match an active account"
+
+
+def who_text(account: Account | None) -> str:
+    """The status bar's word on who is at the window (12.3): "signed in as site@oahe.example (engineer)"; with no
+    account in the store, "no accounts yet: anyone at this machine acts"."""
+    if account is None:
+        return NO_ACCOUNTS
+    return f"signed in as {account.email} ({account.role.value})"

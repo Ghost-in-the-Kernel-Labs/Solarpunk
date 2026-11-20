@@ -111,8 +111,10 @@ from solarpunk.project.access import (
     asset_rows_for,
     check_password,
     create_account,
+    failed_sign_ins,
     fleet_for,
     move_ticket_as,
+    needs_sign_in,
     open_faults_for,
     open_suggestions_for,
     open_tickets_for,
@@ -120,6 +122,7 @@ from solarpunk.project.access import (
     permit_fault,
     permit_suggestion,
     permit_ticket,
+    sign_in,
     unaccounted_engineers,
 )
 
@@ -244,6 +247,9 @@ __all__ = [
     "tickets_by_target",
     "tickets_past_target",
     "tickets_waiting",
+    "failed_sign_ins",
+    "needs_sign_in",
+    "sign_in",
     "unaccounted_engineers",
     "work_orders_for",
 ]

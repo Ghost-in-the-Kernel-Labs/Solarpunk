@@ -22,3 +22,9 @@ An entry is `
 - **Opened**: `TODO.md`, `theGhost.md` (SP-028), `solarpunk/fleet/registry.py`, `solarpunk/faults/ledger.py`, `solarpunk/remote/suggestions.py`, `solarpunk/workorders/ledger.py`, `solarpunk/workorders/tickets.py`, `solarpunk/project/orchestrator.py`, `docs/CONTRACT.md`, `test/solarpunk/test_accounts.py`.
 - **Complaints**: the writes on a record are spread over its module and project with no list of them; finding all nine took a grep for UPDATE.
 - **Suggestions**: none.
+
+### 2026-11-20 · 12.3 signing in · Claude
+- **Task**: 12.3 Signing in: the dialog, `--as` and getpass, failures kept, the scheduled run unattributed.
+- **Opened**: `TODO.md`, `solarpunk/accounts/table.py`, `solarpunk/project/orchestrator.py`, `solarpunk/cli/main.py`, `solarpunk/cli/tickets.py`, `solarpunk/ui/app.py`, `solarpunk/ui/__main__.py`, `docs/CONTRACT.md`.
+- **Complaints**: 12.3's check did not say what a store with no accounts does, though 12.5 makes the first; it took a question to Ghost.
+- **Suggestions**: an item that depends on a later one names the dependency in its check.

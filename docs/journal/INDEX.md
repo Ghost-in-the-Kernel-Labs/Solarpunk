@@ -97,3 +97,4 @@ Written from `docs/journal/` by `scripts/journal_index.py`; do not edit by hand.
 | J-091 | 9.8: Manage tests | feature | `J-000-099.md` |
 | J-092 | Tune-up commit 9: Phase 9 closed again | measurement | `J-000-099.md` |
 | J-093 | 12.2: versions | feature | `J-000-099.md` |
+| J-094 | 12.3: signing in (SP-032) | feature | `J-000-099.md` |

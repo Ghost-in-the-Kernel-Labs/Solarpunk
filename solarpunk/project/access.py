@@ -131,3 +131,26 @@ def unaccounted_engineers(conn: sqlite3.Connection) -> tuple[str, ...]:
     engineer account for site@oahe.example alone gives ("inverter@oahe.example",)."""
     engineers = {found.email for found in account_table.every(conn) if found.role is Role.ENGINEER and found.active}
     return tuple(email for email in known_engineers(conn) if email not in engineers)
+
+
+def needs_sign_in(conn: sqlite3.Connection) -> bool:
+    """Whether the windows and the acting commands ask who is there (12.3, SP-032): True once the store holds an active
+    account; a store with none (the demo, a store made before accounts) opens as it did, anyone at the machine acting."""
+    # Decision: SP-032 (no accounts, no sign-in)
+    return account_table.any_active(conn)
+
+
+def sign_in(conn: sqlite3.Connection, email: str, password: str, moment: datetime) -> Account | None:
+    """The account when its password is given and it is active, else None and the failure kept with the account named
+    and the instant, never the password (SOL-16): a wrong password for site@oahe.example at 11:00 keeps
+    ("site@oahe.example", 11:00 UTC); an unknown email keeps ("no such account", 11:00 UTC)."""
+    found = account_table.check(conn, email, password)
+    if found is None:
+        account_table.record_failure(conn, email, moment)
+    return found
+
+
+def failed_sign_ins(conn: sqlite3.Connection) -> tuple[tuple[str, datetime], ...]:
+    """Every failed sign-in, oldest first, as (account, instant)."""
+    return account_table.failures(conn)
+

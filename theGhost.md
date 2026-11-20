@@ -757,3 +757,13 @@ The core decisions above are inherited (Core C-001 to C-040); this project's beg
 - **Status:** in force
 - **See also:** SP-030, C-033
 - **subject:** front end
+
+### SP-032: Signing in begins with a store's first account; the command line names it with --as
+- **Decision:** A store that holds no active account asks nobody to sign in: its windows open as before, the status bar saying "no accounts yet: anyone at this machine acts", and its commands run as before; the demo store holds none. Once a store holds an active account, the windows open on a sign-in dialog and the fleet window opens only after a good one, and a command that acts (`fleet load`, `fault assign|close|accept|dismiss`, `telemetry generate`, `ticket ack|comment|resolve`) takes `--as EMAIL` and asks the password with `getpass`; a command that only reads, and the scheduled run, ask nothing. A failed sign-in is kept with the account it named (or "no such account", so a password typed in the email field is never stored) and its instant. 12.4's check also gains: every window that writes a record passes the version it read (12.2).
+- **Why:** Ghost, 2026-11-20, asked how a store with no accounts should behave while `solarpunk account init` (12.5) is unbuilt, chose "Open as today, with a line" over refusing until an admin exists, and chose `--as <email>` then getpass over an environment variable; earlier the same day, on where the windows start passing a version: "add it to 12.4".
+- **Supersedes:** none.
+- **Held by:** `test/solarpunk/test_sign_in.py`; `TODO.md` 12.4.
+- **Source:** Ghost, in chat, 2026-11-20.
+- **Status:** in force
+- **See also:** SP-022, SP-026, SP-028
+- **subject:** security

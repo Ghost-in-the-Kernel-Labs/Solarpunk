@@ -77,17 +77,11 @@ SP-023, so the Tickets window and the attention band's tickets land in the rewor
 Lanes (P-15): 12.1, then 12.2 (versions), then 12.3 and 12.5 in parallel, then 12.4, then 12.6 the pass. Ghost's direction,
 SP-022; 12.1 split in two by SP-028 (accounts, then versions).
 
-### 12.3 Signing in
-
-The windows and the command line know who is at them (SP-022).
-
-Check: the windows open on a sign-in dialog and refuse to open the fleet window without a good one; the command line asks with `getpass` for a command that acts; a failed sign-in is recorded with its account and instant, never its password; the scheduled run acts as no person and attributes nothing to one; the window tests sign in a test account; the fast loop green.
-
 ### 12.4 Attribution from the account
 
 Every act carries the signed-in account (SP-022, SP-015).
 
-Check: assigning a fault, accepting or dismissing a suggestion and every ticket action take the signed-in account in place of a chosen address: an engineer acts as themself, an operator enters on a named engineer's word (recorded as entered by the operator), an admin who is not an engineer assigns nothing; the "Assigned by" dropdown is gone from the window; the CLI's `--by` is the signed-in account; a fault and a ticket record the account; the fast loop green.
+Check: assigning a fault, accepting or dismissing a suggestion and every ticket action take the signed-in account in place of a chosen address: an engineer acts as themself, an operator enters on a named engineer's word (recorded as entered by the operator), an admin who is not an engineer assigns nothing; the "Assigned by" dropdown is gone from the window; the CLI's `--by` is the signed-in account; a fault and a ticket record the account; every window that writes an asset, a fault, a suggestion or a ticket passes the version it read (12.2), so a stale screen is refused with SOL-16's words and offers a refresh; the fast loop green.
 
 ### 12.5 Account administration
 

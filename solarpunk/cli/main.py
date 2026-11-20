@@ -11,6 +11,8 @@ from pathlib import Path
 from typing import TextIO
 
 from solarpunk import project
+from solarpunk.cli import signin
+from solarpunk.cli.signin import acting
 from solarpunk.cli.tickets import add_tickets
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -58,7 +60,9 @@ The numbers
   help                                         this list
 
 Every command but test run reads solarpunk.db in this folder; for another store,
-python -m solarpunk.cli --db PATH <command>.
+python -m solarpunk.cli --db PATH <command>. In a store with accounts, a command that acts
+(load, assign, close, accept, dismiss, generate, ack, comment, resolve) takes --as EMAIL and
+asks for its password; test run acts as no person and asks nothing.
 """
 
 
@@ -240,21 +244,21 @@ def run_clauses(out: TextIO, err: TextIO) -> int:
 def add_fleet_and_faults(commands: argparse._SubParsersAction) -> None:
     """The fleet and fault subcommands, each pointing at its handler: "fleet list --site OAHE" parses to fleet_list."""
     fleet = commands.add_parser("fleet").add_subparsers(required=True)
-    load = fleet.add_parser("load")
+    load = acting(fleet.add_parser("load"))
     load.add_argument("--demo", action="store_true", required=True)
     load.set_defaults(handler=fleet_load)
     listing = fleet.add_parser("list")
     listing.add_argument("--site")
     listing.set_defaults(handler=fleet_list)
     fault = commands.add_parser("fault").add_subparsers(required=True)
-    assign = fault.add_parser("assign")
+    assign = acting(fault.add_parser("assign"))
     assign.add_argument("asset_id")
     assign.add_argument("code")
     assign.add_argument("opened")
     assign.add_argument("--by", required=True)
     assign.add_argument("--recorded-by")
     assign.set_defaults(handler=fault_assign)
-    close = fault.add_parser("close")
+    close = acting(fault.add_parser("close"))
     close.add_argument("fault_id", type=int)
     close.add_argument("closed")
     close.set_defaults(handler=fault_close)
@@ -269,12 +273,12 @@ def add_suggestion_commands(fault: argparse._SubParsersAction) -> None:
     suggested = fault.add_parser("suggestions")
     suggested.add_argument("--asset")
     suggested.set_defaults(handler=fault_suggestions)
-    accept = fault.add_parser("accept")
+    accept = acting(fault.add_parser("accept"))
     accept.add_argument("suggestion_id", type=int)
     accept.add_argument("--by", required=True)
     accept.add_argument("--recorded-by")
     accept.set_defaults(handler=fault_accept)
-    dismiss = fault.add_parser("dismiss")
+    dismiss = acting(fault.add_parser("dismiss"))
     dismiss.add_argument("suggestion_id", type=int)
     dismiss.add_argument("--by", required=True)
     dismiss.add_argument("--reason", required=True)
@@ -284,7 +288,7 @@ def add_suggestion_commands(fault: argparse._SubParsersAction) -> None:
 def add_the_rest(commands: argparse._SubParsersAction) -> None:
     """The telemetry, kpi, report and clauses subcommands: "kpi OAHE <start> <end>" parses to kpi with meter_kwh None."""
     telemetry = commands.add_parser("telemetry").add_subparsers(required=True)
-    generate = telemetry.add_parser("generate")
+    generate = acting(telemetry.add_parser("generate"))
     generate.add_argument("site")
     generate.add_argument("day")
     generate.add_argument("--seed", type=int, required=True)
@@ -337,13 +341,15 @@ def build_parser() -> argparse.ArgumentParser:
 
 def dispatch(args: argparse.Namespace, out: TextIO, err: TextIO) -> int:
     """Runs the parsed subcommand: clauses, help, test list and test add without a store, the rest over the store at --db,
-    which closes after; a handler that returns exits 0."""
+    which closes after, a command that acts signed in first (12.3); a handler that returns exits 0."""
     if args.plain is not None:
         args.plain(args, out)
         return 0
     if args.handler is None:
         return run_clauses(out, err)
     with closing(project.open_or_create(args.db)) as conn:
+        if signin.acts(args):
+            args.account = signin.signed_in(conn, getattr(args, signin.DEST))  # 12.3; 12.4 acts as it
         args.handler(conn, args, out)
     return 0
 

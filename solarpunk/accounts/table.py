@@ -1,6 +1,7 @@
 """The accounts table (12.1, SOL-16): one row per account, its email the key, its role, whether it is active, when it
 was made, its site scope, and its password's stored line (passwords.stored_line), never the password. A check of a
-password gives the account back or None, saying no more than that. Accounts are never deleted (12.5 stops them)."""
+password gives the account back or None, saying no more than that. Accounts are never deleted (12.5 stops them). A
+failed sign-in is kept with the account it named and its instant, never what was typed for the password (12.3)."""
 import sqlite3
 from datetime import datetime
 
@@ -13,6 +14,10 @@ CREATE_TABLE = (
     " ('engineer', 'operator', 'viewer', 'admin')), active INTEGER NOT NULL, created TEXT NOT NULL, sites TEXT NOT NULL,"
     " secret TEXT NOT NULL)"
 )
+CREATE_FAILURES = (
+    "CREATE TABLE IF NOT EXISTS failed_sign_ins (failure_id INTEGER PRIMARY KEY, account TEXT NOT NULL, at TEXT NOT NULL)"
+)
+NO_SUCH_ACCOUNT = "no such account"
 COLUMNS = "email, name, role, active, created, sites"
 SITE_SEPARATOR = ","
 
@@ -22,8 +27,14 @@ class AccountError(ValueError):
 
 
 def schema() -> tuple[str, ...]:
-    """The accounts table, for leaf.store.apply."""
-    return (CREATE_TABLE,)
+    """The accounts table and the failed sign-ins', for leaf.store.apply."""
+    return (CREATE_TABLE, CREATE_FAILURES)
+
+
+def upgrade(conn: sqlite3.Connection) -> None:
+    """Gives a store made before 12.3 the failed sign-ins' table; one that has it is left as it is."""
+    conn.execute(CREATE_FAILURES)
+    conn.commit()
 
 
 def _account(row: tuple) -> Account:
@@ -75,3 +86,23 @@ def check(conn: sqlite3.Connection, email: str, password: str) -> Account | None
         return None
     account = _account(row[:-1])
     return account if account.active else None
+
+
+def record_failure(conn: sqlite3.Connection, email: str, at: datetime) -> None:
+    """Keeps a failed sign-in: the account's email when it names one, else "no such account", so a password typed into
+    the email field by mistake is never stored; and its instant. Nothing of the password is kept."""
+    named = conn.execute("SELECT email FROM accounts WHERE email = ?", (email.strip(),)).fetchone()
+    conn.execute("INSERT INTO failed_sign_ins (account, at) VALUES (?, ?)",
+                 (named[0] if named else NO_SUCH_ACCOUNT, utc(at).isoformat()))
+    conn.commit()
+
+
+def failures(conn: sqlite3.Connection) -> tuple[tuple[str, datetime], ...]:
+    """Every failed sign-in, oldest first, as (account, instant): (("site@oahe.example", 11:00 UTC),)."""
+    rows = conn.execute("SELECT account, at FROM failed_sign_ins ORDER BY failure_id")
+    return tuple((account, datetime.fromisoformat(at)) for account, at in rows)
+
+
+def any_active(conn: sqlite3.Connection) -> bool:
+    """Whether the store holds an active account: False for a store with none, so its windows open as before 12.3."""
+    return conn.execute("SELECT 1 FROM accounts WHERE active = 1 LIMIT 1").fetchone() is not None

@@ -18,7 +18,7 @@ from typing import TextIO
 
 from solarpunk import project
 from solarpunk.leaf.codes import AssetStatus
-from solarpunk.ui import demo, icon, shortcut
+from solarpunk.ui import cells, demo, icon, shortcut, sign_in
 from solarpunk.ui.add_asset import AddAssetWindow
 from solarpunk.ui.app import FleetWindow
 from solarpunk.ui.errors_window import ErrorsWindow
@@ -65,13 +65,17 @@ def run_line(report: project.RunReport) -> str:
                            red=found.count(AssetStatus.RED))
 
 
-def open_fleet(root: tkinter.Tk, conn: sqlite3.Connection) -> FleetWindow:
+def open_fleet(root: tkinter.Tk, conn: sqlite3.Connection, account: project.Account | None = None) -> FleetWindow:
     """The fleet window wired to the others: a click opens AssetWindow(root, conn, id, on_change=refresh), the "Add asset"
     button in the window's toolbar opens AddAssetWindow(root, conn, on_saved) which refreshes after a save, "Manage tests"
     beside it the ManageTestsWindow over the remote tests' folder (9.8), and "Reports" after it opens ReportsWindow(root, conn) (6.3), then "Errors" the fleet's ErrorsWindow, whose rows open a Runs window
     (10.7), then "Tickets" the TicketsWindow, a double click opening the ticket's asset window (11.2); Refresh stands
-    at the toolbar's right (9.5)."""
+    at the toolbar's right (9.5). The account signed in (None in a store with none) is kept on the window and named in
+    its status bar (12.3)."""
     window = FleetWindow(root, conn)
+    window.account = account
+    window.account_label = ttk.Label(window.status_bar, text=cells.who_text(account))
+    window.account_label.pack(side=tkinter.LEFT, padx=12)
     window.on_open_asset = lambda asset_id: AssetWindow(root, conn, asset_id, window.refresh)
     window.on_open_runs = lambda asset_id: RunsWindow(root, conn, asset_id)  # 10.3
     bar = window.toolbar  # Refresh stands at its right since 9.5
@@ -114,7 +118,8 @@ def wear_icon(root: tkinter.Tk) -> None:
 
 
 def main(argv: list[str], out: TextIO, run: Callable[[tkinter.Tk], None] = loop) -> int:
-    """Opens the fleet window on the store, or on the rebuilt demo store with --demo, hands it to run, then exits 0:
+    """Opens the fleet window on the store (after a sign-in when the store holds an account, 12.3), or on the rebuilt
+    demo store with --demo (which holds none), hands it to run, then exits 0:
     main(["--db", "f.db"], sys.stdout) shows f.db's assets; main(["--demo"], sys.stdout) shows demo.db's eleven."""
     args = parse(argv)
     if args.shortcut:
@@ -129,7 +134,7 @@ def main(argv: list[str], out: TextIO, run: Callable[[tkinter.Tk], None] = loop)
         return 0
     with closing(project.open_or_create(args.db)) as conn:
         root.title(TITLE)
-        open_fleet(root, conn)
+        sign_in.start(root, conn, lambda account: open_fleet(root, conn, account))  # 12.3
         run(root)
     return 0
 

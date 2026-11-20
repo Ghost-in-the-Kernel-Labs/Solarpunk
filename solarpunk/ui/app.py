@@ -169,7 +169,7 @@ class FleetWindow:
         self.status_bar = ttk.Frame(self.frame, name=STATUS_BAR, relief=tkinter.SUNKEN, borderwidth=1)
         self.store_label = ttk.Label(self.status_bar)
         self.store_label.pack(side=tkinter.LEFT, padx=4)
-        self.status_line = ttk.Label(self.status_bar)
+        self.status_line = ttk.Label(self.status_bar, name="status_line")
         self.status_line.pack(side=tkinter.RIGHT, padx=4)
 
     def lay_out(self) -> None:
