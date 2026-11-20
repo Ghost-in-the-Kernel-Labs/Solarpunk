@@ -717,3 +717,13 @@ The core decisions above are inherited (Core C-001 to C-040); this project's beg
 - **Status:** in force
 - **See also:** SP-022, SP-010, SP-026
 - **subject:** tickets and accounts
+
+### SP-028: The accounts module; versions in each record's own module; 12.1 split in two
+- **Decision:** a new module, `accounts` (`solarpunk/accounts/`), importing the leaf alone, holds the accounts table (email, name, role engineer, operator, viewer or admin, active, created, site scope) and the password check by `hashlib.scrypt`, salted, its parameters stored beside the hash. Project may import it, and project enforces the viewer role and the site scope. A record's version is not the accounts module's: each version column lives in the module that owns the record (fleet, faults, remote's suggestions, workorders), raised in the same write as the change, so the change and its version are one commit. 12.1 is split: 12.1 the contract, the accounts, the passwords, the roles and the site scope; 12.2 the versions; signing in, attribution, administration and the pass move to 12.3 to 12.6.
+- **Why:** 12.1's check asked for the module's approval before any code, and SP-026 had left its split to Ghost when it started. Asked, Ghost approved this shape over versions kept in the accounts module (a change and its version bump in two modules, two commits: the problem SP-027's outbox avoided) and chose the split.
+- **Supersedes:** none; SP-026's 12.1 is split, its rules kept.
+- **Held by:** `docs/modules.json`; `test/test_modules.py`; `TODO.md` and `docs/ROADMAP.md` 12.1 and 12.2.
+- **Source:** Ghost, in chat, 2026-11-20.
+- **Status:** in force
+- **See also:** SP-026, SP-022, SP-027
+- **subject:** tickets and accounts

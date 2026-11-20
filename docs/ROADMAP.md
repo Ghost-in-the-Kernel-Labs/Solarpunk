@@ -402,17 +402,19 @@ authenticated rather than chosen from a dropdown. On one machine first; the netw
   role (engineer, operator, viewer, admin) and an active flag; passwords hashed with `hashlib.scrypt`, salted, never
   stored, logged or shown; an engineer address the fleet names with no account is flagged. Widened by SP-026: a viewer
   reads and acts on nothing; each account sees and acts on its own sites, or all; and an asset, a fault, a suggestion
-  and a ticket carry a version, so a write made from a stale screen is refused rather than overwriting another
-  person's change. Built on one machine first, so the central server (Phase 15) inherits the rules rather than adding
-  them. Large enough that the item may be split when it starts (Ghost's call then).
-- **12.2 Signing in (`solarpunk/ui/`, `solarpunk/cli/`).** The windows open on a sign-in; the command line asks with
+  and a ticket carry a version (12.2). Built on one machine first, so the central server (Phase 15) inherits the rules
+  rather than adding them. The module `accounts` imports the leaf alone (SP-028).
+- **12.2 Versions (`solarpunk/fleet/`, `solarpunk/faults/`, `solarpunk/remote/`, `solarpunk/workorders/`; SP-028).** An
+  asset, a fault, a suggestion and a ticket each carry a version in its own module's table, raised in the same write as
+  the change; a write read at an older version is refused, so a stale screen never overwrites another person's change.
+- **12.3 Signing in (`solarpunk/ui/`, `solarpunk/cli/`).** The windows open on a sign-in; the command line asks with
   `getpass`; a failed sign-in is recorded, never its password.
-- **12.3 Attribution from the account (`solarpunk/project/`).** Assigning, accepting, dismissing and every ticket action
+- **12.4 Attribution from the account (`solarpunk/project/`).** Assigning, accepting, dismissing and every ticket action
   take the signed-in account: an engineer acts as themself, an operator enters on a named engineer's word (recorded as
   such), an admin assigns nothing unless also an engineer; the "Assigned by" dropdown gives way to the account.
-- **12.4 Account administration.** Create, reset a password, deactivate (never delete: records keep their names); the
+- **12.5 Account administration.** Create, reset a password, deactivate (never delete: records keep their names); the
   first admin made by a command on the machine.
-- **12.5 Tune-up pass 12.**
+- **12.6 Tune-up pass 12.**
 
 ### Phase 13: the tests' record, at the root and per asset
 

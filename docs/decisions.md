@@ -71,3 +71,4 @@ Written by `scripts/decisions_index.py` from `theGhost.md`; do not edit here. Se
 | SP-025 | The gated commit's tests run in the full gate, not the fast loop | in force | gates |
 | SP-026 | Accounts are built for many users: versions, a viewer role and per-site scope | in force | tickets and accounts |
 | SP-027 | The tracker adapters are a module of their own; the outbox is the work-order ledger's | in force | tickets and accounts |
+| SP-028 | The accounts module; versions in each record's own module; 12.1 split in two | in force | tickets and accounts |

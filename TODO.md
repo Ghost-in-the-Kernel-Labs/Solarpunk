@@ -69,33 +69,40 @@ SP-023, so the Tickets window and the attention band's tickets land in the rewor
 
 ## Phase 12: accounts and authentication
 
-Lanes (P-15): 12.1, then 12.2 and 12.4 in parallel, then 12.3, then 12.5 the pass. Ghost's direction, SP-022.
+Lanes (P-15): 12.1, then 12.2 (versions), then 12.3 and 12.5 in parallel, then 12.4, then 12.6 the pass. Ghost's direction,
+SP-022; 12.1 split in two by SP-028 (accounts, then versions).
 
 ### 12.1 Accounts
 
 Who may act, where, and on what they last saw, stored without ever storing a password (SP-022, SP-026).
 
-Check: the module entry for accounts approved by Ghost in `docs/modules.json` before any code; a contract section first, with a worked example of each rule below; an accounts table (email, name, role engineer, operator, viewer or admin, active, created) and a password check by `hashlib.scrypt` with a per-account salt and its parameters stored beside the hash; no password or hash in any log line, message, mail or test literal (a test's password assembled at runtime); an engineer address the fleet names with no engineer account is flagged by a query. Viewer: reads everything its sites hold and acts on nothing (every write refused, by name). Per-site scope: an account names the sites it may see and act on, or all; an asset, a fault, a suggestion and a ticket of another site is neither listed to it nor written by it; an admin's scope is all. Versions: an asset, a fault, a suggestion and a ticket each carry a version that every write raises by one; a write names the version it was read at, and one read at an older version is refused ("changed by someone else since you read it; refresh"), writing nothing; a store made before gains the columns at version 1; the fast loop green.
+Check: the module entry for accounts approved by Ghost in `docs/modules.json` before any code (SP-028); a contract section first, with a worked example of each rule below; an accounts table (email, name, role engineer, operator, viewer or admin, active, created, site scope) and a password check by `hashlib.scrypt` with a per-account salt and its parameters stored beside the hash; no password or hash in any log line, message, mail or test literal (a test's password assembled at runtime); an engineer address the fleet names with no engineer account is flagged by a query. Viewer: reads everything its sites hold and acts on nothing (every write refused, by name). Per-site scope: an account names the sites it may see and act on, or all; an asset, a fault, a suggestion and a ticket of another site is neither listed to it nor written by it; an admin's scope is all. The rules are project calls that take an account, tested headless; the windows and the command line take them up when signing in (12.3) gives them an account; the fast loop green.
 
-### 12.2 Signing in
+### 12.2 Versions
+
+A write made from a stale screen is refused rather than overwriting another person's change (SP-026, SP-028).
+
+Check: an asset, a fault, a suggestion and a ticket each carry a version, its column in the module that owns the record, raised by one in the same write as every change to it; a write names the version it was read at, and one read at an older version is refused ("changed by someone else since you read it; refresh"), writing nothing; a store made before gains the columns at version 1; the contract section of 12.1 gains the rule and a worked example; the fast loop green.
+
+### 12.3 Signing in
 
 The windows and the command line know who is at them (SP-022).
 
 Check: the windows open on a sign-in dialog and refuse to open the fleet window without a good one; the command line asks with `getpass` for a command that acts; a failed sign-in is recorded with its account and instant, never its password; the scheduled run acts as no person and attributes nothing to one; the window tests sign in a test account; the fast loop green.
 
-### 12.3 Attribution from the account
+### 12.4 Attribution from the account
 
 Every act carries the signed-in account (SP-022, SP-015).
 
 Check: assigning a fault, accepting or dismissing a suggestion and every ticket action take the signed-in account in place of a chosen address: an engineer acts as themself, an operator enters on a named engineer's word (recorded as entered by the operator), an admin who is not an engineer assigns nothing; the "Assigned by" dropdown is gone from the window; the CLI's `--by` is the signed-in account; a fault and a ticket record the account; the fast loop green.
 
-### 12.4 Account administration
+### 12.5 Account administration
 
 Accounts are made, reset and stopped, never deleted (SP-022).
 
 Check: an admin creates an account, resets a password and deactivates an account (records keep its name; it cannot sign in); the first admin is made by `solarpunk account init` on the machine, once; `solarpunk account add|reset|deactivate|list`; the fast loop green.
 
-### 12.5 Tune-up pass 12
+### 12.6 Tune-up pass 12
 
 Check: `docs/when/tune-up.md` followed in full; the metrics table written; the navigation log's "Last review" set.
 

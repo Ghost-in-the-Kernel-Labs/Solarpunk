@@ -111,7 +111,8 @@
         "schedule",
         "mailer",
         "workorders",
-        "tickets"
+        "tickets",
+        "accounts"
       ],
       "entryPoints": []
     },
@@ -185,6 +186,14 @@
     "tickets": {
       "folder": "solarpunk/tickets",
       "purpose": "The tracker adapters (11.1, SP-022, SP-027): the sink (create, update, comment, transition) and source (changes since a cursor) every tracker implements, the local tracker first, and the delivery of one outbox event to a sink; the outbox itself is the work-order ledger's, written in the ledger change's own transaction.",
+      "mayImport": [
+        "leaf"
+      ],
+      "entryPoints": []
+    },
+    "accounts": {
+      "folder": "solarpunk/accounts",
+      "purpose": "Who may act and where (12.1, SP-022, SP-026, SP-028): the accounts table (email, name, role engineer, operator, viewer or admin, active, created, site scope) and the password check by hashlib.scrypt, salted, its parameters beside the hash; no password or hash is ever logged or shown. Project enforces the roles and the site scope; each record's version is its own module's (12.2).",
       "mayImport": [
         "leaf"
       ],
