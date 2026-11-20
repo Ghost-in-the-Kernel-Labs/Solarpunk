@@ -79,3 +79,4 @@ Written by `scripts/decisions_index.py` from `theGhost.md`; do not edit here. Se
 | SP-033 | The supply-chain rules an agent meets unawares stay in CLAUDE.md; the five that bind an act it chooses move to SUPPLY-CHAIN.md | in force | supply chain |
 | SP-034 | CLAUDE.md's word ceiling is 1,500 | in force | context |
 | SP-035 | A ticket's every move is logged with who made it; an operator's dismissal records the operator; with accounts, an engineer account is an engineer | in force | security |
+| SP-036 | Field data first measures false alarms; catching known failures waits on a labelled dataset | in force | field data |

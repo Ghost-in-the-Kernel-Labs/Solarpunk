@@ -419,13 +419,15 @@ authenticated rather than chosen from a dropdown. On one machine first; the netw
   such), an admin assigns nothing unless also an engineer; the "Assigned by" dropdown gives way to the account.
 - **12.5 Account administration.** Create, reset a password, deactivate (never delete: records keep their names); the
   first admin made by a command on the machine.
-- **12.6 Field data from a public PV dataset (`solarpunk/telemetry/`, `docs/FIELD-DATA.md`).** A public dataset of real PV
-  telemetry with recorded failures (NREL's PVDAQ is the first candidate; its licence read before choosing) is loaded
-  from a local copy outside the repository (C-033), and the remote tests are run over it, so each check is shown to
-  catch, or miss, a failure that happened. The download needs the session's network to reach the dataset's host; if it
-  cannot, the item waits on that host (`TODO.md`'s waiting phase). What is learned shapes the synthetic fixtures; the
-  data itself never enters the repository.
-- **12.7 Tune-up pass 12.**
+- **12.6 A false-alarm baseline on public field data (`solarpunk/telemetry/`, `docs/FIELD-DATA.md`; SP-036).** Real
+  5-minute telemetry from public PV systems (NREL PVDAQ, CC BY 4.0) is loaded from a local copy outside the repository
+  (C-033), and every remote test that applies is run over it a day at a time, so how often each check fires on working
+  plant is known and each alarm is explained: a real event, a data artefact or a threshold to change. No public dataset
+  reachable from a session records its failures (J-099), so catching known failures is 12.7's. What is learned shapes
+  the synthetic fixtures and the thresholds; the data itself never enters the repository.
+- **12.7 Known failures caught, on labelled field data (waiting).** A dataset that labels its failures with their times;
+  each one caught, or its miss explained. Waits on such a dataset and on a rule for readings finer than five minutes.
+- **12.8 Tune-up pass 12.**
 
 ### Phase 13: the tests' record, at the root and per asset
 

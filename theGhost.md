@@ -798,3 +798,13 @@ The core decisions above are inherited (Core C-001 to C-040); this project's beg
 - **See also:** SP-015, SP-022, SP-028, SP-032
 - **subject:** security
 
+### SP-036: Field data first measures false alarms; catching known failures waits on a labelled dataset
+- **Decision:** TODO 12.6 runs every remote test that applies over real 5-minute telemetry from public PV systems (NREL PVDAQ, CC BY 4.0), a day at a time, and explains each alarm as a real event, a data artefact or a threshold, so the false-alarm rate on working plant is known. The loader is a new file in the telemetry module, its purpose widened in `docs/modules.json`; the data is a local copy outside the repository (C-033); the scheduled run is not changed. Catching known failures on field data is a separate item, 12.7, in the waiting phase until a public dataset labels its failures with times and a rule for readings finer than five minutes is decided.
+- **Why:** The first run of 12.6 (J-099) found no reachable public PV dataset that records failures in its telemetry: PVDAQ's `qa_issue` flags are data-quality verdicts on a whole system, without times; Sandia's extreme-weather set has O&M tickets but one performance number a day; the floating-solar set has no events. Taking the flags as failures would test the wrong thing, and inferring failures from the data would be circular. A monitor that cries wolf is ignored, so the false-alarm rate on working plant is worth knowing on its own, and needs no labels. Ghost, 2026-11-20, in chat: "yes to E".
+- **Supersedes:** none. It reshapes TODO 12.6 (J-098).
+- **Held by:** `TODO.md` 12.6 and 12.7, `docs/ROADMAP.md`, `docs/modules.json` (telemetry's purpose).
+- **Source:** Ghost, in chat, 2026-11-20.
+- **Status:** in force
+- **See also:** C-033, SP-015, SP-035
+- **subject:** field data
+

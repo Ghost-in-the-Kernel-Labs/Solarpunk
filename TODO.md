@@ -74,16 +74,17 @@ SP-023, so the Tickets window and the attention band's tickets land in the rewor
 
 ## Phase 12: accounts and authentication
 
-Lanes (P-15): 12.1, then 12.2 (versions), then 12.3 and 12.5 in parallel, then 12.4, then 12.6 (field data), then 12.7 the pass. Ghost's direction,
+Lanes (P-15): 12.1, then 12.2 (versions), then 12.3 and 12.5 in parallel, then 12.4, then 12.6 (a false-alarm baseline on field data), then 12.8 the pass; 12.7 waits (Phase W). Ghost's direction,
 SP-022; 12.1 split in two by SP-028 (accounts, then versions); 12.6 added on Ghost's word, 2026-11-20 (J-098).
 
-### 12.6 Field data from a public PV dataset
+### 12.6 A false-alarm baseline on public field data
 
-The checks grounded in real field data, not synthetic alone (Ghost, 2026-11-20, J-098).
+The checks run over real field telemetry, so how often each one fires on working plant is known and every alarm is
+explained (SP-036; J-098, J-099).
 
-Check: a public dataset of real PV telemetry that records known failures is chosen, and its source, licence, the host it downloads from and the window used are written in `docs/FIELD-DATA.md`; a loader reads its export into the telemetry shape, tested on a small synthetic sample written in the dataset's format, so no file of the dataset enters the repository (C-033); the remote tests run over a local copy given by path, and the findings (which checks fired, which recorded failures they caught or missed, and why) are written in the journal as numbers and names, never the data; the fast loop green.
+Check: real 5-minute telemetry from public PV systems (NREL PVDAQ, CC BY 4.0; the systems chosen and named) is loaded from a local copy outside the repository by `solarpunk field load PATH --db STORE`, and its source, licence, host, systems, window and column mapping are written in `docs/FIELD-DATA.md`; the loader is tested on a small hand-written sample in the dataset's format, so no file of the dataset enters the repository (C-033); every remote test that applies runs over each loaded asset one day at a time, without changing the scheduled run; and the baseline (per check and system: days run, days alarmed, and each alarm explained as a real event, a data artefact or a threshold) is written in the journal as numbers and names, never the data; the fast loop green.
 
-### 12.7 Tune-up pass 12
+### 12.8 Tune-up pass 12
 
 Check: `docs/when/tune-up.md` followed in full; the metrics table written; the navigation log's "Last review" set.
 
@@ -329,3 +330,15 @@ decision of its own (Phase 14's); the fast loop green.
 ### 20.2 Tune-up pass 20
 
 Check: `docs/when/tune-up.md` followed in full; the metrics table written; the navigation log's "Last review" set.
+
+## Phase W: waiting on Ghost
+
+### 12.7 Known failures caught, on labelled field data
+
+Moved: from Phase 12
+Waits on: a public PV dataset that labels its failures with their times, its licence read, and Ghost's ruling on putting readings finer than five minutes on the grid (SP-036)
+
+Each recorded failure in a labelled dataset is caught, or its miss explained, by the remote tests (J-099).
+
+Check: the dataset, its licence and its labels written in `docs/FIELD-DATA.md`; the gridding rule a decision; per recorded failure, the check that caught it or why none did, in the journal; the fast loop green.
+

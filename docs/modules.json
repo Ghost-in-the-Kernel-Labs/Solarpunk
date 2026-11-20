@@ -83,7 +83,7 @@
     },
     "telemetry": {
       "folder": "solarpunk/telemetry",
-      "purpose": "Synthetic SCADA: a deterministic generator of samples with gaps from a seed, and the samples table (lane 1.3).",
+      "purpose": "Synthetic SCADA: a deterministic generator of samples with gaps from a seed, and the samples table (lane 1.3); and a loader of public field telemetry from a local copy outside the repository (12.6, SP-036).",
       "mayImport": [
         "leaf"
       ],
