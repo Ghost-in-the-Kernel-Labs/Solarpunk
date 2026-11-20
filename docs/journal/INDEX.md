@@ -90,3 +90,4 @@ Written from `docs/journal/` by `scripts/journal_index.py`; do not edit by hand.
 | J-084 | Tune-up pass 11: Phase 11 closed | measurement | `J-000-099.md` |
 | J-085 | The accounts module approved; 12.1 split in two (SP-028) | decision | `J-000-099.md` |
 | J-086 | Thirteen named gaps put on the roadmap: Phases 16 to 20 and a company sign-in (SP-029) | decision | `J-000-099.md` |
+| J-087 | 12.1: accounts, the viewer and the site scope (SOL-16) | feature | `J-000-099.md` |

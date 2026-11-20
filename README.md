@@ -45,7 +45,7 @@ moving only once origin takes it (SP-014), and the full `scripts/gate.sh` runs a
 - Phase 9, the fleet window as an operations root (headings, causes, what waits on a person): done (SP-023).
 - Phase 10, runs per asset (a Runs button, each run, runs by test, power, error counts, graphed): done (SP-024).
 - Phase 11, tickets in the windows (the adapter, the local tracker, a Tickets window): done (SP-022, SP-023).
-- Phase 12, accounts and authentication (every act attributed to a signed-in account): not started (SP-022).
+- Phase 12, accounts and authentication (every act attributed to a signed-in account): in progress (SP-022, SP-028).
 - Phase 13, the tests and their record (what a test is, suites, a Tests window): not started (SP-016, SP-019,
   SP-020).
 - Phase 14, the network's security (the feed, the receiver, and the central server's design): not started.

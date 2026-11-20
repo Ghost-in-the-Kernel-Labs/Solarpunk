@@ -72,12 +72,6 @@ SP-023, so the Tickets window and the attention band's tickets land in the rewor
 Lanes (P-15): 12.1, then 12.2 (versions), then 12.3 and 12.5 in parallel, then 12.4, then 12.6 the pass. Ghost's direction,
 SP-022; 12.1 split in two by SP-028 (accounts, then versions).
 
-### 12.1 Accounts
-
-Who may act, where, and on what they last saw, stored without ever storing a password (SP-022, SP-026).
-
-Check: the module entry for accounts approved by Ghost in `docs/modules.json` before any code (SP-028); a contract section first, with a worked example of each rule below; an accounts table (email, name, role engineer, operator, viewer or admin, active, created, site scope) and a password check by `hashlib.scrypt` with a per-account salt and its parameters stored beside the hash; no password or hash in any log line, message, mail or test literal (a test's password assembled at runtime); an engineer address the fleet names with no engineer account is flagged by a query. Viewer: reads everything its sites hold and acts on nothing (every write refused, by name). Per-site scope: an account names the sites it may see and act on, or all; an asset, a fault, a suggestion and a ticket of another site is neither listed to it nor written by it; an admin's scope is all. The rules are project calls that take an account, tested headless; the windows and the command line take them up when signing in (12.3) gives them an account; the fast loop green.
-
 ### 12.2 Versions
 
 A write made from a stale screen is refused rather than overwriting another person's change (SP-026, SP-028).

@@ -292,3 +292,40 @@ Worked examples, over the demo store (`python3 -m solarpunk.ui --demo`, one run 
 Held by `test/solarpunk/test_runs_contract.py`, which reads each example's numbers from the demo store and finds each
 example's line in this section, and by `solarpunk/project/runs.py` (10.2: `asset_runs`, `asset_power`,
 `asset_code_counts`, `code_counts_by_asset`) with `test/solarpunk/test_runs.py`, which reads the same examples through it.
+
+## SOL-16 An account acts within its role and its sites, and its password is never kept
+
+Who may act, and where (12.1, SP-022, SP-026, SP-028). An **account** is an email (its name for every record), a
+person's name, one **role**, whether it is **active**, when it was **created**, and its **site scope**: the sites it
+may see and act on, or all. An admin's scope is all.
+
+| Role | Acts |
+| --- | --- |
+| engineer | assigns faults, decides suggestions, works tickets, within its sites |
+| operator | enters an engineer's call-in and works tickets, within its sites |
+| viewer | nothing: every write is refused, by name |
+| admin | manages accounts; every site |
+
+(Which act each role may make beyond the viewer's none is 12.4's, attribution from the account; 12.1 holds the viewer
+and the site scope.) An account sees an asset, a fault, a suggestion and a ticket only when the asset's site is in its
+scope, and acts on none outside it. An account that is not active is refused at its password and acts on nothing.
+An engineer address the fleet names with no active engineer account is flagged by a query, so a fault assigned in its
+name before accounts is not mistaken for an authenticated one.
+
+**A password is never stored, logged, shown, mailed or written in a test.** It is checked by
+`hashlib.scrypt(password, salt, n=16384, r=8, p=1, dklen=32)` with a fresh 16-byte salt per account; the stored line is
+`scrypt$16384$8$1$<salt as hex>$<hash as hex>`, its parameters beside it so a later change of them reads the old lines
+still, and a check compares hashes in constant time (`hmac.compare_digest`). A password is at least 12 characters.
+
+Worked example, over the demo fleet (all of it site OAHE) with three accounts: `site@oahe.example` an engineer of OAHE,
+`auditor@oahe.example` a viewer of all sites, `crew@bigs.example` an engineer of BIGS alone.
+
+    site@oahe.example acknowledges OAHE-INV-002's ticket     allowed
+    auditor@oahe.example lists the fleet                      11 assets
+    auditor@oahe.example acknowledges it                      refused: "auditor@oahe.example is a viewer and acts on nothing"
+    crew@bigs.example lists the fleet                         0 assets
+    crew@bigs.example acknowledges it                         refused: "crew@bigs.example may not act on site OAHE"
+    the fleet's engineers with no engineer account            inverter@oahe.example
+
+Held by `solarpunk/accounts/` (the table, the password check), `solarpunk/project/access.py` (the role and the scope),
+and `test/solarpunk/test_accounts.py`, which runs this example.

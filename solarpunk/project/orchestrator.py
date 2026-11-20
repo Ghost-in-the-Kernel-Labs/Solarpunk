@@ -11,6 +11,7 @@ from datetime import date, datetime, timedelta
 from pathlib import Path
 
 from solarpunk import kpi
+from solarpunk.accounts import table as account_table
 from solarpunk.faults import ledger
 from solarpunk.feed import simulate
 from solarpunk.fleet import registry
@@ -35,12 +36,13 @@ SITE_EMAIL = "site@oahe.example"
 LOOPBACK = "127.0.0.1"
 INVERTER_EMAIL = "inverter@oahe.example"
 STORE_TABLES = ("assets", "faults", "samples")
-# The tables Phases 2 and 4 added, by name, each with its schema: a store made before them gains them on reopening.
+# The tables Phases 2, 4 and 12 added, by name, each with its schema: a store made before them gains them on reopening.
 LATER_TABLES: tuple[tuple[str, tuple[str, ...]], ...] = (
     ("results", result_table.schema()),
     ("mails", mail_table.schema()),
     ("work_orders", work_ledger.schema()),
     ("suggestions", suggestion_table.schema()),
+    ("accounts", account_table.schema()),
 )
 TABLE_NAMES = "SELECT name FROM sqlite_master WHERE type = 'table'"
 
@@ -68,8 +70,9 @@ class SiteKpis:
 
 
 def open_store(path: str | Path = store.MEMORY) -> sqlite3.Connection:
-    """A store holding the fleet's, the ledger's, the samples', the remote results', the mails' and the work orders'
-    tables, applied in that order: open_store() is an in-memory store where "SELECT count(*) FROM faults" gives 0."""
+    """A store holding the fleet's, the ledger's, the samples', the remote results', the mails', the work orders', the
+    suggestions' and the accounts' tables, applied in that order: open_store() is an in-memory store where "SELECT
+    count(*) FROM faults" gives 0."""
     conn = store.connect(path)
     store.apply(conn, registry.schema())
     store.apply(conn, ledger.schema())
@@ -82,8 +85,8 @@ def open_store(path: str | Path = store.MEMORY) -> sqlite3.Connection:
 def open_or_create(path: str | Path) -> sqlite3.Connection:
     """The store at a path, its tables made only when it has none (the CLI's store, which outlives one call):
     open_or_create("fleet.db") on a new file is open_store("fleet.db"); on a file holding the three first tables it
-    opens it again with its rows, adding results, mails and work_orders where it lacks them, where open_store would raise
-    "table assets already exists"; a file holding some of the three first is handed to open_store, which refuses it."""
+    opens it again with its rows, adding results, mails, work_orders and accounts where it lacks them, where open_store
+    would raise "table assets already exists"; a file holding some of the three first is handed to open_store, which refuses it."""
     conn = store.connect(path)
     present = {row[0] for row in conn.execute(TABLE_NAMES)}
     if not set(STORE_TABLES) <= present:

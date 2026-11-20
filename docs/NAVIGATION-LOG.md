@@ -17,3 +17,9 @@ Last review: 5b013a5 (2026-11-20, Tune-up pass 11)
 
 An entry is `### <date> · <task> · <agent>` and four lines: **Task**, **Opened** (files, in order), **Complaints**,
 **Suggestions**.
+
+### 2026-11-20 · 12.1 accounts · an agent (briefed by Claude)
+- **Task**: 12.1 Accounts: the project rules (viewer, site scope) and their tests over SOL-16.
+- **Opened**: `CLAUDE.md`, `theGhost.md` (SP-026, SP-028), `docs/CONTRACT.md` SOL-16, `solarpunk/leaf/accounts.py`, `solarpunk/accounts/`, `solarpunk/project/orchestrator.py`, `test/solarpunk/test_runs_contract.py`.
+- **Complaints**: the worktree started on main, not the named branch; no `.venv` in a worktree; the README chain test makes a branch that moves DONE and TODO red unless it edits README too.
+- **Suggestions**: a brief for a branch names the README line it may change; a worktree links `.venv` as the frozen gate does.

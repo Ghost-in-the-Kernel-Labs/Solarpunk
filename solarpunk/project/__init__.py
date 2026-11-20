@@ -2,7 +2,8 @@
 solarpunk/project/orchestrator.py; the only module that imports fleet, faults, telemetry and kpi together (MOD-02).
 The scheduled run is in run.py (2.7, SP-006); the reports' surface in reports.py (6.1, 6.3); the one surface the Phase
 3 windows call is in surface.py (SP-007). The errors a surface catches are re-exported here, so receiver and ui catch
-them exactly without importing a lane (MOD-06); so are the work order and the root-cause list (4.1)."""
+them exactly without importing a lane (MOD-06); so are the work order and the root-cause list (4.1). Who may act, and
+where, is in access.py (12.1, SOL-16): the account calls, the viewer's refusal and the site scope on every reading."""
 from solarpunk.faults.ledger import LedgerError
 from solarpunk.feed.client import FeedError
 from solarpunk.fleet.registry import RegistryError
@@ -98,8 +99,32 @@ from solarpunk.project.tickets import (
 )
 from solarpunk.leaf.tickets import BadMove, Priority, TargetState, TicketStatus
 from solarpunk.workorders.tickets import Breach, Comment, Ticket
+from solarpunk.accounts.passwords import WeakPassword
+from solarpunk.accounts.table import AccountError
+from solarpunk.leaf.accounts import ALL_SITES, Account, Role
+from solarpunk.project.access import (
+    NotPermitted,
+    account_of,
+    accounts,
+    asset_rows_for,
+    check_password,
+    create_account,
+    fleet_for,
+    move_ticket_as,
+    open_faults_for,
+    open_suggestions_for,
+    open_tickets_for,
+    permit_asset,
+    permit_fault,
+    permit_suggestion,
+    permit_ticket,
+    unaccounted_engineers,
+)
 
 __all__ = [
+    "ALL_SITES",
+    "Account",
+    "AccountError",
     "AssetCount",
     "AssetDetail",
     "AssetRow",
@@ -113,6 +138,7 @@ __all__ = [
     "Fault",
     "FeedError",
     "LedgerError",
+    "NotPermitted",
     "OUTPUT_FIELDS",
     "PowerOutput",
     "PowerReport",
@@ -121,6 +147,7 @@ __all__ = [
     "Recorded",
     "RegistryError",
     "RemoteTest",
+    "Role",
     "RootCause",
     "Run",
     "RunReport",
@@ -134,31 +161,38 @@ __all__ = [
     "UnknownAsset",
     "UnknownEngineer",
     "UnknownRootCause",
+    "WeakPassword",
     "WorkOrder",
     "WorkOrderError",
     "accept_suggestion",
+    "account_of",
+    "accounts",
     "add_remote_test",
     "asset_code_counts",
     "asset_detail",
     "asset_power",
     "asset_rows",
+    "asset_rows_for",
     "asset_runs",
     "asset_status",
     "assign_engineer",
     "assign_fault",
     "attention",
     "check_fault",
+    "check_password",
     "close_fault",
     "close_work_order",
     "code_counts_by_asset",
     "codes_for_kind",
     "comment_on_ticket",
+    "create_account",
     "day_period",
     "demo_fleet",
     "dismiss_suggestion",
     "drain_outbox",
     "faults_listing",
     "fleet_assets",
+    "fleet_for",
     "fleet_last_run",
     "fleet_listing",
     "generate_and_store",
@@ -169,14 +203,22 @@ __all__ = [
     "load_fleet",
     "local_tracker",
     "move_ticket",
+    "move_ticket_as",
+    "open_faults_for",
     "open_or_create",
     "open_outages",
     "open_preventive_work_order",
     "open_store",
     "open_suggestions",
+    "open_suggestions_for",
     "open_tickets",
+    "open_tickets_for",
     "open_work_order_from_fault",
     "period",
+    "permit_asset",
+    "permit_fault",
+    "permit_suggestion",
+    "permit_ticket",
     "ping_asset",
     "power_report",
     "register_asset",
@@ -196,5 +238,6 @@ __all__ = [
     "tickets_by_target",
     "tickets_past_target",
     "tickets_waiting",
+    "unaccounted_engineers",
     "work_orders_for",
 ]

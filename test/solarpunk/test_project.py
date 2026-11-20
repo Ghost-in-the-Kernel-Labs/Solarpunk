@@ -75,7 +75,7 @@ class TheStore(Store):
     def test_it_holds_every_modules_table_in_order(self) -> None:
         conn = self.fresh()
         names = [row[0] for row in conn.execute("SELECT name FROM sqlite_master WHERE type = 'table' ORDER BY rowid")]
-        self.assertEqual(names, ["assets", "faults", "samples", "results", "mails", "work_orders", "ticket_comments", "ticket_outbox", "suggestions"])
+        self.assertEqual(names, ["assets", "faults", "samples", "results", "mails", "work_orders", "ticket_comments", "ticket_outbox", "suggestions", "accounts"])
         self.assertEqual(conn.execute("PRAGMA foreign_keys").fetchone()[0], 1)
 
     def test_it_opens_a_file_and_keeps_its_rows(self) -> None:
@@ -119,7 +119,7 @@ class Reopening(unittest.TestCase):
         return Path(folder.name) / "fleet.db"
 
     def tables(self, conn: sqlite3.Connection) -> list[str]:
-        """The store's tables in creation order: ["assets", "faults", "samples", "results", "mails", "work_orders", "ticket_comments", "ticket_outbox", "suggestions"] for a new store."""
+        """The store's tables in creation order: ["assets", "faults", "samples", "results", "mails", "work_orders", "ticket_comments", "ticket_outbox", "suggestions", "accounts"] for a new store."""
         return [row[0] for row in conn.execute("SELECT name FROM sqlite_master WHERE type = 'table' ORDER BY rowid")]
 
     def test_a_file_store_reopens_with_its_rows(self) -> None:
@@ -130,7 +130,7 @@ class Reopening(unittest.TestCase):
         again = project.open_or_create(path)
         self.addCleanup(again.close)
         self.assertEqual(count(again, "assets"), 11)
-        self.assertEqual(self.tables(again), ["assets", "faults", "samples", "results", "mails", "work_orders", "ticket_comments", "ticket_outbox", "suggestions"])
+        self.assertEqual(self.tables(again), ["assets", "faults", "samples", "results", "mails", "work_orders", "ticket_comments", "ticket_outbox", "suggestions", "accounts"])
 
     def test_a_store_made_before_sp015_gains_who_assigned_and_its_faults_read_unrecorded(self) -> None:
         path = self.path()
@@ -155,7 +155,7 @@ class Reopening(unittest.TestCase):
         old.close()
         conn = project.open_or_create(path)
         self.addCleanup(conn.close)
-        self.assertEqual(self.tables(conn), ["assets", "faults", "samples", "results", "mails", "work_orders", "ticket_comments", "ticket_outbox", "suggestions"])
+        self.assertEqual(self.tables(conn), ["assets", "faults", "samples", "results", "mails", "work_orders", "ticket_comments", "ticket_outbox", "suggestions", "accounts"])
         self.assertEqual(count(conn, "assets"), 11)
         self.assertEqual((count(conn, "results"), count(conn, "mails")), (0, 0))
 
@@ -167,7 +167,7 @@ class Reopening(unittest.TestCase):
         old.close()
         conn = project.open_or_create(path)
         self.addCleanup(conn.close)
-        self.assertEqual(self.tables(conn), ["assets", "faults", "samples", "results", "mails", "work_orders", "ticket_comments", "ticket_outbox", "suggestions"])
+        self.assertEqual(self.tables(conn), ["assets", "faults", "samples", "results", "mails", "work_orders", "ticket_comments", "ticket_outbox", "suggestions", "accounts"])
 
     def test_a_file_holding_some_of_the_first_tables_is_refused(self) -> None:
         path = self.path()
@@ -389,6 +389,6 @@ class Phase4Reopening(Reopening):
         old.close()
         conn = project.open_or_create(path)
         self.addCleanup(conn.close)
-        self.assertEqual(self.tables(conn), ["assets", "faults", "samples", "results", "mails", "work_orders", "ticket_comments", "ticket_outbox", "suggestions"])
+        self.assertEqual(self.tables(conn), ["assets", "faults", "samples", "results", "mails", "work_orders", "ticket_comments", "ticket_outbox", "suggestions", "accounts"])
         self.assertEqual((count(conn, "assets"), count(conn, "work_orders")), (11, 0))
 
