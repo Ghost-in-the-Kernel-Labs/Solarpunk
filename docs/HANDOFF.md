@@ -162,6 +162,11 @@ email on the asset, a mailer to those engineers on degradation, and the Save/Can
    do not change an asset's status. Choose: readers filter to `all`, dedupe by test, or `all` stops being every test
    once named suites exist. No suite file ships, so nothing doubles today. The cadence spelling is the worker's:
    `"every run"`, `"hourly"`, `"daily at HH"` (UTC).
+19. A stop hook in this cloud session's setup (not in the repository) asks for uncommitted changes to be committed
+   and pushed whenever a turn ends with a dirty tree; it fired twice while a worker edited the coordinator's checkout
+   (J-117). Reported, never edited (CLAUDE.md, `docs/when/coordinate.md`). Answered by Ghost's word of 2026-11-21
+   (J-118): every worker in its own clone, so the coordinator's tree stays clean. Change the hook itself only if you
+   want it to.
 
 ## Advisories under the gate's threshold (Tune-up pass 12; unchanged since pass 0)
 

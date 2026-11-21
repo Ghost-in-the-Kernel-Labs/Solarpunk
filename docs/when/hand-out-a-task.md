@@ -40,8 +40,9 @@ task: `docs/when/handoff.md`.
   so the brief sanctions copying `docs/AGENT.md` aside, running `python3 -I scripts/metrics.py --write` and
   `scripts/gate.sh --fast`, then restoring the copy; the window tests need tkinter and a display, and where the fast
   loop's interpreter has no tkinter they run under `xvfb-run -a` with one that has; and the worker works on a branch in
-  the main checkout, never in a worktree under `.claude/worktrees/`, whose copy of the planted supply-chain fixtures the
-  disk-reading scan reports as worm artefacts.
+  its own clone beside the main checkout (`docs/when/coordinate.md`, "Every worker in its own clone"), never in the
+  coordinator's checkout and never in a worktree under `.claude/worktrees/`, whose copy of the planted supply-chain
+  fixtures the disk-reading scan reports as worm artefacts. The brief names the clone's path as its repository.
 - The working set is the Start-here files of the routing row the item matches, plus the files the
   item names; nothing else. Say explicitly what the agent may and may not do: agents read silence
   literally.
@@ -52,7 +53,9 @@ Copy the block, fill each `<...>`, delete nothing; a field with nothing in it sa
 
 ```text
 You are a <small|mid|strong>-grade worker (docs/when/grades.md) for <project>, TODO <n.n>: <title>.
-Repository <path>, branch <branch>. Read CLAUDE.md first; its rules bind you, and this brief only narrows them.
+Repository <the worker's clone>, branch <branch>. Read CLAUDE.md first; its rules bind you, and this brief only narrows them.
+First run `cd <the worker's clone> && pwd && git rev-parse --show-toplevel && git branch --show-current`; if any
+differs from the line above, stop and report. Every command runs in that clone; never touch another checkout.
 Every reply you write, this report included, starts with the words "Context Canary".
 
 Objective: <one sentence>.

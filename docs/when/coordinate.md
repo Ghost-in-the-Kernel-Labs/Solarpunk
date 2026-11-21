@@ -58,10 +58,30 @@ step on his hardware.
   turns, no "still running" message. A turn that decides nothing is not taken.
 - Read logs by `grep` (the `gate:` verdict line, the first failure) and files in part, never whole.
 
+## Every worker in its own clone
+
+Every worker, one at a time or in parallel, works in its own clone beside the main checkout, never in the
+coordinator's (Ghost, 2026-11-21, J-118). The coordinator's tree stays clean while a worker runs, so landing never waits
+on a worker's half-finished edits, and a stop hook that asks for uncommitted changes to be committed has nothing to ask
+about. Make the clone from the main checkout before the brief goes out:
+
+```text
+git clone -q <main checkout> <main checkout>-<item>    # e.g. /home/user/Solarpunk-13.3
+git -C <clone> remote set-url origin "$(git -C <main checkout> remote get-url origin)"
+git -C <clone> switch -c agent/<item>
+git -C <clone> config user.name Ghost; git -C <clone> config user.email <Ghost's noreply address, CLAUDE.md>
+ln -s <main checkout>/.venv <clone>/.venv              # the venv is shared, never rebuilt
+```
+
+The brief names the clone as its repository, and the worker checks its directory first
+(`docs/when/hand-out-a-task.md`). The worker saves on its branch (`scripts/save.sh`); the coordinator lands from the
+main checkout (`git fetch origin agent/<item>`, `git merge --squash origin/agent/<item>`), then deletes the clone once
+its `git status` is clean. A read-only worker that changes nothing may read the main checkout.
+
 ## Parallel workers
 
-Workers that change files at the same time each get their own files and their own branch or
-worktree, with objectives that cannot collide (C-029). Each saves its work on its own branch
+Workers that change files at the same time each get their own files and their own clone and branch,
+with objectives that cannot collide (C-029). Each saves its work on its own branch
 (`scripts/save.sh`, `agent/<name>`: scanned, committed as Ghost, pushed; never gated, never `main`), so a worker's
 turn ends with nothing dirty and nothing unpushed; the coordinator lands it: brings the branch's change into `main`'s
 working tree (`git merge --squash agent/<name>`, or the files themselves), runs the fast checks
