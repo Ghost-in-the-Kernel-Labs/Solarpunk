@@ -11,51 +11,15 @@ to the ruling grade; record the review in the journal; set the line below to the
 review ran at (`git rev-parse --short HEAD`, not the tune-up's own, which does not exist yet). Each entry's **Opened** list, read against the routing row its task matched, is the measure
 of whether a fresh agent found its way: files, in order; `CLAUDE.md` does not count.
 
-Last review: 3be733f (2026-11-21, Tune-up commit 12)
+Last review: 805522c (2026-11-21, Tune-up commit 7)
 
 ## Entries
 
 An entry is `### <date> · <task> · <who>`, then four bullets: **Task**, **Opened** (files, in order), **Complaints**,
 **Suggestions**.
 
-### 2026-11-21 · 7.9 a ticket from a failed test · mid-grade worker
-- **Task**: an "Open a ticket" control on a failed result; one ticket to a streak of failed results (J-123).
-- **Opened**: the product row's ledgers, `project/orchestrator.py`, `project/suggest.py`, `remote/results.py`, the CLI and window files, `docs/CONTRACT.md`.
-- **Complaints**: `test_project.py` and `test_cli.py` pin the store's table list in order, so one new table edits about nine expected lists; the readability check caps a function at 39 lines; the CLI's stderr can carry a Python warning before "error:".
-- **Suggestions**: the table-list tests read the list from one constant, so a new table edits one line.
-
-### 2026-11-21 · 7.8 the root cause · mid-grade worker
-- **Task**: a fault's root cause as free text an engineer writes, append-only; a ticket closes only once it is written (J-122).
-- **Opened**: `grep -rn "root_cause\|RootCause"` first, then the product row's ledgers, `project/orchestrator.py`, the CLI and window files, the clause register.
-- **Complaints**: the brief's working set missed the files holding the dropdown and `--cause` (`ui/ticket_panel.py`, `cli/tickets.py`), which the grep found at once; `docs/DEMO.md` named in the brief does not exist.
-- **Suggestions**: a brief that removes a name builds its working set from the grep, not from the routing row.
-
-### 2026-11-21 · 7.7 faults from telemetry · mid-grade worker
-- **Task**: a failing remote test raises its fault itself; accept and dismiss removed (J-121).
-- **Opened**: the brief's working set: `solarpunk/remote/suggestions.py`, `solarpunk/project/suggest.py`, the receiver, the CLI and UI files, `solarpunk/leaf/codes.py`, `docs/CLAUSE-REGISTER.md`, `docs/DEMO.md`, then the tests the removal broke.
-- **Complaints**: the working set was right but narrow on tests: eight test files outside the brief's list pinned the removed behaviour or the demo's counts; `test_metrics` needs `metrics.py --write` before `gate.sh --fast`, and its largest-file limit caught `test_project_run.py` at 402 lines.
-- **Suggestions**: a brief that removes a behaviour lists the tests by `grep -rln` for its names, not by guess.
-
-### 2026-11-21 · coordinator assignment pointer · coordinator
-- **Task**: make CLAUDE.md send the coordinator to the agent assignment logic (J-114).
-- **Opened**: `docs/when/handoff.md`, `docs/when/coordinate.md`, `docs/HANDOFF.md`, `docs/when/grades.md`, `theGhost.md` (C-020, C-022, C-036), `docs/when/hand-out-a-task.md`, `scripts/checks/grades.py`.
-- **Complaints**: "You coordinate other agents rather than build" did not read as an entry condition to a session Ghost started, so the assignment rules were met only when looked for.
-- **Suggestions**: none beyond J-114.
-
-### 2026-11-21 · 13.2 the suites folder · mid-grade worker
-- **Task**: TODO 13.2, SP-019 and SP-020.
-- **Opened**: theGhost.md (SP-019, SP-020), `TODO.md`, `solarpunk/remote/registry.py`, `solarpunk/remote/run.py`, `solarpunk/remote/results.py`, `solarpunk/remote/scaffold.py`, `solarpunk/project/run.py`, `solarpunk/cli/main.py`, `solarpunk/cli/tickets.py`, `docs/modules.json`.
-- **Complaints**: the fast checks stop at `test_metrics` on a worker's tree (the copy-aside works); a writer that imports a folder function by name escapes a test's patch and writes into the real folder.
-- **Suggestions**: a routing row "A suite" in `docs/paths/product.md`; a line on the suites folder in `docs/`.
-
-### 2026-11-21 · 13.1 what a test looks like · mid-grade worker
-- **Task**: TODO 13.1, SP-019: the remote test's contract and its check.
-- **Opened**: `docs/paths/process.md`, `docs/paths/product.md`, `solarpunk/remote/results.py`, `solarpunk/remote/scaffold.py`, the seven modules of `solarpunk/remote/tests/`, `scripts/checks/asset_types.py`, `scripts/checks/common.py`, `scripts/checks/readability.py`, `test/test_asset_types.py`, `test/support.py`, theGhost.md (SP-019, SP-020), `TODO.md`.
-- **Complaints**: the readability check reads fixtures under `test/` too, so a planted Python break needs docstrings and short comprehensions, which no row says; the fast checks stop at `test_metrics` on a worker's tree.
-- **Suggestions**: a reverse check (every `Tests:` name has a module) once `tracker_moving` and `energy_monotonic` exist; 13.3 and 13.4 change this check's fields.
-
-### 2026-11-21 · SP-044 roadmap renumbering · mid-grade worker
-- **Task**: move six phases to SP-044's order and write Phase 14 in `TODO.md` and `docs/ROADMAP.md`.
-- **Opened**: theGhost.md (SP-044), `TODO.md`, `docs/ROADMAP.md`, `README.md`, `test/test_readme.py`, `docs/HANDOFF.md`.
-- **Complaints**: none.
-- **Suggestions**: none.
+### 2026-11-21 · 7.10 tune-up commit 7 (re-measure) · mid-grade worker
+- **Task**: steps 1, 2, 5 and 6 of a reopened Phase 7's closing tune-up commit: cold and warm full gate, the metrics table, the log wiped.
+- **Opened**: `docs/when/tune-up.md`, `docs/when/long-run.md`, `docs/NAVIGATION-LOG.md`, `docs/AGENT.md`, `docs/HANDOFF.md`.
+- **Complaints**: the gate's interpreter (`python3`) has no tkinter, so its 137 skips hide the window tests, and the brief's `discover -s test -p` line fails with 19 import errors without `-t .` (`scripts/fast.sh` has it); the brief called `attribution.recorded_as`'s `deed` unused, but it is the refusal's wording.
+- **Suggestions**: `docs/when/tune-up.md` step 2 says the window tests run under `xvfb-run -a python3.12 -m unittest discover -s test -t . -p "test_ui*.py"`.

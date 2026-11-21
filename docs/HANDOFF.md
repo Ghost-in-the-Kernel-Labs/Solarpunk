@@ -168,7 +168,7 @@ email on the asset, a mailer to those engineers on degradation, and the Save/Can
    (J-118): every worker in its own clone, so the coordinator's tree stays clean. Change the hook itself only if you
    want it to.
 
-## Advisories under the gate's threshold (Tune-up pass 12; unchanged since pass 0)
+## Advisories under the gate's threshold (Tune-up commit 7, 2026-11-21; unchanged since pass 0)
 
 The Python stack's gate runs no audit step (`pip-audit` is not in the lock; `stacks/python/README.md` names it for a
 dependency review, not the gate), so none were reported; the 20 pins are tools alone (pytest, ruff, mutmut and theirs).
