@@ -180,7 +180,7 @@ email on the asset, a mailer to those engineers on degradation, and the Save/Can
     stores); (e) named suites raise no faults and join no streaks; (f) the gate skips the window tests where `python3`
     has no tkinter; running them under `xvfb-run python3.12` is a gate change; (g) the fast loop at 27.9 s of 30.
 
-21. From 13.5 (J-131), the worker's readings, each easy to change: `tests_overview` counts suite `all` alone (item 18's
+21. Settled 2026-11-21 (SP-050): "go with your recommendations", each as built. From 13.5 (J-131), the worker's readings, each easy to change: `tests_overview` counts suite `all` alone (item 18's
     question, answered for the overview) and no data as a third count; `test_log` reads every suite, each entry naming
     its suite; an unknown test name, and a limit below 1, give () rather than a refusal; the ping's failed `reachable`
     is untimed (None). Say if any should change before 13.7 shows them.

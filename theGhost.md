@@ -937,3 +937,13 @@ The core decisions above are inherited (Core C-001 to C-040); this project's beg
 - **See also:** SP-020, SP-046, SP-047
 - **subject:** remote tests
 
+
+### SP-050: The tests' record counts the run of every test; its edges read empty
+- **Decision:** `project.tests_overview` counts suite `all` alone, so a named suite's runs never double what a test did; no data is a third count beside passes and failures (SP-039). `project.test_log` reads every suite, each entry naming its suite. An unknown test name, and a limit below 1, give an empty log rather than a refusal. The ping's failed `reachable` is not a test's run and stores no duration (None). As 13.5 built them (J-131).
+- **Why:** Ghost, 2026-11-21, of the coordinator's recommendations after 13.5: "go with your recommendations". The overview is a count, which a doubled row would falsify; the log is a list, which loses nothing by naming its suite.
+- **Supersedes:** none. Answers HANDOFF For Ghost 18 for the overview; the other readers of `latest_for` stay open there.
+- **Held by:** `solarpunk/project/record.py`, `test/solarpunk/test_record.py`; 13.6 and 13.7 show it.
+- **Source:** Ghost, in chat, 2026-11-21.
+- **Status:** in force
+- **See also:** SP-016, SP-039
+- **subject:** test record
