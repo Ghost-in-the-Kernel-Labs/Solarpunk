@@ -7,6 +7,7 @@ exit 2."""
 import argparse
 import sqlite3
 import sys
+import time
 from contextlib import closing
 from datetime import datetime
 from pathlib import Path
@@ -46,6 +47,15 @@ def judged(test: RemoteTest, asset: Asset, samples: tuple[Sample, ...], acquirer
     return test.run(asset, acquirer(asset, test.acquire))
 
 
+def timed(test: RemoteTest, asset: Asset, samples: tuple[Sample, ...],
+          acquirer: Acquirer | None = None) -> tuple[Result, int]:
+    """judged, with the whole milliseconds it took (13.5, SP-016), reads an acquirer waits for included: a test that
+    judges at once is (result, 0 or a few); the duration is an int, never negative."""
+    started = time.perf_counter()
+    result = judged(test, asset, samples, acquirer)
+    return result, int((time.perf_counter() - started) * 1000)
+
+
 def status_of(open_outage: bool, results: tuple[Result, ...]) -> AssetStatus:
     """The asset's glyph: RED with an open OUTAGE fault whatever the results, YELLOW when a result failed, GREEN
     otherwise: status_of(False, (Result(True, "a"), Result(False, "b"))) is AssetStatus.YELLOW; status_of(False, ())
@@ -74,8 +84,8 @@ def run_suite(
         samples = samples_by_asset.get(asset.asset_id, ())
         results = []
         for test in tests_for(asset.kind):
-            result = judged(test, asset, samples, acquirer)
-            record(conn, test.name, asset.asset_id, run_at, result)
+            result, took = timed(test, asset, samples, acquirer)
+            record(conn, test.name, asset.asset_id, run_at, result, duration_ms=took)
             results.append(result)
         # An asset missing from open_outages carries no open OUTAGE fault.
         statuses[asset.asset_id] = status_of(open_outages.get(asset.asset_id) is True, tuple(results))
@@ -91,7 +101,7 @@ def run_named(
     acquirer: Acquirer | None = None,
 ) -> int:
     """One suite's tests against the assets in its reach, each result recorded at run_at carrying the suite's name
-    (13.2), and the count of results written: a suite of reachable over two inverters and a meter, its KINDS the
+    (13.2) and its duration (13.5), and the count of results written: a suite of reachable over two inverters and a meter, its KINDS the
     INVERTER, writes 2; an asset a test does not run on is passed over."""
     found = discover()
     written = 0
@@ -100,8 +110,8 @@ def run_named(
             continue
         for name in suite.tests:
             if asset.kind in found[name].kinds:
-                result = judged(found[name], asset, samples_by_asset.get(asset.asset_id, ()), acquirer)
-                record(conn, name, asset.asset_id, run_at, result, suite.name)
+                result, took = timed(found[name], asset, samples_by_asset.get(asset.asset_id, ()), acquirer)
+                record(conn, name, asset.asset_id, run_at, result, suite.name, took)
                 written += 1
     return written
 

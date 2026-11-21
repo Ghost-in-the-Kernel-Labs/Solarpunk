@@ -81,6 +81,7 @@ from solarpunk.remote.results import Recorded
 from solarpunk.leaf.faults import by_telemetry
 from solarpunk.remote.suggestions import Suggestion, SuggestionError
 from solarpunk.workorders.ledger import WorkOrder, WorkOrderError
+from solarpunk.project.record import LoggedRun, TestRecord, test_log, tests_overview
 from solarpunk.project.runs import (
     AssetCount,
     CodeCount,
@@ -225,6 +226,10 @@ __all__ = [
     "asset_rows",
     "asset_rows_for",
     "asset_runs",
+    "LoggedRun",
+    "TestRecord",
+    "test_log",
+    "tests_overview",
     "asset_status",
     "assign_engineer",
     "assign_fault",

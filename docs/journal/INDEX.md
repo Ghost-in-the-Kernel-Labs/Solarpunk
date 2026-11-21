@@ -134,3 +134,4 @@ Written from `docs/journal/` by `scripts/journal_index.py`; do not edit by hand.
 | J-128 | SP-048 and SP-049: historical mode in Phase 14; bursts in the demo; a reaction raises a fault | direction | `J-100-199.md` |
 | J-129 | 13.4: reactions | feature | `J-100-199.md` |
 | J-130 | 13.13: bursts in the demo and on request | failure-caught | `J-100-199.md` |
+| J-131 | 13.5: the record's surface and the timing | feature | `J-100-199.md` |

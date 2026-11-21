@@ -22,17 +22,21 @@ SCHEMA = (
     " passed INTEGER NOT NULL,"
     " reason TEXT NOT NULL,"
     " no_data INTEGER NOT NULL DEFAULT 0,"
-    " suite TEXT NOT NULL DEFAULT 'all')",
+    " suite TEXT NOT NULL DEFAULT 'all',"
+    " duration_ms INTEGER)",
 )
 ALL = "all"  # the default suite (SP-019): a result stored before 13.2, or by the run of every test, carries it
 SUITE_COLUMN = "suite"
 ADD_SUITE = "ALTER TABLE results ADD COLUMN suite TEXT NOT NULL DEFAULT 'all'"
 NO_DATA_COLUMN = "no_data"
 ADD_NO_DATA = "ALTER TABLE results ADD COLUMN no_data INTEGER NOT NULL DEFAULT 0"
+DURATION_COLUMN = "duration_ms"
+ADD_DURATION = "ALTER TABLE results ADD COLUMN duration_ms INTEGER"  # 13.5: NULL for a row stored before it
 INSERT = (
-    "INSERT INTO results (test_name, asset_id, run_at, passed, reason, no_data, suite) VALUES (?, ?, ?, ?, ?, ?, ?)"
+    "INSERT INTO results (test_name, asset_id, run_at, passed, reason, no_data, suite, duration_ms)"
+    " VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
 )
-RESULT_COLUMNS = "test_name, asset_id, run_at, passed, reason, no_data, suite"
+RESULT_COLUMNS = "test_name, asset_id, run_at, passed, reason, no_data, suite, duration_ms"
 WITH_ID = RESULT_COLUMNS + ", result_id"  # 7.9: a result's id, which a ticket is opened from
 # The result just before another of the same test on the same asset, in (run_at, result_id) order (7.9, SP-046).
 PREVIOUS = (f"SELECT {WITH_ID} FROM results WHERE asset_id = ? AND test_name = ?"
@@ -46,6 +50,13 @@ LATEST = (
     " ORDER BY passed, no_data, test_name"
 )
 LAST_RUN = "SELECT max(run_at) FROM results"
+# 13.5: per test over one suite, the counts; the assets it ran on; its newest result's instant and duration.
+COUNTS = ("SELECT test_name, sum(passed), sum(passed = 0 AND no_data = 0), sum(no_data) FROM results"
+          " WHERE suite = ? GROUP BY test_name")
+RAN_ON = "SELECT DISTINCT test_name, asset_id FROM results WHERE suite = ? ORDER BY test_name, asset_id"
+NEWEST = (f"SELECT {WITH_ID} FROM results AS r WHERE suite = ? AND result_id = (SELECT result_id FROM results"
+          " WHERE suite = ? AND test_name = r.test_name ORDER BY run_at DESC, result_id DESC LIMIT 1)")
+OF_TEST = f"SELECT {WITH_ID} FROM results WHERE test_name = ? ORDER BY run_at DESC, result_id DESC LIMIT ?"
 NO_DATA = "no data"
 NO_RECORDS = "no records"
 SAMPLES = "SELECT asset_id, at, irradiance_w_m2, power_kw, gap FROM samples WHERE asset_id = ? ORDER BY at"
@@ -90,7 +101,8 @@ class Recorded:
     """One stored result: Recorded("reachable", "OAHE-INV-001", 2026-06-01T10:00Z, False, "no records"); a no-data
     result has no_data True and passed False, and a row stored before 12.9 reads as the pass or fail it was; suite names
     the suite that ran it (13.2), "all" for a row stored before suites; result_id is the row's id (7.9), 0 for one not
-    read from the store, and takes no part in equality."""
+    read from the store, and takes no part in equality; duration_ms is the milliseconds the test took (13.5), None for a
+    row stored before it or one never timed, never 0, and takes no part in equality either."""
 
     test_name: str
     asset_id: str
@@ -99,6 +111,7 @@ class Recorded:
     reason: str
     no_data: bool = False
     suite: str = ALL
+    duration_ms: int | None = field(default=None, compare=False)
     result_id: int = field(default=0, compare=False)
 
     @property
@@ -121,6 +134,20 @@ def nothing_to_check(samples: tuple[Sample, ...]) -> str | None:
     return f"{NO_RECORDS}: {len(samples)} gaps" if samples else NO_RECORDS
 
 
+@dataclass(frozen=True)
+class Tally:
+    """One test's stored record over one suite (13.5): Tally("reachable", ("OAHE-INV-001",), 2026-06-01T10:00Z, 12, 3, 1,
+    0) is its assets, its newest result's instant and duration (None if untimed), then passes, failures, no data."""
+
+    test_name: str
+    assets: tuple[str, ...]
+    last_run: datetime
+    last_duration_ms: int | None
+    passes: int
+    failures: int
+    no_data: int
+
+
 def schema() -> tuple[str, ...]:
     """The statements that make the results table: schema()[0] starts with "CREATE TABLE results"."""
     return SCHEMA
@@ -129,29 +156,31 @@ def schema() -> tuple[str, ...]:
 def upgrade(conn: sqlite3.Connection) -> None:
     """Gives a results table made before 12.9 its no_data column, every row it holds 0, so each reads as the pass or
     fail it was stored as (SP-039), and one made before 13.2 its suite column, every row "all"; a table that has them is
-    left as it is."""
+    left as it is; one made before 13.5 its duration_ms column, every row NULL (never 0)."""
     held = {row[1] for row in conn.execute("PRAGMA table_info(results)")}
     if NO_DATA_COLUMN not in held:
         conn.execute(ADD_NO_DATA)
     if SUITE_COLUMN not in held:
         conn.execute(ADD_SUITE)
+    if DURATION_COLUMN not in held:
+        conn.execute(ADD_DURATION)
     conn.commit()
 
 
 def _recorded(row: sqlite3.Row | tuple) -> Recorded:
     """One results row as a Recorded."""
-    return Recorded(row[0], row[1], datetime.fromisoformat(row[2]), bool(row[3]), row[4], bool(row[5]), row[6], row[7])
+    return Recorded(row[0], row[1], datetime.fromisoformat(row[2]), bool(row[3]), row[4], bool(row[5]), row[6], row[7], row[8])
 
 
 def record(conn: sqlite3.Connection, test_name: str, asset_id: str, run_at: datetime, result: Result,
-           suite: str = ALL) -> None:
+           suite: str = ALL, duration_ms: int | None = None) -> None:
     """Stores one result and commits: record(c, "reachable", "OAHE-INV-001", 10:00 UTC, Result(True, "3 records"))
     leaves the row ("reachable", "OAHE-INV-001", "2026-06-01T10:00:00+00:00", 1, "3 records", 0); no data stores
     passed 0 and no_data 1; a result carries the suite that ran it, "all" unless one is named (13.2); a naive run_at
-    raises NotUtc."""
+    raises NotUtc; duration_ms is the test's milliseconds (13.5), None when it was not timed."""
     # Invariant: SOL-06 (UTC isoformat text of one shape sorts as its instants)
     conn.execute(INSERT, (test_name, asset_id, utc(run_at).isoformat(), int(result.passed), result.reason,
-                          int(result.no_data), suite))
+                          int(result.no_data), suite, duration_ms))
     conn.commit()
 
 
@@ -213,3 +242,21 @@ def stored_asset(conn: sqlite3.Connection, asset_id: str) -> Asset:
     if row is None:
         raise NotStored(f"{asset_id} is not stored")
     return Asset(row[0], AssetKind(row[1]), row[2], row[3], row[4], row[5], row[6], row[7], row[8], row[9])
+
+
+def tally(conn: sqlite3.Connection, suite: str = ALL) -> tuple[Tally, ...]:
+    """Each test's record over one suite, in test name order (13.5): after three results of reachable on OAHE-INV-001, two
+    passes and a failure, the last at 11:00 taking 12 ms, Tally("reachable", ("OAHE-INV-001",), 11:00, 12, 2, 1, 0); a
+    test with no result in the suite is absent. Nothing is deleted to make it (SP-016)."""
+    ran_on: dict[str, list[str]] = {}
+    for name, asset_id in conn.execute(RAN_ON, (suite,)):
+        ran_on.setdefault(name, []).append(asset_id)
+    newest = {row[0]: _recorded(row) for row in conn.execute(NEWEST, (suite, suite))}
+    return tuple(Tally(name, tuple(ran_on[name]), newest[name].run_at, newest[name].duration_ms, passes, failures, empty)
+                 for name, passes, failures, empty in conn.execute(COUNTS, (suite,)).fetchall())
+
+
+def of_test(conn: sqlite3.Connection, test_name: str, limit: int) -> tuple[Recorded, ...]:
+    """The test's newest results over every asset and suite, newest first and then newest stored first, at most limit:
+    after 120 stored results, limit 100 gives the newest 100; a test never run, or a limit below 1, gives ()."""
+    return tuple(_recorded(row) for row in conn.execute(OF_TEST, (test_name, max(limit, 0))).fetchall())

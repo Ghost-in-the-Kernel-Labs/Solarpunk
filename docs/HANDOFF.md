@@ -2,10 +2,11 @@
 
 Read `CLAUDE.md` first, then this. `TODO.md` is the chain in order; `docs/DONE.md` is what is finished.
 
-## Start here (2026-11-21, the session that ended at 13.13)
+## Start here (2026-11-21, the session that landed 13.5)
 
-**Next: 13.5, the record's surface and the timing, in a fresh session (Ghost, 2026-11-21: "we'll start 13.5 fresh").
-Nothing is in flight; `main` is clean and pushed at 13.13.** Then 13.6 and 13.7 in parallel, then Ghost's human
+**Next: 13.6 (last run in the asset window) and 13.7 (the Tests window) in parallel, each a mid worker in its own clone;
+both read 13.5's `project.tests_overview` and `project.test_log` (`solarpunk/project/record.py`). `main` is clean and
+pushed at 13.5.** Then Ghost's human
 maintainability pass (SP-042, 13.8 to 13.11, which `scripts/score.py` places strong: they read most of the tree), then
 13.14 the pass. After Phase 13 comes Phase 14, the traceability matrix, now with historical mode inside it (SP-048:
 14.5 historical import, 14.6 the historical run, 14.7 the replay's speed, 14.8 the matrix over a live or historical
@@ -13,6 +14,8 @@ store, 14.9 its window, 14.10 the pass), then 15 to 20, and last 21 security wit
 (SP-044).
 
 What this session landed, newest first (the journal has each):
+- 13.5 (J-131): `results.duration_ms`, each test timed in `remote/run.py`'s `timed`; `project.tests_overview` and
+  `project.test_log`. A duration not recorded reads None, never 0.
 - 13.13 (J-130): the demo takes five quick burst reads, so OAHE-INV-001's `power_ripple` passes; `test run --acquire
   [--shorten N]`; the demo's feed made live, and the client's half-close race fixed (test_demo 12 of 12, was 5 of 7).
 - 13.4 (J-129): `REACTIONS` (`Fault`, `Mail`, `RunSuite`, `OpenPreventive`) replace `SUGGESTS`, checked at load,
@@ -176,6 +179,11 @@ email on the asset, a mailer to those engineers on degradation, and the Save/Can
     `access.permit_suggestion`, `access.open_suggestions_for`, the "Awaiting an engineer" band cell (reads 0 on new
     stores); (e) named suites raise no faults and join no streaks; (f) the gate skips the window tests where `python3`
     has no tkinter; running them under `xvfb-run python3.12` is a gate change; (g) the fast loop at 27.9 s of 30.
+
+21. From 13.5 (J-131), the worker's readings, each easy to change: `tests_overview` counts suite `all` alone (item 18's
+    question, answered for the overview) and no data as a third count; `test_log` reads every suite, each entry naming
+    its suite; an unknown test name, and a limit below 1, give () rather than a refusal; the ping's failed `reachable`
+    is untimed (None). Say if any should change before 13.7 shows them.
 
 ## Advisories under the gate's threshold (Tune-up commit 7, 2026-11-21; unchanged since pass 0)
 

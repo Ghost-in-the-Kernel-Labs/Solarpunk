@@ -18,6 +18,12 @@ Last review: 805522c (2026-11-21, Tune-up commit 7)
 An entry is `### <date> · <task> · <who>`, then four bullets: **Task**, **Opened** (files, in order), **Complaints**,
 **Suggestions**.
 
+### 2026-11-21 · 13.5 the record's surface · mid-grade worker
+- **Task**: `duration_ms` on each result, `tests_overview` and `test_log` (J-131).
+- **Opened**: `solarpunk/remote/results.py`, `solarpunk/remote/run.py`, `solarpunk/project/runs.py` (the pattern), `solarpunk/project/__init__.py`, `test/solarpunk/test_remote.py`.
+- **Complaints**: none.
+- **Suggestions**: none.
+
 ### 2026-11-21 · 13.13 bursts in the demo · mid-grade worker
 - **Task**: shortened bursts in the demo's run, `--acquire` on the command line (J-130).
 - **Opened**: `solarpunk/ui/demo.py`, `solarpunk/project/run.py`, `solarpunk/remote/acquire.py`, `solarpunk/cli/main.py`, `solarpunk/feed/client.py`, `solarpunk/feed/simulate.py`, `solarpunk/project/orchestrator.py` (`feed_server`).

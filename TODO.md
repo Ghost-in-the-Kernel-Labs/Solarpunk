@@ -87,12 +87,6 @@ SP-022; 12.1 split in two by SP-028 (accounts, then versions); 12.6 added on Gho
 
 Lanes (P-15): 13.1 and 13.2 first (SP-019: what a test is, and the suites), then 13.3 (a test's own reads) and 13.4 (reactions, which need suites; SP-020), then 13.5 (the surface every window reads), then 13.6 and 13.7 in parallel, then the human maintainability pass (SP-042): 13.8, then 13.9, 13.10 and 13.11 in parallel, then 13.14 the pass; 13.12 (Phase 7's loose ends, SP-047) beside 13.3, in its own clone; 13.13 (bursts in the demo, SP-049) after 13.4; the asset's history went to Phase 10 (SP-024). Moved after tickets and accounts by SP-022, after the fleet window and the ticket windows by SP-023, and after runs per asset (Phase 10) by SP-024. Moved after Phase 8 by SP-018. Ghost's direction, SP-016.
 
-### 13.5 The record's surface and the timing
-
-The scheduled run times each test, and project gives the three views the windows read; every result is kept (SP-016).
-
-Check: the results table gains `duration_ms` (a store made before gains the column on opening, its old rows empty); the scheduled run and `solarpunk test run` store each test's duration; `project.tests_overview(conn)` and `project.test_log(conn, name, limit=100)` are tested (an asset's own runs are Phase 10's `asset_runs`, SP-024) over a store holding more than 100 runs, newest first, nothing deleted; a result with no duration reads None, never 0; the fast loop green.
-
 ### 13.6 Last run in the asset window
 
 Each test in the asset's diagnostics shows when it last ran and how long it took (SP-016).
