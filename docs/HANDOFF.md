@@ -10,6 +10,8 @@ Phase 13's first lane (what a test looks like, and the suites folder; SP-016, SP
 what a test is, so Ghost may want to read its items before they are handed out.
 
 What this session landed, newest first (the journal has each):
+- After the hand-off (J-105): `asset_window.py` split, its words and pure functions to `solarpunk/ui/asset_text.py`
+  (the window 255 lines); a refactor, no result changed.
 - Tune-up pass 12 (J-104): Phase 12 closed; the Core look not made (For Ghost 14); the open calls of 12.4 to 12.6
   gathered as For Ghost 15.
 - SP-038 (J-103): the gate's own scratch-repository tests run in the full gate; the fast loop from about 31 s to 24 s.
@@ -34,8 +36,7 @@ tkinter), wrote the records and landed it. An item too wide for one agent went t
 last one's branch (12.4).
 
 Mind, before adding:
-- The largest files sit at their edge: `solarpunk/ui/asset_window.py` 399 of 400 lines (its next change splits it),
-  `test/solarpunk/test_project_run.py` 398 (a new test of the scheduled run goes in a new file);
+- The largest files sit at their edge: `test/solarpunk/test_project_run.py` 398 of 400 lines (a new test of the scheduled run goes in a new file);
   `solarpunk/project/orchestrator.py` 381. Mandatory context is 1,123 of 1,500 words.
 - The stack's fast checks do not run the readability check (For Ghost 9), so a function can pass 39 lines at a landing
   and be caught only by a pass's full gate, as `AssetWindow.__init__` was (J-100).

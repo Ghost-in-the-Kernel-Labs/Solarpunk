@@ -20,7 +20,7 @@ ENGINEER = "site@oahe.example"  # SP-015: a fault names the engineer who assigne
 try:
     import tkinter
 
-    from solarpunk.ui import asset_window
+    from solarpunk.ui import asset_text, asset_window
 except ModuleNotFoundError as missing:  # a Python built without Tk: the fast loop's python3 in some sessions
     if missing.name != "tkinter":
         raise
@@ -90,66 +90,66 @@ class PureTest(unittest.TestCase):
         self.conn.close()
 
     def test_field_lines(self) -> None:
-        self.assertEqual(asset_window.field_lines(INVERTER), (
+        self.assertEqual(asset_text.field_lines(INVERTER), (
             "Kind: Inverter", "Site: OAHE", "Parent: OAHE-SIT-001", "Rated: 100.0 kW", "Location: Pad A",
             "Endpoint: 127.0.0.1:5020", "Engineer: inverter@oahe.example"))
 
     def test_field_lines_with_missing_values(self) -> None:
         bare = Asset("OAHE-SEN-001", AssetKind.SENSOR, "OAHE", None, "Sensor", None)
-        self.assertEqual(asset_window.field_lines(bare), (
+        self.assertEqual(asset_text.field_lines(bare), (
             "Kind: Sensor", "Site: OAHE", "Parent: none", "Rated: none", "Location: none", "Endpoint: none",
             "Engineer: none"))
 
     def test_shown(self) -> None:
-        self.assertEqual(asset_window.shown(None), "none")
-        self.assertEqual(asset_window.shown(5020), "5020")
+        self.assertEqual(asset_text.shown(None), "none")
+        self.assertEqual(asset_text.shown(5020), "5020")
 
     def test_title_and_status(self) -> None:
-        self.assertEqual(asset_window.window_title(INVERTER), "OAHE-INV-001 — Inverter 1")
-        self.assertEqual(asset_window.status_line(AssetStatus.RED), "Status: red")
-        self.assertEqual(asset_window.status_line(AssetStatus.GREEN), "Status: green")
+        self.assertEqual(asset_text.window_title(INVERTER), "OAHE-INV-001 — Inverter 1")
+        self.assertEqual(asset_text.status_line(AssetStatus.RED), "Status: red")
+        self.assertEqual(asset_text.status_line(AssetStatus.GREEN), "Status: green")
 
     def test_colour_of(self) -> None:
-        self.assertEqual(asset_window.colour_of(AssetStatus.GREEN), "#2e8b57")
-        self.assertEqual(asset_window.colour_of(AssetStatus.YELLOW), "#e0b000")
-        self.assertEqual(asset_window.colour_of(AssetStatus.RED), "#c0392b")
+        self.assertEqual(asset_text.colour_of(AssetStatus.GREEN), "#2e8b57")
+        self.assertEqual(asset_text.colour_of(AssetStatus.YELLOW), "#e0b000")
+        self.assertEqual(asset_text.colour_of(AssetStatus.RED), "#c0392b")
 
     def test_fault_lines(self) -> None:
         meaning = "Inverter offline: no AC output while irradiance is above the start threshold"
-        self.assertEqual(asset_window.fault_lines(self.detail),
+        self.assertEqual(asset_text.fault_lines(self.detail),
                          (("INV-001", meaning, "2026-06-01 10:10 UTC", "site@oahe.example"),))
 
     def test_assigned_text_says_who_entered_it_and_cover(self) -> None:
         fault = project.Fault(1, INV1, "INV-001", OPENED, None, "a@oahe.example", "ops@oahe.example")
-        self.assertEqual(asset_window.assigned_text(fault, True), "a@oahe.example, entered by ops@oahe.example (cover)")
-        self.assertEqual(asset_window.assigned_text(project.Fault(1, INV1, "INV-001", OPENED, None), False), "unrecorded")
+        self.assertEqual(asset_text.assigned_text(fault, True), "a@oahe.example, entered by ops@oahe.example (cover)")
+        self.assertEqual(asset_text.assigned_text(project.Fault(1, INV1, "INV-001", OPENED, None), False), "unrecorded")
 
     def test_fault_lines_empty(self) -> None:
-        self.assertEqual(asset_window.fault_lines(project.asset_detail(self.conn, SITE_ID)), ())
+        self.assertEqual(asset_text.fault_lines(project.asset_detail(self.conn, SITE_ID)), ())
 
     def test_result_lines_failing_then_never_run_then_passing(self) -> None:
-        self.assertEqual(asset_window.result_lines(self.detail), DIAGNOSTIC_ROWS)
+        self.assertEqual(asset_text.result_lines(self.detail), DIAGNOSTIC_ROWS)
 
     def test_row_tags(self) -> None:
-        self.assertEqual(asset_window.row_tags(("on_grid", "FAIL", OFF_GRID)), ("failing",))
-        self.assertEqual(asset_window.row_tags((NEVER_RUN[0], "not run", NEVER)), ("notrun",))
-        self.assertEqual(asset_window.row_tags(("reachable", "pass", "3 records")), ())
+        self.assertEqual(asset_text.row_tags(("on_grid", "FAIL", OFF_GRID)), ("failing",))
+        self.assertEqual(asset_text.row_tags((NEVER_RUN[0], "not run", NEVER)), ("notrun",))
+        self.assertEqual(asset_text.row_tags(("reachable", "pass", "3 records")), ())
 
     def test_code_labels(self) -> None:
-        labels = asset_window.code_labels(codes_for(AssetKind.INVERTER))
+        labels = asset_text.code_labels(codes_for(AssetKind.INVERTER))
         self.assertEqual(len(labels), 4)
         self.assertEqual(labels[3], "INV-004 — Firmware update pending")
-        self.assertEqual(asset_window.code_labels(()), ())
+        self.assertEqual(asset_text.code_labels(()), ())
 
     def test_chosen_code(self) -> None:
         codes = codes_for(AssetKind.INVERTER)
-        self.assertEqual(asset_window.chosen_code(codes, 0), "INV-001")
-        self.assertEqual(asset_window.chosen_code(codes, 3), "INV-004")
-        self.assertIsNone(asset_window.chosen_code(codes, -1))
-        self.assertIsNone(asset_window.chosen_code(codes, 4))
+        self.assertEqual(asset_text.chosen_code(codes, 0), "INV-001")
+        self.assertEqual(asset_text.chosen_code(codes, 3), "INV-004")
+        self.assertIsNone(asset_text.chosen_code(codes, -1))
+        self.assertIsNone(asset_text.chosen_code(codes, 4))
 
     def test_refusal_text(self) -> None:
-        self.assertEqual(asset_window.refusal_text(ValueError("bad address")), "Refused: bad address")
+        self.assertEqual(asset_text.refusal_text(ValueError("bad address")), "Refused: bad address")
 
 
 @unittest.skipUnless(display_available(), "no display")
@@ -181,7 +181,7 @@ class WindowTest(unittest.TestCase):
     def test_fields_status_and_trees(self) -> None:
         self.assertEqual(self.window.title(), "OAHE-INV-001 — Inverter 1")
         texts = tuple(label.cget("text") for label in self.window.fields.winfo_children())
-        self.assertEqual(texts, asset_window.field_lines(INVERTER))
+        self.assertEqual(texts, asset_text.field_lines(INVERTER))
         self.assertEqual(self.window.status_label.cget("text"), "Status: red")
         self.assertEqual(str(self.window.status_label.cget("foreground")), "#c0392b")
         self.assertEqual([row[0] for row in self.rows(self.window.fault_tree)], ["INV-001"])
@@ -201,7 +201,7 @@ class WindowTest(unittest.TestCase):
     def test_layout_holds_its_parts(self) -> None:
         window = self.window
         titles = [child.cget("text") for child in window.winfo_children() if child.winfo_class() == "TLabel"]
-        self.assertEqual(titles, ["Open faults", "Diagnostics", asset_window.SUGGESTED_TITLE])  # 7.5
+        self.assertEqual(titles, ["Open faults", "Diagnostics", asset_text.SUGGESTED_TITLE])  # 7.5
         self.assertEqual([window.fault_tree.heading(c, "text") for c in ("code", "meaning", "opened", "by")],
                          ["Code", "Meaning", "Opened", "Assigned by"])
         self.assertEqual([window.result_tree.heading(c, "text") for c in ("test", "result", "reason")],
@@ -247,7 +247,7 @@ class WindowTest(unittest.TestCase):
         """SP-015: a code with no engineer chosen is refused in the window and assigns nothing."""
         self.window.code_box.current(3)
         self.window.assign_button.invoke()
-        self.assertEqual(self.window.message.cget("text"), asset_window.CHOOSE_ENGINEER)
+        self.assertEqual(self.window.message.cget("text"), asset_text.CHOOSE_ENGINEER)
         self.assertEqual(len(project.asset_detail(self.conn, INV1).open_faults), 1)
         self.assertEqual(tuple(self.window.assigned_by_box.cget("values")), (INVERTER_EMAIL, SITE_EMAIL))
 

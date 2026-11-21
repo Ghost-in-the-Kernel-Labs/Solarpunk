@@ -14,7 +14,7 @@ HAS_TKINTER = importlib.util.find_spec("tkinter") is not None
 if HAS_TKINTER:
     import tkinter
 
-    from solarpunk.ui import asset_window
+    from solarpunk.ui import asset_text, asset_window
 
 SITE_EMAIL = "site@oahe.example"
 UNREACHABLE = "127.0.0.1:9 is unreachable"
@@ -47,10 +47,10 @@ class DemoStore(unittest.TestCase):
 @unittest.skipUnless(HAS_TKINTER, "no tkinter")
 class TheRows(DemoStore):
     def test_the_weather_stations_suggestion_reads_with_its_meaning_source_and_why(self) -> None:
-        (line,) = asset_window.suggestion_lines(project.asset_detail(self.conn, demo.SENSOR))
+        (line,) = asset_text.suggestion_lines(project.asset_detail(self.conn, demo.SENSOR))
         self.assertEqual((line[0], line[2], line[3], line[4]), ("SEN-001", "reachable", UNREACHABLE, "2026-06-01 13:00 UTC"))
         self.assertTrue(line[1].startswith("Irradiance sensor out of range"))
-        self.assertEqual(asset_window.suggestion_lines(project.asset_detail(self.conn, demo.FED)), ())
+        self.assertEqual(asset_text.suggestion_lines(project.asset_detail(self.conn, demo.FED)), ())
 
 
 @unittest.skipUnless(display_available(), "no display")
@@ -76,10 +76,10 @@ class TheWindow(DemoStore):
 
     def test_accept_needs_a_suggestion_then_an_engineer_then_opens_the_fault(self) -> None:
         self.window.accept_button.invoke()
-        self.assertEqual(self.message(), asset_window.CHOOSE_SUGGESTION)
+        self.assertEqual(self.message(), asset_text.CHOOSE_SUGGESTION)
         self.window.suggestion_tree.selection_set(self.window.suggestion_tree.get_children()[0])
         self.window.accept_button.invoke()
-        self.assertEqual(self.message(), asset_window.CHOOSE_ENGINEER)
+        self.assertEqual(self.message(), asset_text.CHOOSE_ENGINEER)
         self.window.assigned_by_box.set(SITE_EMAIL)
         self.window.accept_button.invoke()
         self.assertEqual((self.message(), self.changes), ("", [1]))
@@ -93,7 +93,7 @@ class TheWindow(DemoStore):
         self.window.suggestion_tree.selection_set(self.window.suggestion_tree.get_children()[0])
         self.window.assigned_by_box.set(SITE_EMAIL)
         self.window.dismiss_button.invoke()
-        self.assertEqual(self.message(), asset_window.GIVE_REASON)
+        self.assertEqual(self.message(), asset_text.GIVE_REASON)
         self.window.reason_box.insert(0, "station rebooted, feed back")
         self.window.dismiss_button.invoke()
         self.assertEqual((self.message(), self.changes, project.open_suggestions(self.conn, demo.SENSOR)), ("", [1], ()))
@@ -101,8 +101,8 @@ class TheWindow(DemoStore):
 
     def test_the_section_is_titled_and_its_columns_named(self) -> None:
         titles = [c.cget("text") for c in self.window.winfo_children() if c.winfo_class() == "TLabel"]
-        self.assertIn(asset_window.SUGGESTED_TITLE, titles)
-        self.assertEqual([self.window.suggestion_tree.heading(c, "text") for c in asset_window.SUGGESTION_COLUMNS],
+        self.assertIn(asset_text.SUGGESTED_TITLE, titles)
+        self.assertEqual([self.window.suggestion_tree.heading(c, "text") for c in asset_text.SUGGESTION_COLUMNS],
                          ["Code", "Meaning", "From", "Why", "Raised"])
 
 

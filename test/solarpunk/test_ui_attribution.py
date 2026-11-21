@@ -11,7 +11,7 @@ from test.solarpunk.test_ui_suggestions import HAS_TKINTER, display_available
 if HAS_TKINTER:
     import tkinter
 
-    from solarpunk.ui import asset_window
+    from solarpunk.ui import asset_text, asset_window
 
 ASSET = "OAHE-INV-001"
 
@@ -44,7 +44,7 @@ class SignedIn(unittest.TestCase):
     def test_an_operator_names_the_engineer_on_whose_word_it_is(self) -> None:
         window = self.window(OPERATOR)
         window.assign_button.invoke()
-        self.assertEqual(str(window.message.cget("text")), asset_window.CHOOSE_WORD)
+        self.assertEqual(str(window.message.cget("text")), asset_text.CHOOSE_WORD)
         self.assertEqual(tuple(window.assigned_by_box.cget("values")), (SITE,))
         self.assertIsNone(window.entered_by_box)
         window.assigned_by_box.set(SITE)
