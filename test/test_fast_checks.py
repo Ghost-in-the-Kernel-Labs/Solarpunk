@@ -11,6 +11,10 @@ from pathlib import Path
 from scripts.checks import gate_record
 from test.support_git import attempt, gate, gated_repo, git_out, record, recorded, repo_with, run_commit
 
+# Decision: SP-038 (this module runs in the full gate, not the fast loop)
+if not os.environ.get("GHOST_SLOW"):
+    raise unittest.SkipTest("a slow test: the full gate runs it (GHOST_SLOW=1 scripts/fast.sh test_fast_checks)")
+
 FAST_STEPS = ["the fast loop", "the key scan", "docs/decisions.md", "docs/journal/INDEX.md"]
 
 

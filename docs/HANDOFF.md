@@ -131,10 +131,8 @@ email on the asset, a mailer to those engineers on degradation, and the Save/Can
     this file; count its "Start here" section, or make only that section required reading. (c) The supply-chain scan
     reads the disk, so an agent's worktree under `.claude/worktrees/` trips it with copies of the planted fixtures (J-096);
     skip that folder, or keep agents out of worktrees as the brief now says. (d) The unclosed store's ResourceWarning
-    (J-033) as a roadmap item: a test change, outside a tune-up. (e) The fast loop runs 30 to 39 s in this session's
-    container against its 30 s target, and the full gate refused on it (30.9 s): move `test_gate_frozen` and
-    `test_fast_checks` (about 4 to 5 s, the gate's own tests) to the full gate's slow tests as SP-025 moved `test_gates`,
-    a change to `scripts/gate.sh` and so a decision.
+    (J-033) as a roadmap item: a test change, outside a tune-up. (e) Settled by SP-038 (J-103): the gate's own scratch-repository tests
+    run in the full gate; the fast loop is 25.6 s.
     (f) For Ghost-Core: the navigation log's entry line came from the stamp cut off at "An entry is `"; completed here.
 
 ## Advisories under the gate's threshold (Tune-up commit 9; unchanged since pass 0)

@@ -106,3 +106,4 @@ Written from `docs/journal/` by `scripts/journal_index.py`; do not edit by hand.
 | J-100 | Tune-up commit, mid-Phase 12 | measurement | `J-100-199.md` |
 | J-101 | 12.6: a false-alarm baseline on public field data (SP-036) | measurement | `J-100-199.md` |
 | J-102 | Phase 21 added: Azure (SP-037) | direction | `J-100-199.md` |
+| J-103 | SP-038: the gate's own scratch-repository tests move to the full gate | decision | `J-100-199.md` |

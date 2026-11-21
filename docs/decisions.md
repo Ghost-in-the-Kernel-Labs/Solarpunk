@@ -81,3 +81,4 @@ Written by `scripts/decisions_index.py` from `theGhost.md`; do not edit here. Se
 | SP-035 | A ticket's every move is logged with who made it; an operator's dismissal records the operator; with accounts, an engineer account is an engineer | in force | security |
 | SP-036 | Field data first measures false alarms; catching known failures waits on a labelled dataset | in force | field data |
 | SP-037 | Solarpunk runs in Azure, by configuration and the standard library first | in force | deployment |
+| SP-038 | The gate's own scratch-repository tests run in the full gate, not the fast loop | in force | gates |

@@ -150,8 +150,8 @@ freeze "$before" || stop "the frozen copy (git worktree could not check out the 
 step "the fast loop" "the fast loop" scripts/fast.sh
 fast_loop=$(awk '$0 ~ / the fast loop$/ { print $1 }' "$times")
 step "the key scan" "the key scan (a secret in the tree's changes: build/gate.log names its fingerprint)" key_scan
-# The slow tests (SP-025): modules the fast loop skips, run here with GHOST_SLOW=1; the fast checks run none of them.
-[ -n "$fast" ] || step "the slow tests" "the slow tests" env GHOST_SLOW=1 scripts/fast.sh test_gates
+# The slow tests (SP-025, SP-038): modules the fast loop skips, run here with GHOST_SLOW=1; the fast checks run none of them.
+[ -n "$fast" ] || step "the slow tests" "the slow tests" env GHOST_SLOW=1 scripts/fast.sh test_gates test_gate_frozen test_fast_checks
 
 # The stamp (scripts/stamp_text.py, drop_stamp_gate) deletes the next line by its text: a stamped project has no test_stamp.
 

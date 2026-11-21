@@ -2,9 +2,14 @@
 step, so an edit to the working tree while the gate runs neither reaches a step nor fails the run, and leaves a record
 that is stale for the edited tree; a step that hangs is refused by name once GHOST_STEP_TIMEOUT runs out; a step's
 `note:` lines reach the terminal; no worktree outlives the run, red or green."""
+import os
 import subprocess
 import unittest
 from pathlib import Path
+
+# Decision: SP-038 (this module runs in the full gate, not the fast loop)
+if not os.environ.get("GHOST_SLOW"):
+    raise unittest.SkipTest("a slow test: the full gate runs it (GHOST_SLOW=1 scripts/fast.sh test_gate_frozen)")
 
 from scripts.checks import gate_record
 from test.support_git import gate, gated_repo, recorded

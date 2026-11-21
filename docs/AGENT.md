@@ -13,7 +13,7 @@ target is "—" is informational, counted and never armed;
   on the maintainer's machine.
 - **AGT-02 The fast loop runs under its ceiling.** Doc checks and unit tests only; no data, no
   network, no cache that can skip a doc test (F-03). A test module too slow for it skips itself unless `GHOST_SLOW`
-  is set, and the full gate's "the slow tests" step runs it (SP-025: `test/test_gates.py`, about 10 s).
+  is set, and the full gate's "the slow tests" step runs it (SP-025: `test/test_gates.py`, about 10 s; SP-038: `test/test_gate_frozen.py` and `test/test_fast_checks.py`, about 5 s).
 - **AGT-03 Mandatory context stays under its ceiling.** `CLAUDE.md` plus whatever an agent must
   read before a task.
 - **AGT-04 A routing row opens at most five files, none over 400 lines.**

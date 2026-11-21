@@ -818,3 +818,13 @@ The core decisions above are inherited (Core C-001 to C-040); this project's beg
 - **See also:** SP-022, SP-029, C-034, C-035
 - **subject:** deployment
 
+### SP-038: The gate's own scratch-repository tests run in the full gate, not the fast loop
+- **Decision:** `test/test_gate_frozen.py` and `test/test_fast_checks.py` skip themselves unless `GHOST_SLOW` is set, as `test/test_gates.py` does since SP-025, and the full gate's "the slow tests" step runs all three. The fast checks run none of them; the full gate at each tune-up pass does.
+- **Why:** The fast loop ran 30.9 to 38.8 s against its 30 s target in this session's container, and the full gate's metrics refused on it at the mid-Phase 12 tune-up commit (J-100, For Ghost 13e). Its slowest tests are the gate's own, each building scratch repositories and running the gate script in them (about 2.2 s per module). They test the gate, which changes rarely and is a decision when it does; the product's tests stay in the fast loop. Ghost, 2026-11-21, in chat: "yes to 13e".
+- **Supersedes:** none. It widens SP-025's slow tests.
+- **Held by:** `scripts/gate.sh` ("the slow tests"), `test/test_gate_frozen.py`, `test/test_fast_checks.py`, `docs/AGENT.md`.
+- **Source:** Ghost, in chat, 2026-11-21.
+- **Status:** in force
+- **See also:** SP-025, C-022, C-040
+- **subject:** gates
+
