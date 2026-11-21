@@ -44,7 +44,7 @@ def tracked_files(root: Path, others: bool = False) -> Files:
     .git's. A file deleted from disk but still in the index is left out: a check reads files, and it is gone."""
     names = git_listed(root, others)
     if names is None:
-        walked = [p for p in root.rglob("*") if p.is_file() and ".git" not in p.relative_to(root).parts]
+        walked = [path for path in root.rglob("*") if path.is_file() and ".git" not in path.relative_to(root).parts]
         return Files(sorted(walked), "disk")
     return Files(sorted({root / name for name in names if (root / name).is_file()}), "git")
 
@@ -55,7 +55,7 @@ def parts_match(parts: tuple[str, ...], pattern: tuple[str, ...]) -> bool:
     if not pattern:
         return not parts
     if pattern[0] == "**":
-        return any(parts_match(parts[i:], pattern[1:]) for i in range(len(parts) + 1))
+        return any(parts_match(parts[index:], pattern[1:]) for index in range(len(parts) + 1))
     return bool(parts) and fnmatch.fnmatchcase(parts[0], pattern[0]) and parts_match(parts[1:], pattern[1:])
 
 

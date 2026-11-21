@@ -56,8 +56,8 @@ class Finding:
 
 def entropy(value: str) -> float:
     """Shannon entropy in bits per character: entropy("aaaa") gives 0.0, entropy("abcd") gives 2.0."""
-    counts = [value.count(c) for c in set(value)]
-    return -sum(n / len(value) * math.log2(n / len(value)) for n in counts) if value else 0.0
+    counts = [value.count(character) for character in set(value)]
+    return -sum(count / len(value) * math.log2(count / len(value)) for count in counts) if value else 0.0
 
 
 def fingerprint(value: str) -> str:
@@ -93,8 +93,8 @@ def line_secrets(line: str, following: str) -> list[tuple[str, str]]:
 def scan_lines(numbered: list[tuple[int, str]], path: str) -> list[Finding]:
     """The findings in (line number, text) pairs of one file, each line read with the one after it."""
     found: list[Finding] = []
-    for at, (number, text) in enumerate(numbered):
-        following = numbered[at + 1][1] if at + 1 < len(numbered) else ""
+    for position, (number, text) in enumerate(numbered):
+        following = numbered[position + 1][1] if position + 1 < len(numbered) else ""
         found += [Finding(path, number, name, fingerprint(value)) for name, value in line_secrets(text, following)]
     return found
 
@@ -135,7 +135,7 @@ def added_lines(diff_text: str) -> dict[str, list[tuple[int, str]]]:
 
 def scan_diff(diff_text: str) -> list[Finding]:
     """The findings on a diff's added lines only: a key the diff removes is not reported, one it adds is."""
-    return [f for path, lines in added_lines(diff_text).items() if path != "/dev/null" for f in scan_lines(lines, path)]
+    return [finding for path, lines in added_lines(diff_text).items() if path != "/dev/null" for finding in scan_lines(lines, path)]
 
 
 def allowed(root: Path) -> tuple[set[str], list[str]]:
@@ -162,8 +162,8 @@ def tracked_files(root: Path) -> list[str]:
     listed = subprocess.run(["git", "-C", str(root), "ls-files", "-z"], capture_output=True)
     if listed.returncode == 0 and (root / ".git").exists():
         return [name for name in listed.stdout.decode("utf-8", "replace").split("\0") if name]
-    walked = (p.relative_to(root) for p in root.rglob("*") if p.is_file())
-    return sorted(str(p) for p in walked if not SKIPPED_FOLDERS.intersection(p.parts))
+    walked = (path.relative_to(root) for path in root.rglob("*") if path.is_file())
+    return sorted(str(path) for path in walked if not SKIPPED_FOLDERS.intersection(path.parts))
 
 
 def scan_tree(root: Path) -> list[Finding]:
@@ -180,7 +180,7 @@ def scan_tree(root: Path) -> list[Finding]:
 def reported(findings: list[Finding], root: Path) -> list[str]:
     """The report lines: each finding whose fingerprint is not allowed, then the allow file's malformed lines."""
     fingerprints, problems = allowed(root)
-    return [str(f) for f in findings if f.fingerprint not in fingerprints] + problems
+    return [str(finding) for finding in findings if finding.fingerprint not in fingerprints] + problems
 
 
 def problems(root: Path) -> list[str]:

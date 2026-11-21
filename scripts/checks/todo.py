@@ -40,12 +40,12 @@ def items(text: str) -> list[tuple[int, int]]:
 def order_problems(todo: str) -> list[str]:
     """Phases ascending, items ascending, and each item under its own phase's heading."""
     found: list[str] = []
-    phases = [int(p) for p in PHASE.findall(todo)]
+    phases = [int(phase) for phase in PHASE.findall(todo)]
     if phases != sorted(phases):
         found.append(f"phases out of order: {phases}")
     numbers = items(todo)
     if numbers != sorted(numbers):
-        found.append(f"items out of order: {[f'{a}.{b}' for a, b in numbers]}")
+        found.append(f"items out of order: {[f'{major}.{minor}' for major, minor in numbers]}")
     for match in ITEM.finditer(todo):
         heading = PHASE.findall(todo[: match.start()])
         if not heading or int(heading[-1]) != int(match.group(1)):
@@ -116,7 +116,7 @@ def tune_up_problems(todo: str, done: str = "") -> list[str]:
 def twice_problems(done: str) -> list[str]:
     """Each item number DONE.md heads more than once, by the same parse as TODO.md's (items): a doubled file or a moved
     item pasted twice. "### 0.9 x" twice gives ["0.9 appears 2 times in DONE.md"]."""
-    return [f"{a}.{b} appears {n} times in DONE.md" for (a, b), n in sorted(Counter(items(done)).items()) if n > 1]
+    return [f"{major}.{minor} appears {count} times in DONE.md" for (major, minor), count in sorted(Counter(items(done)).items()) if count > 1]
 
 
 def split_waiting(todo: str) -> tuple[str, str]:
@@ -157,8 +157,8 @@ def waiting_problems(todo: str) -> list[str]:
     """A `Waits on:` item outside the waiting phase; a waiting item without `Waits on:`, or without a `Moved: from Phase N`
     naming its own number's phase; a numbered phase after the waiting phase; waiting items out of numeric order."""
     chain, waiting = split_waiting(todo)
-    found = [f"item {a}.{b} has a Waits on: line; move it to \"## Phase W: waiting on Ghost\" with a Moved: line"
-             for a, b, body in bodies(chain) if re.search(r"^Waits on:", body, re.MULTILINE)]
+    found = [f"item {major}.{minor} has a Waits on: line; move it to \"## Phase W: waiting on Ghost\" with a Moved: line"
+             for major, minor, body in bodies(chain) if re.search(r"^Waits on:", body, re.MULTILINE)]
     for phase, step, body in bodies(waiting):
         if not re.search(r"^Waits on: \S", body, re.MULTILINE):
             found.append(f"item {phase}.{step} is in the waiting phase without a Waits on: line")
@@ -169,7 +169,7 @@ def waiting_problems(todo: str) -> list[str]:
     if waiting and PHASE.search(todo, todo.index(waiting) + len(waiting)):
         found.append("the waiting phase is not the last phase: a numbered phase follows it")
     if items(waiting) != sorted(items(waiting)):
-        found.append(f"waiting items out of order: {[f'{a}.{b}' for a, b in items(waiting)]}")
+        found.append(f"waiting items out of order: {[f'{major}.{minor}' for major, minor in items(waiting)]}")
     return found
 
 
@@ -178,6 +178,6 @@ def problems(todo: str, done: str) -> list[str]:
     waiting phase (split_waiting), which is exempt from the pass rule."""
     chain, _ = split_waiting(todo)
     both = sorted(set(items(todo)) & set(items(done)))
-    shared = [f"{a}.{b} is in both TODO.md and DONE.md" for a, b in both]
+    shared = [f"{major}.{minor} is in both TODO.md and DONE.md" for major, minor in both]
     return (order_problems(chain) + first_item_problems(chain) + tune_up_problems(chain, done) + waiting_problems(todo)
             + shared + twice_problems(done))

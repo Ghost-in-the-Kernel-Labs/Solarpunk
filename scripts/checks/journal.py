@@ -23,8 +23,8 @@ def journal_text(root: Path) -> str:
 def entries(journal: str) -> dict[str, dict[str, str]]:
     """Each entry's fields by id: "### J-001 x\\n- **Class**: trial\\n" gives {"J-001": {"Class": "trial"}}."""
     heads = list(HEADING.finditer(journal))
-    bounds = [m.start() for m in heads] + [len(journal)]
-    return {m.group(1): dict(FIELD.findall(journal[bounds[i]:bounds[i + 1]])) for i, m in enumerate(heads)}
+    bounds = [heading.start() for heading in heads] + [len(journal)]
+    return {heading.group(1): dict(FIELD.findall(journal[bounds[index]:bounds[index + 1]])) for index, heading in enumerate(heads)}
 
 
 def number_problems(journal: str) -> list[str]:

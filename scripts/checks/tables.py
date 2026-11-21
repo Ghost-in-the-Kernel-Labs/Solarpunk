@@ -28,20 +28,20 @@ def cells(line: str) -> list[str]:
     text = line.strip()
     text = text[1:] if text.startswith("|") else text
     text = text[:-1] if text.endswith("|") and not text.endswith("\\|") else text
-    found, cell, i = [], "", 0
-    while i < len(text):
-        if text[i] == "`":
-            run = len(text[i:]) - len(text[i:].lstrip("`"))
-            close = re.compile(rf"(?<!`){'`' * run}(?!`)").search(text, i + run)
-            end = close.end() if close else i + run
-            cell, i = cell + text[i:end], end
-        elif text.startswith("\\|", i):
-            cell, i = cell + "\\|", i + 2
-        elif text[i] == "|":
+    found, cell, index = [], "", 0
+    while index < len(text):
+        if text[index] == "`":
+            run = len(text[index:]) - len(text[index:].lstrip("`"))
+            close = re.compile(rf"(?<!`){'`' * run}(?!`)").search(text, index + run)
+            end = close.end() if close else index + run
+            cell, index = cell + text[index:end], end
+        elif text.startswith("\\|", index):
+            cell, index = cell + "\\|", index + 2
+        elif text[index] == "|":
             found.append(cell.strip())
-            cell, i = "", i + 1
+            cell, index = "", index + 1
         else:
-            cell, i = cell + text[i], i + 1
+            cell, index = cell + text[index], index + 1
     return found + [cell.strip()]
 
 
@@ -82,7 +82,7 @@ def ragged(table: Table, columns: int) -> list[str]:
     """What keeps a table from a fixed column count: a header or a row of another width; [] for a table that holds it.
     A table headed "| a | b |" with a row "| 1 |" against 2 gives ["row 1 (1) has 1 cells, not 2"]."""
     found = [] if len(table.header) == columns else [f"the header has {len(table.header)} cells, not {columns}"]
-    return found + [f"row {n} ({row[0] if row else ''}) has {len(row)} cells, not {columns}" for n, row in enumerate(table.rows, 1) if len(row) != columns]
+    return found + [f"row {number} ({row[0] if row else ''}) has {len(row)} cells, not {columns}" for number, row in enumerate(table.rows, 1) if len(row) != columns]
 
 
 def fixed(table: Table, columns: int) -> Table:

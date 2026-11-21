@@ -47,7 +47,7 @@ def lines(path: Path) -> int:
 
 def largest(root: Path) -> int:
     """The longest source file in lines across the modules and the tool folders; 0 when there is none."""
-    return max((lines(p) for p in source_files(root, source_dirs(root) + list(TOOL_DIRS))), default=0)
+    return max((lines(path) for path in source_files(root, source_dirs(root) + list(TOOL_DIRS))), default=0)
 
 
 def routing_files(claude: str) -> int:
@@ -74,12 +74,12 @@ def stale_generated(root: Path) -> int:
 
 def docs_per_source(root: Path) -> float | None:
     """Lines of the documents (root and docs/ .md) per line of the modules' source, to one decimal (3 document lines over 7 source lines gives 0.4); None while there is no source."""
-    source = sum(lines(p) for p in source_files(root, source_dirs(root)))
+    source = sum(lines(path) for path in source_files(root, source_dirs(root)))
     if source == 0:
         return None
     files = tracked_files(root)
     documents = matching(files, root, "*.md") + matching(files, root, "docs/**/*.md")
-    return round(sum(lines(p) for p in documents) / source, 1)
+    return round(sum(lines(path) for path in documents) / source, 1)
 
 
 def thresholds_set(grades: str) -> str | None:
@@ -114,7 +114,7 @@ def cost_rows(entries: dict[str, dict[str, str]], dates: dict[str, str], since: 
     if since is None:
         return None
     ids = list(entries)
-    start = next((i for i, rid in enumerate(ids) if dates.get(rid, "") >= since), len(ids))
+    start = next((index for index, rid in enumerate(ids) if dates.get(rid, "") >= since), len(ids))
     return sum(1 for rid in ids[start:] if is_cost_row(entries[rid].get("Cost", "")))
 
 

@@ -39,13 +39,13 @@ def split_entries(text: str) -> dict[str, str]:
     """
     text = prose(text)
     headings = list(HEADING.finditer(text))
-    bounds = [m.start() for m in headings] + [len(text)]
-    return {m.group(1): text[bounds[i]:bounds[i + 1]] for i, m in enumerate(headings)}
+    bounds = [heading.start() for heading in headings] + [len(text)]
+    return {heading.group(1): text[bounds[index]:bounds[index + 1]] for index, heading in enumerate(headings)}
 
 
 def fields_of(entry: str) -> dict[str, str]:
     """An entry's `- **Name:** value` lines as {name: first line of value}."""
-    return {m.group(1): m.group(2).strip() for m in FIELD_LINE.finditer(entry)}
+    return {field.group(1): field.group(2).strip() for field in FIELD_LINE.finditer(entry)}
 
 
 def id_problems(text: str) -> list[str]:
@@ -135,7 +135,7 @@ def our_segments(held_by: str) -> list[str]:
     "`a.md`. SB: `b.ts`. Core: `c.py`. NR: `d.py`" gives ["`a.md`. ", " `c.py`. "].
     """
     parts = TAG.split(held_by)
-    return [parts[0]] + [parts[i + 1] for i in range(1, len(parts) - 1, 2) if parts[i] == "Core:"]
+    return [parts[0]] + [parts[index + 1] for index in range(1, len(parts) - 1, 2) if parts[index] == "Core:"]
 
 
 def held_paths(held_by: str) -> list[str]:
@@ -144,7 +144,7 @@ def held_paths(held_by: str) -> list[str]:
 
     "`docs/x.md`, `npm test`, `origin/main`. SB: `src/a.ts`. Core: `test/t.py`" gives ["docs/x.md", "test/t.py"].
     """
-    return [t for segment in our_segments(held_by) for t in BACKTICKED.findall(segment) if pointers.is_path(t)]
+    return [token for segment in our_segments(held_by) for token in BACKTICKED.findall(segment) if pointers.is_path(token)]
 
 
 def tracked_paths(root: Path) -> set[str]:

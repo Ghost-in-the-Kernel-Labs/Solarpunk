@@ -17,14 +17,14 @@ def prefix_of(document: str) -> str:
 
 def invariants(document: str) -> list[str]:
     """The invariant ids in order: ["HAR-01", "HAR-02"]."""
-    return [f"{p}-{n}" for p, n in HEADING.findall(document)]
+    return [f"{prefix}-{number}" for prefix, number in HEADING.findall(document)]
 
 
 def numbering_problems(document: str) -> list[str]:
     """Headings XX-01, XX-02, ... each once and with no gap."""
     numbers = invariants(document)
     prefix = prefix_of(document)
-    found = [f"{n} appears {numbers.count(n)} times" for n in sorted(set(numbers)) if numbers.count(n) > 1]
+    found = [f"{number} appears {numbers.count(number)} times" for number in sorted(set(numbers)) if numbers.count(number) > 1]
     for position, number in enumerate(numbers, start=1):
         if number != f"{prefix}-{position:02d}":
             return found + [f"invariant {position} is {number}, expected {prefix}-{position:02d}"]
@@ -47,7 +47,7 @@ def reference_problems(document: str, folder: Path, held: bool, root: Path | Non
     prefix = prefix_of(document)
     documented = set(invariants(document))
     cited = code_references(folder, prefix, root)
-    found = [f"{folder.name}/ names {n}, which the contract does not have" for n in sorted(cited - documented)]
+    found = [f"{folder.name}/ names {number}, which the contract does not have" for number in sorted(cited - documented)]
     if held:
-        found += [f"{n} is in the contract and nowhere in {folder.name}/" for n in sorted(documented - cited)]
+        found += [f"{number} is in the contract and nowhere in {folder.name}/" for number in sorted(documented - cited)]
     return found
