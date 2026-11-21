@@ -30,7 +30,8 @@ SUGGESTS = {kind: None for kind in KINDS}
 
 
 def run(asset: Asset, samples: tuple[Sample, ...]) -> Result:
-    """Fails until it is written: run(asset, ()) is Result(False, "energy_monotonic is not written yet")."""
+    """Fails until it is written: run(asset, ()) is Result(False, "energy_monotonic is not written yet"); write here the passing
+    case too, as in Result(True, "3 records"), and the failing one that names the first offending record's instant."""
     return Result(False, "energy_monotonic is not written yet")
 '''
 
