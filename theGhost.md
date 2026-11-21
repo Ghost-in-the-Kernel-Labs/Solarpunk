@@ -666,7 +666,7 @@ The core decisions above are inherited (Core C-001 to C-040); this project's beg
 - **Held by:** `docs/ROADMAP.md` §4 and Phases 8, 9, 11, 12; `TODO.md`.
 - **Source:** Ghost, in chat, 2026-11-18.
 - **Status:** in force
-- **See also:** SP-007, SP-015, SP-021, SP-011, SP-023 (its phase numbers after 8.2 shifted by two); SP-026 (accounts widened: versions, viewer, site scope)
+- **See also:** SP-007, SP-015, SP-021, SP-011, SP-023 (its phase numbers after 8.2 shifted by two); SP-026 (accounts widened: versions, viewer, site scope), SP-044
 - **subject:** tickets and accounts
 
 ### SP-023: The fleet window becomes an operations root, as Phase 9, after the ticket ledger
@@ -735,7 +735,7 @@ The core decisions above are inherited (Core C-001 to C-040); this project's beg
 - **Held by:** `docs/ROADMAP.md` §4 and Phases 14 and 16 to 20; `TODO.md`; `README.md`.
 - **Source:** Ghost, in chat, 2026-11-20.
 - **Status:** in force
-- **See also:** SP-022, SP-026, SP-024, SP-015
+- **See also:** SP-022, SP-026, SP-024, SP-015, SP-044
 - **subject:** roadmap
 
 ### SP-030: Phase 9 reopened: the window's icon and a Manage tests button at the root
@@ -815,7 +815,7 @@ The core decisions above are inherited (Core C-001 to C-040); this project's beg
 - **Held by:** `TODO.md` Phase 21, `docs/ROADMAP.md` Phase 21.
 - **Source:** Ghost, in chat, 2026-11-20.
 - **Status:** in force
-- **See also:** SP-022, SP-029, C-034, C-035
+- **See also:** SP-022, SP-029, C-034, C-035, SP-044
 - **subject:** deployment
 
 ### SP-038: The gate's own scratch-repository tests run in the full gate, not the fast loop
@@ -878,3 +878,13 @@ The core decisions above are inherited (Core C-001 to C-040); this project's beg
 - **Status:** in force
 - **See also:** SP-017, SP-042, C-040
 - **subject:** gates
+
+### SP-044: The ISO traceability matrix is Phase 14, quality management next; the network, company sign-in and the central server last
+- **Decision:** Solarpunk leans into its ISO 9001 and ISO 55000 traceability matrix: an evidence matrix, each clause traced to its requirement in the project's words, the control in the product that enforces it (a remote test, a work-order rule, a schedule, a checklist, a controlled document), and the records that evidence it per site and asset over a period, with "no evidence" shown as a gap; the evidence records are append-only and tamper-evident. The register stays its spine, and SOL-12 stands: the matrix shows evidence and claims conformance to nothing. A real organisation's records never enter the repository (C-033): the matrix is generated from the store at run time, the demo's from synthetic data. The phases after 13 are renumbered: 14 the traceability matrix (new: 14.1 the register's control column, 14.2 evidence that cannot be deleted, 14.3 clause links for faults, work orders and KPIs, 14.4 the evidence query, 14.5 the matrix command and export, 14.6 the matrix window, 14.7 its tune-up pass); 15 quality management (was 18); 16 condition and maintenance planning and 17 anomaly detection (unchanged); 18 contractor performance (was 19); 19 multiple inverter vendors (was 20); 20 Azure (was 21); 21 the network's security with company sign-in (was 14); 22 the network, the central server with many clients (was 15). Each moved item keeps its text under its new number; records written before this decision keep the old numbers.
+- **Why:** Ghost, 2026-11-21, after a review of SOLV Energy's Sunscreen (construction) and Vitals (O&M analytics, "one of the first dedicated utility-scale solar SCADA platforms"): Solarpunk adds nothing as a monitoring or construction platform, and its new value is an independent, auditable quality layer, which the public page does not mention (no ISO standard, no root-cause coding). A survey of the code found clause ids reach operating data only through each remote test's `CLAUSES`; work orders, faults, KPIs and stored results carry none, so nothing can list a clause's evidence for a site and period. Ghost: "this system needs to lean into the traceability matrix aspect of the iso code"; then "go with your recommendations, put the matrix phase on the roadmap, and put it ahead of the server and multiuser stuff. in fact, put the server and multi user last." Append-only evidence: Ghost, the same day, recalling a solar operator's word that "solar companies were like banks, and deleting data would be catastrophic". Quality management follows the matrix because its checklists, CAPA verification and document control are the matrix's first operational evidence.
+- **Supersedes:** SP-029's order of Phases 16 to 20 and SP-022's place for the security pass and the central server, in part: the order and numbers only; what each phase holds stands, so their Status stays `in force`. SP-037's Phase 21 is Phase 20.
+- **Held by:** `docs/ROADMAP.md` §6, `TODO.md`, `README.md`'s roadmap lines (`test/test_readme.py`), `docs/HANDOFF.md`.
+- **Source:** Ghost, in chat, 2026-11-21; the matrix's shape and its items are the coordinator's recommendation, taken by Ghost's word.
+- **Status:** in force
+- **See also:** SP-022, SP-029, SP-037, SOL-12, C-010, C-033
+- **subject:** roadmap

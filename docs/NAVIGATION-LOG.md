@@ -35,3 +35,9 @@ An entry is `### <date> · <task> · <who>`, then four bullets: **Task**, **Open
 - **Opened**: `docs/paths/process.md`, `docs/paths/product.md`, `solarpunk/remote/results.py`, `solarpunk/remote/scaffold.py`, the seven modules of `solarpunk/remote/tests/`, `scripts/checks/asset_types.py`, `scripts/checks/common.py`, `scripts/checks/readability.py`, `test/test_asset_types.py`, `test/support.py`, theGhost.md (SP-019, SP-020), `TODO.md`.
 - **Complaints**: the readability check reads fixtures under `test/` too, so a planted Python break needs docstrings and short comprehensions, which no row says; the fast checks stop at `test_metrics` on a worker's tree.
 - **Suggestions**: a reverse check (every `Tests:` name has a module) once `tracker_moving` and `energy_monotonic` exist; 13.3 and 13.4 change this check's fields.
+
+### 2026-11-21 · SP-044 roadmap renumbering · mid-grade worker
+- **Task**: move six phases to SP-044's order and write Phase 14 in `TODO.md` and `docs/ROADMAP.md`.
+- **Opened**: theGhost.md (SP-044), `TODO.md`, `docs/ROADMAP.md`, `README.md`, `test/test_readme.py`, `docs/HANDOFF.md`.
+- **Complaints**: none.
+- **Suggestions**: none.

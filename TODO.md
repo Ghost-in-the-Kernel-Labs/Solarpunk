@@ -143,53 +143,84 @@ Check: `scripts/decision_map.py` writes `docs/DECISION-MAP.md`, for each decisio
 
 Check: `docs/when/tune-up.md` followed in full; the metrics table written; the navigation log's "Last review" set.
 
-## Phase 14: the network's security
+## Phase 14: the traceability matrix
 
-Lanes (P-15): 14.1 alone, then 14.2 (company sign-in) and the items its decisions call for, then the pass. Moved after Phase 6 by SP-013, after Phase 7 by SP-015 after the tests' record by SP-016, and after tickets and accounts by SP-022.
+Lanes (P-15): 14.1, then 14.2 and 14.3 in parallel, then 14.4, then 14.5, then 14.6, then 14.7 the pass. Ghost's direction, SP-044: the traceability matrix, ahead of quality management, with the network and the central server last.
 
-### 14.1 Network security: an engineering pass over the feed and the receiver
+### 14.1 The register's control column
 
-The feed and the receiver use plain TCP. The receiver accepts asset identifiers and fault codes, but the implementation
-establishes neither an authenticated device identity nor an encrypted transport; it also defaults to localhost. That is
-reasonable for the demonstration. A production deployment needs: authenticated asset connections; transport
-encryption; authorization of fault submissions; replay protection; network segmentation and deployment controls. The
-2026-11-18 advisor's research is the pass's starting point (`docs/ROADMAP.md` 14.1): the industry's addressing (host,
-port, protocol, unit id, register map; Modbus TCP and SunSpec at the device), its security references (Modbus/TCP
-Security, IEC 62351, IEC 62443, NERC CIP-003), and a sixth threat, spoofed telemetry from whatever answers at a feed's
-host and port. Since SP-022 the pass also designs Phase 15's central server: its authenticated API, the accounts
-and tokens on the wire, TLS, and whether the server may use a vetted dependency (Python's `http.server` is not for
-production), with Phase 12's accounts as the identities.
+Each register row names the product's control and where its evidence is stored, and every clause a remote test cites is a row (SP-044).
 
-Check: `docs/NETWORK-SECURITY.md` holds the pass: what the feed (`solarpunk/feed/`) and the receiver (`solarpunk/receiver/`) do on the wire today, a threat model for each, and for each of the five needs (authenticated asset connections, transport encryption, authorization of fault submissions, replay protection, network segmentation and deployment controls) a proposed decision in `docs/decisions.md` with the options weighed, what the standard library alone can carry and what would need a dependency (Ghost's approval, C-034); the items that build each decision Ghost puts in force are added to this phase before its pass (the pass renumbered to the phase's end). No code changes in this item: the design is Ghost's to rule on first.
+Check: `docs/CLAUSE-REGISTER.md` has the columns Clause, Requirement, Control (what in the product enforces it: a remote test by name, a rule by its function, or `—`), Evidence (the store table its records sit in, or `—` where the software alone holds it), Held by, Status; `scripts/checks/clauses.py` refuses a row missing a column, a Control naming a remote test that does not exist, and a remote test whose `CLAUSES` names a clause the register lacks, each with a planted break under `test/fixtures/broken/clauses/`; SOL-12 in `docs/CONTRACT.md` and `docs/REMOTE-TESTS.md` say so; the fast loop green.
 
-### 14.2 Company sign-in
+### 14.2 Evidence that cannot be deleted
 
-Enterprise authentication: an account signs in with the organisation's identity (Microsoft Entra ID, Google) as well as,
-or instead of, a Solarpunk password (SP-026, SP-029).
+The evidence tables are append-only and each row is chained to the one before by hash, so a deleted or changed record is found (SP-044).
 
-Check: the pass of 14.1 holds a proposed decision for it (OpenID Connect against the organisation's identity provider,
-or none; whether a dependency is needed, Ghost's approval, C-034); if Ghost puts one in force, an account of 12.1 is
-linked to an outside identity by its email, a sign-in through it gives the same account and its role and sites, a
-Solarpunk password stays for a machine with no provider, and the items that build it are written here before the pass;
-no code until the decision; the fast loop green.
+Check: a `docs/CONTRACT.md` section under a new SOL id names the evidence tables (remote results, faults, work orders, ticket moves and comments), which of their columns may change (a closure or a supersession is a new row or a column the section names), and a worked example of the chain by hand; no code in `solarpunk/` deletes from those tables or updates a column the section does not name, held by a check with a planted break; each new evidence row stores the hash of its content and of the row before it; `solarpunk evidence verify [--db PATH]` prints `evidence: intact, N rows` or the first broken row by table and id, exit 1; a store made before 14.2 is upgraded with its rows chained in order; the fast loop green.
 
-### 14.3 Tune-up pass 14
+### 14.3 Clause links for faults, work orders and KPIs
+
+One declared table in the leaf says which clauses each fault code, root-cause code and KPI evidences (SP-044).
+
+Check: a declared table in `solarpunk/leaf/` maps each fault-catalogue code, each root-cause code and each KPI to zero or more clause ids, each a register row (a check, with a planted break); `project` resolves a record's clauses from it at read time and stores no copy; the register's Evidence column names the tables these links reach; the fast loop green.
+
+### 14.4 The evidence query
+
+For a clause, a site and a period, every record that evidences it and every asset with none, from a worked example first (SP-044).
+
+Check: a `docs/CONTRACT.md` section with a worked example by hand: for a clause, a site and a period, each evidence record (remote results by the test's `CLAUSES`, faults, work orders and KPIs by 14.3's table) per asset of the site, and each asset the clause's control reaches with no record in the period listed as a gap; `project.evidence(conn, clause, site, start, end)` returns exactly the example's rows on the demo fleet; a clause the software alone holds returns its register status, not a gap; the fast loop green.
+
+### 14.5 The matrix command and export
+
+One command prints the matrix for a site and period and writes it to a file the operator names (SP-044).
+
+Check: `solarpunk matrix --site SITE --from DATE --to DATE [--db PATH] [--csv FILE]` prints one row per register clause (clause, requirement, control, evidence records, assets with a gap) and 14.2's chain verdict; the CSV goes where the operator names it, never into the repository by default (C-033); the output's first line says the matrix claims conformance to nothing (SOL-12); a golden of the demo fleet's matrix; the fast loop green.
+
+### 14.6 The matrix window
+
+A Matrix button at the fleet window's root opens the matrix, and a clause opens its evidence and its gaps (SP-044).
+
+Check: a Matrix button at the fleet window's root opens a window of 14.5's rows for a chosen site and period, a clause's row opening its evidence records and gaps; its words in a pure text module tested in the fast loop; rendered under xvfb and the screenshot read before landing; `DEMO.md` quotes its words; the fast loop green.
+
+### 14.7 Tune-up pass 14
 
 Check: `docs/when/tune-up.md` followed in full; the metrics table written; the navigation log's "Last review" set.
 
-## Phase 15: the network
+## Phase 15: quality management
 
-Lanes (P-15): 15.1, then the items it writes, then the pass. Ghost's direction, SP-022: a central server with many
-clients, planned from Phase 14's decisions.
+Lanes (P-15): 15.1, 15.2 and 15.3 in parallel, then 15.4 the pass. Ghost's direction, SP-029: inspection checklists and
+evidence, CAPA effectiveness verification and document control, from `docs/GOAL.md` area 4. Renumbered by SP-044 (was Phase 18).
 
-### 15.1 The server's plan
+### 15.1 Inspection checklists and evidence
 
-One Solarpunk server holds the store; the desktop windows on many machines and a future phone app are its clients over
-one authenticated API (SP-022). Its items wait on Phase 14's decisions, so this item writes them.
+A ticket's work is done against a checklist, and what proves it is kept (SP-029).
 
-Check: from the decisions Phase 14 puts in force, the items that build the server, its API, the desktop as its client and the app's surface are written into `docs/ROADMAP.md` and this phase, each with its check, before this phase's pass (renumbered to the phase's end); no code in this item.
+Check: a checklist per asset kind and work type in a declared file, checked as the maintenance list is; a ticket of
+that kind carries its checklist, each step done, failed or not applicable with who and when; resolving needs every step
+answered; evidence (a note, a reading, a file's name and hash, never the file in the repository, C-033) attached to a
+step and kept, never edited or deleted; the asset window's ticket panel shows the steps; clause register rows for ISO
+9001 7.5 and 8.5; the fast loop green.
 
-### 15.2 Tune-up pass 15
+### 15.2 CAPA effectiveness verification
+
+A corrective action is checked to have worked (SP-029).
+
+Check: a contract section first: a closed corrective ticket is verified after a stated period by whether its fault's
+code recurred on its asset (`repeated_causes`), with a worked example; a verification due is listed; a recurrence
+reopens the question as a nonconformity, a quiet period marks the action effective; who verified and when are kept;
+the clause register's ISO 9001 10.2 row names the test; the fast loop green.
+
+### 15.3 Document control
+
+The procedures the work follows are versioned, approved and current (SP-029).
+
+Check: a register of controlled documents (a title, a version, an owner, an approval, a review date), each a document in
+the repository or named by its hash outside it; a superseded version kept, never deleted; a document past its review
+date listed; a checklist (15.1) names the document version it follows; clause register rows for ISO 9001 7.5.2 and
+7.5.3; the fast loop green.
+
+### 15.4 Tune-up pass 15
 
 Check: `docs/when/tune-up.md` followed in full; the metrics table written; the navigation log's "Last review" set.
 
@@ -259,66 +290,29 @@ reading recomputed when asked, never stored apart; the fast loop green.
 
 Check: `docs/when/tune-up.md` followed in full; the metrics table written; the navigation log's "Last review" set.
 
-## Phase 18: quality management
+## Phase 18: contractor performance management
 
-Lanes (P-15): 18.1, 18.2 and 18.3 in parallel, then 18.4 the pass. Ghost's direction, SP-029: inspection checklists and
-evidence, CAPA effectiveness verification and document control, from `docs/GOAL.md` area 4.
+Lanes (P-15): 18.1, then 18.2 the pass. Ghost's direction, SP-029, from `docs/GOAL.md` area 5. Renumbered by SP-044 (was Phase 19).
 
-### 18.1 Inspection checklists and evidence
-
-A ticket's work is done against a checklist, and what proves it is kept (SP-029).
-
-Check: a checklist per asset kind and work type in a declared file, checked as the maintenance list is; a ticket of
-that kind carries its checklist, each step done, failed or not applicable with who and when; resolving needs every step
-answered; evidence (a note, a reading, a file's name and hash, never the file in the repository, C-033) attached to a
-step and kept, never edited or deleted; the asset window's ticket panel shows the steps; clause register rows for ISO
-9001 7.5 and 8.5; the fast loop green.
-
-### 18.2 CAPA effectiveness verification
-
-A corrective action is checked to have worked (SP-029).
-
-Check: a contract section first: a closed corrective ticket is verified after a stated period by whether its fault's
-code recurred on its asset (`repeated_causes`), with a worked example; a verification due is listed; a recurrence
-reopens the question as a nonconformity, a quiet period marks the action effective; who verified and when are kept;
-the clause register's ISO 9001 10.2 row names the test; the fast loop green.
-
-### 18.3 Document control
-
-The procedures the work follows are versioned, approved and current (SP-029).
-
-Check: a register of controlled documents (a title, a version, an owner, an approval, a review date), each a document in
-the repository or named by its hash outside it; a superseded version kept, never deleted; a document past its review
-date listed; a checklist (18.1) names the document version it follows; clause register rows for ISO 9001 7.5.2 and
-7.5.3; the fast loop green.
-
-### 18.4 Tune-up pass 18
-
-Check: `docs/when/tune-up.md` followed in full; the metrics table written; the navigation log's "Last review" set.
-
-## Phase 19: contractor performance management
-
-Lanes (P-15): 19.1, then 19.2 the pass. Ghost's direction, SP-029, from `docs/GOAL.md` area 5.
-
-### 19.1 Contractors and their scorecard
+### 18.1 Contractors and their scorecard
 
 Who does the work, and how well (SP-029).
 
 Check: a contractor (a name, the sites and asset kinds it serves) set on a ticket; a scorecard per contractor over a
-period: its tickets' acknowledgement and response targets met and late (SOL-14), its fixes that held (18.2), its open
+period: its tickets' acknowledgement and response targets met and late (SOL-14), its fixes that held (15.2), its open
 backlog, each number beside the counts that explain it, a contract section and worked example first; a report window
 and `solarpunk report contractors`; the fast loop green.
 
-### 19.2 Tune-up pass 19
+### 18.2 Tune-up pass 18
 
 Check: `docs/when/tune-up.md` followed in full; the metrics table written; the navigation log's "Last review" set.
 
-## Phase 20: multiple inverter vendors
+## Phase 19: multiple inverter vendors
 
-Lanes (P-15): 20.1, then 20.2 the pass. Ghost's direction, SP-029; after the network's security (Phase 14), which rules
-how a device is reached.
+Lanes (P-15): 19.1, then 19.2 the pass. Ghost's direction, SP-029; after the network's security (Phase 21), which rules
+how a device is reached. Renumbered by SP-044 (was Phase 20).
 
-### 20.1 Vendor profiles
+### 19.1 Vendor profiles
 
 Inverters of more than one maker read as one fleet (SP-029, superseding in part ROADMAP §4's "no connection to a real
 device").
@@ -327,19 +321,19 @@ Check: a vendor profile per maker (its register map over SunSpec models or its o
 status and fault words mapped to the catalogue) in a declared file, checked as the maintenance list is; an asset names
 its vendor; the feed normalizes every vendor's reading to the leaf's sample, and the simulator serves at least two
 vendors' maps; a reading a profile cannot map is refused by name, never guessed; whether a real device is connected is a
-decision of its own (Phase 14's); the fast loop green.
+decision of its own (Phase 21's); the fast loop green.
 
-### 20.2 Tune-up pass 20
+### 19.2 Tune-up pass 19
 
 Check: `docs/when/tune-up.md` followed in full; the metrics table written; the navigation log's "Last review" set.
 
-## Phase 21: Azure
+## Phase 20: Azure
 
-Lanes (P-15): 21.1 first (the guide), then 21.2, 21.3 and 21.4 in parallel, then 21.5 the pass. Ghost's direction,
+Lanes (P-15): 20.1 first (the guide), then 20.2, 20.3 and 20.4 in parallel, then 20.5 the pass. Ghost's direction,
 SP-037: Azure as the place Solarpunk runs, by configuration and the standard library alone; what needs a dependency is
-Phase 14's and 15's to decide.
+Phase 21's and 22's to decide. Renumbered by SP-044 (was Phase 21).
 
-### 21.1 The Azure deployment guide
+### 20.1 The Azure deployment guide
 
 Solarpunk as it is, on an Azure virtual machine, with no code changed (SP-037).
 
@@ -350,7 +344,7 @@ port, to named sources only), and how the mailer sends through Azure Communicati
 settings alone; every claim about Azure carries the link to the page it was read from and the date it was read; a
 check holds the document's links and its pointers; the fast loop green.
 
-### 21.2 Secrets from Key Vault by managed identity
+### 20.2 Secrets from Key Vault by managed identity
 
 The mailer's SMTP credential read from Azure Key Vault, never from a file (SP-037, the supply-chain rules).
 
@@ -359,7 +353,7 @@ managed identity (a token from the instance metadata endpoint, then the vault's 
 credential is never printed, logged, stored or put in a message; without the setting, the mailer reads its settings as
 before; tested against a local stand-in for both endpoints, the real ones never called by a test; the fast loop green.
 
-### 21.3 Reports and exports to Blob Storage
+### 20.3 Reports and exports to Blob Storage
 
 A report or an export written to an Azure Blob Storage container as well as to a file (SP-037).
 
@@ -367,7 +361,7 @@ Check: with a container configured, `solarpunk report` and the field baseline's 
 through its REST API by managed identity, `urllib` alone; a failed upload says so and keeps the local file; tested
 against a local stand-in; the fast loop green.
 
-### 21.4 Health and alarms to Azure Monitor
+### 20.4 Health and alarms to Azure Monitor
 
 The scheduled run's health and alarms sent to a Log Analytics workspace, so Azure can page someone when the run stops
 (SP-037).
@@ -377,7 +371,57 @@ how many assets, how many failed) and one record per failing test through the Lo
 `urllib` alone; a failed send never stops the run; `docs/AZURE.md` gives the alert rule for a run that stops
 reporting; tested against a local stand-in; the fast loop green.
 
-### 21.5 Tune-up pass 21
+### 20.5 Tune-up pass 20
+
+Check: `docs/when/tune-up.md` followed in full; the metrics table written; the navigation log's "Last review" set.
+
+## Phase 21: the network's security
+
+Lanes (P-15): 21.1 alone, then 21.2 (company sign-in) and the items its decisions call for, then the pass. Moved after Phase 6 by SP-013, after Phase 7 by SP-015 after the tests' record by SP-016, and after tickets and accounts by SP-022. Renumbered by SP-044 (was Phase 14).
+
+### 21.1 Network security: an engineering pass over the feed and the receiver
+
+The feed and the receiver use plain TCP. The receiver accepts asset identifiers and fault codes, but the implementation
+establishes neither an authenticated device identity nor an encrypted transport; it also defaults to localhost. That is
+reasonable for the demonstration. A production deployment needs: authenticated asset connections; transport
+encryption; authorization of fault submissions; replay protection; network segmentation and deployment controls. The
+2026-11-18 advisor's research is the pass's starting point (`docs/ROADMAP.md` 21.1): the industry's addressing (host,
+port, protocol, unit id, register map; Modbus TCP and SunSpec at the device), its security references (Modbus/TCP
+Security, IEC 62351, IEC 62443, NERC CIP-003), and a sixth threat, spoofed telemetry from whatever answers at a feed's
+host and port. Since SP-022 the pass also designs Phase 22's central server: its authenticated API, the accounts
+and tokens on the wire, TLS, and whether the server may use a vetted dependency (Python's `http.server` is not for
+production), with Phase 12's accounts as the identities.
+
+Check: `docs/NETWORK-SECURITY.md` holds the pass: what the feed (`solarpunk/feed/`) and the receiver (`solarpunk/receiver/`) do on the wire today, a threat model for each, and for each of the five needs (authenticated asset connections, transport encryption, authorization of fault submissions, replay protection, network segmentation and deployment controls) a proposed decision in `docs/decisions.md` with the options weighed, what the standard library alone can carry and what would need a dependency (Ghost's approval, C-034); the items that build each decision Ghost puts in force are added to this phase before its pass (the pass renumbered to the phase's end). No code changes in this item: the design is Ghost's to rule on first.
+
+### 21.2 Company sign-in
+
+Enterprise authentication: an account signs in with the organisation's identity (Microsoft Entra ID, Google) as well as,
+or instead of, a Solarpunk password (SP-026, SP-029).
+
+Check: the pass of 21.1 holds a proposed decision for it (OpenID Connect against the organisation's identity provider,
+or none; whether a dependency is needed, Ghost's approval, C-034); if Ghost puts one in force, an account of 12.1 is
+linked to an outside identity by its email, a sign-in through it gives the same account and its role and sites, a
+Solarpunk password stays for a machine with no provider, and the items that build it are written here before the pass;
+no code until the decision; the fast loop green.
+
+### 21.3 Tune-up pass 21
+
+Check: `docs/when/tune-up.md` followed in full; the metrics table written; the navigation log's "Last review" set.
+
+## Phase 22: the network
+
+Lanes (P-15): 22.1, then the items it writes, then the pass. Ghost's direction, SP-022: a central server with many
+clients, planned from Phase 21's decisions. Renumbered by SP-044 (was Phase 15).
+
+### 22.1 The server's plan
+
+One Solarpunk server holds the store; the desktop windows on many machines and a future phone app are its clients over
+one authenticated API (SP-022). Its items wait on Phase 21's decisions, so this item writes them.
+
+Check: from the decisions Phase 21 puts in force, the items that build the server, its API, the desktop as its client and the app's surface are written into `docs/ROADMAP.md` and this phase, each with its check, before this phase's pass (renumbered to the phase's end); no code in this item.
+
+### 22.2 Tune-up pass 22
 
 Check: `docs/when/tune-up.md` followed in full; the metrics table written; the navigation log's "Last review" set.
 

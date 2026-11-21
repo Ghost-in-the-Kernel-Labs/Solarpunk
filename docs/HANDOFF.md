@@ -4,6 +4,8 @@ Read `CLAUDE.md` first, then this. `TODO.md` is the chain in order; `docs/DONE.m
 
 ## Start here (2026-11-21, the session that ended at SP-043)
 
+Ghost, 2026-11-21 (SP-044, J-117): the roadmap leans into the ISO traceability matrix. After 13.3 to 13.12 comes Phase 14, the traceability matrix, then 15 quality management (was 18), 16, 17, 18 contractors (was 19), 19 vendors (was 20), 20 Azure (was 21), and last 21 the network's security with company sign-in (was 14) and 22 the central server (was 15).
+
 Phase 12 is closed but for 12.7 (Phase W). `main` is clean and pushed at SP-043, every landing through the fast gate,
 Tune-up commit 12 through the full gate (cold 1.47 min, warm 1.47 min, fast loop 24.13 s). Every session branch on
 GitHub is deleted; only `main` remains.
@@ -53,7 +55,8 @@ Mind, before adding:
 Phases 0 to 12 are closed (12.7 waits in Phase W);
 12.7 waits in Phase W. What is done, item by item, is `docs/DONE.md`; why, the journal (`docs/journal/INDEX.md`). The
 order of what is next is `TODO.md`; Ghost's direction for the product is `docs/GOAL.md`; the phases ahead are 13 (the
-tests' record), 14 (the network's security) and 15 (a central server).
+tests' record), 14 (the traceability matrix), 15 (quality management), 16 and 17, 18 (contractors), 19 (vendors),
+20 (Azure), 21 (the network's security) and 22 (a central server).
 
 What exists: the fleet registry, the fault ledger over a closed catalogue, synthetic SCADA with gaps as data, the KPI
 engine with its blind mirror, the clause register, the asset maintenance list, the feed by IP and port with a

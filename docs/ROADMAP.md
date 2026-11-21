@@ -57,10 +57,10 @@ The core's principles, copied from Ghost-Core when this project was stamped; add
 ## 4. What is deliberately not built
 
 - A web front end, or anything a browser opens: the UI is native (tkinter) on Windows and Linux (Ghost, 2026-11-17).
-  A REST service was here too until SP-022: a central server with an authenticated API is Phase 15, after the security
-  pass (Phase 14; renumbered by SP-023 and SP-024).
+  A REST service was here too until SP-022: a central server with an authenticated API is Phase 22, after the security
+  pass (Phase 21; renumbered by SP-023, SP-024 and SP-044).
 - A connection to a real SCADA, CMMS or revenue meter: telemetry is synthetic and deterministic; an adapter is a
-  later project's. SP-029 puts vendor profiles on the roadmap (Phase 20), normalized and simulated; a real device
+  later project's. SP-029 puts vendor profiles on the roadmap (Phase 19), normalized and simulated; a real device
   connected stays a decision of its own.
 - A claim of conformance or certification to ISO 9001 or ISO 55000: the register says which requirements the
   checks can flag, in the project's words; the standards' text is not reproduced (SOL-12).
@@ -401,13 +401,13 @@ reworked fleet window.
 ### Phase 12: accounts and authentication
 
 Ghost's direction of 2026-11-18 (SP-022): every act is attributed to a signed-in account, so SP-015's "who" is
-authenticated rather than chosen from a dropdown. On one machine first; the network is Phase 15.
+authenticated rather than chosen from a dropdown. On one machine first; the network is Phase 22.
 
 - **12.1 Accounts (`docs/CONTRACT.md`, a module Ghost approves at the item's start).** Users with an email, a name, a
   role (engineer, operator, viewer, admin) and an active flag; passwords hashed with `hashlib.scrypt`, salted, never
   stored, logged or shown; an engineer address the fleet names with no account is flagged. Widened by SP-026: a viewer
   reads and acts on nothing; each account sees and acts on its own sites, or all; and an asset, a fault, a suggestion
-  and a ticket carry a version (12.2). Built on one machine first, so the central server (Phase 15) inherits the rules
+  and a ticket carry a version (12.2). Built on one machine first, so the central server (Phase 22) inherits the rules
   rather than adding them. The module `accounts` imports the leaf alone (SP-028).
 - **12.2 Versions (`solarpunk/fleet/`, `solarpunk/faults/`, `solarpunk/remote/`, `solarpunk/workorders/`; SP-028).** An
   asset, a fault, a suggestion and a ticket each carry a version in its own module's table, raised in the same write as
@@ -480,37 +480,36 @@ result kept. It adds to `docs/GOAL.md`'s SCADA analytics (2) and quality managem
   functions that cite it; an in-force decision that shapes code and is cited by none, or a citation of nothing, fails.
 - **13.12 Tune-up pass 13.** (The asset's history, 13.8 before SP-024, is Phase 10.)
 
-### Phase 14: the network's security
+### Phase 14: the traceability matrix
 
-Ghost's item of 2026-11-18: the demonstration's network is not a production one. Moved after reports and
-diagnostics by SP-013, after fault assignment by SP-015, after the tests' record by SP-016, and after email causes by SP-018.
+Ghost's direction of 2026-11-21 (SP-044): the ISO 9001 and ISO 55000 evidence matrix, each clause traced to its
+requirement in our words, the product's control and the records that evidence it per site and period, gaps shown; it
+claims conformance to nothing (SOL-12), and no real organisation's records enter the repository (C-033).
 
-- **14.1 Network security: an engineering pass over the feed and the receiver.** Both speak plain TCP with no device
-  identity; the receiver defaults to localhost, which suits the demonstration alone. The pass is a document first
-  (the wire today, the threats, a proposed decision for each of: authenticated asset connections, transport
-  encryption, authorization of fault submissions, replay protection, network segmentation and deployment
-  controls); the code follows the decisions Ghost puts in force. The 2026-11-18 advisor's research is its starting
-  point: a module has no endpoint, an inverter, logger, meter, weather station or tracker controller does; the
-  industry addresses a device by host, port, protocol, unit id and register map (Modbus TCP on 502 with SunSpec
-  models at the device, DNP3 on 20000 or IEC 60870-5-104 on 2404 from the plant to the utility, OPC UA on 4840 to the
-  historian); the security references are Modbus/TCP Security (mutual TLS on 802), IEC 62351, IEC 62443 zones and
-  conduits, and NERC CIP-003 for a large US plant. It adds a sixth threat to the five: the feed client trusts whatever
-  answers at the host and port (spoofed telemetry). Since SP-022 it also designs the central server of Phase 15: its
-  authenticated API, accounts and tokens on the wire, TLS, and whether the server may use a vetted dependency.
-- **14.2 Company sign-in (SP-029).** Enterprise authentication: a proposed decision in the pass (OpenID Connect against
-  Entra ID or Google, or none; a dependency, Ghost's approval); if put in force, an account of 12.1 linked to an outside
-  identity by its email, the Solarpunk password kept for a machine with none.
-- **14.3 Tune-up pass 14.**
+- **14.1 The register's control column.** Each register row names the product's control and where its evidence is
+  stored, and every clause a remote test cites is a row.
+- **14.2 Evidence that cannot be deleted.** The evidence tables are append-only and each row is chained to the one
+  before by hash, so a deleted or changed record is found.
+- **14.3 Clause links for faults, work orders and KPIs.** One declared table in the leaf says which clauses each fault
+  code, root-cause code and KPI evidences.
+- **14.4 The evidence query.** For a clause, a site and a period, every record that evidences it and every asset with
+  none, from a worked example first.
+- **14.5 The matrix command and export.** One command prints the matrix for a site and period and writes it to a file
+  the operator names.
+- **14.6 The matrix window.** A Matrix button at the fleet window's root opens the matrix, and a clause opens its
+  evidence and its gaps.
+- **14.7 Tune-up pass 14.**
 
-### Phase 15: the network
+### Phase 15: quality management
 
-Ghost's direction of 2026-11-18 (SP-022): one Solarpunk server holds the store; the desktop windows on many machines,
-and later a phone app, are its clients over one authenticated API. Planned from Phase 14's decisions, so its items are
-written when they are in force.
+Ghost's direction of 2026-11-20 (SP-029), `docs/GOAL.md` area 4.
 
-- **15.1 The server's plan.** The items that build the server, its API, the desktop as its client and the app's surface,
-  each with its check, written from Phase 14's decisions.
-- **15.2 Tune-up pass 15.**
+- **15.1 Inspection checklists and evidence.** A checklist per kind and work type carried by a ticket, each step
+  answered by who and when, evidence kept and never edited; resolving needs every step answered.
+- **15.2 CAPA effectiveness verification.** A closed corrective ticket verified after a period by whether its cause
+  recurred, effective or reopened as a nonconformity.
+- **15.3 Document control.** A register of controlled documents, versioned, approved, reviewed, a superseded version kept.
+- **15.4 Tune-up pass 15.**
 
 ### Phase 16: condition and maintenance planning
 
@@ -535,48 +534,69 @@ client (MOD-03) without a decision.
   likely root; a reading recomputed when asked.
 - **17.3 Tune-up pass 17.**
 
-### Phase 18: quality management
-
-Ghost's direction of 2026-11-20 (SP-029), `docs/GOAL.md` area 4.
-
-- **18.1 Inspection checklists and evidence.** A checklist per kind and work type carried by a ticket, each step
-  answered by who and when, evidence kept and never edited; resolving needs every step answered.
-- **18.2 CAPA effectiveness verification.** A closed corrective ticket verified after a period by whether its cause
-  recurred, effective or reopened as a nonconformity.
-- **18.3 Document control.** A register of controlled documents, versioned, approved, reviewed, a superseded version kept.
-- **18.4 Tune-up pass 18.**
-
-### Phase 19: contractor performance management
+### Phase 18: contractor performance management
 
 Ghost's direction of 2026-11-20 (SP-029), `docs/GOAL.md` area 5.
 
-- **19.1 Contractors and their scorecard.** A contractor on a ticket; its targets met and late, its fixes that held, its
+- **18.1 Contractors and their scorecard.** A contractor on a ticket; its targets met and late, its fixes that held, its
   backlog, each beside its counts; a window and a report command.
-- **19.2 Tune-up pass 19.**
+- **18.2 Tune-up pass 18.**
 
-### Phase 20: multiple inverter vendors
+### Phase 19: multiple inverter vendors
 
 Ghost's direction of 2026-11-20 (SP-029), after the network's security rules how a device is reached.
 
-- **20.1 Vendor profiles.** Each maker's register map, units and fault words in a declared profile, normalized to the
+- **19.1 Vendor profiles.** Each maker's register map, units and fault words in a declared profile, normalized to the
   leaf's sample by the feed; the simulator serves two makers; whether a real device is connected is a decision of its own.
-- **20.2 Tune-up pass 20.**
+- **19.2 Tune-up pass 19.**
 
-### Phase 21: Azure
+### Phase 20: Azure
 
 Ghost's direction of 2026-11-20 (SP-037): Solarpunk runs in Azure. What configuration and the standard library can do
-comes here; what needs a dependency is decided where it belongs: sign-in with Entra ID is 14.1's option already; a
-managed database (Azure SQL or PostgreSQL) for the central store is Phase 15's; reading telemetry from Azure IoT Hub or
-Event Hubs is Phase 20's feed. The desktop windows stay on the engineers' machines.
+comes here; what needs a dependency is decided where it belongs: sign-in with Entra ID is 21.1's option already; a
+managed database (Azure SQL or PostgreSQL) for the central store is Phase 22's; reading telemetry from Azure IoT Hub or
+Event Hubs is Phase 19's feed. The desktop windows stay on the engineers' machines.
 
-- **21.1 The Azure deployment guide (`docs/AZURE.md`).** Today's Solarpunk on an Azure VM with no code changed: cron or
+- **20.1 The Azure deployment guide (`docs/AZURE.md`).** Today's Solarpunk on an Azure VM with no code changed: cron or
   Task Scheduler from the one job, the store on a managed disk, a VPN or ExpressRoute to the plant network, the network
   security group opening the receiver's port to named sources, email through Azure Communication Services' SMTP
   endpoint; each Azure claim linked and dated.
-- **21.2 Secrets from Key Vault by managed identity (`solarpunk/mailer/`).** The SMTP credential fetched at send time,
+- **20.2 Secrets from Key Vault by managed identity (`solarpunk/mailer/`).** The SMTP credential fetched at send time,
   `urllib` alone, never written anywhere.
-- **21.3 Reports and exports to Blob Storage.** The report and the baseline's output put to a container as well as a
+- **20.3 Reports and exports to Blob Storage.** The report and the baseline's output put to a container as well as a
   file.
-- **21.4 Health and alarms to Azure Monitor.** A health record per scheduled run and a record per failing test through
+- **20.4 Health and alarms to Azure Monitor.** A health record per scheduled run and a record per failing test through
   the Logs Ingestion API; the alert rule for a run that stops reporting.
-- **21.5 Tune-up pass 21.**
+- **20.5 Tune-up pass 20.**
+
+### Phase 21: the network's security
+
+Ghost's item of 2026-11-18: the demonstration's network is not a production one. Moved after reports and
+diagnostics by SP-013, after fault assignment by SP-015, after the tests' record by SP-016, and after email causes by SP-018.
+
+- **21.1 Network security: an engineering pass over the feed and the receiver.** Both speak plain TCP with no device
+  identity; the receiver defaults to localhost, which suits the demonstration alone. The pass is a document first
+  (the wire today, the threats, a proposed decision for each of: authenticated asset connections, transport
+  encryption, authorization of fault submissions, replay protection, network segmentation and deployment
+  controls); the code follows the decisions Ghost puts in force. The 2026-11-18 advisor's research is its starting
+  point: a module has no endpoint, an inverter, logger, meter, weather station or tracker controller does; the
+  industry addresses a device by host, port, protocol, unit id and register map (Modbus TCP on 502 with SunSpec
+  models at the device, DNP3 on 20000 or IEC 60870-5-104 on 2404 from the plant to the utility, OPC UA on 4840 to the
+  historian); the security references are Modbus/TCP Security (mutual TLS on 802), IEC 62351, IEC 62443 zones and
+  conduits, and NERC CIP-003 for a large US plant. It adds a sixth threat to the five: the feed client trusts whatever
+  answers at the host and port (spoofed telemetry). Since SP-022 it also designs the central server of Phase 22: its
+  authenticated API, accounts and tokens on the wire, TLS, and whether the server may use a vetted dependency.
+- **21.2 Company sign-in (SP-029).** Enterprise authentication: a proposed decision in the pass (OpenID Connect against
+  Entra ID or Google, or none; a dependency, Ghost's approval); if put in force, an account of 12.1 linked to an outside
+  identity by its email, the Solarpunk password kept for a machine with none.
+- **21.3 Tune-up pass 21.**
+
+### Phase 22: the network
+
+Ghost's direction of 2026-11-18 (SP-022): one Solarpunk server holds the store; the desktop windows on many machines,
+and later a phone app, are its clients over one authenticated API. Planned from Phase 21's decisions, so its items are
+written when they are in force.
+
+- **22.1 The server's plan.** The items that build the server, its API, the desktop as its client and the app's surface,
+  each with its check, written from Phase 21's decisions.
+- **22.2 Tune-up pass 22.**
