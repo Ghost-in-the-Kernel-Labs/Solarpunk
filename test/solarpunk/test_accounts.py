@@ -212,11 +212,9 @@ class TheViewer(Store):
     def test_every_write_is_refused_by_name(self) -> None:
         auditor = self.account(AUDITOR)
         (fault,) = project.open_faults_for(self.conn, auditor)
-        (suggestion,) = project.open_suggestions_for(self.conn, auditor)
         writes = {
             "asset": lambda: project.permit_asset(auditor, "OAHE-INV-002"),
             "fault": lambda: project.permit_fault(self.conn, auditor, fault.fault_id),
-            "suggestion": lambda: project.permit_suggestion(self.conn, auditor, suggestion.suggestion_id),
             "ticket": lambda: project.permit_ticket(self.conn, auditor, self.ticket_id()),
             "move": lambda: project.move_ticket_as(self.conn, auditor, self.ticket_id(), TicketStatus.ACKNOWLEDGED,
                                                    ACKNOWLEDGED),
@@ -231,7 +229,6 @@ class TheViewer(Store):
         auditor = self.account(AUDITOR)
         self.assertEqual(len(project.asset_rows_for(self.conn, auditor)), 11)
         self.assertEqual(len(project.open_faults_for(self.conn, auditor)), 1)
-        self.assertEqual(len(project.open_suggestions_for(self.conn, auditor)), 1)
         self.assertEqual(len(project.open_tickets_for(self.conn, auditor)), 1)
 
     def test_a_stopped_engineer_acts_on_nothing(self) -> None:
@@ -254,7 +251,7 @@ class TheSiteScope(Store):
         return {record.asset_id.split("-")[0] for record in records}
 
     def test_each_reading_holds_the_scope(self) -> None:
-        readings = (project.fleet_for, project.asset_rows_for, project.open_faults_for, project.open_suggestions_for,
+        readings = (project.fleet_for, project.asset_rows_for, project.open_faults_for,
                     project.open_tickets_for)
         for reading in readings:
             for email, sites in ((SITE, {"OAHE"}), (CREW, {"BIGS"}), (AUDITOR, {"OAHE", "BIGS"})):
@@ -264,11 +261,9 @@ class TheSiteScope(Store):
     def test_a_record_of_another_site_is_not_written(self) -> None:
         crew = self.account(CREW)
         (oahe_fault,) = project.open_faults_for(self.conn, self.account(SITE))
-        (oahe_suggestion,) = project.open_suggestions_for(self.conn, self.account(SITE))
         (oahe_ticket,) = project.open_tickets_for(self.conn, self.account(SITE))
         writes = {
             "fault": lambda: project.permit_fault(self.conn, crew, oahe_fault.fault_id),
-            "suggestion": lambda: project.permit_suggestion(self.conn, crew, oahe_suggestion.suggestion_id),
             "ticket": lambda: project.permit_ticket(self.conn, crew, oahe_ticket.wo_id),
         }
         for name, write in writes.items():

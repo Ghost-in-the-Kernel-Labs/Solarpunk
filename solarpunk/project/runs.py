@@ -95,6 +95,16 @@ def matches(result: Recorded, words: str) -> bool:
     return needle in result.test_name.casefold() or needle == verdict or needle in result.reason.casefold()
 
 
+def asset_results(conn: sqlite3.Connection, asset_id: str, failed_only: bool = False) -> tuple[tuple[Recorded, str], ...]:
+    """Every result stored for the asset with its verdict word, newest run first, then in the order stored; only the
+    failures when failed_only, a no data result being none (SP-039). It is how an id for `ticket open --result ID` is
+    found (SP-047): OAHE-INV-002 in the demo gives its 8 results at 13:00, the first (its failed reachable, "fail");
+    an asset never run gives (); UnknownAsset for one the fleet lacks."""
+    known(conn, asset_id)
+    return tuple((result, verdict_of(result)) for result in result_table.results_of(conn, asset_id)
+                 if result.failed or not failed_only)
+
+
 def asset_runs(conn: sqlite3.Connection, asset_id: str, limit: int = SHOWN, search: str | None = None) -> tuple[Run, ...]:
     """The asset's newest runs, at most limit, newest first, each with every result it holds (SOL-15); with a search,
     the runs holding a result that matches it (matches). An asset the fleet lacks raises UnknownAsset; one never run

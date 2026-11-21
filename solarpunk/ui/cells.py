@@ -5,7 +5,7 @@ from datetime import datetime
 
 from solarpunk.leaf.accounts import Account, Role
 from solarpunk.leaf.codes import AssetStatus
-from solarpunk.project.surface import AssetDetail, AssetRow, Attention
+from solarpunk.project.surface import AssetRow, Attention
 
 INSTANT_FORMAT = "%Y-%m-%d %H:%M UTC"
 # The asset window's engineer picker (12.4): "Assigned by" where the store has no accounts, "On the word of" for an
@@ -15,7 +15,7 @@ ON_THE_WORD_OF = "On the word of"
 # A window's Refresh (12.2, SOL-16): rereads what it drew, as a write refused for a stale screen asks.
 REFRESH = "Refresh"
 # The attention band's counts (9.3), in the order they stand: a key, and the words before the count.
-BAND = (("outages", "Open outages"), ("suggestions", "Awaiting an engineer"), ("orders", "Open work orders"))
+BAND = (("outages", "Open outages"), ("orders", "Open work orders"))
 BAND_TEXT = "{label}: {count}"
 SHOWING = "; showing {label} alone"
 STORE_LINE = "{store}, last run {instant}"
@@ -44,7 +44,7 @@ def cause_text(row: AssetRow) -> str:
 
 def band_counts(found: Attention) -> tuple[tuple[str, str], ...]:
     """Each count's key and words, zero shown, never hidden: the demo gives (("outages", "Open outages: 1"),
-    ("suggestions", "Awaiting an engineer: 1"), ("orders", "Open work orders: 1"))."""
+    ("orders", "Open work orders: 1"))."""
     return tuple((key, BAND_TEXT.format(label=label, count=len(getattr(found, key)))) for key, label in BAND)
 
 
@@ -113,9 +113,3 @@ def who_named(account: Account | None, chosen: str, entered: str) -> tuple[str |
         return chosen, entered or None, None
     return None, None, (chosen if account.role is Role.OPERATOR else None)
 
-
-def drawn(detail: AssetDetail, suggestion_id: int) -> int:
-    """The version of a suggestion as the asset window drew it, which Accept and Dismiss name (12.2, SOL-16), so one
-    decided since by someone else is refused: a suggestion just raised gives 1; an id not drawn raises StopIteration."""
-    # Decision: SP-028 (a write from a screen names the version it read)
-    return next(found.version for found in detail.suggestions if found.suggestion_id == suggestion_id)

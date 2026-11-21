@@ -37,6 +37,7 @@ The window
 The remote tests
   test list                                    each remote test, its kinds, clauses and the fault a failure raises
   test run [--db PATH] [--at INSTANT]          run every remote test over every asset of the store, once
+  test results --asset ID [--failed]           each stored result of an asset, newest first, with the id a ticket opens on
   test add NAME --clause ID [--kind KIND]      scaffold a new remote test; it fails until its run is written
   suite list                                   each suite with its tests and cadence
   suite run NAME [--db PATH]                   run one suite now
@@ -54,7 +55,7 @@ The fleet and its faults
 The tickets (each takes --at INSTANT, now by default)
   ticket list                                  the open tickets, the nearest target first, a breach marked
   ticket show ID                               a ticket's line, its moves and its failed results, within your sites
-  ticket open --result ID [--for ENGINEER]     open the ticket for a failed test result, or show the one it is in
+  ticket open --result ID [--for ENGINEER]     open the ticket for a failed test result, or show the one it is in (ids: test results --asset ID)
   ticket ack ID                                acknowledge a ticket
   ticket comment ID WORDS                      add a comment, kept as written, by the account signed in
   ticket resolve ID --done WORDS               resolve and close a ticket and its fault, once the fault's root cause is written
@@ -217,7 +218,7 @@ def show_help(args: argparse.Namespace, out: TextIO) -> None:
 
 
 def rules_text(test: project.RemoteTest) -> str:
-    """A test's rule table in words (SP-015): reachable's is "suggests INV:INV-001,MTR:MTR-001,SEN:SEN-001", a kind with
+    """A test's rule table in words (SP-015): reachable's is "suggests MTR:MTR-001,SEN:SEN-001", a kind with
     no code left out; a test that suggests nothing reads "suggests nothing"."""
     pairs = [f"{kind.value}:{code}" for kind, code in test.suggests.items() if code is not None]
     return "suggests " + (",".join(pairs) if pairs else "nothing")
@@ -225,10 +226,17 @@ def rules_text(test: project.RemoteTest) -> str:
 
 def test_list(args: argparse.Namespace, out: TextIO) -> None:
     """test list: one line per remote test with its kinds, clauses and rule table,
-    "reachable  INV,MTR,SEN,TRK  55000-9.1  suggests INV:INV-001,MTR:MTR-001,SEN:SEN-001"."""
+    "reachable  INV,MTR,SEN,TRK  55000-9.1  suggests MTR:MTR-001,SEN:SEN-001"."""
     for test in project.remote_tests():
         kinds = ",".join(kind.value for kind in test.kinds)
         out.write(f"{test.name}  {kinds}  {','.join(test.clauses)}  {rules_text(test)}\n")
+
+
+def test_results(conn: sqlite3.Connection, args: argparse.Namespace, out: TextIO) -> None:
+    """test results --asset ID [--failed]: one line per stored result, newest first, "17  2026-06-01T13:00:00+00:00
+    reachable  fail  127.0.0.1:9 is unreachable": id, instant, test, verdict, reason; --failed keeps the failures."""
+    for found, verdict in project.asset_results(conn, args.asset, args.failed):
+        out.write(f"{found.result_id}  {found.run_at.isoformat()}  {found.test_name}  {verdict}  {found.reason}\n")
 
 
 def test_add(args: argparse.Namespace, out: TextIO) -> None:
@@ -324,9 +332,8 @@ def add_the_rest(commands: argparse._SubParsersAction) -> None:
 
 
 def add_tests(commands: argparse._SubParsersAction) -> None:
-    """The test subcommands, the remote tests' own, and help: "test run --db f.db" parses to test_run with db "f.db"
-    (the --db after the subcommand, for the one-word launcher, which passes its arguments as typed); list, add and help
-    open no store."""
+    """The test subcommands and help: "test run --db f.db" parses to test_run with db "f.db" (the --db after the
+    subcommand, for the one-word launcher); list, add and help open no store."""
     test = commands.add_parser("test").add_subparsers(required=True)
     test.add_parser("list").set_defaults(plain=test_list)
     add = test.add_parser("add")
@@ -334,6 +341,11 @@ def add_tests(commands: argparse._SubParsersAction) -> None:
     add.add_argument("--kind", action="append", default=[])
     add.add_argument("--clause", action="append", required=True)
     add.set_defaults(plain=test_add)
+    results = test.add_parser("results")
+    results.add_argument("--asset", required=True)
+    results.add_argument("--failed", action="store_true")
+    results.add_argument("--db", default=argparse.SUPPRESS)
+    results.set_defaults(handler=test_results)
     run = test.add_parser("run")
     run.add_argument("--at")
     run.add_argument("--db", default=argparse.SUPPRESS)

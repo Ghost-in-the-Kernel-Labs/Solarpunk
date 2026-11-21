@@ -90,6 +90,7 @@ class TheWindows(unittest.TestCase):
         panel.resolve_button.invoke()
         self.assertEqual(panel.message.cget("text"),
                          "fault 3 has no root cause written: an engineer writes it before its ticket closes")
+        window.fault_tree.selection_set("3")  # SP-047: the lost link's SIT-004 is open beside the outage, so the fault is chosen
         window.assigned_by_box.set(demo.INVERTER_ENGINEER)  # the cause is written in the asset window, as free text (SP-046)
         window.cause_box.insert(0, "the AC breaker tripped on a grid surge")
         window.cause_button.invoke()

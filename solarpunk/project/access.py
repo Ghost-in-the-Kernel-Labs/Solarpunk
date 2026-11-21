@@ -1,5 +1,5 @@
 """Who may act, and where (12.1, SOL-16, SP-026, SP-028): the role and the site scope held against the records. An
-account sees an asset, a fault, a suggestion and a ticket only when the asset's site is in its scope; a viewer acts on
+account sees an asset, a fault and a ticket only when the asset's site is in its scope; a viewer acts on
 nothing, and no account acts outside its sites, each refusal naming the account. The account calls here are thin
 wrappers of the accounts table, so the windows and the command line reach it through project alone (MOD-06). An admin
 manages the accounts (12.5): the first is made once, on the machine; the rest are added, reset and stopped by an active
@@ -17,8 +17,6 @@ from solarpunk.project.engineers import known_engineers
 from solarpunk.project.orchestrator import faults_listing, fleet_assets
 from solarpunk.project.surface import AssetRow, asset_rows
 from solarpunk.project.tickets import move_ticket, open_tickets, ticket_moves, ticket_of
-from solarpunk.remote import suggestions as suggestion_table
-from solarpunk.remote.suggestions import Suggestion
 from solarpunk.workorders.tickets import Move, Ticket
 
 
@@ -80,14 +78,6 @@ def permit_fault(conn: sqlite3.Connection, account: Account, fault_id: int) -> F
     return found
 
 
-def permit_suggestion(conn: sqlite3.Connection, account: Account, suggestion_id: int) -> Suggestion:
-    """The suggestion when the account may act on its asset, else NotPermitted: crew@bigs.example asking for an OAHE
-    suggestion is refused with "crew@bigs.example may not act on site OAHE"."""
-    found = suggestion_table.get(conn, suggestion_id)
-    permit_asset(account, found.asset_id)
-    return found
-
-
 def permit_ticket(conn: sqlite3.Connection, account: Account, wo_id: int) -> Ticket:
     """The ticket when the account may act on its asset, else NotPermitted: permit_ticket(conn, site@oahe.example, 1)
     is OAHE-INV-002's ticket in SOL-16's example."""
@@ -143,12 +133,6 @@ def open_faults_for(conn: sqlite3.Connection, account: Account) -> tuple[Fault, 
     """The open faults whose asset is in the account's sites: an open INV-001 on OAHE-INV-002 is listed to an OAHE
     engineer and not to a BIGS one."""
     return tuple(fault for fault in faults_listing(conn, True) if account.sees(site_of(fault.asset_id)))
-
-
-def open_suggestions_for(conn: sqlite3.Connection, account: Account) -> tuple[Suggestion, ...]:
-    """The open suggestions whose asset is in the account's sites: an open SEN-001 on OAHE-SEN-001 is listed to a
-    viewer of all and not to an engineer of BIGS."""
-    return tuple(found for found in suggestion_table.open_suggestions(conn) if account.sees(site_of(found.asset_id)))
 
 
 def moves_for(conn: sqlite3.Connection, account: Account | None, wo_id: int) -> tuple[Ticket, tuple[Move, ...]]:

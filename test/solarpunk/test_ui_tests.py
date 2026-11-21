@@ -88,7 +88,7 @@ class TheWords(unittest.TestCase):
         reachable = next(s for s in project.survey_remote_tests() if s.name == "reachable")
         self.assertEqual(tests_text.row_of(reachable),
                          ("reachable", "INVERTER, METER, SENSOR, TRACKER", "55000-9.1",
-                          "INV-001, MTR-001, SEN-001", ""))
+                          "MTR-001, SEN-001", ""))
         broken = project.Surveyed("broken", None, "broken has no CLAUSES")
         self.assertEqual(tests_text.row_of(broken), ("broken", "", "", "", "broken has no CLAUSES"))
 

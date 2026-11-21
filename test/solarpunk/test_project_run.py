@@ -153,7 +153,7 @@ class TheScheduledRun(RunFixture):
         report = project.scheduled_run(self.conn, RUN_AT)
         self.assertEqual(len(self.fed), 24)
         self.assertEqual((report.pinged, report.records, report.results, report.mails), (3, 24, RESULTS_PER_RUN, 0))
-        self.assertIs(report.statuses[INV2], AssetStatus.RED)  # SP-046: its failing reachable raised INV-001, an outage
+        self.assertIs(report.statuses[INV2], AssetStatus.YELLOW)  # SP-047: its failing reachable raised SIT-004, INFO
         self.assertIs(report.statuses[INV3], AssetStatus.RED)
         self.assertEqual({report.statuses[asset_id] for asset_id in GREEN_ONES}, {AssetStatus.GREEN})
         self.assertEqual(sorted(report.statuses), sorted(GREEN_ONES + (INV2, INV3)))
@@ -185,17 +185,17 @@ class TheScheduledRun(RunFixture):
     def test_samples_outside_the_last_day_are_not_tested(self) -> None:
         report = project.scheduled_run(self.conn, RUN_AT + timedelta(days=1, minutes=5))
         self.assertEqual(report.records, 24)
-        self.assertIs(report.statuses[INV1], AssetStatus.RED)  # SP-046: reachable failed, so INV-001 opened
+        self.assertIs(report.statuses[INV1], AssetStatus.YELLOW)  # SP-047: reachable failed, so SIT-004 opened
 
-    def test_an_unreachable_asset_with_samples_stored_earlier_is_red_by_its_tests_fault(self) -> None:
+    def test_an_unreachable_asset_with_samples_stored_earlier_is_yellow_by_its_tests_fault(self) -> None:
         sample_table.store(self.conn, generator.generate((INVERTER_2,), FED, 7))
         report = project.scheduled_run(self.conn, RUN_AT)
-        self.assertIs(report.statuses[INV2], AssetStatus.RED)
-        self.assertIs(project.asset_status(self.conn, INV2), AssetStatus.RED)
+        self.assertIs(report.statuses[INV2], AssetStatus.YELLOW)  # SP-047: a lost link raises the generic SIT-004, no outage
+        self.assertIs(project.asset_status(self.conn, INV2), AssetStatus.YELLOW)
 
-    def test_a_closed_outage_is_raised_again_by_the_failing_test(self) -> None:
+    def test_a_closed_outage_is_not_raised_again_by_a_lost_link(self) -> None:
         project.close_fault(self.conn, self.outage.fault_id, at(2026, 6, 1, 10))
-        self.assertIs(project.scheduled_run(self.conn, RUN_AT).statuses[INV3], AssetStatus.RED)  # SP-046: a new row
+        self.assertIs(project.scheduled_run(self.conn, RUN_AT).statuses[INV3], AssetStatus.YELLOW)  # SP-047: SIT-004, INFO
 
     def test_an_asset_with_no_endpoint_is_not_tested_and_takes_its_status_from_its_faults(self) -> None:
         tracker = Asset("OAHE-TRK-001", AssetKind.TRACKER, "OAHE", "OAHE-SIT-001", "Tracker 1", None)
@@ -229,10 +229,10 @@ class TheMails(RunFixture):
         self.assertEqual([(m.to, m.subject) for m in red], [((SITE_EMAIL,), "Solarpunk: OAHE-INV-003 INV-001")])
         self.assertIn("Cause: fault INV-001, Inverter offline", red[0].body)
         yellow = mailer.sent_for(self.conn, INV2)
-        self.assertEqual([(m.to, m.subject) for m in yellow], [((SITE_EMAIL,), "Solarpunk: OAHE-INV-002 INV-001")])
-        self.assertIn("Cause: fault INV-001, Inverter offline", yellow[0].body)  # SP-046: the test's fault is the cause
+        self.assertEqual([(m.to, m.subject) for m in yellow], [((SITE_EMAIL,), "Solarpunk: OAHE-INV-002 reachable")])
+        self.assertIn("Cause: remote test reachable failed: ", yellow[0].body)  # SP-047: a lost link is no outage, the test is the cause
         self.assertIn("Instant: 2026-06-01T12:00:00+00:00", yellow[0].body)
-        self.assertIn("Subject: Solarpunk: OAHE-INV-002 INV-001", server.data[0])
+        self.assertIn("Subject: Solarpunk: OAHE-INV-002 reachable", server.data[0])
         self.assertEqual(mailer.sent_for(self.conn, INV1), ())
         sent_at = {row[0] for row in self.conn.execute("SELECT sent_at FROM mails")}
         self.assertEqual(sent_at, {"2026-06-01T12:00:00+00:00"})
@@ -317,8 +317,7 @@ class TheSurface(RunFixture):
         rows = {row.asset_id: row for row in project.asset_rows(self.conn)}
         ids = [row.asset_id for row in project.asset_rows(self.conn)]
         self.assertEqual(ids, sorted(ids))
-        self.assertEqual((rows[INV2].status, rows[INV2].suggested, rows[INV2].outage.assigned_by),  # SP-046
-                         (AssetStatus.RED, None, "test:reachable"))
+        self.assertEqual((rows[INV2].status, rows[INV2].suggested, rows[INV2].outage), (AssetStatus.YELLOW, None, None))  # SP-047
         self.assertEqual(rows[INV1], project.AssetRow(INV1, "Inverter 1", AssetKind.INVERTER, AssetStatus.GREEN,
                                                       RUN_AT, "—"))
         self.assertIs(rows[INV3].status, AssetStatus.RED)
@@ -340,9 +339,10 @@ class TheSurface(RunFixture):
         project.close_fault(self.conn, closed.fault_id, at(2026, 6, 1, 10))
         info = project.assign_fault(self.conn, INV3, "INV-004", at(2026, 6, 1, 9), ENGINEER)
         detail = project.asset_detail(self.conn, INV3)
+        (lost_link,) = (f for f in project.faults_listing(self.conn, True) if (f.asset_id, f.code) == (INV3, "SIT-004"))
         self.assertEqual(detail.asset, registry.get(self.conn, INV3))
-        self.assertEqual(detail.open_faults, ((self.outage, codes.lookup("INV-001").meaning),
-                                              (info, codes.lookup("INV-004").meaning)))
+        self.assertEqual(detail.open_faults, ((self.outage, codes.lookup("INV-001").meaning),  # SP-047: SIT-004, the lost link
+                                              (lost_link, codes.lookup("SIT-004").meaning), (info, codes.lookup("INV-004").meaning)))
         self.assertEqual(detail.latest, results.latest_for(self.conn, INV3))
         self.assertEqual([r.passed for r in detail.latest], sorted(r.passed for r in detail.latest))
         self.assertFalse(detail.latest[0].passed)

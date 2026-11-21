@@ -80,9 +80,9 @@ class FromARun(Raising):
         self.assertEqual(len(project.faults_listing(self.conn, False)), 2)
 
     def test_a_code_the_asset_already_carries_open_is_joined_not_raised_again(self) -> None:
-        engineers = project.assign_fault(self.conn, INV1, "INV-001", EARLIER, SITE_EMAIL)
-        self.failed("reachable", INV1)
-        self.assertEqual(project.faults_from_run(self.conn, (INV1,), RUN_AT), ())
+        engineers = project.assign_fault(self.conn, SEN, "SEN-001", EARLIER, SITE_EMAIL)  # SP-047: reachable names no INV code
+        self.failed("reachable", SEN)
+        self.assertEqual(project.faults_from_run(self.conn, (SEN,), RUN_AT), ())
         self.assertEqual(project.faults_listing(self.conn, False), (engineers,))
 
     def test_running_it_again_raises_nothing_more(self) -> None:
