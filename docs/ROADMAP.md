@@ -469,7 +469,16 @@ result kept. It adds to `docs/GOAL.md`'s SCADA analytics (2) and quality managem
 - **13.7 The Tests window (`solarpunk/ui/tests_window.py`).** "Tests" beside "Reports" in the fleet window: every remote
   test with its kinds, asset count, last run, duration and pass/fail counts; selecting one shows its last 100 runs
   (asset, instant, result, reason, duration), failures red.
-- **13.8 Tune-up pass 13.** (The asset's history, 13.8 before SP-024, is Phase 10.)
+- **13.8 Names of three characters or more (`scripts/checks/names.py`; SP-042).** Ghost's human maintainability pass,
+  placed last in the phase so it covers what 13.1 to 13.7 add: every binding of two characters or fewer renamed to
+  what it holds, in the product, the scripts and the tests, and a check that keeps it so.
+- **13.9 Names and purpose comments reviewed (SP-042).** Each module read for names that do not say what they hold and
+  docstrings that restate the code; renamed or rewritten, results unchanged.
+- **13.10 A README for people in each module (`solarpunk/README.md`, `scripts/checks/readmes.py`; SP-042).** A map of
+  the modules for a person new to the code, and each folder's files said in plain words, held by a check.
+- **13.11 The decision map (`scripts/decision_map.py`, `docs/DECISION-MAP.md`; SP-042).** Each decision with the
+  functions that cite it; an in-force decision that shapes code and is cited by none, or a citation of nothing, fails.
+- **13.12 Tune-up pass 13.** (The asset's history, 13.8 before SP-024, is Phase 10.)
 
 ### Phase 14: the network's security
 

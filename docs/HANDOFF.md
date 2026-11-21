@@ -4,14 +4,17 @@ Read `CLAUDE.md` first, then this. `TODO.md` is the chain in order; `docs/DONE.m
 
 ## Start here (2026-11-21, the session that ended at Tune-up pass 12)
 
-Phase 12 is closed but for 12.7, which waits in Phase W. `main` is clean and pushed, every landing through the fast
-gate, the pass through the full gate (cold 1.47 min, warm 1.50 min, fast loop 24.35 s). Phase 12 closed again by the tune-up commit 12.12 (J-111);
-12.9, 12.11 and 12.10 landed (J-107, J-108, J-109). **Next: Ghost's human maintainability pass** (2026-11-21: every
-variable well named, a README for people explaining each part, every function's purpose commented, each decision mapped
-to the functions that hold it), being planned as items: Phase 12 reopened by SP-039 for Ghost's eleven calls (J-106), ahead of Phase 13. 12.9 adds the
-"no data" result, which 13.1's test contract then writes down. Then 13.1 and 13.2.
+Phase 12 is closed but for 12.7, which waits in Phase W: closed again by the tune-up commit 12.12 (J-111) after its
+reopening for Ghost's eleven calls (SP-039; 12.9, 12.11 and 12.10 landed, J-107 to J-109). `main` is clean and pushed,
+every landing through the fast gate, 12.12 through the full gate (cold 1.47 min, warm 1.47 min, fast loop 24.13 s).
+**Next: 13.1 and 13.2**, Phase 13's first lane (what a test looks like, and the suites folder; SP-016, SP-019), in
+parallel; 13.1 writes down the "no data" result 12.9 added. Phase 13 ends with Ghost's human maintainability pass
+(SP-042, 13.8 to 13.11: names, the decision map, a README for people in each module, purpose comments), the items
+before its tune-up pass, so it covers what 13.1 to 13.7 add.
 
 What this session landed, newest first (the journal has each):
+- After the hand-off (J-110 to J-112): SP-041, the philosophy's opening restored word for word from Suite Builder's;
+  Tune-up commit 12; SP-042, the human maintainability pass placed as 13.8 to 13.11.
 - After the hand-off (J-106): SP-039, Ghost's eleven calls, all as recommended, call 0 as a third "no data" result;
   Phase 12 reopened with 12.9 to 12.12. SP-040: Solarpunk no longer follows Ghost-Core (For Ghost 4 and 14 settled).
 - After the hand-off (J-105): `asset_window.py` split, its words and pure functions to `solarpunk/ui/asset_text.py`

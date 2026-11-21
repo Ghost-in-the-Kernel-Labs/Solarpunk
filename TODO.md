@@ -79,7 +79,7 @@ SP-022; 12.1 split in two by SP-028 (accounts, then versions); 12.6 added on Gho
 
 ## Phase 13: the tests' record, at the root and per asset
 
-Lanes (P-15): 13.1 and 13.2 first (SP-019: what a test is, and the suites), then 13.3 (a test's own reads) and 13.4 (reactions, which need suites; SP-020), then 13.5 (the surface every window reads), then 13.6 and 13.7 in parallel, then 13.8 the pass; the asset's history went to Phase 10 (SP-024). Moved after tickets and accounts by SP-022, after the fleet window and the ticket windows by SP-023, and after runs per asset (Phase 10) by SP-024. Moved after Phase 8 by SP-018. Ghost's direction, SP-016.
+Lanes (P-15): 13.1 and 13.2 first (SP-019: what a test is, and the suites), then 13.3 (a test's own reads) and 13.4 (reactions, which need suites; SP-020), then 13.5 (the surface every window reads), then 13.6 and 13.7 in parallel, then the human maintainability pass (SP-042): 13.8, then 13.9, 13.10 and 13.11 in parallel, then 13.12 the pass; the asset's history went to Phase 10 (SP-024). Moved after tickets and accounts by SP-022, after the fleet window and the ticket windows by SP-023, and after runs per asset (Phase 10) by SP-024. Moved after Phase 8 by SP-018. Ghost's direction, SP-016.
 
 ### 13.1 What a test looks like
 
@@ -126,7 +126,34 @@ The master list from the root of the window: every test, its run time, and its l
 
 Check: `solarpunk/ui/tests_window.py` opens from a "Tests" button in the fleet window; it lists `project.tests_overview` (name, kinds, assets, last run, duration, passes, failures) and, for the selected test, `project.test_log` (asset, instant, result, reason, duration), failures red; `test/solarpunk/test_ui_tests.py` builds it under xvfb over the demo store with its pure half headless; a screenshot read back; the fast loop green.
 
-### 13.8 Tune-up pass 13
+### 13.8 Names of three characters or more
+
+No variable, argument or loop name in `solarpunk/`, `scripts/` or `test/` is two characters or fewer, held by a check
+(SP-042, part 1).
+
+Check: `scripts/checks/names.py` refuses every binding (an assignment, an argument, a loop or comprehension target, an `except` name, a lambda argument) of two characters or fewer in the Python under `solarpunk/`, `scripts/` and `test/`, `_` and `self` excepted, naming file, line and name, with a planted break under `test/fixtures/broken/names/`; it runs in the fast loop; every such name renamed to what it holds; a refactor: every result unchanged, the fast loop and the window tests under xvfb green before and after.
+
+### 13.9 Names and purpose comments reviewed
+
+A person reading each module finds every name saying what it holds and every function's docstring saying what it is
+for (SP-042, parts 1 and 3).
+
+Check: each module of `solarpunk/` and each file of `scripts/` read for names longer than two characters that do not say what they hold and for docstrings that restate the code rather than say the function's purpose; each renamed or rewritten, module by module, each module's changes named in the journal; a refactor: every result unchanged, the fast loop and the window tests under xvfb green.
+
+### 13.10 A README for people in each module
+
+`solarpunk/README.md` maps the modules in plain words, and each module folder's `README.md` says what each of its files
+does (SP-042, part 2).
+
+Check: `solarpunk/README.md` names every module folder with a sentence or two on what it is for and how the parts fit (the leaf, project as the one door, the windows), written for a person new to the code; each folder under `solarpunk/` holding Python has a `README.md` naming each of its files with what it does; `scripts/checks/readmes.py` fails when a folder lacks its README or a file is missing from it, with a planted break under `test/fixtures/broken/readmes/`; the fast loop green.
+
+### 13.11 The decision map
+
+Each decision is mapped to the functions that hold it, and each function holding a decision cites it (SP-042, part 4).
+
+Check: `scripts/decision_map.py` writes `docs/DECISION-MAP.md`, for each decision in `theGhost.md` the functions (file and name) whose `# Decision:` or `# Invariant:` line cites it, "no function" otherwise; the fast loop fails when the file is stale; `scripts/checks/decision_map.py` fails when an in-force decision whose `Held by` names a file under `solarpunk/` or `scripts/` is cited by no function, or a citation names a decision or invariant that does not exist, with a planted break under `test/fixtures/broken/decision_map/`; the missing citations added to the functions that hold each decision; the fast loop green.
+
+### 13.12 Tune-up pass 13
 
 Check: `docs/when/tune-up.md` followed in full; the metrics table written; the navigation log's "Last review" set.
 

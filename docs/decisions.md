@@ -85,3 +85,4 @@ Written by `scripts/decisions_index.py` from `theGhost.md`; do not edit here. Se
 | SP-039 | No data is not a pass; the field thresholds and 12.4 to 12.6's loose ends as recommended | in force | remote tests |
 | SP-040 | Solarpunk no longer follows Ghost-Core | in force | lineage |
 | SP-041 | The philosophy's opening is the lineage's shared text, word for word | in force | philosophy |
+| SP-042 | A human maintainability pass: names, a README per module, purpose comments, a decision map | in force | maintainability |

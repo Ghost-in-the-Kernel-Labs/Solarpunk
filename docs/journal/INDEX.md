@@ -115,3 +115,4 @@ Written from `docs/journal/` by `scripts/journal_index.py`; do not edit by hand.
 | J-109 | 12.10: the field thresholds, and the baseline re-run (SP-039) | measurement | `J-100-199.md` |
 | J-110 | The philosophy's opening restored from Suite Builder's text (SP-041) | decision | `J-100-199.md` |
 | J-111 | Tune-up commit 12: the reopened Phase 12 closed | measurement | `J-100-199.md` |
+| J-112 | SP-042: the human maintainability pass placed as 13.8 to 13.11 | direction | `J-100-199.md` |

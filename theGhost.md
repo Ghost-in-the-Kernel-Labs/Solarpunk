@@ -858,3 +858,13 @@ The core decisions above are inherited (Core C-001 to C-040); this project's beg
 - **Status:** in force
 - **See also:** SP-040
 - **subject:** philosophy
+
+### SP-042: A human maintainability pass: names, a README per module, purpose comments, a decision map
+- **Decision:** Solarpunk is made fit for people to maintain, over the product (`solarpunk/`) and `scripts/`; tests keep their sentence names and need no docstrings, but their short variables are renamed too. (1) No variable, argument or loop name of two characters or fewer, held by a check with a planted break; longer names that do not say what they hold are renamed on review, case by case. (2) `solarpunk/README.md` maps the modules in plain words for a person, and each module folder's `README.md` says what each of its files does; a check fails when a file is missing from its folder's README. (3) Every function's docstring says what it is for. (4) A generated `docs/DECISION-MAP.md` lists, for each decision, the functions that cite it; a check fails when an in-force decision whose `Held by` names a file under `solarpunk/` or `scripts/` is cited by no function, or a citation names a decision that does not exist; the missing citations are added. Built as TODO 13.8 to 13.11, the last items of Phase 13 before its tune-up pass, as refactors that change no result. The two-character ban, the READMEs and the map are each a check, so none of it is held by review alone.
+- **Why:** Solarpunk will be maintained by people for a time (SP-041). Ghost, 2026-11-21, in chat: "Every single variable must be a well named variable. Variables are self documenting. A readme (for humans) should exist in the code, explaining what each part does. Functions should be commented as to their purpose. The ghost directives should be mapped to functions (we should have been doing this already)", then, on four choice lists: product and scripts; no one- or two-letter names with review; a generated map with a check; one README per module with a map. Measured that day: the product 10.5k lines, 720 functions (719 with a docstring), 108 bindings of two characters or fewer; `scripts/` 3.3k lines, 242 functions, 86; 108 product functions cite a decision. A tune-up may not change the source modules, `theGhost.md` or the roadmap, so the pass is roadmap items rather than a tune-up's own work.
+- **Supersedes:** none.
+- **Held by:** `TODO.md` 13.8 to 13.11; the checks those items add.
+- **Source:** Ghost, in chat, 2026-11-21.
+- **Status:** in force
+- **See also:** SP-041, C-011, C-012
+- **subject:** maintainability
