@@ -485,7 +485,10 @@ result kept. It adds to `docs/GOAL.md`'s SCADA analytics (2) and quality managem
   the modules for a person new to the code, and each folder's files said in plain words, held by a check.
 - **13.11 The decision map (`scripts/decision_map.py`, `docs/DECISION-MAP.md`; SP-042).** Each decision with the
   functions that cite it; an in-force decision that shapes code and is cited by none, or a citation of nothing, fails.
-- **13.12 Tune-up pass 13.** (The asset's history, 13.8 before SP-024, is Phase 10.)
+- **13.12 Phase 7's loose ends (SP-047).** A failed `reachable` raises the generic SIT-004 where its table named an
+  outage, since a lost link is not a dead inverter; `solarpunk test results` lists result ids for `ticket open
+  --result`; the code 7.7 left unused removed.
+- **13.13 Tune-up pass 13.** (The asset's history, 13.8 before SP-024, is Phase 10.)
 
 ### Phase 14: the traceability matrix
 

@@ -85,7 +85,7 @@ SP-022; 12.1 split in two by SP-028 (accounts, then versions); 12.6 added on Gho
 
 ## Phase 13: the tests' record, at the root and per asset
 
-Lanes (P-15): 13.1 and 13.2 first (SP-019: what a test is, and the suites), then 13.3 (a test's own reads) and 13.4 (reactions, which need suites; SP-020), then 13.5 (the surface every window reads), then 13.6 and 13.7 in parallel, then the human maintainability pass (SP-042): 13.8, then 13.9, 13.10 and 13.11 in parallel, then 13.12 the pass; the asset's history went to Phase 10 (SP-024). Moved after tickets and accounts by SP-022, after the fleet window and the ticket windows by SP-023, and after runs per asset (Phase 10) by SP-024. Moved after Phase 8 by SP-018. Ghost's direction, SP-016.
+Lanes (P-15): 13.1 and 13.2 first (SP-019: what a test is, and the suites), then 13.3 (a test's own reads) and 13.4 (reactions, which need suites; SP-020), then 13.5 (the surface every window reads), then 13.6 and 13.7 in parallel, then the human maintainability pass (SP-042): 13.8, then 13.9, 13.10 and 13.11 in parallel, then 13.13 the pass; 13.12 (Phase 7's loose ends, SP-047) beside 13.3, in its own clone; the asset's history went to Phase 10 (SP-024). Moved after tickets and accounts by SP-022, after the fleet window and the ticket windows by SP-023, and after runs per asset (Phase 10) by SP-024. Moved after Phase 8 by SP-018. Ghost's direction, SP-016.
 
 ### 13.3 A test's own reads
 
@@ -145,7 +145,19 @@ Each decision is mapped to the functions that hold it, and each function holding
 
 Check: `scripts/decision_map.py` writes `docs/DECISION-MAP.md`, for each decision in `theGhost.md` the functions (file and name) whose `# Decision:` or `# Invariant:` line cites it, "no function" otherwise; the fast loop fails when the file is stale; `scripts/checks/decision_map.py` fails when an in-force decision whose `Held by` names a file under `solarpunk/` or `scripts/` is cited by no function, or a citation names a decision or invariant that does not exist, with a planted break under `test/fixtures/broken/decision_map/`; the missing citations added to the functions that hold each decision; the fast loop green.
 
-### 13.12 Tune-up pass 13
+### 13.12 Phase 7's loose ends
+
+A lost link raises no outage, a result's id can be found from the command line, and the code 7.7 left unused is gone
+(SP-047).
+
+Check: `reachable`'s rule table names no OUTAGE or DERATE code (an unreachable inverter raises the generic SIT-004; the
+sensor's SEN-001 and the meter's MTR-001, both INFO, stay), with the demo, the goldens and the tests that pinned INV-001
+updated; `solarpunk test results --asset ID [--failed]` prints each stored result with its id, newest first, and
+`ticket open --result ID` names it in its help; `cells.drawn`, `access.permit_suggestion`, `access.open_suggestions_for`
+and the "Awaiting an engineer" band cell are removed with the tests and docs that held them; the fast loop green and the
+window tests green under xvfb.
+
+### 13.13 Tune-up pass 13
 
 Check: `docs/when/tune-up.md` followed in full; the metrics table written; the navigation log's "Last review" set.
 

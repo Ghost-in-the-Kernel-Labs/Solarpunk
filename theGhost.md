@@ -908,3 +908,12 @@ The core decisions above are inherited (Core C-001 to C-040); this project's beg
 - **Status:** in force
 - **See also:** SP-011, SP-015, SP-022, SP-044, C-010
 - **subject:** faults
+
+### SP-047: A lost link raises no outage; Phase 7's loose ends tied as 13.12
+- **Decision:** `reachable`'s rule table names no OUTAGE or DERATE code: an unreachable inverter raises the generic SIT-004 (INFO), and the INFO codes it named (SEN-001, MTR-001) stay. No data ends a ticket's streak, as 7.9 built it. `solarpunk test results --asset ID [--failed]` lists result ids for `ticket open --result ID`. The code 7.7 left unused (`cells.drawn`, `access.permit_suggestion`, `access.open_suggestions_for`, the "Awaiting an engineer" band cell) is removed. All of it is TODO 13.12, ahead of 13.13 the pass.
+- **Why:** Ghost, 2026-11-21, of For Ghost 20: "go with your recommendations". The coordinator's recommendation on the first: a lost link is not a dead inverter, and an outage raised with no one between counts against availability (SOL-11) on a communications fault; the engineer writes the real cause (SP-046). No data ending a streak was the build's reading, kept since no other was recommended. Named suites raising faults, the window tests inside the gate, and the fast loop's headroom stay open in HANDOFF's For Ghost 20.
+- **Held by:** `TODO.md` and `docs/ROADMAP.md` 13.12; `docs/HANDOFF.md`'s For Ghost 20.
+- **Source:** Ghost, in chat, 2026-11-21.
+- **Status:** in force
+- **See also:** SP-046, SP-039, SOL-11
+- **subject:** faults

@@ -4,7 +4,7 @@ Read `CLAUDE.md` first, then this. `TODO.md` is the chain in order; `docs/DONE.m
 
 ## Start here (2026-11-21, the session that ended at SP-043)
 
-Ghost, 2026-11-21 (SP-044, J-117): the roadmap leans into the ISO traceability matrix. After 13.3 to 13.12 comes Phase 14, the traceability matrix, then 15 quality management (was 18), 16, 17, 18 contractors (was 19), 19 vendors (was 20), 20 Azure (was 21), and last 21 the network's security with company sign-in (was 14) and 22 the central server (was 15).
+Ghost, 2026-11-21 (SP-044, J-117): the roadmap leans into the ISO traceability matrix. After 13.3 to 13.13 comes Phase 14, the traceability matrix, then 15 quality management (was 18), 16, 17, 18 contractors (was 19), 19 vendors (was 20), 20 Azure (was 21), and last 21 the network's security with company sign-in (was 14) and 22 the central server (was 15).
 
 Phase 12 is closed but for 12.7 (Phase W). `main` is clean and pushed at SP-043, every landing through the fast gate,
 Tune-up commit 12 through the full gate (cold 1.47 min, warm 1.47 min, fast loop 24.13 s). Every session branch on
@@ -14,7 +14,7 @@ GitHub is deleted; only `main` remains.
 started before this hand-off, so nothing is in flight.** 13.1 is the remote test's contract (`docs/REMOTE-TESTS.md` and
 a check); it must write down the three results 12.9 made (pass, fail, and "no data", `Result.no_data` and
 `nothing_to_check` in `solarpunk/remote/results.py`), which its Check line predates. 13.2 is the suites folder. Phase 13
-ends with Ghost's human maintainability pass (SP-042, 13.8 to 13.11), then its tune-up pass, 13.12.
+ends with Ghost's human maintainability pass (SP-042, 13.8 to 13.11), then its tune-up pass, 13.13.
 
 What this session landed, newest first (the journal has each):
 - SP-043 (J-113): the readability check runs in the fast checks (For Ghost 9 settled).
@@ -167,7 +167,7 @@ email on the asset, a mailer to those engineers on degradation, and the Save/Can
    (J-117). Reported, never edited (CLAUDE.md, `docs/when/coordinate.md`). Answered by Ghost's word of 2026-11-21
    (J-118): every worker in its own clone, so the coordinator's tree stays clean. Change the hook itself only if you
    want it to.
-20. From Phase 7's reopening (J-121 to J-124), each a decision or a roadmap line:
+20. Settled 2026-11-21 (SP-047, J-125): "go with your recommendations": (a) SIT-004 for a lost link, (c) and (d) as 13.12; (b) as built; (e), (f) and (g) stand open. From Phase 7's reopening (J-121 to J-124):
     (a) a failed `reachable` on an inverter raises INV-001, an OUTAGE, so it counts against availability with no one
     between; the coordinator recommends the generic SIT-004 (INFO) for an unreachable asset, since a lost link is not a
     dead inverter; (b) no data ends a ticket's streak, so a short comms gap splits one problem into two tickets; the
