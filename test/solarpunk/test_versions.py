@@ -92,10 +92,11 @@ class EachRecord(Store):
         project.move_ticket(self.conn, 1, TicketStatus.IN_PROGRESS, LATER)
         project.open_work_order_from_fault(self.conn, 1, OPENED, "swap the fuse")  # the note
         self.assertEqual(project.ticket_of(self.conn, 1).version, 3)
+        project.write_fault_cause(self.conn, 1, "worn fuse holder", SITE, LATER)
         with self.refused("ticket 1"):
-            project.close_work_order(self.conn, 1, "RC-COMPONENT", LATER, read_at=2)
+            project.close_work_order(self.conn, 1, LATER, read_at=2)
         self.assertEqual(len(project.faults_listing(self.conn, True)), 1)  # neither the order nor its fault closed
-        closed = project.close_work_order(self.conn, 1, "RC-COMPONENT", LATER, read_at=3)
+        closed = project.close_work_order(self.conn, 1, LATER, read_at=3)
         self.assertEqual((closed.version, project.faults_listing(self.conn, True)), (4, ()))
 
     def test_no_version_named_is_not_checked(self) -> None:

@@ -1,16 +1,14 @@
 """The work-order ledger: the work_orders table, opening a corrective order from a fault or a preventive one on its
-own, closing it with a root-cause code, and the queries by open, asset and repeated cause. Every stored root cause is
-one `lookup_root_cause` accepts (SP-011, the pattern of SOL-04); every instant is stored as the ISO 8601 text of an
-aware UTC datetime and read back aware (Invariant: SOL-06). Neither the asset id nor the fault id is checked against
+own, closing it, and the queries by open and asset. The root cause belongs to the fault (SP-046, `faults.ledger`):
+the `root_cause` column stays so a store made before 7.8 still reads the code it stored, as plain text, and a close
+writes none; every instant is stored as the ISO 8601 text of an aware UTC datetime and read back aware (Invariant: SOL-06). Neither the asset id nor the fault id is checked against
 its table: project does that, since workorders imports the leaf alone (MOD-05)."""
 import sqlite3
-from collections import Counter
 from dataclasses import dataclass
 from datetime import datetime
 
 from solarpunk.leaf import versions
-from solarpunk.leaf.clock import Period, utc
-from solarpunk.leaf.root_causes import RootCause, lookup_root_cause
+from solarpunk.leaf.clock import utc
 from solarpunk.leaf.tickets import CREATE, TRANSITION, Priority, TicketStatus
 
 CORRECTIVE = "corrective"
@@ -52,7 +50,7 @@ SELECT_ORDERS = "SELECT wo_id, asset_id, fault_id, kind, opened, closed, root_ca
 INSERT_ORDER = "INSERT INTO work_orders (asset_id, fault_id, kind, opened, note, priority) VALUES (?, ?, ?, ?, ?, ?)"
 # The one-step close-out of 4.1 (SOL-14): the allowed moves at one instant, an instant already stamped kept.
 CLOSE_ORDER = (
-    "UPDATE work_orders SET closed = :stamp, root_cause = :cause, status = 'closed',"
+    "UPDATE work_orders SET closed = :stamp, status = 'closed',"
     " acknowledged = coalesce(acknowledged, :stamp), responded = coalesce(responded, :stamp),"
     " resolved = coalesce(resolved, :stamp), " + versions.BUMP + " WHERE wo_id = :wo_id"
 )
@@ -62,14 +60,13 @@ BY_ID = " WHERE wo_id = ?"
 OPEN_FOR_FAULT = " WHERE fault_id = ? AND kind = 'corrective' AND closed IS NULL"
 STILL_OPEN = " WHERE closed IS NULL"
 OF_ASSET = " WHERE asset_id = ?"
-CLOSED_WITH_CAUSE = " WHERE closed IS NOT NULL"
 IN_ID_ORDER = " ORDER BY wo_id"
 
 
 @dataclass(frozen=True)
 class WorkOrder:
     """One row of the ledger: WorkOrder(1, "OAHE-INV-003", 4, "corrective", 10:10 UTC, None, None, "replace fuse") is
-    an open corrective order for fault 4; a preventive one has fault_id None; a closed one carries its RootCause."""
+    an open corrective order for fault 4; a preventive one has fault_id None; a closed one from before 7.8 carries the code it closed with, as text."""
 
     wo_id: int
     asset_id: str
@@ -77,7 +74,7 @@ class WorkOrder:
     kind: str
     opened: datetime
     closed: datetime | None
-    root_cause: RootCause | None
+    root_cause: str | None
     note: str
     version: int = 1  # 12.2: the ticket's version, the same column
 
@@ -107,8 +104,7 @@ def _select(conn: sqlite3.Connection, where: str, params: tuple[str | int | None
     found = []
     for wo_id, asset_id, fault_id, kind, opened, closed, cause, note, version in rows:
         closed_at = None if closed is None else datetime.fromisoformat(closed)
-        root_cause = None if cause is None else lookup_root_cause(cause)
-        found.append(WorkOrder(wo_id, asset_id, fault_id, kind, datetime.fromisoformat(opened), closed_at, root_cause, note,
+        found.append(WorkOrder(wo_id, asset_id, fault_id, kind, datetime.fromisoformat(opened), closed_at, cause, note,
                                version))
     return tuple(found)
 
@@ -179,16 +175,14 @@ def check_read(conn: sqlite3.Connection, wo_id: int, read_at: int | None) -> Wor
     return order
 
 
-def close(conn: sqlite3.Connection, wo_id: int, root_cause: str, closed: datetime,
-          read_at: int | None = None, actor: str | None = None) -> WorkOrder:
-    """Closes an open order with its root-cause code: close(conn, 1, "RC-COMPONENT", 10:30 UTC) gives the order with
-    closed 10:30 UTC and root_cause RootCause.COMPONENT. Refuses, writing nothing, a code outside the list
-    (UnknownRootCause), a naive instant (NotUtc), an unknown order id, a close at or before the opening and a second
-    close (WorkOrderError), and a ticket read at an older version (StaleWrite, 12.2). Its ticket closes too: from any
-    earlier status by the allowed moves at that one instant, the acknowledged, responded and resolved instants already
-    stamped kept (SOL-14), its version raised, and the move to closed logged as actor's (SP-035)."""
-    # Invariant: SOL-04's rule for causes (SP-011): no order closes without a code from the closed list
-    cause = lookup_root_cause(root_cause)
+def close(conn: sqlite3.Connection, wo_id: int, closed: datetime, read_at: int | None = None,
+          actor: str | None = None) -> WorkOrder:
+    """Closes an open order: close(conn, 1, 10:30 UTC) gives the order with closed 10:30 UTC. Refuses, writing nothing,
+    a naive instant (NotUtc), an unknown order id, a close at or before the opening and a second close
+    (WorkOrderError), and a ticket read at an older version (StaleWrite, 12.2). Whether the order's fault has its root
+    cause written is project's check (SP-046). Its ticket closes too: from any earlier status by the allowed moves at
+    that one instant, the acknowledged, responded and resolved instants already stamped kept (SOL-14), its version
+    raised, and the move to closed logged as actor's (SP-035)."""
     stamp = _stamp(closed)
     order = check_read(conn, wo_id, read_at)
     if order.closed is not None:
@@ -197,8 +191,8 @@ def close(conn: sqlite3.Connection, wo_id: int, root_cause: str, closed: datetim
         raise WorkOrderError(f"work order {wo_id} cannot close at {stamp}, at or before it opened")
     if closed < last_stamp(conn, wo_id):
         raise WorkOrderError(f"work order {wo_id} cannot close at {stamp}, before its ticket's last move")
-    conn.execute(CLOSE_ORDER, {"stamp": stamp, "cause": cause.value, "wo_id": wo_id})
-    outbox_add(conn, wo_id, TRANSITION, stamp, cause.value)
+    conn.execute(CLOSE_ORDER, {"stamp": stamp, "wo_id": wo_id})
+    outbox_add(conn, wo_id, TRANSITION, stamp, TicketStatus.CLOSED.value)
     record_move(conn, wo_id, TicketStatus.CLOSED.value, stamp, actor)
     conn.commit()
     return get(conn, wo_id)
@@ -228,16 +222,3 @@ def open_orders(conn: sqlite3.Connection) -> tuple[WorkOrder, ...]:
 def by_asset(conn: sqlite3.Connection, asset_id: str) -> tuple[WorkOrder, ...]:
     """Every order an asset had or has, in wo_id order: by_asset(conn, "OAHE-INV-003") holds its orders alone."""
     return _select(conn, OF_ASSET, (asset_id,))
-
-
-def repeated_causes(conn: sqlite3.Connection, period: Period, at_least: int) -> tuple[tuple[str, str, int], ...]:
-    """(asset_id, root-cause code, count) for each pair closed at least `at_least` times inside the period, most first,
-    then by asset_id and code: three orders on OAHE-INV-003 closed in June with RC-COMPONENT give
-    repeated_causes(conn, june, 2) == (("OAHE-INV-003", "RC-COMPONENT", 3),). The root-cause analysis as a query."""
-    counts = Counter(
-        (order.asset_id, order.root_cause.value)
-        for order in _select(conn, CLOSED_WITH_CAUSE, ())
-        if order.closed is not None and order.root_cause is not None and period.start <= order.closed < period.end
-    )
-    pairs = [(asset_id, code, count) for (asset_id, code), count in counts.items() if count >= at_least]
-    return tuple(sorted(pairs, key=lambda pair: (-pair[2], pair[0], pair[1])))

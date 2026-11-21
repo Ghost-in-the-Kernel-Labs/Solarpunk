@@ -108,7 +108,7 @@ class Moving(unittest.TestCase):
                 self.move(target, 11)
         with self.assertRaises(WorkOrderError) as caught:
             self.move(CLOSED, 11)
-        self.assertEqual(str(caught.exception), f"work order {self.wo} closes with a root cause, by close")
+        self.assertEqual(str(caught.exception), f"work order {self.wo} closes by close, once its fault's root cause is written")
         self.assertEqual(project.ticket_of(self.conn, self.wo).status, OPEN)
         self.assertIsNone(project.ticket_of(self.conn, self.wo).acknowledged)
 
@@ -121,15 +121,16 @@ class Moving(unittest.TestCase):
             self.move(DONE, 10, 30, evidence="x")
         self.assertEqual(project.ticket_of(self.conn, self.wo).status, WORK)
 
-    def test_closing_takes_a_root_cause_closes_the_fault_and_is_final(self) -> None:
+    def test_closing_waits_for_the_root_cause_closes_the_fault_and_is_final(self) -> None:
         self.move(WORK, 11)
         self.move(DONE, 12, evidence="fuse replaced")
-        with self.assertRaises(project.UnknownRootCause):
-            project.close_work_order(self.conn, self.wo, "not-a-cause", at(2026, 6, 1, 12, 30))
+        with self.assertRaises(project.NoRootCause):
+            project.close_work_order(self.conn, self.wo, at(2026, 6, 1, 12, 30))
         self.assertEqual(project.ticket_of(self.conn, self.wo).status, DONE)
+        project.write_fault_cause(self.conn, 1, "worn fuse holder", ENGINEER, at(2026, 6, 1, 12, 10))
         with self.assertRaises(WorkOrderError):
-            project.close_work_order(self.conn, self.wo, "RC-COMPONENT", at(2026, 6, 1, 11, 30))
-        project.close_work_order(self.conn, self.wo, "RC-COMPONENT", at(2026, 6, 1, 12, 30))
+            project.close_work_order(self.conn, self.wo, at(2026, 6, 1, 11, 30))
+        project.close_work_order(self.conn, self.wo, at(2026, 6, 1, 12, 30))
         ticket = project.ticket_of(self.conn, self.wo)
         self.assertEqual((ticket.status, ticket.closed, ticket.resolved), (CLOSED, at(2026, 6, 1, 12, 30), at(2026, 6, 1, 12)))
         self.assertEqual(fault_ledger.by_asset(self.conn, INV1)[0].closed, at(2026, 6, 1, 12, 30))
@@ -139,7 +140,8 @@ class Moving(unittest.TestCase):
 
     def test_the_one_step_close_out_takes_the_moves_at_its_instant(self) -> None:
         self.move(ACK, 10, 40)
-        project.close_work_order(self.conn, self.wo, "RC-GRID", at(2026, 6, 1, 13))
+        project.write_fault_cause(self.conn, 1, "the grid tripped", ENGINEER, at(2026, 6, 1, 10, 50))
+        project.close_work_order(self.conn, self.wo, at(2026, 6, 1, 13))
         ticket = project.ticket_of(self.conn, self.wo)
         self.assertEqual((ticket.acknowledged, ticket.responded, ticket.resolved, ticket.closed),
                          (at(2026, 6, 1, 10, 40), at(2026, 6, 1, 13), at(2026, 6, 1, 13), at(2026, 6, 1, 13)))
@@ -208,7 +210,8 @@ class PastTarget(unittest.TestCase):
 
     def test_a_closed_ticket_is_past_no_target(self) -> None:
         project.assign_fault(self.conn, INV1, "INV-001", at(2026, 6, 1, 10), ENGINEER)
-        project.close_work_order(self.conn, 1, "RC-COMPONENT", at(2026, 6, 1, 18))
+        project.write_fault_cause(self.conn, 1, "worn fuse holder", ENGINEER, at(2026, 6, 1, 11))
+        project.close_work_order(self.conn, 1, at(2026, 6, 1, 18))
         self.assertEqual(project.tickets_past_target(self.conn, at(2026, 6, 2)), ())
 
 

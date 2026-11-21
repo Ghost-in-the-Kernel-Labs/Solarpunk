@@ -23,6 +23,7 @@ from solarpunk.leaf.codes import AssetKind, AssetStatus, Severity, lookup
 from solarpunk.leaf.faults import UNRECORDED, Fault, by_telemetry
 from solarpunk.leaf.telemetry import Sample
 from solarpunk.mailer import mail as mail_table
+from solarpunk.project.causes import require_cause
 from solarpunk.project.engineers import check_engineer
 from solarpunk.remote import results as result_table
 from solarpunk.remote import suggestions as suggestion_table
@@ -45,6 +46,7 @@ LATER_TABLES: tuple[tuple[str, tuple[str, ...]], ...] = (
     ("work_orders", work_ledger.schema()),
     ("suggestions", suggestion_table.schema()),
     ("accounts", account_table.schema()),
+    ("fault_causes", ledger.causes_schema()),  # 7.8, SP-046
 )
 TABLE_NAMES = "SELECT name FROM sqlite_master WHERE type = 'table'"
 
@@ -219,14 +221,16 @@ def open_preventive_work_order(conn: sqlite3.Connection, asset_id: str, opened: 
     return work_ledger.open_preventive(conn, asset_id, opened, note, Priority.P3)
 
 
-def close_work_order(conn: sqlite3.Connection, wo_id: int, root_cause: str, closed: datetime,
-                     read_at: int | None = None, actor: str | None = None) -> WorkOrder:
-    """Closes a work order with its root-cause code and, for a corrective order whose fault is still open, that fault
-    at the same instant, in one call: close_work_order(conn, 1, "RC-COMPONENT", 10:30 UTC) leaves order 1 and its
-    fault both closed at 10:30; an unknown code raises UnknownRootCause, a ticket read at an older version StaleWrite
-    (12.2), and closes neither. The close is logged in the ticket's moves as actor's (SP-035)."""
+def close_work_order(conn: sqlite3.Connection, wo_id: int, closed: datetime, read_at: int | None = None,
+                     actor: str | None = None) -> WorkOrder:
+    """Closes a work order and, for a corrective order whose fault is still open, that fault at the same instant, in
+    one call: close_work_order(conn, 1, 10:30 UTC) leaves order 1 and its fault both closed at 10:30. An order on a
+    fault closes only once the fault's root cause is written: with none, NoRootCause; a ticket read at an older version
+    StaleWrite (12.2); each closes neither. The close is logged in the ticket's moves as actor's (SP-035)."""
     # Decision: SP-011 (closing a corrective order closes its fault, in project, in one call)
-    order = work_ledger.close(conn, wo_id, root_cause, closed, read_at, actor)
+    # Decision: SP-046 (a ticket on a fault closes only once the fault's root cause is written)
+    require_cause(conn, work_ledger.get(conn, wo_id))
+    order = work_ledger.close(conn, wo_id, closed, read_at, actor)
     if order.fault_id is not None and any(f.fault_id == order.fault_id for f in ledger.open_faults(conn)):
         ledger.close(conn, order.fault_id, closed)
     return order

@@ -4,6 +4,7 @@ stored as the ISO 8601 text of an aware UTC datetime and read back aware (Invari
 checked against the assets table: project does that, since faults imports the leaf alone (MOD-05)."""
 import sqlite3
 from collections import Counter
+from dataclasses import dataclass
 from datetime import datetime
 
 from solarpunk.leaf import versions
@@ -19,6 +20,15 @@ LATER_COLUMNS = (
     (versions.COLUMN, f"ALTER TABLE faults ADD COLUMN {versions.COLUMN_SQL}"),  # 12.2
 )
 CLOSE_FAULT = f"UPDATE faults SET closed = ?, {versions.BUMP} WHERE fault_id = ?"
+# SP-046: a fault's root cause is free text an engineer writes, one row per writing, never updated or deleted; the
+# fault's cause is its latest row, an earlier one superseded and still on record.
+CREATE_CAUSES = (
+    "CREATE TABLE IF NOT EXISTS fault_causes (cause_id INTEGER PRIMARY KEY, fault_id INTEGER NOT NULL, cause TEXT NOT NULL,"
+    " written_by TEXT NOT NULL, written_at TEXT NOT NULL, recorded_by TEXT NULL)"
+)
+INSERT_CAUSE = "INSERT INTO fault_causes (fault_id, cause, written_by, written_at, recorded_by) VALUES (?, ?, ?, ?, ?)"
+SELECT_CAUSES = ("SELECT fault_id, cause, written_by, written_at, recorded_by FROM fault_causes WHERE fault_id = ?"
+                 " ORDER BY cause_id")
 INSERT_FAULT = "INSERT INTO faults (asset_id, code, opened, assigned_by, recorded_by) VALUES (?, ?, ?, ?, ?)"
 
 
@@ -34,6 +44,24 @@ def schema() -> tuple[str, ...]:
         " opened TEXT NOT NULL, closed TEXT NULL, assigned_by TEXT NOT NULL DEFAULT 'unrecorded', recorded_by TEXT NULL,"
         f" {versions.COLUMN_SQL})",
     )
+
+
+def causes_schema() -> tuple[str, ...]:
+    """The fault_causes table's statement (SP-046), for leaf.store.apply: causes_schema()[0] starts with "CREATE TABLE IF NOT
+    EXISTS fault_causes"; a store made before 7.8 gains it on reopening."""
+    return (CREATE_CAUSES,)
+
+
+@dataclass(frozen=True)
+class FaultCause:
+    """One writing of a fault's root cause: FaultCause(1, "worn fuse holder", "tech@oahe.example", 10:20 UTC, None); the
+    text is the engineer's own words, never a code; recorded_by names the operator who entered it on the engineer's word."""
+
+    fault_id: int
+    cause: str
+    written_by: str
+    written_at: datetime
+    recorded_by: str | None = None
 
 
 def upgrade(conn: sqlite3.Connection) -> None:
@@ -146,3 +174,41 @@ def repeated(conn: sqlite3.Connection, period: Period, at_least: int) -> tuple[t
     counts = Counter((f.asset_id, f.code) for f in _select(conn, "", ()) if period.start <= f.opened < period.end)
     pairs = [(asset_id, code, count) for (asset_id, code), count in counts.items() if count >= at_least]
     return tuple(sorted(pairs, key=lambda pair: (-pair[2], pair[0], pair[1])))
+
+
+def get(conn: sqlite3.Connection, fault_id: int) -> Fault:
+    """The fault with this id: get(conn, 1).fault_id is 1; get(conn, 9) on a ledger without it raises LedgerError."""
+    return _get(conn, fault_id)
+
+
+def write_cause(conn: sqlite3.Connection, fault_id: int, cause: str, written_by: str, written_at: datetime,
+                recorded_by: str | None = None) -> FaultCause:
+    """Appends one writing of a fault's root cause, who and when beside it, and returns it: write_cause(conn, 1, "worn
+    fuse holder", "tech@oahe.example", 10:20 UTC) is FaultCause(1, "worn fuse holder", "tech@oahe.example", 10:20 UTC,
+    None). A later writing supersedes an earlier one without erasing it (causes_of keeps both). Refuses, writing
+    nothing, a blank or whitespace-only cause, an unknown fault id (LedgerError) and a naive or non-UTC instant (NotUtc);
+    whether the writer is an engineer is project's check (SP-035)."""
+    # Decision: SP-046 (a root cause is free text an engineer writes, kept append-only)
+    stamp = _stamp(written_at)
+    _get(conn, fault_id)
+    text = cause.strip()
+    if not text:
+        raise LedgerError(f"fault {fault_id} needs a root cause written in words, not a blank")
+    conn.execute(INSERT_CAUSE, (fault_id, text, written_by, stamp, recorded_by))
+    conn.commit()
+    return causes_of(conn, fault_id)[-1]
+
+
+def causes_of(conn: sqlite3.Connection, fault_id: int) -> tuple[FaultCause, ...]:
+    """Every writing of a fault's root cause, oldest first: after "worn fuse" and then "worn fuse holder",
+    causes_of(conn, 1) holds both; a fault never written gives (). An unknown fault id raises LedgerError."""
+    _get(conn, fault_id)
+    return tuple(FaultCause(found, text, by, datetime.fromisoformat(stamp), recorded)
+                 for found, text, by, stamp, recorded in conn.execute(SELECT_CAUSES, (fault_id,)))
+
+
+def cause_of(conn: sqlite3.Connection, fault_id: int) -> FaultCause | None:
+    """The fault's root cause, its latest writing, or None while blank: cause_of(conn, 1).cause is "worn fuse holder"
+    after the two writings of causes_of's example; a fault never written gives None."""
+    written = causes_of(conn, fault_id)
+    return written[-1] if written else None

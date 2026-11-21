@@ -117,7 +117,7 @@ class PureTest(unittest.TestCase):
     def test_fault_lines(self) -> None:
         meaning = "Inverter offline: no AC output while irradiance is above the start threshold"
         self.assertEqual(asset_text.fault_lines(self.detail),
-                         (("INV-001", meaning, "2026-06-01 10:10 UTC", "site@oahe.example"),))
+                         (("INV-001", meaning, "2026-06-01 10:10 UTC", "site@oahe.example", "not written"),))
 
     def test_assigned_text_says_who_entered_it_and_cover(self) -> None:
         fault = project.Fault(1, INV1, "INV-001", OPENED, None, "a@oahe.example", "ops@oahe.example")

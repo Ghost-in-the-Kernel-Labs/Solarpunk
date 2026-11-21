@@ -8,6 +8,7 @@ from datetime import datetime
 from pathlib import Path
 
 from solarpunk.faults import ledger
+from solarpunk.faults.ledger import FaultCause
 from solarpunk.feed import client as feed
 from solarpunk.fleet import registry
 from solarpunk.leaf import asset_types
@@ -63,7 +64,8 @@ class AssetDetail:
     its engineer chain, its status and its open work orders (4.1, last with a default so 3.2's window keeps working):
     for OAHE-INV-003 with an open INV-001 and a work order on it, open_faults is ((that fault, "Inverter offline: …"),),
     status RED and open_orders (that order,); cover lines up with open_faults, True where the fault's engineer is not
-    the asset's own chain (SP-015); suggestions are its open suggestions, a device's first, then the newest (7.5)."""
+    the asset's own chain (SP-015); suggestions are its open suggestions, a device's first, then the newest (7.5); causes line up with open_faults too, each
+    fault's latest root cause or None while blank (7.8, SP-046)."""
 
     asset: Asset
     open_faults: tuple[tuple[Fault, str], ...]
@@ -74,6 +76,7 @@ class AssetDetail:
     diagnostics: tuple["Diagnostic", ...] = ()
     cover: tuple[bool, ...] = ()
     suggestions: tuple[Suggestion, ...] = ()
+    causes: tuple[FaultCause | None, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -152,6 +155,7 @@ def asset_detail(conn: sqlite3.Connection, asset_id: str) -> AssetDetail:
         diagnostics=diagnostics_of(conn, asset),
         cover=tuple(is_cover(conn, fault) for fault, _ in faults),
         suggestions=suggestion_table.open_suggestions(conn, asset_id),
+        causes=tuple(ledger.cause_of(conn, fault.fault_id) for fault, _ in faults),
     )
 
 

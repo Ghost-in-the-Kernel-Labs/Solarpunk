@@ -116,7 +116,8 @@ class OutboxEvent:
     """One change of a ticket waiting to reach a tracker, written in the change's own transaction (SP-027):
     OutboxEvent(1, 1, "create", 11:30 UTC, "OAHE-INV-002", "Inverter offline: …") is the demo outage's ticket opening.
     detail is the words the kind carries: the note for a create, "assignee crew B" for an update, "<author>: <words>"
-    for a comment, the new status for a transition, or the root cause for a close ("RC-COMPONENT")."""
+    for a comment, the new status for a transition, or "closed" for a close (an
+    old store's close carries its root-cause code, "RC-COMPONENT")."""
 
     event_id: int
     wo_id: int

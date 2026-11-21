@@ -50,12 +50,6 @@ Lanes (P-15): 7.7, then 7.8, then 7.9, then 7.10 the tune-up commit. Reopened by
 the demo: telemetry assigns a fault, nothing is accepted or dismissed, an engineer writes the root cause as free text,
 and a ticket opens from a failed test result, one ticket to many failed results.
 
-### 7.8 The root cause, written by an engineer
-
-A fault's root cause is blank until an engineer writes it, in words (SP-046).
-
-Check: a fault carries a root cause, blank until an engineer writes it as free text (no list, no dropdown), kept as a new row with who and when, a later writing superseding an earlier one without erasing it; `solarpunk/leaf/root_causes.py` is retired (SP-011 superseded); a ticket on a fault closes only once the fault's root cause is written; the clause register's 9001-10.2.1 row and its test say so; the asset window shows a fault's root cause and a box to write it, and `solarpunk fault cause FAULT_ID TEXT` writes one; the fast loop green.
-
 ### 7.9 A ticket from a failed test
 
 A ticket opens from the failed test run against an asset, not from the asset (SP-046).

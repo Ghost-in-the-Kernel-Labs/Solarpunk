@@ -559,7 +559,7 @@ The core decisions above are inherited (Core C-001 to C-040); this project's beg
 ### SP-011: A work order closes only with a root-cause code from a closed list in the leaf
 - **Decision:** `solarpunk/leaf/root_causes.py` holds the root-cause codes (COMPONENT, FIRMWARE, GRID, WEATHER, SENSOR, COMMS, MAINTENANCE_OVERDUE, DESIGN, UNKNOWN), each with a meaning; the `workorders` module (imports the leaf alone, MOD-05) refuses to close an order without one; closing a corrective order closes its fault, in project, in one call. A new code is a change to the leaf with its test, never a string written where the order is closed.
 - **Why:** the ghost: "a corrective action carries its cause", so root-cause analysis is a query, not a meeting; ISO 9001 10.2.1 (the one open row of the clause register) is held by a test the moment the list is closed. UNKNOWN is a code so an honest closure is possible, and so its count is visible.
-- **Held by:** `solarpunk/leaf/root_causes.py`, `test/solarpunk/iso/test_iso9001.py` (the 10.2.1 test), `docs/modules.json`.
+- **Held by:** `test/solarpunk/iso/test_iso9001.py` (the 10.2.1 test), `solarpunk/project/causes.py` (`require_cause`, since SP-046; the closed list retired by 7.8).
 - **Source:** the ghost section Ghost approved on 2026-11-17 and his word to clear the roadmap (C-040); the list the coordinator's proposal.
 - **Status:** in force
 - **See also:** SP-003, SP-010, SOL-04, SP-046

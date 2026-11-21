@@ -56,9 +56,10 @@ class Outbox(unittest.TestCase):
         project.comment_on_ticket(self.conn, 1, ENGINEER, at(2026, 6, 1, 12, 10), "on site")
         with self.assertRaises(project.BadMove):
             project.move_ticket(self.conn, 1, project.TicketStatus.ACKNOWLEDGED, at(2026, 6, 1, 12, 20))
-        project.close_work_order(self.conn, 1, "RC-COMPONENT", at(2026, 6, 1, 13))
+        project.write_fault_cause(self.conn, 1, "worn fuse holder", ENGINEER, at(2026, 6, 1, 12, 30))
+        project.close_work_order(self.conn, 1, at(2026, 6, 1, 13))
         self.assertEqual(self.kinds()[1:], [("transition", "in progress"), ("update", "assignee crew B"),
-                                            ("comment", f"{ENGINEER}: on site"), ("transition", "RC-COMPONENT")])
+                                            ("comment", f"{ENGINEER}: on site"), ("transition", "closed")])
 
     def test_the_drain_sends_oldest_first_and_the_tracker_shows_the_ticket(self) -> None:
         project.set_ticket_assignee(self.conn, 1, "crew B", at(2026, 6, 1, 12))

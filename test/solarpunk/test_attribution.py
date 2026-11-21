@@ -113,7 +113,7 @@ class WithAccounts(unittest.TestCase):
         admin = held(ADMIN, Role.ADMIN, (ALL_SITES,))
         for act in (lambda: project.move_ticket_as(self.conn, admin, wo_id, TicketStatus.ACKNOWLEDGED, OPENED),
                     lambda: project.comment_on_ticket_as(self.conn, admin, wo_id, OPENED, "x"),
-                    lambda: project.resolve_ticket_as(self.conn, admin, wo_id, "x", "RC-COMPONENT", OPENED)):
+                    lambda: project.resolve_ticket_as(self.conn, admin, wo_id, "x", OPENED)):
             with self.assertRaises(NotPermitted) as caught:
                 act()
             self.assertEqual(str(caught.exception), "admin@oahe.example is an admin and works no ticket")
@@ -124,7 +124,8 @@ class WithAccounts(unittest.TestCase):
             project.comment_on_ticket_as(self.conn, ENGINEER, wo_id, OPENED, "x", by=INVERTER)
         with self.assertRaises(NotPermitted):
             project.move_ticket_as(self.conn, None, wo_id, TicketStatus.IN_PROGRESS, OPENED)
-        self.assertEqual(project.resolve_ticket_as(self.conn, ENGINEER, wo_id, "fuse", "RC-COMPONENT", LATER).status,
+        project.write_cause_as(self.conn, ENGINEER, 1, "worn fuse holder", OPENED)
+        self.assertEqual(project.resolve_ticket_as(self.conn, ENGINEER, wo_id, "fuse", LATER).status,
                          TicketStatus.CLOSED)
 
 

@@ -1,6 +1,6 @@
 """The asset window's ticket panel (11.2, SOL-14): the asset's open ticket in one line (its priority, status and two
 targets) and its history, one line per move with who made it (SP-035), then Acknowledge; a comment with its author
-and Comment; what was done, a root cause from the closed list and Resolve, which resolves and closes in one act and closes the fault (project.resolve_ticket). A refusal is said in
+and Comment; what was done and Resolve, which resolves and closes in one act and closes the fault once its root cause is written (project.resolve_ticket; the cause is written in the asset window, SP-046). A refusal is said in
 the panel's own line, never swallowed. Each act names the version of the ticket the panel drew (12.2, SOL-16): one
 changed since by someone else is refused with SOL-16's words, and Refresh rereads it. Every act is the account signed
 in (12.4): its comments are its own and it has no "By" box; a store with no accounts keeps "By". Every string comes
@@ -20,10 +20,8 @@ COMMENT = "Comment"
 RESOLVE = "Resolve"
 BY = "By"
 DONE = "What was done"
-CAUSE = "Root cause"
 RED_TEXT = "#c0392b"
 NO_TICKET_TO_ACT_ON = "this asset has no open ticket"
-CHOOSE_CAUSE = "choose a root cause from the list"
 
 
 class TicketPanel(ttk.Frame):
@@ -60,9 +58,6 @@ class TicketPanel(ttk.Frame):
         ttk.Label(second, text=DONE).pack(side="left")
         self.done_box = ttk.Entry(second, width=30)
         self.done_box.pack(side="left", padx=4)
-        ttk.Label(second, text=CAUSE).pack(side="left")
-        self.cause_box = ttk.Combobox(second, values=ticket_text.cause_choices(), state="readonly", width=34)
-        self.cause_box.pack(side="left", padx=4)
         self.resolve_button = ttk.Button(second, text=RESOLVE, command=lambda: self.act(self.resolve))
         self.resolve_button.pack(side="left")
         last = self.row()
@@ -125,8 +120,5 @@ class TicketPanel(ttk.Frame):
         return found
 
     def resolve(self, wo_id: int) -> object:
-        """Resolve: what was done and the root cause chosen, resolved and closed now; no cause chosen is refused."""
-        if not self.cause_box.get():
-            raise ValueError(CHOOSE_CAUSE)
-        return project.resolve_ticket_as(self.conn, self.account, wo_id, self.done_box.get(),
-                                         ticket_text.cause_of(self.cause_box.get()), self.now(), self.read_at())
+        """Resolve: what was done, resolved and closed now; a fault with no root cause written yet refuses it (SP-046)."""
+        return project.resolve_ticket_as(self.conn, self.account, wo_id, self.done_box.get(), self.now(), self.read_at())

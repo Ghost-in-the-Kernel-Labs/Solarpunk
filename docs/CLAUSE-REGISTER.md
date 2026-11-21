@@ -20,7 +20,7 @@ refuses a held row with no tagged test and a tagged test with no row.
 | 9001-8.7.2 | A fault is kept as a record naming the asset, the catalogue code, when it opened and, for a failing remote test's own fault, the test that raised it | test/solarpunk/iso/test_iso9001.py::test_a_fault_records_its_asset_code_and_instant | held |
 | 9001-9.1.1 | Every number the plant is judged by has a written method and an example a person checks by hand | test/solarpunk/iso/test_iso9001.py::test_every_kpi_has_a_worked_example | held |
 | 9001-9.1.3 | A KPI says how many of its expected samples were missing and how it treated them | test/solarpunk/iso/test_iso9001.py::test_a_kpi_reports_its_gaps_beside_the_number | held |
-| 9001-10.2.1 | A work order closes only with a root-cause code from the closed list | test/solarpunk/iso/test_iso9001.py::test_a_work_order_closes_only_with_a_listed_root_cause | held |
+| 9001-10.2.1 | A ticket on a fault closes only once the fault's root cause is written | test/solarpunk/iso/test_iso9001.py::test_a_ticket_on_a_fault_closes_only_once_its_root_cause_is_written | held |
 | 9001-10.2.2 | Every flaw the project's checks prove is kept with its evidence and its status | test/solarpunk/iso/test_iso9001.py::test_every_finding_keeps_its_evidence | held |
 | 55000-6.2.1 | The conditions a KPI excludes or distrusts are catalogue codes, fixed in one place | test/solarpunk/iso/test_iso55000.py::test_the_kpi_numbers_name_catalogue_codes | held |
 | 55000-6.2.2 | An asset can name the engineer who services it, and a malformed address is refused | test/solarpunk/iso/test_iso55000.py::test_an_asset_names_its_engineer | held |

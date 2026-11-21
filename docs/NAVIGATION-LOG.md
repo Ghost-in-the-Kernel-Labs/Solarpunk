@@ -18,6 +18,12 @@ Last review: 3be733f (2026-11-21, Tune-up commit 12)
 An entry is `### <date> · <task> · <who>`, then four bullets: **Task**, **Opened** (files, in order), **Complaints**,
 **Suggestions**.
 
+### 2026-11-21 · 7.8 the root cause · mid-grade worker
+- **Task**: a fault's root cause as free text an engineer writes, append-only; a ticket closes only once it is written (J-122).
+- **Opened**: `grep -rn "root_cause\|RootCause"` first, then the product row's ledgers, `project/orchestrator.py`, the CLI and window files, the clause register.
+- **Complaints**: the brief's working set missed the files holding the dropdown and `--cause` (`ui/ticket_panel.py`, `cli/tickets.py`), which the grep found at once; `docs/DEMO.md` named in the brief does not exist.
+- **Suggestions**: a brief that removes a name builds its working set from the grep, not from the routing row.
+
 ### 2026-11-21 · 7.7 faults from telemetry · mid-grade worker
 - **Task**: a failing remote test raises its fault itself; accept and dismiss removed (J-121).
 - **Opened**: the brief's working set: `solarpunk/remote/suggestions.py`, `solarpunk/project/suggest.py`, the receiver, the CLI and UI files, `solarpunk/leaf/codes.py`, `docs/CLAUSE-REGISTER.md`, `docs/DEMO.md`, then the tests the removal broke.

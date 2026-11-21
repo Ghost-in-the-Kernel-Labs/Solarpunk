@@ -147,7 +147,7 @@ class TheStoreFile(Cli):
         conn = project.open_or_create(self.db)
         names = [row[0] for row in conn.execute("SELECT name FROM sqlite_master WHERE type = 'table' ORDER BY rowid")]
         conn.close()
-        self.assertEqual(names, ["assets", "faults", "samples", "results", "mails", "work_orders", "ticket_comments", "ticket_outbox", "ticket_moves", "suggestions", "accounts", "failed_sign_ins"])  # every module's table (2.7, 4.1, 7.4, 12.1)
+        self.assertEqual(names, ["assets", "faults", "samples", "results", "mails", "work_orders", "ticket_comments", "ticket_outbox", "ticket_moves", "suggestions", "accounts", "failed_sign_ins", "fault_causes"])  # every module's table (2.7, 4.1, 7.4, 12.1)
 
     def test_a_file_missing_a_table_is_not_taken_as_a_store(self) -> None:
         conn = sqlite3.connect(self.db)

@@ -26,6 +26,11 @@ class TheCommands(unittest.TestCase):
         project.assign_fault(conn, "OAHE-INV-001", "INV-001", at(2026, 6, 1, 12), ENGINEER)
         conn.close()
 
+    def cause(self, fault_id: str, words: str) -> None:
+        """Writes a fault's root cause through the command line as the fixtures' engineer, 12:10 on 2026-06-01."""
+        code, _, _ = self.run_cli(["fault", "cause", fault_id, *words.split(), "--by", ENGINEER, "--at", "2026-06-01T12:10:00+00:00"])
+        self.assertEqual(code, 0)
+
     def run_cli(self, words: list[str]) -> tuple[int, str, str]:
         """One command over the store: (exit code, out, err)."""
         out, err = io.StringIO(), io.StringIO()
@@ -46,9 +51,10 @@ class TheCommands(unittest.TestCase):
                          (0, "2 acknowledged\n"))
         self.assertEqual(self.run_cli(["ticket", "comment", "2", "--by", ENGINEER, "on", "my", "way",
                                       "--at", "2026-06-01T12:41:00+00:00"])[:2], (0, f"2 comment 1 by {ENGINEER}\n"))
-        code, out, _ = self.run_cli(["ticket", "resolve", "2", "--cause", "RC-COMPONENT", "--done", "fuse", "swapped",
+        self.cause("2", "worn fuse holder")
+        code, out, _ = self.run_cli(["ticket", "resolve", "2", "--done", "fuse", "swapped",
                                     "--at", "2026-06-01T14:00:00+00:00"])
-        self.assertEqual((code, out), (0, "2 closed RC-COMPONENT\n"))
+        self.assertEqual((code, out), (0, "2 closed\n"))
         conn = project.open_or_create(self.db)
         self.addCleanup(conn.close)
         self.assertEqual(list(project.open_outages(conn)), ["OAHE-INV-002"])
@@ -56,8 +62,9 @@ class TheCommands(unittest.TestCase):
         self.assertEqual([c.body for c in project.ticket_comments(conn, 2)], ["on my way"])
 
     def test_refusals_are_exit_2_and_change_nothing(self) -> None:
-        code, _, err = self.run_cli(["ticket", "resolve", "1", "--cause", "RC-NONE", "--done", "x"])
-        self.assertEqual((code, err), (2, "error: RC-NONE is not a root-cause code\n"))
+        code, _, err = self.run_cli(["ticket", "resolve", "1", "--done", "x"])
+        self.assertEqual((code, err), (2, "error: fault 1 has no root cause written: an engineer writes it before its ticket closes\n"))
+        self.assertEqual(self.run_cli(["ticket", "show", "1"])[1].count("\n"), 1)  # no move was logged
         code, _, err = self.run_cli(["ticket", "comment", "1", "--by", " ", "x"])
         self.assertEqual(code, 2)
         self.run_cli(["ticket", "ack", "1", "--at", "2026-06-01T12:00:00+00:00"])
@@ -69,12 +76,13 @@ class TheCommands(unittest.TestCase):
 
     def test_none_open_is_said(self) -> None:
         for wo_id in ("1", "2"):
-            self.run_cli(["ticket", "resolve", wo_id, "--cause", "RC-GRID", "--done", "x", "--at", "2026-06-01T15:00:00+00:00"])
+            self.cause(wo_id, "the grid tripped")
+            self.run_cli(["ticket", "resolve", wo_id, "--done", "x", "--at", "2026-06-01T15:00:00+00:00"])
         self.assertEqual(self.run_cli(["ticket", "list"])[1], "no open ticket\n")
 
     def test_the_help_lists_the_commands(self) -> None:
         out = self.run_cli(["help"])[1]
-        for line in ("ticket list", "ticket ack ID", "ticket comment ID WORDS", "ticket resolve ID --cause CODE"):
+        for line in ("ticket list", "ticket ack ID", "ticket comment ID WORDS", "ticket resolve ID --done WORDS", "fault cause FAULT_ID TEXT"):
             self.assertIn(line, out)
 
     def test_show_prints_the_line_and_each_move_of_any_status(self) -> None:
@@ -84,7 +92,8 @@ class TheCommands(unittest.TestCase):
         self.assertEqual((code, err, rest), (0, "", []))
         self.assertTrue(line.startswith("2  OAHE-INV-001  P1  acknowledged"))
         self.assertEqual(first, "  2026-06-01T12:40:00+00:00  acknowledged  nobody signed in")
-        self.run_cli(["ticket", "resolve", "2", "--cause", "RC-COMPONENT", "--done", "x", "--at", "2026-06-01T14:00:00+00:00"])
+        self.cause("2", "worn fuse holder")
+        self.run_cli(["ticket", "resolve", "2", "--done", "x", "--at", "2026-06-01T14:00:00+00:00"])
         closed = self.run_cli(["ticket", "show", "2"])[1].splitlines()
         self.assertEqual((closed[0].split("  ")[3], len(closed)), ("closed", 5))
         self.assertEqual(self.run_cli(["ticket", "show", "9"])[0], 2)

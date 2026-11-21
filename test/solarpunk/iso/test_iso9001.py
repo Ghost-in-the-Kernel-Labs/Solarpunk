@@ -98,21 +98,21 @@ class Iso9001(unittest.TestCase):
         for sid, text in sections.items():
             self.assertIn("Worked example", text, sid)
 
-    def test_a_work_order_closes_only_with_a_listed_root_cause(self) -> None:
+    def test_a_ticket_on_a_fault_closes_only_once_its_root_cause_is_written(self) -> None:
         """Clause: 9001-10.2.1
-        A corrective work order opened from a fault refuses a close with a code outside the root-cause list and changes
-        nothing; closed with RC-COMPONENT, the order carries that cause and its fault is closed in the same call."""
+        A corrective work order opened from a fault refuses a close while the fault's root cause is blank and changes
+        nothing; once an engineer writes the cause as free text, the order closes and its fault is closed in the same call."""
         conn = project.open_store()
         self.addCleanup(conn.close)
         project.load_fleet(conn, project.demo_fleet())
         fault = project.assign_fault(conn, "OAHE-INV-001", "INV-001", at(2026, 6, 1, 10), ENGINEER)
         order = project.open_work_order_from_fault(conn, fault.fault_id, at(2026, 6, 1, 10, 5), "inverter offline")
-        with self.assertRaises(project.UnknownRootCause):
-            project.close_work_order(conn, order.wo_id, "not-a-cause", at(2026, 6, 1, 11))
+        with self.assertRaises(project.NoRootCause):
+            project.close_work_order(conn, order.wo_id, at(2026, 6, 1, 11))
         self.assertEqual(project.work_orders_for(conn, "OAHE-INV-001"), (order,))
         self.assertEqual(project.open_outages(conn), {"OAHE-INV-001": fault})
-        closed = project.close_work_order(conn, order.wo_id, "RC-COMPONENT", at(2026, 6, 1, 11))
-        self.assertIs(closed.root_cause, project.RootCause.COMPONENT)
+        project.write_fault_cause(conn, fault.fault_id, "the fuse holder ran hot and failed", ENGINEER, at(2026, 6, 1, 10, 30))
+        closed = project.close_work_order(conn, order.wo_id, at(2026, 6, 1, 11))
         self.assertEqual(closed.closed, at(2026, 6, 1, 11))
         self.assertEqual(project.faults_listing(conn, True), ())
 

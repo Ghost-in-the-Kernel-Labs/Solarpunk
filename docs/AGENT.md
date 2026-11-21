@@ -49,7 +49,7 @@ stamped project inherits these lines and its tune-up pass re-measures the first.
 | Decisions without `See also` | 0 | 0 | links find what grep misses |
 | Stale generated files | 0 | 0 | AGT-05 |
 | Docs lines per source line | < 0.35 | 0.7 | Suite Builder reached 0.37 and it hurt; unarmed until there is source |
-| Cost rows since the thresholds were set | — | 10 | informational, never armed: `docs/when/grades.md`'s provisional numbers move only by a decision from these rows (C-036) |
+| Cost rows since the thresholds were set | — | 11 | informational, never armed: `docs/when/grades.md`'s provisional numbers move only by a decision from these rows (C-036) |
 
 ## Re-measuring (a tune-up pass, C-024)
 

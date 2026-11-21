@@ -1,5 +1,5 @@
 """The ticket commands (11.2, SOL-14): `ticket list` (the open tickets, the nearest target first, a breach marked),
-`ticket show ID` (its line and its moves), `ticket ack ID`, `ticket comment ID WORDS…` and `ticket resolve ID --cause CODE --done WORDS…`, each one project call
+`ticket show ID` (its line and its moves), `ticket ack ID`, `ticket comment ID WORDS…` and `ticket resolve ID --done WORDS…`, each one project call
 (MOD-02) at the instant --at names, now when it names none, as the account signed in (12.4; a store with no accounts
 names a comment's author with --by). main.py adds them to its parser."""
 import argparse
@@ -82,10 +82,10 @@ def ticket_comment(conn: sqlite3.Connection, args: argparse.Namespace, out: Text
 
 
 def ticket_resolve(conn: sqlite3.Connection, args: argparse.Namespace, out: TextIO) -> None:
-    """ticket resolve 1 --cause RC-COMPONENT --done fuse swapped: resolves and closes the ticket and its fault; prints
-    "1 closed RC-COMPONENT"."""
-    found = project.resolve_ticket_as(conn, args.account, args.wo_id, " ".join(args.done), args.cause, moment_of(args))
-    out.write(f"{found.wo_id} {found.status.value} {args.cause}\n")
+    """ticket resolve 1 --done fuse swapped: resolves and closes the ticket and its fault once the fault's root cause is
+    written (`fault cause`, SP-046); prints "1 closed"; without it, "error: fault 1 has no root cause written: …"."""
+    found = project.resolve_ticket_as(conn, args.account, args.wo_id, " ".join(args.done), moment_of(args))
+    out.write(f"{found.wo_id} {found.status.value}\n")
 
 
 def add_tickets(commands: argparse._SubParsersAction) -> None:
@@ -106,7 +106,6 @@ def add_tickets(commands: argparse._SubParsersAction) -> None:
     comment.set_defaults(handler=ticket_comment)
     resolve = acting(ticket.add_parser("resolve"))
     resolve.add_argument("wo_id", type=int)
-    resolve.add_argument("--cause", required=True)
     resolve.add_argument("--done", nargs="+", required=True)
     resolve.set_defaults(handler=ticket_resolve)
     for parser in (listing, show, ack, comment, resolve):

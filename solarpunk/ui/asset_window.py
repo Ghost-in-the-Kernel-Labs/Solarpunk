@@ -3,7 +3,8 @@
 then passing), its
 earlier suggestions, read only (7.7, SP-046: a failing test or a device raises its fault itself, so nothing is accepted
 or dismissed; a store made before 7.7 shows what it holds), a form
-to assign a catalogue code, and the engineer with Save and Cancel. Who an act is recorded as is the account signed in
+to assign a catalogue code, each open fault's root cause beside it and a box to write the selected fault's (7.8, SP-046:
+free text an engineer writes, a new writing superseding the last), and the engineer with Save and Cancel. Who an act is recorded as is the account signed in
 (12.4): an engineer acts as themself and sees no picker, an operator names the engineer "On the word of"; a store with
 no accounts keeps "Assigned by" and "Entered by". A write names the version of the record the window drew (12.2): a
 stale one is refused with SOL-16's words, and Refresh rereads and redraws. Every string and colour it shows comes from
@@ -16,7 +17,8 @@ from datetime import datetime, timezone
 from tkinter import ttk
 
 from solarpunk.ui import cells
-from solarpunk.ui.asset_text import (ASSIGN_TEXT, ASSIGN_TITLE, CANCEL_TEXT, CHOOSE_CODE,
+from solarpunk.ui.asset_text import (ASSIGN_TEXT, ASSIGN_TITLE, CANCEL_TEXT, CAUSE_TITLE, CAUSE_WRITE_TEXT, CHOOSE_CODE,
+    CHOOSE_FAULT,
     CHOOSE_ENGINEER, CHOOSE_WORD, DIAGNOSTICS_TITLE, ENGINEER_TITLE,
     ENTERED_BY_TITLE, FAILING_TAG, FAULT_COLUMNS, FAULT_HEADINGS, FAULT_WIDTHS, GREY_TEXT, NOT_RUN_TAG,
     OPEN_FAULTS_TITLE, RED_TEXT, REFUSALS, RESULT_COLUMNS, RESULT_HEADINGS, RESULT_WIDTHS, SAVE_TEXT,
@@ -62,6 +64,7 @@ class AssetWindow(tk.Toplevel):
         for column, width in zip(SUGGESTION_COLUMNS, SUGGESTION_WIDTHS):
             self.suggestion_tree.column(column, width=width, stretch=column == "reason")
         self.build_assign()
+        self.build_cause()
         self.build_engineer()
         self.ticket_panel = TicketPanel(self, conn, asset_id, self.ticket_changed, account=account)  # 11.2, 12.4
         self.ticket_panel.pack(fill="x", padx=8, pady=4)
@@ -125,6 +128,16 @@ class AssetWindow(tk.Toplevel):
             self.entered_by_box = ttk.Entry(who, width=30)
             self.entered_by_box.pack(side="left", padx=4)
 
+    def build_cause(self) -> None:
+        """The "Root cause" row: a free-text box, never a list, and Write, which records it for the selected open fault."""
+        row = ttk.Frame(self)
+        row.pack(fill="x", padx=8, pady=4)
+        ttk.Label(row, text=CAUSE_TITLE).pack(side="left")
+        self.cause_box = ttk.Entry(row, width=60)
+        self.cause_box.pack(side="left", padx=4)
+        self.cause_button = ttk.Button(row, text=CAUSE_WRITE_TEXT, command=self.write_cause)
+        self.cause_button.pack(side="left")
+
     def build_engineer(self) -> None:
         """The "Engineer" row: an editable dropdown of the fleet's known addresses, then Save and Cancel."""
         row = ttk.Frame(self)
@@ -148,8 +161,8 @@ class AssetWindow(tk.Toplevel):
         self.status_label.configure(text=status_line(detail.status), foreground=colour_of(detail.status))
         self.ticket_panel.refresh()
         self.fault_tree.delete(*self.fault_tree.get_children())
-        for fault_row in fault_lines(detail):
-            self.fault_tree.insert("", "end", values=fault_row)
+        for (found, _meaning), fault_row in zip(detail.open_faults, fault_lines(detail)):
+            self.fault_tree.insert("", "end", iid=str(found.fault_id), values=fault_row)
         self.result_tree.delete(*self.result_tree.get_children())
         for result_row in result_lines(detail):
             self.result_tree.insert("", "end", values=result_row, tags=row_tags(result_row))
@@ -185,6 +198,30 @@ class AssetWindow(tk.Toplevel):
             self.message.configure(text=refusal_text(refusal))
             return
         self.message.configure(text="")
+        self.fill(project.asset_detail(self.conn, self.asset_id))
+        self.on_change()
+
+    def write_cause(self) -> None:
+        """Writes the box's words as the selected open fault's root cause (the only open fault when none is selected), now
+        (UTC), as the account signed in or as named (SP-046, 12.4); a new writing supersedes the last and erases nothing. No
+        fault chosen, no engineer chosen where one is asked, a blank or any refusal shows in the message line."""
+        chosen = self.fault_tree.selection()
+        if not chosen and len(self.detail.open_faults) == 1:
+            chosen = (str(self.detail.open_faults[0][0].fault_id),)
+        if not chosen:
+            self.message.configure(text=CHOOSE_FAULT)
+            return
+        names = self.named()
+        if names is None:
+            return
+        try:
+            project.write_cause_as(self.conn, self.account, int(chosen[0]), self.cause_box.get(),
+                                   datetime.now(timezone.utc), *names)
+        except REFUSALS as refusal:
+            self.message.configure(text=refusal_text(refusal))
+            return
+        self.message.configure(text="")
+        self.cause_box.delete(0, "end")
         self.fill(project.asset_detail(self.conn, self.asset_id))
         self.on_change()
 
