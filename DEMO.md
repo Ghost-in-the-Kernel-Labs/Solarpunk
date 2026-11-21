@@ -113,6 +113,10 @@ derate on OAHE-INV-001 (10:00 to 10:45). The run is stamped 2026-06-01 13:00 UTC
    its acknowledgement "OVERDUE, due 2026-06-01 12:30 UTC" (the demo's run is at 13:00; on a later clock the response
    is overdue too). A double click opens the asset window, whose **Ticket** panel acknowledges, comments (By an
    engineer) and resolves (what was done and a root cause), which closes the fault.
+
+   **Tests** (beside Tickets) opens the Tests window: one row per remote test with its kinds, the count of assets it ran
+   on, its last run and duration, passes, failures and no data. Select `reachable`: its log lists its newest runs, the
+   failures (OAHE-SEN-001, and OAHE-INV-002's unreachable feed) in red, a duration "—" where none was timed.
 ## The five-minute talk track
 
 2. **Line of sight (ISO 55000).** The site's purpose is energy delivered; that becomes a KPI contract
