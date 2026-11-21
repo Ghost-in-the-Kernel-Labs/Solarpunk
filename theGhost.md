@@ -848,3 +848,13 @@ The core decisions above are inherited (Core C-001 to C-040); this project's beg
 - **Status:** in force
 - **See also:** SP-001, C-024
 - **subject:** lineage
+
+### SP-041: The philosophy's opening is the lineage's shared text, word for word
+- **Decision:** `docs/GHOST-IN-THE-KERNEL.md` opens with the Ghost-in-the-Kernel text exactly as Suite Builder carries it (from "Software eventually outlives" to "no longer agrees with its foundations"), then Solarpunk's own sections, unchanged; the closing re-entry line names the engineer who inherits the code as well as the agent and the maintainer. Suite Builder's own sections (its G- and SRC- rules, its TypeScript tests) are not carried: none of their files exist here.
+- **Why:** The copy stamped through Ghost-Core was a condensed paraphrase that had dropped extensible truth, three of the five "nothing should float" lines, "we do not want software that merely works", and the new and the returning engineer as readers, naming only the agent. Solarpunk is to be maintained by people for a time, so the readers it names matter. Ghost, 2026-11-21, in chat, on the comparison with Suite Builder's page: "Yes, update that."
+- **Supersedes:** none.
+- **Held by:** `docs/GHOST-IN-THE-KERNEL.md`.
+- **Source:** Ghost, in chat, 2026-11-21.
+- **Status:** in force
+- **See also:** SP-040
+- **subject:** philosophy

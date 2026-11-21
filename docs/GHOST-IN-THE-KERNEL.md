@@ -1,26 +1,77 @@
 # Ghost in the Kernel
 
-Software outlives the context it was written in. People leave. Requirements change. The person who
-knew *why* a thing was built the way it was stops being reachable. The code keeps running. Nobody
-can say what it is for.
+Software eventually outlives the context in which it was written.
+
+People leave. Teams change. Requirements evolve. Implementations are replaced. Documentation
+becomes stale. And the person who knew *why* something was built a particular way may no longer be
+available to explain it.
+
+Ghost-in-the-Kernel is a philosophy for designing against that problem.
 
 **The ghost is intent. The kernel is the codebase.**
 
-Ghost in the Kernel is a way of building against that loss. Its one principle:
+The principle is simple:
 
 > **The system should remember why it exists.**
 
-Intent should become semantics. Semantics should become constraints. Constraints should govern
-implementation. Implementation should produce evidence. Evidence should let the system check that
-the implementation still agrees with the intent. Nothing important floats: a function does not exist
-because that is where someone put it; a threshold does not exist because it seemed right; a number
-does not appear in a document without the run that produced it.
+We believe software should be built from a chain of foundations in which each layer can be traced
+back to something more fundamental.
 
-The answer is not more comments and not more memorizing. It is to put the reasoning *into* the
-system, as things a machine can check: specifications, semantic models, rules, invariants,
-provenance, tests, evidence, tooling. They are the code's memory. The purpose is re-entry: an agent
-should be able to operate in the repository without being trusted to invent its architecture, and
-the system should have enough structure to expose a misunderstanding when one is brought in.
+Intent should become semantics. \
+Semantics should become constraints. \
+Constraints should govern implementation. \
+Implementation should produce evidence. \
+Evidence should allow the system to verify that implementation still reflects intent.
+
+Nothing important should simply float.
+
+A function should not exist because “that's where someone put it.” \
+A threshold should not exist because “it seemed right.” \
+A name should not require tribal knowledge to interpret. \
+An abstraction should not depend on a vanished conversation. \
+A generated artifact should not lose the reasoning that produced it.
+
+When the answer to **“why?”** disappears, the codebase has lost part of its ghost.
+
+The answer is not to write more comments everywhere or to demand that engineers memorize more
+architecture.
+
+The answer is to **externalize the reasoning into the system itself**.
+
+Specifications. \
+Semantic models. \
+Rules. \
+Invariants. \
+Provenance. \
+Tests. \
+Evidence. \
+Tooling.
+
+These are not accessories to the code. They are part of the codebase's memory.
+
+This produces what we call **extensible truth**: a system in which new layers can be built upon
+existing foundations without severing the chain of reasoning that connects implementation back to
+intent.
+
+The purpose is re-entry.
+
+A new engineer should be able to enter the system without knowing its history.
+
+An experienced engineer should be able to return after months away without reconstructing it from
+memory.
+
+An AI agent should be able to operate within it without being trusted to invent the architecture.
+
+And when any of them misunderstands the system, the system should have enough structure to expose
+that misunderstanding.
+
+**We do not want software that merely works.**
+
+We want software that can explain why it works, preserve that explanation as it evolves, and provide
+evidence when the implementation no longer agrees with its foundations.
+
+The opening above is the lineage's shared text, word for word as Suite Builder carries it (SP-041); what follows is
+Solarpunk's own.
 
 ## This project's ghost
 
@@ -110,8 +161,9 @@ report it.
 system other agents can still reason about. An agent that guesses leaves a kernel with a little less
 ghost in it.
 
-The purpose is re-entry. Yours, the next agent's, and the maintainer's, after months away. If the
-repository can be entered cold and understood, the philosophy is working. If it cannot, that is a
+The purpose is re-entry. Yours, the next agent's, the maintainer's after months away, and the engineer's who
+inherits Solarpunk without anyone to ask. If the repository can be entered cold and understood, by a person or an
+agent, the philosophy is working. If it cannot, that is a
 finding, and the fix goes in the tune-up.
 
 *Ghost in the Kernel Labs*
