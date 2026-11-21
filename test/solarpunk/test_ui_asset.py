@@ -13,14 +13,14 @@ from solarpunk.leaf.clock import at
 from solarpunk.leaf.codes import AssetKind, AssetStatus, codes_for
 from solarpunk.remote import registry as remote_registry
 from solarpunk.remote import results
-from solarpunk.ui import demo
+from solarpunk.ui import asset_text, demo
 
 ENGINEER = "site@oahe.example"  # SP-015: a fault names the engineer who assigned it; the fixtures' site engineer
 
 try:
     import tkinter
 
-    from solarpunk.ui import asset_text, asset_window
+    from solarpunk.ui import asset_window
 except ModuleNotFoundError as missing:  # a Python built without Tk: the fast loop's python3 in some sessions
     if missing.name != "tkinter":
         raise
@@ -46,8 +46,11 @@ NEVER = "no result yet: the scheduled run has not tested this asset"
 # registry holds never ran on it, so it follows the folder (SP-017).
 NEVER_RUN = sorted(test.name for test in remote_registry.tests_for(AssetKind.INVERTER)
                    if test.name not in ("on_grid", "reachable"))
-DIAGNOSTIC_ROWS = (("on_grid", "FAIL", OFF_GRID), *[(name, "not run", NEVER) for name in NEVER_RUN],
-                   ("reachable", "pass", "3 records"))
+# 13.6: on_grid ran at 12:00 taking 42 ms; reachable ran then untimed (duration "—"); the others never ran ("never", "—").
+LAST_RUN = "2026-06-01 12:00 UTC"
+DIAGNOSTIC_ROWS = (("on_grid", "FAIL", LAST_RUN, "42 ms", OFF_GRID),
+                   *[(name, "not run", "never", "—", NEVER) for name in NEVER_RUN],
+                   ("reachable", "pass", LAST_RUN, "—", "3 records"))
 
 
 def display_available() -> bool:
@@ -72,8 +75,17 @@ def fixture_store() -> sqlite3.Connection:
     project.assign_fault(conn, INV1, "INV-001", OPENED, ENGINEER)
     results.record(conn, "reachable", INV1, RUN_AT - timedelta(hours=1), results.Result(False, "stale"))
     results.record(conn, "reachable", INV1, RUN_AT, results.Result(True, "3 records"))
-    results.record(conn, "on_grid", INV1, RUN_AT, results.Result(False, OFF_GRID))
+    results.record(conn, "on_grid", INV1, RUN_AT, results.Result(False, OFF_GRID), duration_ms=42)
     return conn
+
+
+class DurationWordsTest(unittest.TestCase):
+    """13.6: a duration in the window's words, headless."""
+
+    def test_milliseconds_below_a_second_seconds_above_dash_for_none(self) -> None:
+        self.assertEqual([asset_text.duration_words(ms) for ms in (0, 42, 999, 1000, 1049, 1050, 2350, 61000)],
+                         ["0 ms", "42 ms", "999 ms", "1.0 s", "1.0 s", "1.1 s", "2.4 s", "61.0 s"])
+        self.assertEqual(asset_text.duration_words(None), "\u2014")
 
 
 @unittest.skipUnless(asset_window is not None, "no tkinter")
@@ -131,9 +143,9 @@ class PureTest(unittest.TestCase):
         self.assertEqual(asset_text.result_lines(self.detail), DIAGNOSTIC_ROWS)
 
     def test_row_tags(self) -> None:
-        self.assertEqual(asset_text.row_tags(("on_grid", "FAIL", OFF_GRID)), ("failing",))
-        self.assertEqual(asset_text.row_tags((NEVER_RUN[0], "not run", NEVER)), ("notrun",))
-        self.assertEqual(asset_text.row_tags(("reachable", "pass", "3 records")), ())
+        self.assertEqual(asset_text.row_tags(("on_grid", "FAIL", LAST_RUN, "42 ms", OFF_GRID)), ("failing",))
+        self.assertEqual(asset_text.row_tags((NEVER_RUN[0], "not run", "never", "—", NEVER)), ("notrun",))
+        self.assertEqual(asset_text.row_tags(("reachable", "pass", LAST_RUN, "—", "3 records")), ())
 
     def test_code_labels(self) -> None:
         labels = asset_text.code_labels(codes_for(AssetKind.INVERTER))
@@ -204,11 +216,12 @@ class WindowTest(unittest.TestCase):
         self.assertEqual(titles, ["Open faults", "Diagnostics", asset_text.SUGGESTED_TITLE])  # 7.5
         self.assertEqual([window.fault_tree.heading(c, "text") for c in ("code", "meaning", "opened", "by")],
                          ["Code", "Meaning", "Opened", "Assigned by"])
-        self.assertEqual([window.result_tree.heading(c, "text") for c in ("test", "result", "reason")],
-                         ["Test", "Result", "Reason"])
+        self.assertEqual([window.result_tree.heading(c, "text") for c in asset_text.RESULT_COLUMNS],
+                         ["Test", "Result", "Last run", "Duration", "Reason"])
         self.assertEqual(str(window.result_tree.tag_configure("failing", "foreground")), "#c0392b")
         self.assertEqual(str(window.result_tree.tag_configure("notrun", "foreground")), "#808080")
-        self.assertEqual([window.result_tree.column(c, "width") for c in ("test", "result")], [190, 70])
+        self.assertEqual([window.result_tree.column(c, "width") for c in ("test", "result", "last_run", "duration")],
+                         [190, 70, 165, 80])
         self.assertGreaterEqual(window.result_tree.column("reason", "width"), 480)  # it stretches to the window
         self.assertEqual([window.fault_tree.column(c, "width") for c in ("code", "meaning", "opened")], [70, 175, 165])
         self.assertGreaterEqual(window.fault_tree.column("by", "width"), 470)

@@ -83,13 +83,15 @@ class AssetDetail:
 class Diagnostic:
     """One remote test as the asset window reads it (6.4): its name, "fail", "no data" (SP-039), "not run" or "pass",
     the reason, and the run it came from: Diagnostic("on_grid", "fail", "10:05: off the grid", 2026-06-01T12:00Z); a test the registry
-    holds for the kind and the store has no result of is Diagnostic(name, "not run", NEVER_RUN_REASON, None)."""
+    holds for the kind and the store has no result of is Diagnostic(name, "not run", NEVER_RUN_REASON, None); duration_ms
+    is the milliseconds the stored result took (13.6), None for a test never run or a result never timed, never 0."""
 
     test_name: str
     state: str
     reason: str
     run_at: datetime | None
     result_id: int | None = field(default=None, compare=False)  # 7.9: the stored result a ticket opens from
+    duration_ms: int | None = field(default=None, compare=False)  # 13.6: Recorded.duration_ms
 
 
 def row_of(conn: sqlite3.Connection, asset: Asset) -> AssetRow:
@@ -177,7 +179,7 @@ def diagnostics_of(conn: sqlite3.Connection, asset: Asset) -> tuple[Diagnostic, 
         if result is None:
             found.append(Diagnostic(name, NOT_RUN, NEVER_RUN_REASON, None))
         else:
-            found.append(Diagnostic(name, state_of(result), result.reason, result.run_at, result.result_id))
+            found.append(Diagnostic(name, state_of(result), result.reason, result.run_at, result.result_id, result.duration_ms))
     return tuple(sorted(found, key=lambda diagnostic: STATE_ORDER.index(diagnostic.state)))
 
 

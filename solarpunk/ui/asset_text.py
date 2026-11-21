@@ -11,6 +11,8 @@ from solarpunk.leaf.codes import AssetStatus, FaultCode, lookup
 
 # The words and colours the window shows live here, at module level, where mutmut does not reach (J-008, J-014).
 NONE_WORD = "none"
+NEVER_WORD = "never"  # 13.6: the last-run cell of a test never run on the asset
+UNRECORDED_WORD = "—"  # 13.6: the duration cell of a result stored without one
 PASS_WORD = "pass"
 FAIL_WORD = "FAIL"
 NOT_RUN_WORD = "not run"
@@ -33,10 +35,10 @@ FAULT_COLUMNS = ("code", "meaning", "opened", "by", "cause")
 FAULT_HEADINGS = ("Code", "Meaning", "Opened", "Assigned by", "Root cause")
 # The open faults' column widths in px: who assigned it, with an operator and cover, is the longest cell (SP-015).
 FAULT_WIDTHS = (70, 175, 165, 470, 260)
-RESULT_COLUMNS = ("test", "result", "reason")
-RESULT_HEADINGS = ("Test", "Result", "Reason")
+RESULT_COLUMNS = ("test", "result", "last_run", "duration", "reason")
+RESULT_HEADINGS = ("Test", "Result", "Last run", "Duration", "Reason")
 # The diagnostics' column widths in px: the reason is the column a reader needs whole (6.4).
-RESULT_WIDTHS = (190, 70, 480)
+RESULT_WIDTHS = (190, 70, 165, 80, 480)
 OPEN_FAULTS_TITLE = "Open faults"
 DIAGNOSTICS_TITLE = "Diagnostics"
 ASSIGN_TITLE = "Assign a fault"
@@ -131,11 +133,23 @@ def fault_lines(detail: project.AssetDetail) -> tuple[tuple[str, str, str, str, 
                  for (fault, meaning), cover, written in zip(detail.open_faults, detail.cover, causes))
 
 
-def result_lines(detail: project.AssetDetail) -> tuple[tuple[str, str, str], ...]:
-    """The diagnostics' rows (test, result, reason) in the detail's order (6.4): every remote test of the asset's kind,
-    failing first, then no data, then never run, then passing: a failed on_grid, five tests never run and a passed reachable give
-    ("on_grid", "FAIL", "10:05: off the grid") first and ("reachable", "pass", "3 records") last."""
-    return tuple((found.test_name, STATE_WORDS[found.state], found.reason) for found in detail.diagnostics)
+def duration_words(ms: int | None) -> str:
+    """A test's duration in the window's words (13.6): "<n> ms" below 1000 ms, "<x.x> s" at or above, "—" for None:
+    duration_words(42) is "42 ms", duration_words(999) "999 ms", duration_words(1000) "1.0 s", duration_words(2350) "2.4 s",
+    duration_words(None) "—"."""
+    if ms is None:
+        return UNRECORDED_WORD
+    return f"{ms} ms" if ms < 1000 else f"{ms / 1000:.1f} s"
+
+
+def result_lines(detail: project.AssetDetail) -> tuple[tuple[str, str, str, str, str], ...]:
+    """The diagnostics' rows (test, result, last run, duration, reason) in the detail's order (6.4, 13.6): every remote
+    test of the asset's kind, failing first, then no data, then never run, then passing: a failed on_grid run at 12:00
+    taking 42 ms gives ("on_grid", "FAIL", "2026-06-01 12:00 UTC", "42 ms", "10:05: off the grid"); a test never run on the
+    asset gives (name, "not run", "never", "—", reason); a result stored untimed shows "—" for its duration."""
+    return tuple((found.test_name, STATE_WORDS[found.state],
+                  found.run_at.strftime(OPENED_FORMAT) if found.run_at else NEVER_WORD,
+                  duration_words(found.duration_ms), found.reason) for found in detail.diagnostics)
 
 
 def suggestion_lines(detail: project.AssetDetail) -> tuple[tuple[str, str, str, str, str], ...]:
@@ -146,7 +160,7 @@ def suggestion_lines(detail: project.AssetDetail) -> tuple[tuple[str, str, str, 
                   found.raised_at.strftime(OPENED_FORMAT)) for found in detail.suggestions)
 
 
-def row_tags(line: tuple[str, str, str]) -> tuple[str, ...]:
+def row_tags(line: tuple[str, ...]) -> tuple[str, ...]:
     """The tags a diagnostics row carries: ("failing",) for a FAIL row, drawn red; ("notrun",) for a test never run or
     one with no data (SP-039), drawn grey; () for a pass row."""
     if line[1] == FAIL_WORD:
