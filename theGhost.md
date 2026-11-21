@@ -947,3 +947,13 @@ The core decisions above are inherited (Core C-001 to C-040); this project's beg
 - **Status:** in force
 - **See also:** SP-016, SP-039
 - **subject:** test record
+
+### SP-051: The windows show the record as measured and stored
+- **Decision:** A duration reads as measured: a test that takes under a millisecond reads "0 ms", never rounded up, and "—" is kept for a duration never recorded. The Tests window counts every stored `all`-suite result, so a dead feed's ping, which stores its own failed `reachable` beside the suite's, counts as a failure of its own. The window's log of runs leaves out the suite, and an overview row with any failure is drawn red. All as 13.6 and 13.7 built them (J-134, J-135).
+- **Why:** Ghost, 2026-11-21, of the coordinator's recommendations after 13.7: "go with your recommendations", each to keep what was built. A rounded duration would tell a reader something the clock did not, and a count that hid the ping's result would show fewer failures than the store holds; nothing is hidden (SP-016).
+- **Supersedes:** none.
+- **Held by:** `solarpunk/ui/asset_text.py` (`duration_words`), `solarpunk/ui/record_text.py`, `test/solarpunk/test_ui_asset.py`, `test/solarpunk/test_ui_record.py`.
+- **Source:** Ghost, in chat, 2026-11-21.
+- **Status:** in force
+- **See also:** SP-016, SP-050
+- **subject:** test record

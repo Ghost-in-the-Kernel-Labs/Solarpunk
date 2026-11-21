@@ -94,3 +94,4 @@ Written by `scripts/decisions_index.py` from `theGhost.md`; do not edit here. Se
 | SP-048 | Historical mode: the tests replay over years of stored readings to build the matrix for a whole history | in force | history |
 | SP-049 | Bursts in the demo and on request; the ripple threshold; a reaction raises a fault | in force | remote tests |
 | SP-050 | The tests' record counts the run of every test; its edges read empty | in force | test record |
+| SP-051 | The windows show the record as measured and stored | in force | test record |

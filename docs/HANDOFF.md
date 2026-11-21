@@ -186,11 +186,11 @@ email on the asset, a mailer to those engineers on degradation, and the Save/Can
     its suite; an unknown test name, and a limit below 1, give () rather than a refusal; the ping's failed `reachable`
     is untimed (None). Say if any should change before 13.7 shows them.
 
-22. From 13.6 (J-134): a test that judges stored samples takes under a millisecond, so the asset window reads "0 ms"
+22. Settled 2026-11-21 (SP-051): "go with your recommendations", as built. From 13.6 (J-134): a test that judges stored samples takes under a millisecond, so the asset window reads "0 ms"
     for most of the demo's tests (measured, not missing; only the ping's untimed `reachable` reads "—"). Say if a
     measured duration should round up to 1 ms, or read "<1 ms".
 
-23. From 13.7 (J-135), the Tests window's readings: the log leaves out the suite; an overview row with any failure is
+23. Settled 2026-11-21 (SP-051): as built. From 13.7 (J-135), the Tests window's readings: the log leaves out the suite; an overview row with any failure is
     red; `reachable` over the demo reads 3 failures where 2 assets are down, since a dead feed's ping stores its own
     failed `reachable` beside the suite's (J-050's double). Say if the overview should count one per run instead.
 

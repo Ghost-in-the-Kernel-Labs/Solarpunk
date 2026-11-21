@@ -139,3 +139,4 @@ Written from `docs/journal/` by `scripts/journal_index.py`; do not edit by hand.
 | J-133 | 13.7's files collide with 9.8's | contradiction | `J-100-199.md` |
 | J-134 | 13.6: last run in the asset window | feature | `J-100-199.md` |
 | J-135 | 13.7: the Tests window | feature | `J-100-199.md` |
+| J-136 | SP-051: the windows show the record as measured | decision | `J-100-199.md` |
