@@ -1,5 +1,5 @@
 """Irradiance in range: every irradiance an inverter's or a weather station's feed reports lies inside the maintenance
-list's range for the asset's kind (0 to 1500 W/m², docs/ASSET-MAINTENANCE-LIST.md). Irradiance is the performance
+list's range for the asset's kind (-5 to 1500 W/m², docs/ASSET-MAINTENANCE-LIST.md). Irradiance is the performance
 ratio's denominator (SOL-08), so a sensor reading out of range is named on its own, apart from on_grid's sweep over
 every field. Evidences ISO 9001 9.1.3 (the data is fit to analyse) and ISO 55000 7.5 (the information held about the
 asset is what the list says it is)."""

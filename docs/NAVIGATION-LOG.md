@@ -35,3 +35,9 @@ An entry is `### <date> · <task> · <who>`, then four bullets: **Task**, **Open
 - **Opened**: CLAUDE.md, TODO.md, docs/ROADMAP.md, theGhost.md, the journal, solarpunk/accounts/table.py, solarpunk/project/access.py, solarpunk/cli/accounts.py, solarpunk/project/tickets.py, solarpunk/cli/tickets.py, solarpunk/cli/main.py, docs/CONTRACT.md, docs/modules.json, the three test files.
 - **Complaints**: a first draft put a new test after `if __name__ == "__main__"`, caught by ruff. The random ResourceWarning failure in a test outside the working set blocked the gate.
 - **Suggestions**: close the stores the earlier test files leave open (J-033), so a test that captures stderr does not depend on when garbage is collected.
+
+### 2026-11-21 · 12.10 the field thresholds · strong-grade agent
+- **Task**: 12.10.
+- **Opened**: CLAUDE.md, TODO.md, docs/ROADMAP.md, theGhost.md, the journal, docs/paths/product.md, docs/paths/process.md, on_grid.py, power_under_rated.py, asset_types.json, asset_types.py, docs/ASSET-MAINTENANCE-LIST.md, scripts/checks/asset_types.py, irradiance_in_range.py, solarpunk/feed/client.py, solarpunk/telemetry/field.py, test/fixtures/pvdaq/, test_field.py, docs/FIELD-DATA.md, solarpunk/project/field.py, test_remote.py, test_diagnostics.py.
+- **Complaints**: `test_diagnostics` pins the irradiance edge, but the product row names it only for counts, so it was found by a failure. `field baseline` prints no count of no-data days, so splitting what 12.9 moved needed a script of its own. The S3 listing for 9069 stops at 1,000 keys, so files are asked for by prefix.
+- **Suggestions**: `docs/FIELD-DATA.md` could give the exact fetch method (object paths, a binary search on `measured_on`); the baseline could print a no-data column.

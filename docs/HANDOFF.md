@@ -5,8 +5,8 @@ Read `CLAUDE.md` first, then this. `TODO.md` is the chain in order; `docs/DONE.m
 ## Start here (2026-11-21, the session that ended at Tune-up pass 12)
 
 Phase 12 is closed but for 12.7, which waits in Phase W. `main` is clean and pushed, every landing through the fast
-gate, the pass through the full gate (cold 1.47 min, warm 1.50 min, fast loop 24.35 s). **Next: 12.10**, then the tune-up commit 12.12; 12.9 and 12.11
-landed (J-107, J-108): Phase 12 reopened by SP-039 for Ghost's eleven calls (J-106), ahead of Phase 13. 12.9 adds the
+gate, the pass through the full gate (cold 1.47 min, warm 1.50 min, fast loop 24.35 s). **Next: the tune-up commit 12.12**, closing the reopened
+Phase 12; 12.9, 12.11 and 12.10 landed (J-107, J-108, J-109): Phase 12 reopened by SP-039 for Ghost's eleven calls (J-106), ahead of Phase 13. 12.9 adds the
 "no data" result, which 13.1's test contract then writes down. Then 13.1 and 13.2.
 
 What this session landed, newest first (the journal has each):
@@ -151,6 +151,12 @@ email on the asset, a mailer to those engineers on degradation, and the Save/Can
     solarpunk.remote.run` exits 3 for no data; a run with failures and no data reads "N failed" in the Runs window.
     From 12.11 (J-108): `ticket show` signs in as the other ticket commands do, though it only reads; say if a read
     should need no sign-in.
+17. From 12.10 (J-109): `solarpunk/feed/client.py` refuses a live reading outside the list's range, and the list keeps an
+    inverter's power minimum at 0 (the -2% floor is `on_grid`'s, per rating), so a real inverter's night draw is refused
+    at the feed before `on_grid` sees it. The likely fix: the feed holds power to the same per-asset range as `on_grid`,
+    which means moving `field_range` where both can reach it (the leaf), a module question. Also: irradiance from -5 to
+    0 now enters the performance ratio's reference sum as a small negative term (`solarpunk/kpi/performance.py`);
+    clamping it to 0 there would be a change to SOL-08's arithmetic.
 
 ## Advisories under the gate's threshold (Tune-up pass 12; unchanged since pass 0)
 

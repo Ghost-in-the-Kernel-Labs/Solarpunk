@@ -10,8 +10,12 @@ the JSON's tests.
 
 Ranges include both ends. A max of `—` (null in the JSON) means the list sets no fixed ceiling: the loader's
 `in_range` takes it as unbounded above. For an inverter's `power_kw` the ceiling is the asset's own rated value
-(`Asset.rated_kw`), which the remote test `power_under_rated` holds; for a meter's `energy_kwh` there is none, since
-the count only grows (`energy_monotonic`). A kind with no feed (a site, a string) has no fields and no tests.
+(`Asset.rated_kw`) with 1% over allowed for metering, which the remote test `power_under_rated` holds; for a meter's
+`energy_kwh` there is none, since the count only grows (`energy_monotonic`). An inverter's `power_kw` minimum is
+likewise its own: -2% of its rated_kw, a night draw, which `on_grid` holds; the 0 below is the minimum with no rating.
+The irradiance minimum of -5 W/m2 is a sensor's night offset: J-101's pyranometers and reference cells read -0.06 to
+-4.39 W/m2 at night, while a failed cell reads about -296 W/m2 (SP-039). A kind with no feed (a site, a string) has no
+fields and no tests.
 
 A test passes only over data (SP-039). When an asset's window holds no record that is not a gap, `reachable` fails, a
 disconnection, its rule suggesting the kind's equipment code ("no records", or "no records: N gaps"); every other test
@@ -37,15 +41,15 @@ Turns its strings' direct current into grid alternating current; the asset whose
 
 | Field | Unit | Min | Max |
 | --- | --- | --- | --- |
-| irradiance_w_m2 | W/m2 | 0 | 1500 |
+| irradiance_w_m2 | W/m2 | -5 | 1500 |
 | power_kw | kW | 0 | — |
 | temperature_c | °C | -40 | 90 |
 
 Tests: `reachable`, `on_grid`, `irradiance_in_range`, `power_under_rated`, `night_power_near_zero`, `performance_above_floor`, `power_not_frozen`.
 
 Passing: the endpoint answers within the timeout with a sample whose every field is in range, power at or under the
-inverter's rated_kw, near zero at night, at least 0.75 of what its rating and the sun promise in daylight
-(irradiance at or above 200 W/m²), and never the same non-zero value for half an hour (six records).
+inverter's rated_kw with 1% over allowed, near zero at night, at least 0.75 of what its rating and the sun promise in
+daylight (irradiance at or above 200 W/m²), and never the same non-zero value for half an hour (six records).
 
 ## STRING
 
@@ -89,7 +93,7 @@ A weather station: plane-of-array irradiance and temperature, the denominator of
 
 | Field | Unit | Min | Max |
 | --- | --- | --- | --- |
-| irradiance_w_m2 | W/m2 | 0 | 1500 |
+| irradiance_w_m2 | W/m2 | -5 | 1500 |
 | temperature_c | °C | -40 | 90 |
 
 Tests: `reachable`, `on_grid`, `irradiance_in_range`.

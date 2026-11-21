@@ -81,12 +81,6 @@ SP-022; 12.1 split in two by SP-028 (accounts, then versions); 12.6 added on Gho
 
 Lanes (P-15): 12.9 and 12.11 in parallel, then 12.10 (it changes `on_grid` and `power_under_rated` after 12.9 does), then 12.12 the tune-up commit. Reopened by SP-039 on Ghost's word: the open calls of 12.4 to 12.6 (For Ghost 5 and 15), each taken as recommended (J-106).
 
-### 12.10 The field thresholds
-
-Three thresholds and the field loader's irradiance station set from 12.6's baseline (SP-039, calls 1, 2, 3, 5 and 6).
-
-Check: the irradiance minimum -5 W/m2 for the inverter and the weather station in `solarpunk/leaf/asset_types.json` and `docs/ASSET-MAINTENANCE-LIST.md`; `on_grid` holds an inverter's power to a minimum of -2% of its rating, 0 with no rating; `power_under_rated` allows 1% over the rating; each threshold a named constant whose comment cites J-101; the field loader gives inverter N the irradiance of the station named for pad N, the site's first station otherwise, tested on `test/fixtures/pvdaq/`; the fixed offset kept and its daylight-saving artefact named in `docs/FIELD-DATA.md`; the baseline re-run over J-101's window and its new alarm counts in the journal, or, where the session cannot fetch the data, a line under HANDOFF's "For Ghost" saying so; the fast loop green.
-
 ### 12.12 Tune-up commit 12
 
 Check: `docs/when/tune-up.md` steps 1, 2, 5 and 6 (a reopened phase of three items or fewer); the metrics table written; the navigation log's "Last review" set.

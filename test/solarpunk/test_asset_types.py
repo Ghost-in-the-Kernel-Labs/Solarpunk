@@ -53,7 +53,9 @@ class TheRanges(unittest.TestCase):
     def test_irradiance_bounds(self) -> None:
         self.assertTrue(asset_types.in_range(AssetKind.SENSOR, "irradiance_w_m2", 1500))
         self.assertFalse(asset_types.in_range(AssetKind.SENSOR, "irradiance_w_m2", 1501))
-        self.assertFalse(asset_types.in_range(AssetKind.INVERTER, "irradiance_w_m2", -1))
+        for kind in (AssetKind.INVERTER, AssetKind.SENSOR):  # SP-039: J-101's night offsets, to -4.39 W/m2, hold
+            self.assertTrue(asset_types.in_range(kind, "irradiance_w_m2", -5))
+            self.assertFalse(asset_types.in_range(kind, "irradiance_w_m2", -5.01))
 
     def test_a_null_max_is_unbounded_above(self) -> None:
         self.assertTrue(asset_types.in_range(AssetKind.METER, "energy_kwh", 1e12))

@@ -112,3 +112,4 @@ Written from `docs/journal/` by `scripts/journal_index.py`; do not edit by hand.
 | J-106 | Ghost's eleven calls (SP-039) and Ghost-Core left behind (SP-040) | decision | `J-100-199.md` |
 | J-107 | 12.9: no data is not a pass (SP-039) | feature | `J-100-199.md` |
 | J-108 | 12.11: four loose ends of accounts and tickets (SP-039) | failure-caught | `J-100-199.md` |
+| J-109 | 12.10: the field thresholds, and the baseline re-run (SP-039) | measurement | `J-100-199.md` |

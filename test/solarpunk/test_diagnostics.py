@@ -39,7 +39,8 @@ class IrradianceInRange(unittest.TestCase):
 
     def test_the_edges_of_the_list(self) -> None:
         self.assertTrue(irradiance_in_range.run(SEN, (reading(SEN, T0, 1500.0, None),)).passed)
-        self.assertFalse(irradiance_in_range.run(SEN, (reading(SEN, T0, -0.1, None),)).passed)
+        self.assertTrue(irradiance_in_range.run(SEN, (reading(SEN, T0, -5.0, None),)).passed)  # SP-039, J-101
+        self.assertFalse(irradiance_in_range.run(SEN, (reading(SEN, T0, -5.1, None),)).passed)
 
 
 class NightPowerNearZero(unittest.TestCase):
