@@ -176,7 +176,15 @@ never kept. Worked example: over
 ## SOL-14 A ticket moves through five statuses, against two targets set by its priority
 
 A ticket (SP-022) is the work an engineer-assigned fault needs; it opens when the fault is assigned, never from a
-suggestion. Its statuses are `open`, `acknowledged` (someone has taken it), `in progress` (work has started: the
+suggestion. A ticket also opens from a failed test result, not from the asset (7.9, SP-046): an engineer opens it on
+one failed result (its asset, test and run), as the corrective work order on the fault telemetry raised for that result,
+its priority from that fault code's severity; a passing, no-data or unknown result, or one with no such fault, is refused.
+One ticket holds many failed results (the `ticket_results` table, a result in at most one ticket, rows only added): two
+results are consecutive when they are the same test on the same asset with no other result of that test between their run
+instants, and a failure in the run right after a failure of the same test on the same asset joins that failure's ticket,
+a pass or no data ending the streak. Opening a ticket on a failed result already in a ticket shows that ticket and opens
+no second one. The control is "Open a ticket" on a failed result in the asset window and the Runs window, and `solarpunk
+ticket open --result ID`; the Tickets window and `ticket show` list a ticket's failed results. Its statuses are `open`, `acknowledged` (someone has taken it), `in progress` (work has started: the
 response), `resolved` (the work is done, awaiting closure) and `closed` (closed once its fault's root cause is written,
 which closes the fault, 4.1, SP-046). Only these moves are allowed; any other is refused:
 

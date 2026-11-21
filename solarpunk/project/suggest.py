@@ -7,12 +7,11 @@ import sqlite3
 from datetime import datetime
 
 from solarpunk.faults import ledger
-from solarpunk.leaf.codes import GENERIC_TEST_FAILURE
 from solarpunk.leaf.faults import DEVICE_ASSIGNER, TEST_ASSIGNER, Fault
 from solarpunk.project.orchestrator import check_fault, known
+from solarpunk.project.result_tickets import fault_code, join_streak
 from solarpunk.remote import results as result_table
 from solarpunk.remote import suggestions as suggestion_table
-from solarpunk.remote.registry import discover
 from solarpunk.remote.suggestions import Suggestion
 
 
@@ -31,16 +30,15 @@ def faults_from_run(conn: sqlite3.Connection, asset_ids: tuple[str, ...], run_at
     SIT-004 where the table names none; a pass and no data raise none (SP-039). The demo's run, OAHE-SEN-001's reachable
     failing, gives an open SEN-001 assigned by test:reachable; OAHE-INV-002's INV-001 is already open, so none."""
     # Decision: SP-046 (a failing remote test raises its fault itself; no data raises none)
-    tests = discover()
     raised = []
     for asset_id in asset_ids:
         kind = known(conn, asset_id).kind
         for found in result_table.latest_for(conn, asset_id):
             if not found.failed or found.run_at != run_at:
                 continue
-            test = tests.get(found.test_name)
-            code = (None if test is None else test.suggestion(kind)) or GENERIC_TEST_FAILURE
-            fault = raise_fault(conn, asset_id, code, TEST_ASSIGNER.format(name=found.test_name), run_at)
+            fault = raise_fault(conn, asset_id, fault_code(kind, found.test_name), TEST_ASSIGNER.format(name=found.test_name),
+                                run_at)
+            join_streak(conn, found)  # 7.9: a failure right after a failure in a ticket joins that ticket
             if fault is not None:
                 raised.append(fault)
     return tuple(raised)

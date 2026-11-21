@@ -17,6 +17,8 @@ from solarpunk.project.access import (SIGN_IN_FIRST, NotPermitted, actor_of, art
 from solarpunk.project.causes import write_fault_cause
 from solarpunk.project.engineers import site_engineer
 from solarpunk.project.orchestrator import assign_fault
+from solarpunk.project.result_tickets import ResultTicket, ResultTicketError, open_ticket_from_result
+from solarpunk.remote import results as result_table
 from solarpunk.project.tickets import comment_on_ticket, resolve_ticket
 from solarpunk.workorders.tickets import Comment, Ticket
 
@@ -27,6 +29,7 @@ NAME_ENGINEER = "this store has no accounts: name the engineer with --by"
 NAME_AUTHOR = "this store has no accounts: name the comment's author with --by"
 ASSIGNS = "assigns no fault"
 WRITES = "writes no root cause"
+OPENS = "opens no ticket"
 
 
 def no_account_acts(conn: sqlite3.Connection, by: str | None, missing: str, for_engineer: str | None = None) -> None:
@@ -105,6 +108,21 @@ def write_cause_as(conn: sqlite3.Connection, account: Account | None, fault_id: 
     # Decision: SP-046 (an engineer writes the root cause); SP-015 (the record says whose word it is)
     engineer, operator = recorded_as(conn, account, ledger.get(conn, fault_id).asset_id, by, recorded_by, for_engineer, WRITES)
     return write_fault_cause(conn, fault_id, cause, engineer, moment, operator)
+
+
+def open_ticket_from_result_as(conn: sqlite3.Connection, account: Account | None, result_id: int, opened: datetime,
+                               by: str | None = None, recorded_by: str | None = None,
+                               for_engineer: str | None = None) -> ResultTicket:
+    """Opens the ticket for a failed result as open_ticket_from_result does, recorded as recorded_as says, as an
+    assignment is: an engineer signed in opens it as themself, an operator on the word of for_engineer; an admin, a
+    viewer or an account outside the result's site is refused and nothing is written. A result already in a ticket
+    shows that ticket, opening nothing."""
+    # Decision: SP-046 (a ticket opens from a failed result, by an engineer); SP-015 (the record says whose word it is)
+    found = result_table.get(conn, result_id)
+    if found is None:
+        raise ResultTicketError(f"result {result_id} is not stored")
+    engineer, operator = recorded_as(conn, account, found.asset_id, by, recorded_by, for_engineer, OPENS)
+    return open_ticket_from_result(conn, result_id, opened, engineer, operator)
 
 
 def comment_on_ticket_as(conn: sqlite3.Connection, account: Account | None, wo_id: int, moment: datetime, body: str,

@@ -42,6 +42,8 @@ class TicketPanel(ttk.Frame):
         self.line.pack(fill="x")
         self.history = ttk.Label(self, justify="left", anchor="w")
         self.history.pack(fill="x")
+        self.results = ttk.Label(self, justify="left", anchor="w")
+        self.results.pack(fill="x")
         first = self.row()
         self.ack_button = ttk.Button(first, text=ACKNOWLEDGE, command=lambda: self.act(self.acknowledge))
         self.ack_button.pack(side="left")
@@ -79,6 +81,8 @@ class TicketPanel(ttk.Frame):
         self.line.configure(text=ticket_text.panel_line(self.view))
         moves = () if self.view is None else project.ticket_moves(self.conn, self.view.ticket.wo_id)
         self.history.configure(text="" if self.view is None else ticket_text.history_text(moves))
+        held = () if self.view is None else project.results_of_ticket(self.conn, self.view.ticket.wo_id)
+        self.results.configure(text="" if self.view is None else ticket_text.results_text(held))  # 7.9
 
     def reload(self) -> None:
         """Refresh (12.2): clears the message line, rereads the ticket and calls changed, so the window redraws too;

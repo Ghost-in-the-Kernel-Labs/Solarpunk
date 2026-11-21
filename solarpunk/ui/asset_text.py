@@ -40,6 +40,7 @@ RESULT_WIDTHS = (190, 70, 480)
 OPEN_FAULTS_TITLE = "Open faults"
 DIAGNOSTICS_TITLE = "Diagnostics"
 ASSIGN_TITLE = "Assign a fault"
+GREEN_TEXT = "#2e8b57"
 ASSIGN_TEXT = "Assign"
 CAUSE_TITLE = "Root cause of the selected fault"
 CAUSE_WRITE_TEXT = "Write"

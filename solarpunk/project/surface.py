@@ -3,7 +3,7 @@ window with every remote test of the asset's kind and its latest result (6.4), t
 the dropdowns, register and ping for the add-asset window. Each function is one call a window makes and a headless test
 makes too, so no UI lane edits the orchestrator."""
 import sqlite3
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
 
@@ -89,6 +89,7 @@ class Diagnostic:
     state: str
     reason: str
     run_at: datetime | None
+    result_id: int | None = field(default=None, compare=False)  # 7.9: the stored result a ticket opens from
 
 
 def row_of(conn: sqlite3.Connection, asset: Asset) -> AssetRow:
@@ -176,7 +177,7 @@ def diagnostics_of(conn: sqlite3.Connection, asset: Asset) -> tuple[Diagnostic, 
         if result is None:
             found.append(Diagnostic(name, NOT_RUN, NEVER_RUN_REASON, None))
         else:
-            found.append(Diagnostic(name, state_of(result), result.reason, result.run_at))
+            found.append(Diagnostic(name, state_of(result), result.reason, result.run_at, result.result_id))
     return tuple(sorted(found, key=lambda diagnostic: STATE_ORDER.index(diagnostic.state)))
 
 

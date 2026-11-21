@@ -177,7 +177,7 @@
     },
     "workorders": {
       "folder": "solarpunk/workorders",
-      "purpose": "The work-order ledger: corrective orders opened from a fault, preventive ones from a signal, each closed; a corrective one only once its fault's root cause, free text an engineer writes, is written (4.1, SP-046).",
+      "purpose": "The work-order ledger: corrective orders opened from a fault, preventive ones from a signal, each closed; a corrective one only once its fault's root cause, free text an engineer writes, is written (4.1, SP-046); the failed test results a ticket holds, one ticket to many (7.9).",
       "mayImport": [
         "leaf"
       ],

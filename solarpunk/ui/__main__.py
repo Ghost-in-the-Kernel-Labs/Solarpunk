@@ -77,7 +77,7 @@ def open_fleet(root: tkinter.Tk, conn: sqlite3.Connection, account: project.Acco
     window.account_label = ttk.Label(window.status_bar, text=cells.who_text(account))
     window.account_label.pack(side=tkinter.LEFT, padx=12)
     window.on_open_asset = lambda asset_id: AssetWindow(root, conn, asset_id, window.refresh, account)  # 12.4
-    window.on_open_runs = lambda asset_id: RunsWindow(root, conn, asset_id)  # 10.3
+    window.on_open_runs = lambda asset_id: RunsWindow(root, conn, asset_id, account)  # 10.3, 7.9
     bar = window.toolbar  # Refresh stands at its right since 9.5
     window.add_button = ttk.Button(bar, text=ADD_ASSET,
                                    command=lambda: AddAssetWindow(root, conn, lambda asset_id: window.refresh()))

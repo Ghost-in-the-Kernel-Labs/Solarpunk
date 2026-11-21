@@ -53,7 +53,8 @@ The fleet and its faults
 
 The tickets (each takes --at INSTANT, now by default)
   ticket list                                  the open tickets, the nearest target first, a breach marked
-  ticket show ID                               a ticket's line and its moves, any status, within your sites
+  ticket show ID                               a ticket's line, its moves and its failed results, within your sites
+  ticket open --result ID [--for ENGINEER]     open the ticket for a failed test result, or show the one it is in
   ticket ack ID                                acknowledge a ticket
   ticket comment ID WORDS                      add a comment, kept as written, by the account signed in
   ticket resolve ID --done WORDS               resolve and close a ticket and its fault, once the fault's root cause is written
@@ -78,7 +79,7 @@ Public field data (docs/FIELD-DATA.md; the data stays outside the repository)
 
 Every command but test run reads solarpunk.db in this folder; for another store,
 python -m solarpunk.cli --db PATH <command>. In a store with accounts, a command that acts
-(load, assign, close, generate, ack, comment, resolve, account add, reset,
+(load, assign, close, generate, open, ack, comment, resolve, account add, reset,
 deactivate, field load) takes --as EMAIL and asks for its password, and acts as that account: an engineer as
 themself, an operator on an engineer's word with --for ENGINEER. test run acts as no person and asks
 nothing. A store with no accounts names who acts with --by (an operator's entry: --recorded-by).

@@ -16,11 +16,12 @@ from collections.abc import Callable
 from datetime import datetime, timezone
 from tkinter import ttk
 
-from solarpunk.ui import cells
+from solarpunk.ui import cells, ticket_text
+from solarpunk.ui.open_ticket import OpenTicketButton
 from solarpunk.ui.asset_text import (ASSIGN_TEXT, ASSIGN_TITLE, CANCEL_TEXT, CAUSE_TITLE, CAUSE_WRITE_TEXT, CHOOSE_CODE,
     CHOOSE_FAULT,
     CHOOSE_ENGINEER, CHOOSE_WORD, DIAGNOSTICS_TITLE, ENGINEER_TITLE,
-    ENTERED_BY_TITLE, FAILING_TAG, FAULT_COLUMNS, FAULT_HEADINGS, FAULT_WIDTHS, GREY_TEXT, NOT_RUN_TAG,
+    ENTERED_BY_TITLE, FAILING_TAG, FAULT_COLUMNS, FAULT_HEADINGS, FAULT_WIDTHS, GREEN_TEXT, GREY_TEXT, NOT_RUN_TAG,
     OPEN_FAULTS_TITLE, RED_TEXT, REFUSALS, RESULT_COLUMNS, RESULT_HEADINGS, RESULT_WIDTHS, SAVE_TEXT,
     SUGGESTED_TITLE, SUGGESTION_COLUMNS, SUGGESTION_HEADINGS, SUGGESTION_WIDTHS, chosen_code, code_labels, colour_of,
     fault_lines, field_lines, refusal_text, result_lines, row_tags, status_line, suggestion_lines, window_title)
@@ -60,6 +61,7 @@ class AssetWindow(tk.Toplevel):
         self.result_tree.tag_configure(NOT_RUN_TAG, foreground=GREY_TEXT)
         for column, width in zip(RESULT_COLUMNS, RESULT_WIDTHS):
             self.result_tree.column(column, width=width, stretch=column == RESULT_COLUMNS[-1])
+        self.build_open_ticket()
         self.suggestion_tree = self.tree(SUGGESTED_TITLE, SUGGESTION_COLUMNS, SUGGESTION_HEADINGS, height=3)
         for column, width in zip(SUGGESTION_COLUMNS, SUGGESTION_WIDTHS):
             self.suggestion_tree.column(column, width=width, stretch=column == "reason")
@@ -100,6 +102,27 @@ class AssetWindow(tk.Toplevel):
             tree.heading(column, text=heading)
         tree.pack(fill="both", expand=True, padx=8, pady=2)
         return tree
+
+    def build_open_ticket(self) -> None:
+        """The "Open a ticket" control under the diagnostics (7.9, SP-046): it acts on the failed result selected there,
+        recorded as the engineer the "Assigned by" or "On the word of" picker names, and shows the ticket it opens."""
+        row = ttk.Frame(self)
+        row.pack(fill="x", padx=8, pady=2)
+        self.open_ticket_button = OpenTicketButton(row, self.conn, self.account, self.chosen_result, self.named,
+                                                   lambda words: self.message.configure(text=words, foreground=RED_TEXT), self.ticket_opened)
+        self.open_ticket_button.pack(side="left")
+
+    def chosen_result(self) -> int | None:
+        """The id of the failed result selected in the diagnostics, or None when none is selected or it is not a failure."""
+        chosen = self.result_tree.selection()
+        found = self.detail.diagnostics[int(chosen[0])] if chosen else None
+        return None if found is None or found.state != "fail" else found.result_id
+
+    def ticket_opened(self, found: project.ResultTicket) -> None:
+        """After a ticket opened or shown from a result: the window rereads (its ticket panel shows it) and says so."""
+        self.fill(project.asset_detail(self.conn, self.asset_id))
+        self.on_change()
+        self.message.configure(text=ticket_text.opened_text(found), foreground=GREEN_TEXT)
 
     def build_assign(self) -> None:
         """The "Assign a fault" row: a read-only dropdown of the kind's codes and the Assign button; under it the
@@ -163,9 +186,11 @@ class AssetWindow(tk.Toplevel):
         self.fault_tree.delete(*self.fault_tree.get_children())
         for (found, _meaning), fault_row in zip(detail.open_faults, fault_lines(detail)):
             self.fault_tree.insert("", "end", iid=str(found.fault_id), values=fault_row)
+        kept = self.result_tree.selection()  # the chosen result stays chosen across a reread
         self.result_tree.delete(*self.result_tree.get_children())
-        for result_row in result_lines(detail):
-            self.result_tree.insert("", "end", values=result_row, tags=row_tags(result_row))
+        for index, result_row in enumerate(result_lines(detail)):
+            self.result_tree.insert("", "end", iid=str(index), values=result_row, tags=row_tags(result_row))
+        self.result_tree.selection_set(*(item for item in kept if self.result_tree.exists(item)))
         self.suggestion_tree.delete(*self.suggestion_tree.get_children())
         for found, line in zip(detail.suggestions, suggestion_lines(detail)):
             self.suggestion_tree.insert("", "end", iid=str(found.suggestion_id), values=line)
