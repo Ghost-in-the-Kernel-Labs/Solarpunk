@@ -267,8 +267,12 @@ more are kept (SP-016).
 
 **A run** of an asset is every result stored for it at one instant: one per remote test its kind runs, and, when its
 feed did not answer, the ping's failed `reachable` beside the test's own (two `reachable` results in one run is
-right: one says the feed was down, the other what the stored samples showed). A run **failed** when any of its
-results failed. An asset's runs are listed newest first; a run's results failures first, then by test name.
+right: one says the feed was down, the other what the stored samples showed). A result is a pass, a failure or **no
+data** (SP-039): a test with no stored record that is not a gap has nothing to check, so `reachable` fails it, a
+disconnection, and every other test returns no data, shown grey like "not run", never a pass and never a failure. A
+day of real records with none of the kind a test needs (no daylight record, no night record) is judged, not no data.
+A run **failed** when any of its results failed. An asset's runs are listed newest first; a run's results failures
+first, then no data, then by test name.
 
 **An error count** of an asset over a period is, per catalogue code, the faults opened on it inside the period and
 the suggestions raised on it inside the period, counted apart and never added together (a fault is an engineer's
@@ -286,7 +290,7 @@ Worked examples, over the demo store (`python3 -m solarpunk.ui --demo`, one run 
     OAHE-INV-002's run at 13:00     8 results, failed: reachable failed ("127.0.0.1:9 is unreachable", the ping),
                                     reachable passed ("156 records"), and its six other tests passed
     OAHE-SEN-001's run at 13:00     4 results, failed: two reachable failed ("127.0.0.1:9 is unreachable",
-                                    "no records"), irradiance_in_range and on_grid passed
+                                    "no records"), irradiance_in_range and on_grid no data ("no records"), never a pass
     errors, OAHE-SEN-001, the day   faults: none; suggestions: SEN-001 1 (open)
     errors, OAHE-INV-002, the day   faults: INV-001 1 (open since 11:30); suggestions: none
     errors, OAHE-INV-001, the day   faults: INV-002 1 (10:05 to 10:45); suggestions: none

@@ -116,7 +116,7 @@ def cause_of(conn: sqlite3.Connection, asset_id: str, outages: dict[str, Fault])
     an open INV-001 gives that Fault; a failing reachable "no records" gives RemoteFailure("reachable", "no records")."""
     if asset_id in outages:
         return outages[asset_id]
-    failing = next(found for found in result_table.latest_for(conn, asset_id) if not found.passed)
+    failing = next(found for found in result_table.latest_for(conn, asset_id) if found.failed)  # never no data
     return mailer.RemoteFailure(failing.test_name, failing.reason)
 
 

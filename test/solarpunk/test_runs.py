@@ -41,8 +41,9 @@ class TheExamples(unittest.TestCase):
 
     def test_the_sensors_run(self) -> None:
         (run,) = project.asset_runs(self.conn, SEN)
-        self.assertEqual([(r.test_name, r.passed) for r in run.results],
-                         [("reachable", False), ("reachable", False), ("irradiance_in_range", True), ("on_grid", True)])
+        self.assertEqual([(r.test_name, r.passed, r.no_data) for r in run.results],
+                         [("reachable", False, False), ("reachable", False, False),
+                          ("irradiance_in_range", False, True), ("on_grid", False, True)])  # SP-039: no data, not a pass
 
     def test_the_error_counts(self) -> None:
         self.assertEqual(project.asset_code_counts(self.conn, SEN, DAY), (project.CodeCount("SEN-001", 0, 1),))

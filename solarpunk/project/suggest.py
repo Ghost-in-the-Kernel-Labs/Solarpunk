@@ -25,7 +25,7 @@ def open_codes(conn: sqlite3.Connection, asset_id: str) -> set[str]:
 
 def suggest_from_run(conn: sqlite3.Connection, asset_ids: tuple[str, ...], run_at: datetime) -> tuple[Suggestion, ...]:
     """For each asset's latest results at run_at, every failure whose test's rule names a code raises that suggestion
-    (or keeps the open one), unless the asset already carries an open fault of the code: the demo's run, OAHE-SEN-001's
+    (or keeps the open one; no data suggests nothing, SP-039), unless the asset already carries an open fault of the code: the demo's run, OAHE-SEN-001's
     reachable failing, gives an open SEN-001 on it; OAHE-INV-002's INV-001 is already an open fault, so none."""
     # Decision: SP-015 (the tests' rules suggest; an engineer assigns)
     tests = discover()
@@ -34,7 +34,7 @@ def suggest_from_run(conn: sqlite3.Connection, asset_ids: tuple[str, ...], run_a
         kind = known(conn, asset_id).kind
         for found in result_table.latest_for(conn, asset_id):
             test = tests.get(found.test_name)
-            code = None if found.passed or found.run_at != run_at or test is None else test.suggestion(kind)
+            code = None if not found.failed or found.run_at != run_at or test is None else test.suggestion(kind)
             if code is not None and code not in open_codes(conn, asset_id):
                 raised.append(suggestion_table.raise_suggestion(conn, asset_id, code, found.test_name, found.reason,
                                                                 run_at))

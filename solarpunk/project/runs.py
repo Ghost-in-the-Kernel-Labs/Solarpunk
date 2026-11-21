@@ -22,11 +22,12 @@ from solarpunk.telemetry import samples as sample_table
 SHOWN = 100
 PASS = "pass"
 FAIL = "fail"
+NO_DATA = result_table.NO_DATA
 
 
 @dataclass(frozen=True)
 class Run:
-    """Every result stored for an asset at one instant, failures first, then by test name (SOL-15): OAHE-INV-002's run
+    """Every result stored for an asset at one instant, failures first, then no data, then by test name (SOL-15): OAHE-INV-002's run
     at 13:00 in the demo holds 8 results, its first the ping's failed reachable; failed is True."""
 
     asset_id: str
@@ -35,8 +36,8 @@ class Run:
 
     @property
     def failed(self) -> bool:
-        """Whether any of the run's results failed."""
-        return any(not result.passed for result in self.results)
+        """Whether any of the run's results failed; no data is no failure (SP-039)."""
+        return any(result.failed for result in self.results)
 
 
 @dataclass(frozen=True)
@@ -78,11 +79,19 @@ class AssetCount:
     suggestions: int
 
 
+def verdict_of(result: Recorded) -> str:
+    """A result's word: "pass", "fail" or "no data" (SP-039)."""
+    if result.no_data:
+        return NO_DATA
+    return PASS if result.passed else FAIL
+
+
 def matches(result: Recorded, words: str) -> bool:
-    """Whether a result answers a search: its test's name, "pass" or "fail", or words in its reason, any case:
-    matches(the ping's failed reachable, "unreachable") and matches(it, "fail") are True, matches(it, "pass") False."""
+    """Whether a result answers a search: its test's name, "pass", "fail" or "no data", or words in its reason, any
+    case: matches(the ping's failed reachable, "unreachable") and matches(it, "fail") are True, matches(it, "pass")
+    False."""
     needle = words.strip().casefold()
-    verdict = PASS if result.passed else FAIL
+    verdict = verdict_of(result)
     return needle in result.test_name.casefold() or needle == verdict or needle in result.reason.casefold()
 
 
@@ -98,7 +107,7 @@ def asset_runs(conn: sqlite3.Connection, asset_id: str, limit: int = SHOWN, sear
     for run_at, found in by_instant.items():
         if search and search.strip() and not any(matches(result, search) for result in found):
             continue
-        ordered = tuple(sorted(found, key=lambda r: (r.passed, r.test_name)))
+        ordered = tuple(sorted(found, key=lambda r: (r.passed, r.no_data, r.test_name)))
         runs.append(Run(asset_id, run_at, ordered))
         if len(runs) == limit:
             break

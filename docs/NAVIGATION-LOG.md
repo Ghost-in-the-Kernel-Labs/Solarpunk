@@ -23,3 +23,9 @@ An entry is `### <date> · <task> · <who>`, then four bullets: **Task**, **Open
 - **Opened**: `docs/HANDOFF.md`, `TODO.md`, `solarpunk/ui/asset_window.py`, `solarpunk/ui/ticket_text.py`, `docs/paths/product.md`, `docs/modules.json`, `solarpunk/ui/demo.py`, `solarpunk/project/orchestrator.py`, `docs/when/handoff.md`, `docs/JOURNAL.md`.
 - **Complaints**: the product row asks to render the changed window and read the screenshot, but names no command for it; I wrote a throwaway script over `demo.build_demo_store`, and first reached for `project.open_store`, which refuses a store that exists (`open_or_create` is the one).
 - **Suggestions**: a small `scripts/` or test helper that renders a named window over the demo store to a PNG, so a refactor can diff its screenshots before and after.
+
+### 2026-11-21 · 12.9 no data is not a pass · strong-grade agent
+- **Task**: 12.9.
+- **Opened**: CLAUDE.md, TODO.md, docs/ROADMAP.md, theGhost.md, docs/journal/J-100-199.md, solarpunk/remote/results.py, the seven tests, registry.py, run.py, scaffold.py, solarpunk/project/orchestrator.py, runs.py, suggest.py, run.py, field.py, surface.py, solarpunk/ui/asset_text.py, runs_text.py, timeline.py, runs_window.py, asset_window.py, solarpunk/cli/main.py, docs/paths/product.md, docs/CONTRACT.md, docs/ASSET-MAINTENANCE-LIST.md, DEMO.md, five test files, docs/when/handoff.md, docs/when/hand-out-a-task.md.
+- **Complaints**: the fast loop measured 29.99 s once, then 23 to 24 s: noisy at its limit. The unclosed-connection ResourceWarnings can fail `test_output` at random. The brief's "propose the schema only if the obvious reading fails" against its stop limit "never pick a schema" took a moment to reconcile.
+- **Suggestions**: close the connections `test_remote`'s `fresh()` helper opens; `test_runs_contract` reads raw rows, so a shared row reader would keep a new column from touching it.

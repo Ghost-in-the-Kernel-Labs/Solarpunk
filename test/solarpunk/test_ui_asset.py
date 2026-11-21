@@ -321,8 +321,11 @@ class TheDemosDiagnostics(unittest.TestCase):
     def test_the_sensors_failing_reachable_is_in_the_failures_shown_first(self) -> None:
         found = project.asset_detail(self.conn, demo.SENSOR).diagnostics
         self.assertIn(("reachable", "fail"), [(d.test_name, d.state) for d in found])
-        order = ("fail", "not run", "pass")
+        order = ("fail", "no data", "not run", "pass")
         self.assertEqual(list(found), sorted(found, key=lambda d: (order.index(d.state), d.test_name)))  # failing first
+        # SP-039: reachable fails first, the sensor's other two tests had nothing to check: no data, never a pass
+        self.assertEqual([(d.test_name, d.state) for d in found],
+                         [("reachable", "fail"), ("irradiance_in_range", "no data"), ("on_grid", "no data")])
         self.assertEqual(sorted(d.test_name for d in found), sorted(t.name for t in remote_registry.tests_for(AssetKind.SENSOR)))
 
     def test_the_dead_inverters_failed_reachable_is_not_hidden_by_the_suites_pass(self) -> None:

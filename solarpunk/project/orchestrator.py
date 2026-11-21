@@ -93,7 +93,7 @@ def open_or_create(path: str | Path) -> sqlite3.Connection:
         if name not in present:
             store.apply(conn, statements)
     for upgrade in (registry.upgrade, ledger.upgrade, ticket_ledger.upgrade, suggestion_table.upgrade,
-                    account_table.upgrade):
+                    account_table.upgrade, result_table.upgrade):
         upgrade(conn)  # each table gains the columns it lacks: a ticket's 8.2 ones, every record's version (12.2)
     backfill_priorities(conn)
     return conn
@@ -314,12 +314,13 @@ def open_outages(conn: sqlite3.Connection) -> dict[str, Fault]:
 def asset_status(conn: sqlite3.Connection, asset_id: str) -> AssetStatus:
     """The three-colour rule (SP-007): RED while the asset carries an open OUTAGE fault, else YELLOW when its latest
     remote results hold a failure or it has an open suggestion (SP-015), else GREEN: with an open INV-001 on OAHE-INV-001 its status is RED, with only an open
-    INV-002 (a derate) GREEN, with a failing latest reachable YELLOW; an id the fleet lacks raises UnknownAsset."""
+    INV-002 (a derate) GREEN, with a failing latest reachable YELLOW; no data is no failure, the colour coming from
+    reachable's (SP-039); an id the fleet lacks raises UnknownAsset."""
     # Invariant: SOL-11 (a derate is not an outage)
     known(conn, asset_id)
     if asset_id in open_outages(conn):
         return AssetStatus.RED
-    if any(not result.passed for result in result_table.latest_for(conn, asset_id)):
+    if any(result.failed for result in result_table.latest_for(conn, asset_id)):
         return AssetStatus.YELLOW
     # Decision: SP-015 (an open suggestion keeps the asset yellow, never red: only an engineer's fault turns it red)
     if suggestion_table.open_suggestions(conn, asset_id):

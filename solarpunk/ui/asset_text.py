@@ -14,12 +14,15 @@ NONE_WORD = "none"
 PASS_WORD = "pass"
 FAIL_WORD = "FAIL"
 NOT_RUN_WORD = "not run"
+NO_DATA_WORD = "no data"
 FAILING_TAG = "failing"
 NOT_RUN_TAG = "notrun"
 RED_TEXT = "#c0392b"
 GREY_TEXT = "#808080"
 # The surface's states (project.Diagnostic.state) in the window's words: a failure shouts, the rest do not.
-STATE_WORDS = {"fail": FAIL_WORD, "not run": NOT_RUN_WORD, "pass": PASS_WORD}
+STATE_WORDS = {"fail": FAIL_WORD, "no data": NO_DATA_WORD, "not run": NOT_RUN_WORD, "pass": PASS_WORD}
+# The rows drawn grey: a test never run, and one that had nothing to check, which is never a pass (SP-039).
+GREY_WORDS = (NOT_RUN_WORD, NO_DATA_WORD)
 OPENED_FORMAT = "%Y-%m-%d %H:%M UTC"
 COLOURS: dict[AssetStatus, str] = {
     AssetStatus.GREEN: "#2e8b57",
@@ -121,7 +124,7 @@ def fault_lines(detail: project.AssetDetail) -> tuple[tuple[str, str, str, str],
 
 def result_lines(detail: project.AssetDetail) -> tuple[tuple[str, str, str], ...]:
     """The diagnostics' rows (test, result, reason) in the detail's order (6.4): every remote test of the asset's kind,
-    failing first, then never run, then passing: a failed on_grid, five tests never run and a passed reachable give
+    failing first, then no data, then never run, then passing: a failed on_grid, five tests never run and a passed reachable give
     ("on_grid", "FAIL", "10:05: off the grid") first and ("reachable", "pass", "3 records") last."""
     return tuple((found.test_name, STATE_WORDS[found.state], found.reason) for found in detail.diagnostics)
 
@@ -135,11 +138,11 @@ def suggestion_lines(detail: project.AssetDetail) -> tuple[tuple[str, str, str, 
 
 
 def row_tags(line: tuple[str, str, str]) -> tuple[str, ...]:
-    """The tags a diagnostics row carries: ("failing",) for a FAIL row, drawn red; ("notrun",) for a test never run,
-    drawn grey; () for a pass row."""
+    """The tags a diagnostics row carries: ("failing",) for a FAIL row, drawn red; ("notrun",) for a test never run or
+    one with no data (SP-039), drawn grey; () for a pass row."""
     if line[1] == FAIL_WORD:
         return (FAILING_TAG,)
-    return (NOT_RUN_TAG,) if line[1] == NOT_RUN_WORD else ()
+    return (NOT_RUN_TAG,) if line[1] in GREY_WORDS else ()
 
 
 def code_labels(codes: tuple[FaultCode, ...]) -> tuple[str, ...]:

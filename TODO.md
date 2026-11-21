@@ -81,13 +81,6 @@ SP-022; 12.1 split in two by SP-028 (accounts, then versions); 12.6 added on Gho
 
 Lanes (P-15): 12.9 and 12.11 in parallel, then 12.10 (it changes `on_grid` and `power_under_rated` after 12.9 does), then 12.12 the tune-up commit. Reopened by SP-039 on Ghost's word: the open calls of 12.4 to 12.6 (For Ghost 5 and 15), each taken as recommended (J-106).
 
-### 12.9 No data is not a pass
-
-A remote test that had nothing to check no longer passes: `reachable` fails it as a disconnection, every other test
-returns "no data" (SP-039, calls 0 and 4).
-
-Check: `Result` holds a third state, no data, and the results table stores it (a store made before keeps its rows, read as pass or fail); `reachable` fails when every record is a gap ("no records: N gaps"), so its rule suggests the kind's equipment code; every other remote test returns no data, never a pass, when it has no record that is not a gap; a day of real records with none of the kind a test needs (no daylight record, no night record) is judged as today, not as no data; the asset's status, the mailer, `solarpunk test` and the windows read no data as neither a pass nor a failure, shown grey like "not run"; `docs/CONTRACT.md`'s run example and `docs/ASSET-MAINTENANCE-LIST.md` say so; the demo's OAHE-SEN-001 shows `reachable` FAIL first and its other two tests "no data"; the screenshot read back under xvfb; the fast loop green.
-
 ### 12.10 The field thresholds
 
 Three thresholds and the field loader's irradiance station set from 12.6's baseline (SP-039, calls 1, 2, 3, 5 and 6).

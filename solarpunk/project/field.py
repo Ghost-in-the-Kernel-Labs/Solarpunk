@@ -38,6 +38,12 @@ class DayResult:
     day: date
     passed: bool
     reason: str
+    no_data: bool = False
+
+    @property
+    def failed(self) -> bool:
+        """Whether the day alarmed: neither a pass nor no data (SP-039)."""
+        return not self.passed and not self.no_data
 
 
 @dataclass(frozen=True)
@@ -58,8 +64,8 @@ class Baseline:
     results: tuple[DayResult, ...]
 
     def alarms(self) -> tuple[DayResult, ...]:
-        """The results that failed, in test, asset, day order."""
-        return tuple(result for result in self.results if not result.passed)
+        """The results that failed, in test, asset, day order; a day of no data is no alarm (SP-039)."""
+        return tuple(result for result in self.results if result.failed)
 
 
 def load_field(conn: sqlite3.Connection, folder: str | Path, site: str | None = None) -> Loaded:
@@ -95,7 +101,7 @@ def tallies(results: tuple[DayResult, ...]) -> tuple[Tally, ...]:
     for result in results:
         held = counts.setdefault((result.test, result.asset_id), [0, 0])
         held[0] += 1
-        held[1] += 0 if result.passed else 1
+        held[1] += 1 if result.failed else 0
     return tuple(Tally(test, asset_id, run, alarmed) for (test, asset_id), (run, alarmed) in sorted(counts.items()))
 
 
@@ -113,6 +119,6 @@ def field_baseline(conn: sqlite3.Connection, first: date, last: date) -> Baselin
             held = sample_table.in_period(conn, asset_id, day_period(day))
             for test in applying:
                 result = test.run(asset, held)
-                found.append(DayResult(test.name, asset_id, day, result.passed, result.reason))
+                found.append(DayResult(test.name, asset_id, day, result.passed, result.reason, result.no_data))
     ordered = tuple(sorted(found, key=lambda result: (result.test, result.asset_id, result.day)))
     return Baseline(tallies(ordered), ordered)

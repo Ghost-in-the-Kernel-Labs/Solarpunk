@@ -6,7 +6,7 @@ from solarpunk.leaf.assets import Asset
 from solarpunk.leaf.clock import OffTheGrid, on_grid
 from solarpunk.leaf.codes import AssetKind
 from solarpunk.leaf.telemetry import Sample
-from solarpunk.remote.results import Result
+from solarpunk.remote.results import Result, no_data, nothing_to_check
 
 KINDS = tuple(kind for kind in kinds() if fields_of(kind))
 CLAUSES = ("55000-7.5", "9001-9.1.3")
@@ -40,7 +40,10 @@ def problem(kind: AssetKind, sample: Sample) -> str | None:
 def run(asset: Asset, samples: tuple[Sample, ...]) -> Result:
     """Passes when every record is on the grid and in range, naming the first bad one otherwise: two good inverter
     samples give Result(True, "2 records on the grid and in range"); a negative power at 10:05 gives
-    Result(False, "2026-06-01T10:05:00+00:00: power_kw -1.0 out of range")."""
+    Result(False, "2026-06-01T10:05:00+00:00: power_kw -1.0 out of range"); gaps alone, or no samples, give no data."""
+    missing = nothing_to_check(samples)
+    if missing is not None:
+        return no_data(missing)  # Decision: SP-039 (nothing to check is not a pass)
     for sample in samples:
         found = problem(asset.kind, sample)
         if found is not None:

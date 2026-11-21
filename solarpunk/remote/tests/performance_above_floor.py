@@ -8,7 +8,7 @@ from solarpunk.leaf.assets import Asset
 from solarpunk.leaf.codes import AssetKind
 from solarpunk.leaf.kpi_defs import STC_IRRADIANCE_W_M2
 from solarpunk.leaf.telemetry import Sample
-from solarpunk.remote.results import Result
+from solarpunk.remote.results import Result, no_data, nothing_to_check
 
 KINDS = (AssetKind.INVERTER,)
 CLAUSES = ("55000-9.1",)
@@ -23,10 +23,14 @@ FLOOR = 0.75
 def run(asset: Asset, samples: tuple[Sample, ...]) -> Result:
     """Passes when Σ power / Σ (rated × irradiance / 1000) over daylight records is at or above 0.75: rated 100 with
     (800 W/m², 72 kW) gives Result(True, "ratio 0.9 over 1 daylight records"); (800, 40) gives Result(False, "ratio 0.5
-    under the floor 0.75 over 1 daylight records"); no daylight record gives Result(True, "no daylight records");
-    rated_kw None gives Result(False, "no rating")."""
+    under the floor 0.75 over 1 daylight records"); records with no daylight one among them give Result(True, "no
+    daylight records") (an overcast day is judged, SP-039); gaps alone, or no samples, give no data,
+    Result(False, "no records", no_data=True); rated_kw None gives Result(False, "no rating")."""
     if asset.rated_kw is None:
         return Result(False, "no rating")
+    missing = nothing_to_check(samples)
+    if missing is not None:
+        return no_data(missing)  # Decision: SP-039 (nothing to check is not a pass)
     day = [s for s in samples if s.irradiance_w_m2 is not None and s.power_kw is not None
            and s.irradiance_w_m2 >= DAYLIGHT_W_M2]
     if not day:

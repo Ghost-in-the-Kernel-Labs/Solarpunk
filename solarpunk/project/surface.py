@@ -29,10 +29,12 @@ from solarpunk.workorders.ledger import WorkOrder
 NO_FAILURE = "—"
 IN_MEMORY = "in memory"
 FAILED = "fail"
+NO_DATA = result_table.NO_DATA
 NOT_RUN = "not run"
 PASSED = "pass"
-# The order the diagnostics are read in: what failed, then what has never been run, then what passed (6.4).
-STATE_ORDER = (FAILED, NOT_RUN, PASSED)
+# The order the diagnostics are read in: what failed, then what had no data to check (SP-039), then what has never been
+# run, then what passed (6.4).
+STATE_ORDER = (FAILED, NO_DATA, NOT_RUN, PASSED)
 NEVER_RUN_REASON = "no result yet: the scheduled run has not tested this asset"
 
 
@@ -76,8 +78,8 @@ class AssetDetail:
 
 @dataclass(frozen=True)
 class Diagnostic:
-    """One remote test as the asset window reads it (6.4): its name, "fail", "not run" or "pass", the reason, and the
-    run it came from: Diagnostic("on_grid", "fail", "10:05: off the grid", 2026-06-01T12:00Z); a test the registry
+    """One remote test as the asset window reads it (6.4): its name, "fail", "no data" (SP-039), "not run" or "pass",
+    the reason, and the run it came from: Diagnostic("on_grid", "fail", "10:05: off the grid", 2026-06-01T12:00Z); a test the registry
     holds for the kind and the store has no result of is Diagnostic(name, "not run", NEVER_RUN_REASON, None)."""
 
     test_name: str
@@ -92,7 +94,7 @@ def row_of(conn: sqlite3.Connection, asset: Asset) -> AssetRow:
     endpoint."""
     latest = result_table.latest_for(conn, asset.asset_id)
     last_run_at = latest[0].run_at if latest else None
-    failing = next((found.test_name for found in latest if not found.passed), NO_FAILURE)
+    failing = next((found.test_name for found in latest if found.failed), NO_FAILURE)
     status = asset_status(conn, asset.asset_id)
     has_feed = asset.host is not None and asset.port is not None
     outage = open_outages(conn).get(asset.asset_id)
@@ -155,7 +157,7 @@ def asset_detail(conn: sqlite3.Connection, asset_id: str) -> AssetDetail:
 
 def diagnostics_of(conn: sqlite3.Connection, asset: Asset) -> tuple[Diagnostic, ...]:
     """Every remote test the registry holds for the asset's kind, with its result from the asset's latest run, failing
-    first, then never run, then passing, each group by name; a stored result of a test the folder no longer holds is
+    first, then no data, then never run, then passing, each group by name; a stored result of a test the folder no longer holds is
     kept, so nothing the run recorded is hidden: an inverter whose last run failed on_grid and passed reachable gives
     on_grid "fail", the five other inverter tests "not run", reachable "pass"; a string, which no test runs on, ()."""
     latest: dict[str, Recorded] = {}
@@ -170,8 +172,15 @@ def diagnostics_of(conn: sqlite3.Connection, asset: Asset) -> tuple[Diagnostic, 
         if result is None:
             found.append(Diagnostic(name, NOT_RUN, NEVER_RUN_REASON, None))
         else:
-            found.append(Diagnostic(name, PASSED if result.passed else FAILED, result.reason, result.run_at))
+            found.append(Diagnostic(name, state_of(result), result.reason, result.run_at))
     return tuple(sorted(found, key=lambda diagnostic: STATE_ORDER.index(diagnostic.state)))
+
+
+def state_of(result: Recorded) -> str:
+    """A stored result's diagnostic state: "pass", "fail", or "no data" for a test that had nothing to check (SP-039)."""
+    if result.no_data:
+        return NO_DATA
+    return PASSED if result.passed else FAILED
 
 
 def open_faults_of(conn: sqlite3.Connection, asset_id: str) -> tuple[Fault, ...]:

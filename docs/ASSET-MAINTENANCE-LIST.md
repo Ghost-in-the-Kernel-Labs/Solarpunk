@@ -13,6 +13,13 @@ Ranges include both ends. A max of `—` (null in the JSON) means the list sets 
 (`Asset.rated_kw`), which the remote test `power_under_rated` holds; for a meter's `energy_kwh` there is none, since
 the count only grows (`energy_monotonic`). A kind with no feed (a site, a string) has no fields and no tests.
 
+A test passes only over data (SP-039). When an asset's window holds no record that is not a gap, `reachable` fails, a
+disconnection, its rule suggesting the kind's equipment code ("no records", or "no records: N gaps"); every other test
+returns a third result, "no data", shown grey like "not run" and counted neither as a pass nor as a failure, so the
+asset's colour comes from `reachable`'s failure alone. A window of real records with none of the kind a test needs (no
+daylight record for `performance_above_floor`, no night record for `night_power_near_zero`) is judged as it is, not no
+data: an overcast day is not a disconnection.
+
 ## SITE
 
 A solar plant: the point of interconnection and everything behind it. It has no feed of its own; its numbers are the

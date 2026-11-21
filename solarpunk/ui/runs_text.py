@@ -13,10 +13,12 @@ RESULTS = "{count} results"
 ONE_RESULT = "1 result"
 FAILED = "{count} failed"
 ALL_PASSED = "all passed"
+NO_DATA_COUNT = "{count} no data"
 NO_RUNS = "no runs yet"
 NO_MATCH = "no run matches “{words}”"
 PASS = "pass"
 FAIL = "FAIL"
+NO_DATA = "no data"
 POWER_LINE = "{samples} samples: records {records}, gaps {gaps}; peak {peak} kW"
 NO_POWER = "no power samples on {day}"
 BAD_DAY = "a day reads like 2026-06-01"
@@ -31,17 +33,29 @@ def title(asset_id: str, name: str) -> str:
 
 
 def run_line(run: Run) -> tuple[str, str, str]:
-    """A run in the list: OAHE-INV-002's demo run gives ("2026-06-01 13:00 UTC", "8 results", "1 failed"); a run that
-    passed whole says "all passed"."""
+    """A run in the list: OAHE-INV-002's demo run gives ("2026-06-01 13:00 UTC", "8 results", "1 failed"); a run with
+    no failure but results with no data says "2 no data" (SP-039: never "all passed"); one that passed whole says
+    "all passed"."""
     count = len(run.results)
-    failures = sum(1 for result in run.results if not result.passed)
+    failures = sum(1 for result in run.results if result.failed)
+    empty = sum(1 for result in run.results if result.no_data)
     results = ONE_RESULT if count == 1 else RESULTS.format(count=count)
-    return (instant_text(run.run_at), results, FAILED.format(count=failures) if failures else ALL_PASSED)
+    if failures:
+        return (instant_text(run.run_at), results, FAILED.format(count=failures))
+    return (instant_text(run.run_at), results, NO_DATA_COUNT.format(count=empty) if empty else ALL_PASSED)
+
+
+def verdict_word(result: Recorded) -> str:
+    """A result's word in the window: "pass", "FAIL", or "no data" for a test with nothing to check (SP-039)."""
+    if result.no_data:
+        return NO_DATA
+    return PASS if result.passed else FAIL
 
 
 def result_line(result: Recorded) -> tuple[str, str, str]:
-    """A result of the chosen run: the ping's failure gives ("reachable", "FAIL", "127.0.0.1:9 is unreachable")."""
-    return (result.test_name, PASS if result.passed else FAIL, result.reason)
+    """A result of the chosen run: the ping's failure gives ("reachable", "FAIL", "127.0.0.1:9 is unreachable"); the
+    sensor's on_grid ("on_grid", "no data", "no records")."""
+    return (result.test_name, verdict_word(result), result.reason)
 
 
 def empty_text(has_feed: bool, search: str) -> str:

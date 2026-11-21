@@ -1,8 +1,9 @@
 """Running remote tests: one test against one asset, or the whole suite against every asset of each test's kinds,
 recording each result and giving each asset's status (SP-006). The remote module cannot read the fault ledger
 (MOD-05), so the suite takes each asset's open-OUTAGE flag from its caller (project).
-Run: python3 -m solarpunk.remote.run <test> <asset-id> --db <path> prints "pass" or "fail <reason>", exit 0 or 1;
-a test or asset the store does not know prints "error <why>", exit 2."""
+Run: python3 -m solarpunk.remote.run <test> <asset-id> --db <path> prints "pass" or "fail <reason>", exit 0 or 1,
+or "no data <reason>", exit 3 (SP-039: neither); a test or asset the store does not know prints "error <why>",
+exit 2."""
 import argparse
 import sqlite3
 import sys
@@ -16,7 +17,9 @@ from solarpunk.leaf.assets import Asset
 from solarpunk.leaf.codes import AssetStatus
 from solarpunk.leaf.telemetry import Sample
 from solarpunk.remote.registry import BadRemoteTest, discover, tests_for
-from solarpunk.remote.results import NotStored, Result, record, stored_asset, stored_samples
+from solarpunk.remote.results import NO_DATA, NotStored, Result, record, stored_asset, stored_samples
+
+NO_DATA_EXIT = 3
 
 
 def run_test(name: str, asset: Asset, samples: tuple[Sample, ...]) -> Result:
@@ -34,10 +37,10 @@ def run_test(name: str, asset: Asset, samples: tuple[Sample, ...]) -> Result:
 def status_of(open_outage: bool, results: tuple[Result, ...]) -> AssetStatus:
     """The asset's glyph: RED with an open OUTAGE fault whatever the results, YELLOW when a result failed, GREEN
     otherwise: status_of(False, (Result(True, "a"), Result(False, "b"))) is AssetStatus.YELLOW; status_of(False, ())
-    is AssetStatus.GREEN."""
+    is AssetStatus.GREEN; no data is no failure, and its colour comes from reachable's failure (SP-039)."""
     if open_outage:
         return AssetStatus.RED
-    if any(not result.passed for result in results):
+    if any(result.failed for result in results):
         return AssetStatus.YELLOW
     return AssetStatus.GREEN
 
@@ -75,8 +78,9 @@ def parser() -> argparse.ArgumentParser:
 
 
 def main(argv: list[str], out: TextIO) -> int:
-    """Runs one test against one stored asset and writes the verdict: "pass\\n" and 0, "fail no records\\n" and 1;
-    an unknown test, an unknown asset or a missing store file writes "error <why>\\n" and returns 2."""
+    """Runs one test against one stored asset and writes the verdict: "pass\\n" and 0, "fail no records\\n" and 1,
+    "no data no records\\n" and 3; an unknown test, an unknown asset or a missing store file writes "error <why>\\n"
+    and returns 2."""
     args = parser().parse_args(argv)
     if not Path(args.db).is_file():
         out.write(f"error no store at {args.db}\n")
@@ -88,6 +92,9 @@ def main(argv: list[str], out: TextIO) -> int:
         except (BadRemoteTest, NotStored) as refused:
             out.write(f"error {refused}\n")
             return 2
+    if result.no_data:
+        out.write(f"{NO_DATA} {result.reason}\n")
+        return NO_DATA_EXIT
     out.write("pass\n" if result.passed else f"fail {result.reason}\n")
     return 0 if result.passed else 1
 

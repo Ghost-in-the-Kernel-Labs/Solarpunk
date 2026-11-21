@@ -7,7 +7,7 @@ from solarpunk.leaf.asset_types import in_range
 from solarpunk.leaf.assets import Asset
 from solarpunk.leaf.codes import AssetKind
 from solarpunk.leaf.telemetry import Sample
-from solarpunk.remote.results import Result
+from solarpunk.remote.results import Result, no_data, nothing_to_check
 
 KINDS = (AssetKind.INVERTER, AssetKind.SENSOR)
 CLAUSES = ("9001-9.1.3", "55000-7.5")
@@ -19,7 +19,11 @@ FIELD = "irradiance_w_m2"
 def run(asset: Asset, samples: tuple[Sample, ...]) -> Result:
     """Passes when every irradiance read is in range, naming the first out of range otherwise: 0.0 and 980.0 give
     Result(True, "2 irradiance readings in range"); 1600.0 at 10:05 gives Result(False, "2026-06-01T10:05:00+00:00:
-    irradiance 1600.0 W/m2 out of range"); gaps and records with no irradiance are not counted."""
+    irradiance 1600.0 W/m2 out of range"); gaps and records with no irradiance are not counted;
+    gaps alone, or no samples, give no data, Result(False, "no records", no_data=True)."""
+    missing = nothing_to_check(samples)
+    if missing is not None:
+        return no_data(missing)  # Decision: SP-039 (nothing to check is not a pass)
     read = [sample for sample in samples if sample.irradiance_w_m2 is not None]
     for sample in read:
         if not in_range(asset.kind, FIELD, sample.irradiance_w_m2):

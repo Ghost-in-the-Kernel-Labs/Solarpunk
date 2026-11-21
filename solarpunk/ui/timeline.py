@@ -1,7 +1,7 @@
 """The Runs window's "By test" timeline (10.4, SP-024): one row per test, one mark per run, green a pass and red a
-failure, the time axis in UTC. Its geometry is pure, with no tkinter, as chart.py's is, so the fast loop tests it;
+failure, grey no data (SP-039), the time axis in UTC. Its geometry is pure, with no tkinter, as chart.py's is, so the fast loop tests it;
 runs_window.py only draws what these return. A test with two results in one run (the ping's reachable beside the
-test's own, SOL-15) has one mark there, red when either failed."""
+test's own, SOL-15) has one mark there, red when either failed, else grey when either had no data."""
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 
@@ -20,15 +20,25 @@ MAX_TICKS = 8
 STEPS_H = (1, 2, 3, 6, 12, 24, 48, 168)
 PASS_COLOUR = "#2e8b57"
 FAIL_COLOUR = "#c0392b"
+NO_DATA_COLOUR = "#808080"
 
 
 @dataclass(frozen=True)
 class Mark:
-    """One run of one test on the timeline: Mark(x=401.0, row=0, passed=False) is a red mark on the first test's row."""
+    """One run of one test on the timeline: Mark(x=401.0, row=0, passed=False) is a red mark on the first test's row;
+    Mark(401.0, 0, False, no_data=True) a grey one (SP-039)."""
 
     x: float
     row: int
     passed: bool
+    no_data: bool = False
+
+    @property
+    def colour(self) -> str:
+        """The mark's fill: green a pass, red a failure, grey no data."""
+        if self.no_data:
+            return NO_DATA_COLOUR
+        return PASS_COLOUR if self.passed else FAIL_COLOUR
 
 
 def tests_of(runs: tuple[Run, ...]) -> tuple[str, ...]:
@@ -69,19 +79,23 @@ def height_of(rows: int) -> int:
 
 
 def marks(runs: tuple[Run, ...], width: int = WIDTH, left: int = LABEL_WIDTH) -> tuple[Mark, ...]:
-    """One mark per run per test it ran, passed only when every result of that test in that run passed; none for no
-    runs."""
+    """One mark per run per test it ran, passed only when every result of that test in that run passed, no data when
+    none failed and one had no data (SP-039); none for no runs."""
     if not runs:
         return ()
     rows = {name: index for index, name in enumerate(tests_of(runs))}
     start, end = span(runs)
     found = []
     for run in runs:
-        verdicts: dict[str, bool] = {}
+        failed: dict[str, bool] = {}
+        empty: dict[str, bool] = {}
         for result in run.results:
-            verdicts[result.test_name] = verdicts.get(result.test_name, True) and result.passed
+            failed[result.test_name] = failed.get(result.test_name, False) or result.failed
+            empty[result.test_name] = empty.get(result.test_name, False) or result.no_data
         x = x_of(run.run_at, start, end, width, left)
-        found.extend(Mark(x, rows[name], passed) for name, passed in sorted(verdicts.items()))
+        for name in sorted(failed):
+            no_data = empty[name] and not failed[name]
+            found.append(Mark(x, rows[name], not failed[name] and not no_data, no_data))
     return tuple(found)
 
 

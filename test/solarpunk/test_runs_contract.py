@@ -26,9 +26,12 @@ def section() -> str:
 
 
 def run_of(conn: sqlite3.Connection, asset_id: str, at: str) -> list[tuple[str, bool, str]]:
-    """The run at one instant: (test, passed, reason) for every result stored then, failures first, then by test."""
-    rows = conn.execute("SELECT test_name, passed, reason FROM results WHERE asset_id = ? AND run_at = ?", (asset_id, at))
-    return sorted(((name, bool(passed), reason) for name, passed, reason in rows), key=lambda r: (r[1], r[0]))
+    """The run at one instant: (test, verdict, reason) for every result stored then, failures first, then no data (the
+    verdict None, SP-039), then by test; a pass is True, a failure False."""
+    rows = conn.execute("SELECT test_name, passed, reason, no_data FROM results WHERE asset_id = ? AND run_at = ?",
+                        (asset_id, at))
+    found = [(name, None if empty else bool(passed), reason) for name, passed, reason, empty in rows]
+    return sorted(found, key=lambda r: ({False: 0, None: 1, True: 2}[r[1]], r[0]))
 
 
 def errors_of(conn: sqlite3.Connection, asset_id: str) -> tuple[Counter, Counter]:
@@ -64,16 +67,18 @@ class TheExamples(unittest.TestCase):
         self.assertEqual(len(run), 8)
         self.assertEqual(run[0], ("reachable", False, "127.0.0.1:9 is unreachable"))
         self.assertIn(("reachable", True, "156 records"), run)
-        self.assertEqual(sum(passed for _, passed, _ in run), 7)
+        self.assertEqual(sum(passed is True for _, passed, _ in run), 7)
         self.has("OAHE-INV-002's run at 13:00 8 results, failed: reachable failed (\"127.0.0.1:9 is unreachable\"")
 
     def test_the_sensors_run(self) -> None:
         run = run_of(self.conn, demo.SENSOR, RUN_AT)
         self.assertEqual([(name, passed) for name, passed, _ in run],
-                         [("reachable", False), ("reachable", False), ("irradiance_in_range", True), ("on_grid", True)])
-        self.assertEqual({reason for name, passed, reason in run if not passed},
+                         [("reachable", False), ("reachable", False), ("irradiance_in_range", None), ("on_grid", None)])
+        self.assertEqual({reason for name, passed, reason in run if passed is False},
                          {"127.0.0.1:9 is unreachable", "no records"})
+        self.assertEqual({reason for name, passed, reason in run if passed is None}, {"no records"})
         self.has("OAHE-SEN-001's run at 13:00 4 results, failed: two reachable failed")
+        self.has("irradiance_in_range and on_grid no data (\"no records\"), never a pass")
 
     def test_the_error_counts(self) -> None:
         self.assertEqual(errors_of(self.conn, demo.SENSOR), (Counter(), Counter({"SEN-001": 1})))

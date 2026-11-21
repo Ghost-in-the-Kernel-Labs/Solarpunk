@@ -5,7 +5,7 @@ ISO 9001 9.1.3 (the data is fit to analyse)."""
 from solarpunk.leaf.assets import Asset
 from solarpunk.leaf.codes import AssetKind
 from solarpunk.leaf.telemetry import Sample
-from solarpunk.remote.results import Result
+from solarpunk.remote.results import Result, no_data, nothing_to_check
 
 KINDS = (AssetKind.INVERTER,)
 CLAUSES = ("9001-9.1.3",)
@@ -20,9 +20,14 @@ NIGHT_SHARE = 0.01
 def run(asset: Asset, samples: tuple[Sample, ...]) -> Result:
     """Passes when every night record's power is at or under 1 % of rated_kw: rated 100 with (irradiance 0, 0.4 kW)
     gives Result(True, "1 night records near zero"); (0, 3.0) at 02:00 gives Result(False, "2026-06-01T02:00:00+00:00:
-    3.0 kW at night, over 1.0 kW"); rated_kw None gives Result(False, "no rating")."""
+    3.0 kW at night, over 1.0 kW"); rated_kw None gives Result(False, "no rating"); gaps alone, or no samples, give
+    no data, Result(False, "no records", no_data=True), while records with none at night pass, "0 night records near
+    zero" (SP-039)."""
     if asset.rated_kw is None:
         return Result(False, "no rating")
+    missing = nothing_to_check(samples)
+    if missing is not None:
+        return no_data(missing)  # Decision: SP-039 (nothing to check is not a pass)
     limit = asset.rated_kw * NIGHT_SHARE
     night = [s for s in samples if s.irradiance_w_m2 is not None and s.power_kw is not None
              and s.irradiance_w_m2 <= NIGHT_W_M2]

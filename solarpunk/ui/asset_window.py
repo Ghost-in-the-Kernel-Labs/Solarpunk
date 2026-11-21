@@ -1,5 +1,6 @@
 """The asset window (3.2, SP-007): one asset's fields and status, its open faults with their meanings, its diagnostics
-(6.4: every remote test of its kind with its latest result, failing first, then never run, then passing), its
+(6.4: every remote test of its kind with its latest result, failing first, then no data and never run, both grey,
+then passing), its
 suggested faults with Accept and Dismiss (7.5, SP-015: the tests or the device suggest, an engineer decides), a form
 to assign a catalogue code, and the engineer with Save and Cancel. Who an act is recorded as is the account signed in
 (12.4): an engineer acts as themself and sees no picker, an operator names the engineer "On the word of"; a store with

@@ -48,7 +48,8 @@ demo (OAHE, 2026-06-01)", lists the eleven assets of the Oahe site near Pierre:
 
 - **OAHE-INV-001 green**: a feed simulator inside the demo serves its day of telemetry; every remote test passed.
 - **OAHE-INV-002 red**: an open INV-001 outage (inverter offline) since 11:30, and its feed does not answer.
-- **OAHE-SEN-001 yellow**: the irradiance sensor's feed does not answer, so its `reachable` test failed.
+- **OAHE-SEN-001 yellow**: the irradiance sensor's feed does not answer, so its `reachable` test failed; its other
+  two tests had nothing to check and read "no data", grey, never a pass (SP-039).
 - The site, the strings, the trackers and the meter are green: they have no feed configured, so the suite leaves
   them alone and only their faults decide their colour.
 
@@ -73,7 +74,8 @@ derate on OAHE-INV-001 (10:00 to 10:45). The run is stamped 2026-06-01 13:00 UTC
    Its **Runs** link (the blue word at the row's end) opens its runs instead: one run at 13:00 UTC, "8 results",
    "1 failed", in red; below it the run's results, the ping's failed `reachable` first ("127.0.0.1:9 is unreachable"),
    then the seven that passed, the test's own `reachable` among them. Type "fail" or a test's name to narrow the list.
-   Its **By test** tab draws the runs as a timeline: a row per test, a green or red mark per run, the hours in UTC.
+   Its **By test** tab draws the runs as a timeline: a row per test, a green, red or grey (no data) mark per run,
+   the hours in UTC.
    OAHE-INV-001's **Power** tab draws its day: "288 samples: records 279, gaps 9; peak 94.35 kW", the line broken at
    each gap (10:40, 13:25, 17:35, 17:50), never drawn down to zero. The **Errors** tab counts an asset's faults (red)
    and suggestions (amber) by code over the days chosen: OAHE-SEN-001 "SEN-001: 0 faults, 1 suggestion".
@@ -85,7 +87,8 @@ derate on OAHE-INV-001 (10:00 to 10:45). The run is stamped 2026-06-01 13:00 UTC
    hand). OAHE-INV-002's open outage shows who assigned it: inverter@oahe.example, entered by the operator, marked
    cover, since that engineer is not INV-002's own.
 5. **A suggested fault (SP-015).** Close it and click OAHE-SEN-001, the yellow weather station. Its `reachable` failed,
-   and the test's rule suggests SEN-001 (readings unreliable) under "Suggested faults": the tests propose, they do not
+   first and in red; `irradiance_in_range` and `on_grid` read "no data" in grey, since with no record there was
+   nothing to check, which is never a pass (SP-039). The failure's rule suggests SEN-001 (readings unreliable) under "Suggested faults": the tests propose, they do not
    assign. Select it, choose site@oahe.example under "Assigned by" and press Accept: the fault opens as that engineer.
    Or give a reason and press Dismiss. `solarpunk fault suggestions` lists the same on the command line.
 6. **The engineer.** In the same window type an address into Engineer and press Save, or Cancel to leave it. If

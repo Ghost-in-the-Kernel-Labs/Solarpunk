@@ -179,8 +179,9 @@ class OnGrid(unittest.TestCase):
         samples = (reading(INV1, T0, 1500.0, 0.0), gap(INV1.asset_id, T1))
         self.assertEqual(on_grid.run(INV1, samples), Result(True, "2 records on the grid and in range"))
 
-    def test_an_empty_feed_passes_with_no_records(self) -> None:
-        self.assertEqual(on_grid.run(SEN, ()), Result(True, "0 records on the grid and in range"))
+    def test_an_empty_feed_has_no_data(self) -> None:
+        """SP-039 reverses J-045's vacuous pass: nothing to check is no data, never a pass."""
+        self.assertEqual(on_grid.run(SEN, ()), Result(False, "no records", no_data=True))
 
     def test_fails_naming_the_first_value_out_of_range(self) -> None:
         samples = (reading(INV1, T0, 800.0, 60.0), reading(INV1, T1, 1500.5, -1.0))
@@ -235,13 +236,14 @@ class TheResultsTable(unittest.TestCase):
             ("run_at", "TEXT", 1, None, 0),
             ("passed", "INTEGER", 1, None, 0),
             ("reason", "TEXT", 1, None, 0),
+            ("no_data", "INTEGER", 1, "0", 0),
         ])
 
     def test_record_stores_iso_utc_text(self) -> None:
         conn = fresh()
         results.record(conn, "reachable", INV1.asset_id, T1, Result(True, "3 records"))
         rows = [tuple(row) for row in conn.execute("SELECT * FROM results")]
-        self.assertEqual(rows, [(1, "reachable", INV1.asset_id, STAMP, 1, "3 records")])
+        self.assertEqual(rows, [(1, "reachable", INV1.asset_id, STAMP, 1, "3 records", 0)])
 
     def test_record_refuses_a_naive_instant(self) -> None:
         with self.assertRaises(NotUtc):
@@ -315,7 +317,8 @@ class RunningTests(unittest.TestCase):
                                   "2026-06-01T10:00:00+00:00: power 101.0 kW over rated 100.0 kW"))
         latest = results.latest_for(conn, SEN.asset_id)
         self.assertEqual(sorted(r.test_name for r in latest), sorted(t.name for t in registry.tests_for(AssetKind.SENSOR)))
-        self.assertEqual(latest, tuple(sorted(latest, key=lambda r: (r.passed, r.test_name))))  # failing first, by name
+        # failing first, then no data, each by name (SP-039)
+        self.assertEqual(latest, tuple(sorted(latest, key=lambda r: (r.passed, r.no_data, r.test_name))))
         self.assertFalse(next(r for r in latest if r.test_name == "reachable").passed)
         per_run = 2 * len(registry.tests_for(AssetKind.INVERTER)) + len(registry.tests_for(AssetKind.SENSOR))
         self.assertEqual(conn.execute("SELECT count(*) FROM results").fetchone()[0], per_run)  # every test of each kind

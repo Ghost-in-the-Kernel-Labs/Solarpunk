@@ -1,7 +1,7 @@
 """The Runs window (10.3, SP-024): one asset's last 100 runs, newest first, a run with a failure in red; selecting a run
 shows its results with their reasons, failures first; a search box narrows the list as it is typed (a test's name,
 "pass" or "fail", words in a reason). A second tab, "By test" (10.4), draws the same runs as a timeline, one row per
-test, one mark per run, green or red, in UTC. Every string comes from runs_text.py and every point from timeline.py
+test, one mark per run, green, red or grey for no data (SP-039), in UTC. Every string comes from runs_text.py and every point from timeline.py
 over project.asset_runs (SOL-15); the class only lays them out (SP-010: it imports project and the leaf alone)."""
 import sqlite3
 import tkinter as tk
@@ -14,7 +14,9 @@ from solarpunk.ui.chart import CANVAS_HEIGHT, CANVAS_WIDTH
 from solarpunk.ui.reports import draw_power
 
 RED_TEXT = "#c0392b"
+GREY_TEXT = "#808080"
 FAILED_TAG = "failed"
+NO_DATA_TAG = "nodata"
 RUN_COLUMNS = ("instant", "results", "verdict")
 RUN_HEADINGS = ("Run", "Results", "Verdict")
 RUN_WIDTHS = (170, 90, 90)
@@ -32,6 +34,13 @@ DAY = "Day (UTC)"
 SHOW = "Show"
 ERRORS_TAB = "Errors"
 FROM, TO = "From", "To"
+
+
+def tags_of(failed: bool, no_data: bool) -> tuple[str, ...]:
+    """A row's tags: a failure red, else no data grey (SP-039), else none: tags_of(False, True) is ("nodata",)."""
+    if failed:
+        return (FAILED_TAG,)
+    return (NO_DATA_TAG,) if no_data else ()
 
 
 class RunsWindow(tk.Toplevel):
@@ -150,6 +159,7 @@ class RunsWindow(tk.Toplevel):
             tree.heading(column, text=heading)
             tree.column(column, width=width, stretch=column == columns[-1])
         tree.tag_configure(FAILED_TAG, foreground=RED_TEXT)
+        tree.tag_configure(NO_DATA_TAG, foreground=GREY_TEXT)
         tree.pack(fill="both", expand=True, padx=8, pady=4)
         return tree
 
@@ -160,7 +170,7 @@ class RunsWindow(tk.Toplevel):
         self.run_tree.delete(*self.run_tree.get_children())
         for index, run in enumerate(self.runs):
             self.run_tree.insert("", "end", iid=str(index), values=runs_text.run_line(run),
-                                 tags=(FAILED_TAG,) if run.failed else ())
+                                 tags=tags_of(run.failed, any(result.no_data for result in run.results)))
         empty = "" if self.runs else runs_text.empty_text(self.has_feed, self.search_text.get())
         self.empty_label.configure(text=empty)
         if self.runs:
@@ -182,9 +192,8 @@ class RunsWindow(tk.Toplevel):
             canvas.create_text(8, timeline.y_of(row), text=name, anchor="w")
         for mark in timeline.marks(self.runs, left=left):
             y = timeline.y_of(mark.row)
-            colour = timeline.PASS_COLOUR if mark.passed else timeline.FAIL_COLOUR
             canvas.create_rectangle(mark.x - timeline.MARK_WIDTH / 2, y - timeline.MARK_HEIGHT / 2,
-                                    mark.x + timeline.MARK_WIDTH / 2, y + timeline.MARK_HEIGHT / 2, fill=colour,
+                                    mark.x + timeline.MARK_WIDTH / 2, y + timeline.MARK_HEIGHT / 2, fill=mark.colour,
                                     outline="", tags=(MARK_TAG,))
         start, end = timeline.span(self.runs)
         axis_y = timeline.TOP + len(names) * timeline.ROW_HEIGHT + 6
@@ -203,4 +212,4 @@ class RunsWindow(tk.Toplevel):
             return
         for result in self.runs[int(chosen[0])].results:
             self.result_tree.insert("", "end", values=runs_text.result_line(result),
-                                    tags=() if result.passed else (FAILED_TAG,))
+                                    tags=tags_of(result.failed, result.no_data))

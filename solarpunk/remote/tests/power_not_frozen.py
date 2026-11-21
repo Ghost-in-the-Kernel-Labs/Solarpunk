@@ -5,7 +5,7 @@ stopped inverter at night is still. Evidences ISO 9001 9.1.3 (the data is fit to
 from solarpunk.leaf.assets import Asset
 from solarpunk.leaf.codes import AssetKind
 from solarpunk.leaf.telemetry import Sample
-from solarpunk.remote.results import Result
+from solarpunk.remote.results import Result, no_data, nothing_to_check
 
 KINDS = (AssetKind.INVERTER,)
 CLAUSES = ("9001-9.1.3",)
@@ -18,7 +18,10 @@ FROZEN_RUN = 6
 def run(asset: Asset, samples: tuple[Sample, ...]) -> Result:
     """Passes unless one non-zero power repeats on six records in a row (gaps skipped, records in time order): powers
     50.0, 51.2, 49.8 give Result(True, "3 power records, none frozen"); 50.0 six times from 10:00 gives Result(False,
-    "power 50.0 kW unchanged on 6 records from 2026-06-01T10:00:00+00:00")."""
+    "power 50.0 kW unchanged on 6 records from 2026-06-01T10:00:00+00:00"); gaps alone, or no samples, give no data."""
+    missing = nothing_to_check(samples)
+    if missing is not None:
+        return no_data(missing)  # Decision: SP-039 (nothing to check is not a pass)
     read = sorted((s for s in samples if s.power_kw is not None), key=lambda sample: sample.at)
     run_start = 0
     for index in range(1, len(read) + 1):
