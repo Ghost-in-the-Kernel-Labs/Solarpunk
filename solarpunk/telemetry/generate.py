@@ -79,7 +79,7 @@ def asset_key(asset: Asset) -> str:
 def line(sample: Sample) -> str:
     """One golden line, tab-separated asset_id, isoformat, irradiance, power, gap:
     "OAHE-INV-001\\t2026-06-01T13:00:00+00:00\\t1000.0\\t91.62\\tFalse"; a gap's values print as None."""
-    fields = (sample.asset_id, sample.at.isoformat(), sample.irradiance_w_m2, sample.power_kw, sample.gap)
+    fields = (sample.asset_id, sample.moment.isoformat(), sample.irradiance_w_m2, sample.power_kw, sample.gap)
     return "\t".join(str(field) for field in fields)
 
 

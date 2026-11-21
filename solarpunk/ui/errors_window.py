@@ -13,7 +13,7 @@ from solarpunk.ui import bars, runs_text
 
 TITLE = "Errors across the fleet"
 CODE = "Code"
-FROM, TO = "From", "To"
+FROM_LABEL, TO_LABEL = "From", "To"
 SHOW = "Show"
 FIRST_CODE = "INV-001"
 
@@ -39,7 +39,7 @@ class ErrorsWindow(tk.Toplevel):
                                                                                                          padx=4)
         day = project.report_day(conn).isoformat()
         self.first_day, self.last_day = tk.StringVar(value=day), tk.StringVar(value=day)
-        for words, variable in ((FROM, self.first_day), (TO, self.last_day)):
+        for words, variable in ((FROM_LABEL, self.first_day), (TO_LABEL, self.last_day)):
             ttk.Label(bar, text=words).pack(side="left")
             ttk.Entry(bar, textvariable=variable, width=12).pack(side="left", padx=4)
         self.show_button = ttk.Button(bar, text=SHOW, command=self.draw)

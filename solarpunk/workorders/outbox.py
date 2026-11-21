@@ -18,8 +18,8 @@ PENDING = (
 def pending(conn: sqlite3.Connection) -> tuple[OutboxEvent, ...]:
     """Every event no tracker has taken yet, oldest first: after the demo is built, the outage ticket's "create" is
     among them; after mark_sent, it is not."""
-    return tuple(OutboxEvent(e, w, kind, datetime.fromisoformat(at), asset, detail)
-                 for e, w, kind, at, asset, detail in conn.execute(PENDING))
+    return tuple(OutboxEvent(event_id, wo_id, kind, datetime.fromisoformat(stamp), asset, detail)
+                 for event_id, wo_id, kind, stamp, asset, detail in conn.execute(PENDING))
 
 
 def mark_sent(conn: sqlite3.Connection, event_id: int, moment: datetime) -> None:

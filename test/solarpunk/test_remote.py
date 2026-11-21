@@ -49,9 +49,9 @@ def reading(asset: Asset, moment: datetime, irradiance: float | None, power: flo
 
 def off_grid(asset: Asset) -> Sample:
     """A sample at 10:02, built past the leaf's own check (which would refuse it) so on_grid's guard can be shown to
-    hold: off_grid(INV1).at.minute is 2."""
+    hold: off_grid(INV1).moment.minute is 2."""
     built = object.__new__(Sample)
-    values = {"asset_id": asset.asset_id, "at": at(2026, 6, 1, 10, 2), "irradiance_w_m2": 1.0, "power_kw": 1.0,
+    values = {"asset_id": asset.asset_id, "moment": at(2026, 6, 1, 10, 2), "irradiance_w_m2": 1.0, "power_kw": 1.0,
               "gap": False}
     for name, value in values.items():
         object.__setattr__(built, name, value)

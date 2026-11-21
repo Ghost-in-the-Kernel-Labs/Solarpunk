@@ -24,7 +24,7 @@ class ReadFailed(ValueError):
 class Read:
     """One live reading and the instant it was taken: Read(2026-06-01T10:00:03Z, 78.4); a read that failed has no value."""
 
-    at: datetime
+    moment: datetime
     value: float | None
 
 

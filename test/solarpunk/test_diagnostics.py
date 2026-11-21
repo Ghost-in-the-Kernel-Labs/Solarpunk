@@ -26,7 +26,7 @@ def reading(asset: Asset, moment: datetime, irradiance: float | None, power: flo
 
 
 def steady(power: float, count: int) -> tuple[Sample, ...]:
-    """count records from 10:00 five minutes apart, all at one power: steady(50.0, 6)[-1].at is 10:25."""
+    """count records from 10:00 five minutes apart, all at one power: steady(50.0, 6)[-1].moment is 10:25."""
     return tuple(reading(INV, T0 + timedelta(minutes=5 * i), 800.0, power) for i in range(count))
 
 

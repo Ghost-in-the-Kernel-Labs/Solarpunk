@@ -63,17 +63,17 @@ def reading_at(samples: tuple[Sample, ...], field: str, moment: datetime) -> flo
     field the samples do not hold raises ValueError."""
     if field not in VALUE_FIELDS:
         raise ValueError(f"the simulated day holds no {field}")
-    before = [sample for sample in samples if sample.at <= moment]
-    after = [sample for sample in samples if sample.at >= moment]
+    before = [sample for sample in samples if sample.moment <= moment]
+    after = [sample for sample in samples if sample.moment >= moment]
     if not before or not after:
         return None
-    low, high = max(before, key=lambda sample: sample.at), min(after, key=lambda sample: sample.at)
+    low, high = max(before, key=lambda sample: sample.moment), min(after, key=lambda sample: sample.moment)
     start, end = getattr(low, field), getattr(high, field)
     if start is None or end is None:
         return None
-    if low.at == high.at:
+    if low.moment == high.moment:
         return float(start)
-    return start + (end - start) * ((moment - low.at) / (high.at - low.at))
+    return start + (end - start) * ((moment - low.moment) / (high.moment - low.moment))
 
 
 def answer(samples: tuple[Sample, ...], request: bytes) -> bytes:

@@ -54,7 +54,7 @@ def tick_hours(period: Period) -> list[datetime]:
     """The time axis's ticks, on whole hours, at most eight, the step the smallest of 1, 2, 3, 6, 12 and 24 hours that
     fits: a day gives 00:00, 03:00 … 21:00; 10:00 to 10:15 gives 10:00 alone."""
     hours = max(period.hours(), 1)
-    step = next(s for s in (1, 2, 3, 6, 12, 24) if hours / s <= MAX_TICKS)
+    step = next(candidate for candidate in (1, 2, 3, 6, 12, 24) if hours / candidate <= MAX_TICKS)
     first = period.start.replace(minute=0, second=0, microsecond=0)
     if first < period.start:
         first += timedelta(hours=1)

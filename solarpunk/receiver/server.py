@@ -19,7 +19,7 @@ DECODE_ERRORS = "replace"
 LINE_LIMIT = 256
 NEWLINE = "\r\n"
 SEPARATOR = " "
-OK = "ok fault {}\n"
+OK_REPLY = "ok fault {}\n"
 REFUSED = "refused {}\n"
 LISTENING = "receiver: listening on {}:{}\n"
 DEFAULT_HOST = "127.0.0.1"
@@ -66,7 +66,7 @@ def reply(db_path: str | Path, line: str, now: datetime) -> str:
             fault = handle(conn, line, now)
         except ReceiverError as refused:
             return REFUSED.format(refused)
-    return OK.format(fault.fault_id)
+    return OK_REPLY.format(fault.fault_id)
 
 
 class LineHandler(socketserver.StreamRequestHandler):

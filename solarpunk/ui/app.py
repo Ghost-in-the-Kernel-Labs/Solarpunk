@@ -75,22 +75,22 @@ def column_xs(lines: Iterable[tuple[str, ...]], measure: Callable[[str], int]) -
     for line in (marked_headings(), *lines):
         for index, text in enumerate(line):
             widths[index] = max(widths[index], measure(text))
-    xs = [FIRST_X]
+    lefts = [FIRST_X]
     for width in widths[:-1]:
-        xs.append(xs[-1] + width + COLUMN_GAP)
-    return tuple(xs)
+        lefts.append(lefts[-1] + width + COLUMN_GAP)
+    return tuple(lefts)
 
 
-def width_for(xs: tuple[int, ...], lines: Iterable[tuple[str, ...]], measure: Callable[[str], int]) -> int:
+def width_for(lefts: tuple[int, ...], lines: Iterable[tuple[str, ...]], measure: Callable[[str], int]) -> int:
     """The width that holds every column, the last one's widest text and a 12 px margin, never under 820."""
     last = max((measure(line[-1]) for line in (marked_headings(), *lines)), default=0)
-    return max(CANVAS_WIDTH, xs[-1] + last + RIGHT_MARGIN)
+    return max(CANVAS_WIDTH, lefts[-1] + last + RIGHT_MARGIN)
 
 
-def runs_x(xs: tuple[int, ...], lines: Iterable[tuple[str, ...]], measure: Callable[[str], int]) -> int:
+def runs_x(lefts: tuple[int, ...], lines: Iterable[tuple[str, ...]], measure: Callable[[str], int]) -> int:
     """Where each row's "Runs" link stands (10.3): past the last column's widest text and a 16 px gap; with 7 px a
     character and no rows, column_xs's last x plus "Failing ▲" (63 px) plus 16."""
-    return xs[-1] + max(measure(line[-1]) for line in (marked_headings(), *lines)) + COLUMN_GAP
+    return lefts[-1] + max(measure(line[-1]) for line in (marked_headings(), *lines)) + COLUMN_GAP
 
 
 def summary(rows: tuple[project.AssetRow, ...]) -> str:
@@ -101,12 +101,12 @@ def summary(rows: tuple[project.AssetRow, ...]) -> str:
                           red=counts[AssetStatus.RED])
 
 
-def row_at(y: float, count: int) -> int | None:
+def row_at(canvas_y: float, count: int) -> int | None:
     """The index of the row under a canvas y, or None below the last or above the first: row_at(0, 3) is 0,
     row_at(27.9, 3) is 0, row_at(28, 3) is 1, row_at(84, 3) is None, row_at(-1, 3) is None."""
-    if y < 0:
+    if canvas_y < 0:
         return None
-    index = int(y) // ROW_HEIGHT
+    index = int(canvas_y) // ROW_HEIGHT
     return index if index < count else None
 
 
@@ -203,10 +203,10 @@ class FleetWindow:
         self.search_box = ttk.Entry(self.filters, textvariable=self.search_text, width=24)
         self.search_box.pack(side=tkinter.LEFT, padx=(4, 12))
         self.status_box = ttk.Combobox(self.filters, textvariable=self.status_choice, state="readonly", width=12,
-                                       values=(ANY_STATUS, *(s.value for s in AssetStatus)))
+                                       values=(ANY_STATUS, *(status.value for status in AssetStatus)))
         self.status_box.pack(side=tkinter.LEFT, padx=(0, 8))
         self.kind_box = ttk.Combobox(self.filters, textvariable=self.kind_choice, state="readonly", width=12,
-                                     values=(ANY_KIND, *(k.name.lower() for k in AssetKind)))
+                                     values=(ANY_KIND, *(kind.name.lower() for kind in AssetKind)))
         self.kind_box.pack(side=tkinter.LEFT)
         for variable in (self.search_text, self.status_choice, self.kind_choice):
             variable.trace_add("write", lambda *_: self.redraw())
@@ -214,12 +214,12 @@ class FleetWindow:
     def bind_keys(self, window: tkinter.Misc) -> None:
         """Ctrl+F to the search box, Esc clears the filters, F5 refreshes, Up and Down move the selection, Enter opens
         the selected asset; each on the fleet's own window, so an asset window's keys stay its own."""
-        window.bind("<Control-f>", lambda _e: self.search_box.focus_set())
-        window.bind("<Escape>", lambda _e: self.clear_filters())
-        window.bind("<F5>", lambda _e: self.refresh())
-        window.bind("<Up>", lambda _e: self.move_selection(-1))
-        window.bind("<Down>", lambda _e: self.move_selection(1))
-        window.bind("<Return>", lambda _e: self.open_selected())
+        window.bind("<Control-f>", lambda _event: self.search_box.focus_set())
+        window.bind("<Escape>", lambda _event: self.clear_filters())
+        window.bind("<F5>", lambda _event: self.refresh())
+        window.bind("<Up>", lambda _event: self.move_selection(-1))
+        window.bind("<Down>", lambda _event: self.move_selection(1))
+        window.bind("<Return>", lambda _event: self.open_selected())
 
     def make_tooltip(self, root: tkinter.Misc) -> ttk.Label:
         """A borderless window holding one label, hidden until a mouseover: make_tooltip(root).master is that window,
@@ -267,10 +267,10 @@ class FleetWindow:
         self.runs_x = runs_x(self.xs, lines, self.measure)
         width = max(width_for(self.xs, lines, self.measure), self.runs_x + self.measure(RUNS) + RIGHT_MARGIN)
         self.header.delete(tkinter.ALL)
-        for index, (x, text) in enumerate(zip(self.xs, HEADINGS)):
+        for index, (column_x, text) in enumerate(zip(self.xs, HEADINGS)):
             sorted_here = index == self.sort_column and (index, self.sort_reverse) != (0, False)  # id order is unmarked
             mark = SORT_MARK[self.sort_reverse] if sorted_here else ""
-            self.header.create_text(x, HEADING_HEIGHT // 2, text=text + mark, anchor=tkinter.W, font=self.heading_font,
+            self.header.create_text(column_x, HEADING_HEIGHT // 2, text=text + mark, anchor=tkinter.W, font=self.heading_font,
                                     tags=(HEADING_TAG,))
         self.header.configure(width=width)
         self.canvas.delete(tkinter.ALL)
@@ -288,7 +288,7 @@ class FleetWindow:
 
     def on_heading(self, event: tkinter.Event) -> None:
         """A click on a heading sorts by its column; a second click on the same one turns the order round."""
-        column = max((i for i, x in enumerate(self.xs) if x <= event.x), default=0)
+        column = max((index for index, column_x in enumerate(self.xs) if column_x <= event.x), default=0)
         self.sort_reverse = not self.sort_reverse if column == self.sort_column else False
         self.sort_column = column
         self.redraw()
@@ -320,7 +320,7 @@ class FleetWindow:
         for key, text in band_counts(found):
             button = self.band_buttons.get(key)
             if button is None:
-                button = ttk.Button(self.band, command=lambda k=key: self.toggle(k))
+                button = ttk.Button(self.band, command=lambda band_key=key: self.toggle(band_key))
                 button.pack(side=tkinter.LEFT, padx=(0, 6))
                 self.band_buttons[key] = button
             button.configure(text=text)
@@ -336,8 +336,8 @@ class FleetWindow:
         "Runs" link tagged "runs:<id>" (10.3)."""
         top = index * ROW_HEIGHT
         draw_panel(self.canvas, GLYPH_X, top + GLYPH_TOP, colour_of(row.status), GLYPH_TAG.format(asset_id=row.asset_id))
-        for x, text in zip(self.xs, row_text(row)):
-            self.canvas.create_text(x, top + ROW_HEIGHT // 2, text=text, anchor=tkinter.W,
+        for column_x, text in zip(self.xs, row_text(row)):
+            self.canvas.create_text(column_x, top + ROW_HEIGHT // 2, text=text, anchor=tkinter.W,
                                     tags=(ROW_TAG.format(asset_id=row.asset_id),))
         self.canvas.create_text(self.runs_x, top + ROW_HEIGHT // 2, text=RUNS, anchor=tkinter.W, fill=LINK_COLOUR,
                                 font=self.link_font, tags=(RUNS_TAG.format(asset_id=row.asset_id),))

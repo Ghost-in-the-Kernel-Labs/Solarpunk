@@ -117,7 +117,7 @@ def asset_runs(conn: sqlite3.Connection, asset_id: str, limit: int = SHOWN, sear
     for run_at, found in by_instant.items():
         if search and search.strip() and not any(matches(result, search) for result in found):
             continue
-        ordered = tuple(sorted(found, key=lambda r: (r.passed, r.no_data, r.test_name)))
+        ordered = tuple(sorted(found, key=lambda result: (result.passed, result.no_data, result.test_name)))
         runs.append(Run(asset_id, run_at, ordered))
         if len(runs) == limit:
             break
@@ -141,7 +141,7 @@ def asset_code_counts(conn: sqlite3.Connection, asset_id: str, period: Period) -
     code order (SOL-15): the demo's sensor over its day gives (CodeCount("SEN-001", 0, 1),). UnknownAsset as above."""
     known(conn, asset_id)
     faults = Counter(fault.code for fault in _opened_in(ledger.by_asset(conn, asset_id), period))
-    suggestions = Counter(s.code for s in suggestion_table.raised_in(conn, period) if s.asset_id == asset_id)
+    suggestions = Counter(suggestion.code for suggestion in suggestion_table.raised_in(conn, period) if suggestion.asset_id == asset_id)
     return tuple(CodeCount(code, faults[code], suggestions[code]) for code in sorted(set(faults) | set(suggestions)))
 
 
@@ -152,7 +152,7 @@ def code_counts_by_asset(conn: sqlite3.Connection, code: str, period: Period) ->
     # Invariant: SOL-04
     lookup(code)
     faults = Counter(fault.asset_id for fault in _opened_in(ledger.by_code(conn, code), period))
-    suggestions = Counter(s.asset_id for s in suggestion_table.raised_in(conn, period) if s.code == code)
+    suggestions = Counter(suggestion.asset_id for suggestion in suggestion_table.raised_in(conn, period) if suggestion.code == code)
     fleet = {asset.asset_id for asset in fleet_assets(conn, None)}
-    counts = [AssetCount(a, faults[a], suggestions[a]) for a in (set(faults) | set(suggestions)) & fleet]
-    return tuple(sorted(counts, key=lambda c: (-c.faults, -c.suggestions, c.asset_id)))
+    counts = [AssetCount(asset_id, faults[asset_id], suggestions[asset_id]) for asset_id in (set(faults) | set(suggestions)) & fleet]
+    return tuple(sorted(counts, key=lambda count: (-count.faults, -count.suggestions, count.asset_id)))

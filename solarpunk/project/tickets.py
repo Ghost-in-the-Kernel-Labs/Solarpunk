@@ -106,7 +106,7 @@ def tickets_by_target(conn: sqlite3.Connection, moment: datetime) -> tuple[Ticke
     earlier), those with no target waiting last, ties by work order: SOL-14's order for the Tickets window (11.2)."""
     views = [view_of(found, moment) for found in ticket_ledger.open_tickets(conn)]
     far = datetime.max.replace(tzinfo=timezone.utc)
-    return tuple(sorted(views, key=lambda v: (v.next_due or far, v.ticket.wo_id)))
+    return tuple(sorted(views, key=lambda view: (view.next_due or far, view.ticket.wo_id)))
 
 
 def resolve_ticket(conn: sqlite3.Connection, wo_id: int, done: str, moment: datetime,

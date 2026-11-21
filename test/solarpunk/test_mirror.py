@@ -45,7 +45,7 @@ def mirror_availability(period: Period, faults: list[Fault], samples: list[Sampl
             excluded += 1
         elif any(lookup(f.code).severity is Severity.OUTAGE and covers(f, instant) for f in faults):
             down += 1
-    gaps = len([s for s in samples if s.gap and period.start <= s.at < period.end])
+    gaps = len([s for s in samples if s.gap and period.start <= s.moment < period.end])
     contractual = expected - excluded
     value = 1.0 if contractual == 0 else (contractual - down) / contractual
     return round(value, ROUND_TO), expected, excluded, down, gaps

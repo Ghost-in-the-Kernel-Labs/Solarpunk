@@ -38,14 +38,14 @@ def ping(asset: Asset, timeout_s: float = DEFAULT_TIMEOUT_S) -> tuple[Sample, ..
     return parse(asset, fetch(asset.host, asset.port, timeout_s, FEED_CAP_BYTES))
 
 
-def read_now(asset: Asset, field: str, at: datetime, timeout_s: float = DEFAULT_TIMEOUT_S) -> float | None:
+def read_now(asset: Asset, field: str, moment: datetime, timeout_s: float = DEFAULT_TIMEOUT_S) -> float | None:
     """The live-read mode (13.3, SP-020): one current reading of one field of the asset, asked for at the instant given
     (a simulator answers from its day at that instant, a real asset with what it reads now): against a simulator of
     OAHE-INV-001, read_now(inverter, "power_kw", 10:00:30 UTC) is the day's power half way from 10:00 to 10:05; a
     reading the asset has not got is None; an asset with no endpoint raises FeedError("OAHE-STR-001: no endpoint")."""
     if asset.port is None:
         raise FeedError(f"{asset.asset_id}: no endpoint")
-    request = json.dumps({"read": field, "at": utc(at).isoformat()}) + NEWLINE
+    request = json.dumps({"read": field, "at": utc(moment).isoformat()}) + NEWLINE
     return reading(asset, field, fetch(asset.host, asset.port, timeout_s, READ_CAP_BYTES, request.encode(ENCODING)))
 
 
@@ -186,5 +186,5 @@ def records(samples: tuple[Sample, ...]) -> str:
 def wire(sample: Sample) -> dict:
     """One sample as its wire object, keys in FIELDS order: wire(gap("OAHE-INV-001", 10:20 UTC)) is {"asset_id":
     "OAHE-INV-001", "at": "2026-06-01T10:20:00+00:00", "irradiance_w_m2": None, "power_kw": None, "gap": True}."""
-    found = (sample.asset_id, sample.at.isoformat(), sample.irradiance_w_m2, sample.power_kw, sample.gap)
+    found = (sample.asset_id, sample.moment.isoformat(), sample.irradiance_w_m2, sample.power_kw, sample.gap)
     return dict(zip(FIELDS, found))

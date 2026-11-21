@@ -35,7 +35,7 @@ POWER_TAB = "Power"
 DAY = "Day (UTC)"
 SHOW = "Show"
 ERRORS_TAB = "Errors"
-FROM, TO = "From", "To"
+FROM_LABEL, TO_LABEL = "From", "To"
 
 
 def tags_of(failed: bool, no_data: bool) -> tuple[str, ...]:
@@ -84,7 +84,7 @@ class RunsWindow(tk.Toplevel):
         self.label_font = tkfont.nametofont("TkDefaultFont")
         self.make_power_tab()
         self.make_errors_tab()
-        self.run_tree.bind("<<TreeviewSelect>>", lambda _e: self.show_results())
+        self.run_tree.bind("<<TreeviewSelect>>", lambda _event: self.show_results())
         self.search_text.trace_add("write", lambda *_: self.fill())
         self.fill()
 
@@ -159,7 +159,7 @@ class RunsWindow(tk.Toplevel):
         bar.pack(fill="x", padx=4, pady=4)
         day = project.report_day(self.conn).isoformat()
         self.first_day, self.last_day = tk.StringVar(value=day), tk.StringVar(value=day)
-        for words, variable in ((FROM, self.first_day), (TO, self.last_day)):
+        for words, variable in ((FROM_LABEL, self.first_day), (TO_LABEL, self.last_day)):
             ttk.Label(bar, text=words).pack(side="left")
             ttk.Entry(bar, textvariable=variable, width=12).pack(side="left", padx=4)
         self.errors_button = ttk.Button(bar, text=SHOW, command=self.draw_errors)
@@ -227,17 +227,17 @@ class RunsWindow(tk.Toplevel):
         for row, name in enumerate(names):
             canvas.create_text(8, timeline.y_of(row), text=name, anchor="w")
         for mark in timeline.marks(self.runs, left=left):
-            y = timeline.y_of(mark.row)
-            canvas.create_rectangle(mark.x - timeline.MARK_WIDTH / 2, y - timeline.MARK_HEIGHT / 2,
-                                    mark.x + timeline.MARK_WIDTH / 2, y + timeline.MARK_HEIGHT / 2, fill=mark.colour,
+            row_y = timeline.y_of(mark.row)
+            canvas.create_rectangle(mark.centre_x - timeline.MARK_WIDTH / 2, row_y - timeline.MARK_HEIGHT / 2,
+                                    mark.centre_x + timeline.MARK_WIDTH / 2, row_y + timeline.MARK_HEIGHT / 2, fill=mark.colour,
                                     outline="", tags=(MARK_TAG,))
         start, end = timeline.span(self.runs)
         axis_y = timeline.TOP + len(names) * timeline.ROW_HEIGHT + 6
         canvas.create_line(left, axis_y, timeline.WIDTH - timeline.RIGHT, axis_y, fill=AXIS_COLOUR)
         for tick in timeline.ticks(start, end):
-            x = timeline.x_of(tick, start, end, left=left)
-            canvas.create_line(x, axis_y, x, axis_y + 4, fill=AXIS_COLOUR)
-            canvas.create_text(x, axis_y + 14, text=timeline.tick_text(tick, start, end), fill=AXIS_COLOUR)
+            tick_x = timeline.x_of(tick, start, end, left=left)
+            canvas.create_line(tick_x, axis_y, tick_x, axis_y + 4, fill=AXIS_COLOUR)
+            canvas.create_text(tick_x, axis_y + 14, text=timeline.tick_text(tick, start, end), fill=AXIS_COLOUR)
         canvas.create_text(timeline.WIDTH - timeline.RIGHT, axis_y + 28, text=UTC, anchor="e", fill=AXIS_COLOUR)
 
     def show_results(self) -> None:

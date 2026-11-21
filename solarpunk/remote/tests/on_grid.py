@@ -36,18 +36,18 @@ def problem(asset: Asset, sample: Sample) -> str | None:
     "…: TRACKER has no field power_kw"; an off-grid instant gives "…: off the grid"."""
     # Invariant: SOL-06
     try:
-        on_grid(sample.at)
+        on_grid(sample.moment)
     except OffTheGrid:
-        return f"{sample.at.isoformat()}: off the grid"
+        return f"{sample.moment.isoformat()}: off the grid"
     for field in SAMPLE_FIELDS:
         value = getattr(sample, field)
         if value is None:
             continue
         held = field_range(asset, field)
         if held is None:
-            return f"{sample.at.isoformat()}: {asset.kind.name} has no field {field}"
+            return f"{sample.moment.isoformat()}: {asset.kind.name} has no field {field}"
         if not held.holds(value):
-            return f"{sample.at.isoformat()}: {field} {value} out of range"
+            return f"{sample.moment.isoformat()}: {field} {value} out of range"
     return None
 
 

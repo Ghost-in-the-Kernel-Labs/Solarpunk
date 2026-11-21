@@ -40,7 +40,7 @@ class TheWords(DemoStore):
         series = project.asset_power(self.conn, demo.FED, DAY)
         curve = runs_text.power_curve(series)
         self.assertEqual(len(curve), 279)
-        gap_at = next(s.at for s in series.samples if s.gap)
+        gap_at = next(s.moment for s in series.samples if s.gap)
         self.assertNotIn(gap_at, [at for at, _ in curve])
         self.assertEqual((runs_text.peak_of(series), runs_text.power_line(series)), (94.35, LINE))
 

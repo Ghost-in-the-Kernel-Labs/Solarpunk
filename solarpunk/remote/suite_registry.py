@@ -112,16 +112,16 @@ def named(name: str, where: Path | None = None) -> Suite:
     return found[name]
 
 
-def due(suite: Suite, last_run: datetime | None, at: datetime) -> bool:
+def due(suite: Suite, last_run: datetime | None, moment: datetime) -> bool:
     """Whether the suite's cadence has come at the instant, given its last stored run: every run is always due; hourly
-    when it has not run since the start of at's hour; daily at 06 when it has not run since the latest 06:00 not after at
-    (at 05:00, yesterday's): hourly with last run 10:05 is due at 11:00 and not at 10:30; never run is always due."""
+    when it has not run since the start of the moment's hour; daily at 06 when it has not run since the latest 06:00 not
+    after the moment (at 05:00, yesterday's): hourly with last run 10:05 is due at 11:00 and not at 10:30; never run is always due."""
     if suite.cadence == EVERY_RUN or last_run is None:
         return True
     if suite.cadence == HOURLY:
-        since = at.replace(minute=0, second=0, microsecond=0)
+        since = moment.replace(minute=0, second=0, microsecond=0)
     else:
-        since = at.replace(hour=int(suite.cadence[-2:]), minute=0, second=0, microsecond=0)
-        if since > at:
+        since = moment.replace(hour=int(suite.cadence[-2:]), minute=0, second=0, microsecond=0)
+        if since > moment:
             since -= timedelta(days=1)
     return last_run < since

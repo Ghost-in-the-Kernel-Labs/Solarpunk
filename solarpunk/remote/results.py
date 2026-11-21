@@ -230,9 +230,9 @@ def last_run_at(conn: sqlite3.Connection) -> datetime | None:
 
 def stored_samples(conn: sqlite3.Connection, asset_id: str) -> tuple[Sample, ...]:
     """One asset's samples from the samples table, in time order, as leaf Samples: a stored gap comes back as
-    Sample(asset_id, at, None, None, True); an asset with no rows gives ()."""
+    Sample(asset_id, moment, None, None, True); an asset with no rows gives ()."""
     rows = conn.execute(SAMPLES, (asset_id,)).fetchall()
-    return tuple(Sample(r[0], datetime.fromisoformat(r[1]), r[2], r[3], bool(r[4])) for r in rows)
+    return tuple(Sample(row[0], datetime.fromisoformat(row[1]), row[2], row[3], bool(row[4])) for row in rows)
 
 
 def stored_asset(conn: sqlite3.Connection, asset_id: str) -> Asset:

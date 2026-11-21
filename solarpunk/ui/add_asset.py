@@ -130,7 +130,7 @@ def parent_choices(asset_ids: tuple[str, ...], site: str) -> tuple[str, ...]:
 def first_record(sample: Sample) -> str:
     """The first record in words: a reading gives "2026-06-01T10:05:00+00:00, irradiance 812.0 W/m2, power 78.4 kW",
     a gap "2026-06-01T10:05:00+00:00, a gap"."""
-    instant = sample.at.isoformat()
+    instant = sample.moment.isoformat()
     if sample.gap:
         return FIRST_GAP.format(at=instant)
     return FIRST_VALUES.format(at=instant, irradiance=sample.irradiance_w_m2, power=sample.power_kw)
@@ -145,10 +145,10 @@ def ping_summary(samples: tuple[Sample, ...]) -> str:
     return PING_SOME.format(count=len(samples), noun=noun, first=first_record(samples[0]))
 
 
-def message_colour(ok: bool) -> str:
+def message_colour(succeeded: bool) -> str:
     """The message Label's colour: message_colour(True) is the green "#1b5e20", message_colour(False) the red
     "#b00020"."""
-    return OK_COLOUR if ok else ERROR_COLOUR
+    return OK_COLOUR if succeeded else ERROR_COLOUR
 
 
 class AddAssetWindow(tk.Toplevel):
@@ -218,9 +218,9 @@ class AddAssetWindow(tk.Toplevel):
         found["parent"] = self.parent_box.get()
         return found
 
-    def say(self, text: str, ok: bool) -> None:
-        """Shows a line in the message Label, green when ok, red when a refusal: say("Saved X", True)."""
-        self.message.configure(text=text, foreground=message_colour(ok))
+    def say(self, text: str, succeeded: bool) -> None:
+        """Shows a line in the message Label, green when succeeded, red when a refusal: say("Saved X", True)."""
+        self.message.configure(text=text, foreground=message_colour(succeeded))
 
     def save(self) -> None:
         """Registers the form's asset through project; a refusal is shown verbatim and the window stays open."""

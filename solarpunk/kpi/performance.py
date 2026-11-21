@@ -25,7 +25,7 @@ def sensor_unreliable(samples: Sequence[Sample], faults: Sequence[Fault]) -> int
     each, with SEN-001 over [10:05, 10:10), give 1."""
     # Invariant: SOL-08
     sensor = [fault for fault in faults if fault.code == UNRELIABLE_IRRADIANCE_CODE]
-    instants = {sample.at for sample in samples}
+    instants = {sample.moment for sample in samples}
     return sum(1 for instant in instants if any(fault.covers(instant) for fault in sensor))
 
 
@@ -59,8 +59,8 @@ def meter_lost(site: str, samples: Sequence[Sample], faults: Sequence[Fault]) ->
     # Invariant: SOL-09
     if not samples:
         return False
-    start = min(sample.at for sample in samples)
-    end = max(sample.at for sample in samples) + SAMPLE_INTERVAL
+    start = min(sample.moment for sample in samples)
+    end = max(sample.moment for sample in samples) + SAMPLE_INTERVAL
     lost = [fault for fault in faults if fault.code == METER_LOST_CODE and parse_asset_id(fault.asset_id)[0] == site]
     return any(overlaps(fault, start, end) for fault in lost)
 

@@ -58,7 +58,7 @@ def moves_of(text: str) -> set[tuple[TicketStatus, TicketStatus]]:
 
 
 def targets_of(text: str) -> dict[Severity, tuple[Priority, timedelta, timedelta]]:
-    """The contract's targets by severity: {Severity.OUTAGE: (Priority.P1, 1 h, 4 h), …}."""
+    """The contract's targets by severity: {Severity.OUTAGE: (Priority.PRIORITY_P1, 1 h, 4 h), …}."""
     return {Severity[sev]: (Priority(pri), hours(ack), hours(resp)) for sev, pri, ack, resp in table(text, "Severity")}
 
 

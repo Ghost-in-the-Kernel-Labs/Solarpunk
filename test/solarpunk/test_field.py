@@ -73,7 +73,7 @@ class TheSamples(unittest.TestCase):
     def test_every_instant_of_the_span_is_present(self) -> None:
         for asset_id, made in self.made.items():
             with self.subTest(asset_id=asset_id):
-                self.assertEqual([sample.at for sample in made], [instant(minute) for minute in range(0, 30, 5)])
+                self.assertEqual([sample.moment for sample in made], [instant(minute) for minute in range(0, 30, 5)])
 
     def test_inverter_1_carries_pad_1s_irradiance_and_its_gaps_are_never_zeros(self) -> None:
         inverter = "PV1-INV-001"

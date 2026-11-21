@@ -48,9 +48,9 @@ class TheGeometry(unittest.TestCase):
         demo_run = run(ONE, (result("reachable", False), result("on_grid", True), result("reachable", True)))
         marks = timeline.marks((demo_run,))
         self.assertEqual([(m.row, m.passed) for m in marks], [(0, True), (1, False)])
-        self.assertEqual({m.x for m in marks}, {timeline.LABEL_WIDTH})
+        self.assertEqual({m.centre_x for m in marks}, {timeline.LABEL_WIDTH})
         later = run(ONE + timedelta(minutes=30), (result("reachable", True),))
-        self.assertEqual([(m.row, m.passed, m.x) for m in timeline.marks((later, demo_run)) if m.row == 1],
+        self.assertEqual([(m.row, m.passed, m.centre_x) for m in timeline.marks((later, demo_run)) if m.row == 1],
                          [(1, True, 463.0), (1, False, timeline.LABEL_WIDTH)])
         self.assertEqual(timeline.marks(()), ())
 

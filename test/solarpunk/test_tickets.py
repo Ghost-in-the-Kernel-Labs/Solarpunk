@@ -49,14 +49,14 @@ class Opening(unittest.TestCase):
         self.assertEqual((order.fault_id, order.kind, order.opened), (fault.fault_id, "corrective", fault.opened))
         self.assertTrue(order.note.startswith("Inverter offline"))
         ticket = project.ticket_of(self.conn, order.wo_id)
-        self.assertEqual((ticket.status, ticket.priority, ticket.acknowledged, ticket.assignee), (OPEN, Priority.P1, None, None))
+        self.assertEqual((ticket.status, ticket.priority, ticket.acknowledged, ticket.assignee), (OPEN, Priority.PRIORITY_P1, None, None))
 
     def test_the_priority_follows_the_codes_severity_and_a_preventive_order_is_p3(self) -> None:
         project.assign_fault(self.conn, INV1, "INV-002", at(2026, 6, 1, 10), ENGINEER)
         project.assign_fault(self.conn, "OAHE-SIT-001", "SIT-002", at(2026, 6, 1, 10), ENGINEER)
         preventive = project.open_preventive_work_order(self.conn, TRK, at(2026, 6, 1, 10), "grease the drive")
         priorities = [t.priority for t in project.open_tickets(self.conn)]
-        self.assertEqual(priorities, [Priority.P2, Priority.P2, Priority.P3])
+        self.assertEqual(priorities, [Priority.PRIORITY_P2, Priority.PRIORITY_P2, Priority.PRIORITY_P3])
         self.assertEqual(project.ticket_of(self.conn, preventive.wo_id).kind, "preventive")
 
     def test_a_fault_telemetry_raises_opens_no_ticket_here(self) -> None:
@@ -172,7 +172,7 @@ class Comments(unittest.TestCase):
     def test_comments_keep_their_author_and_instant_oldest_first(self) -> None:
         first = project.comment_on_ticket(self.conn, 1, ENGINEER, at(2026, 6, 1, 10, 5), " on my way ")
         project.comment_on_ticket(self.conn, 1, "operator@oahe.example", at(2026, 6, 1, 10, 6), "gate code sent")
-        self.assertEqual((first.author, first.at, first.body), (ENGINEER, at(2026, 6, 1, 10, 5), "on my way"))
+        self.assertEqual((first.author, first.moment, first.body), (ENGINEER, at(2026, 6, 1, 10, 5), "on my way"))
         self.assertEqual([c.body for c in project.ticket_comments(self.conn, 1)], ["on my way", "gate code sent"])
 
     def test_a_comment_without_author_or_words_or_before_the_opening_is_refused(self) -> None:
@@ -236,8 +236,8 @@ class AnOldStore(unittest.TestCase):
         for _ in range(2):
             conn = project.open_or_create(path)
             first, second = project.ticket_of(conn, 1), project.ticket_of(conn, 2)
-            self.assertEqual((first.status, first.priority), (OPEN, Priority.P1))
-            self.assertEqual((second.status, second.priority), (CLOSED, Priority.P3))
+            self.assertEqual((first.status, first.priority), (OPEN, Priority.PRIORITY_P1))
+            self.assertEqual((second.status, second.priority), (CLOSED, Priority.PRIORITY_P3))
             self.assertEqual(project.ticket_comments(conn, 1), ())
             conn.close()
 
@@ -263,7 +263,7 @@ class TheDemo(unittest.TestCase):
         conn = project.open_or_create(Path(folder.name) / demo.DB_NAME)
         self.addCleanup(conn.close)
         (ticket,) = project.open_tickets(conn)
-        self.assertEqual((ticket.asset_id, ticket.priority, ticket.status), (demo.DOWN, Priority.P1, OPEN))
+        self.assertEqual((ticket.asset_id, ticket.priority, ticket.status), (demo.DOWN, Priority.PRIORITY_P1, OPEN))
         (breach,) = project.tickets_past_target(conn, at(2026, 6, 1, 13))
         self.assertEqual((breach.target, breach.state), ("acknowledge", TargetState.OVERDUE))
         closed = [project.ticket_of(conn, wo) for wo in (1, 2)]

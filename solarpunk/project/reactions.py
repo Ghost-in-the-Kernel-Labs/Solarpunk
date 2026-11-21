@@ -76,7 +76,7 @@ def mail_reaction(doing: Carrying, found: Recorded, asset: Asset) -> str:
         return skipped(str(refused))
     mailer.record(doing.conn, mail, asset.asset_id, doing.run_at)
     doing.mails += 1
-    return f"mailed {', '.join(mail.to)}"
+    return f"mailed {', '.join(mail.recipients)}"
 
 
 def preventive_reaction(doing: Carrying, asset: Asset, item: OpenPreventive) -> str:

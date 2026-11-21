@@ -39,7 +39,7 @@ def output_of(asset_id: str, rated: float, samples: Sequence[Sample], peak: floa
     read = powered(samples)
     energy = sum(sample.power_kw for sample in read) * HOURS_PER_SAMPLE
     return PowerOutput(asset_id, rated, rounded(energy), peak, rounded(energy / rated),
-                       rounded(energy / (rated * period.hours())), len(read), sum(1 for s in samples if s.gap))
+                       rounded(energy / (rated * period.hours())), len(read), sum(1 for sample in samples if sample.gap))
 
 
 def inverter_output(inverter: Asset, samples: Sequence[Sample], period: Period) -> PowerOutput:
@@ -50,7 +50,7 @@ def inverter_output(inverter: Asset, samples: Sequence[Sample], period: Period) 
     # Invariant: SOL-03, SOL-13
     if inverter.rated_kw is None:
         raise ValueError(f"{inverter.asset_id}: no rated power")
-    own = [s for s in samples if s.asset_id == inverter.asset_id and period.start <= s.at < period.end]
+    own = [sample for sample in samples if sample.asset_id == inverter.asset_id and period.start <= sample.moment < period.end]
     powers = [sample.power_kw for sample in powered(own)]
     return output_of(inverter.asset_id, inverter.rated_kw, own, max(powers) if powers else None, period)
 
@@ -61,7 +61,7 @@ def summed_power(samples: Sequence[Sample]) -> tuple[tuple[datetime, float], ...
     # Invariant: SOL-13
     by_instant: dict[datetime, float] = {}
     for sample in powered(samples):
-        by_instant[sample.at] = by_instant.get(sample.at, 0.0) + sample.power_kw
+        by_instant[sample.moment] = by_instant.get(sample.moment, 0.0) + sample.power_kw
     return tuple((instant, rounded(by_instant[instant])) for instant in sorted(by_instant))
 
 
@@ -80,10 +80,10 @@ def site_curve(inverters: Sequence[Asset], samples: Sequence[Sample], period: Pe
     INV-001's gap at 10:10 leaving 10:10 out."""
     # Invariant: SOL-13
     ids = {inverter.asset_id for inverter in inverters}
-    own = [s for s in powered(samples) if s.asset_id in ids and period.start <= s.at < period.end]
+    own = [sample for sample in powered(samples) if sample.asset_id in ids and period.start <= sample.moment < period.end]
     reporting: dict[datetime, int] = {}
     for sample in own:
-        reporting[sample.at] = reporting.get(sample.at, 0) + 1
+        reporting[sample.moment] = reporting.get(sample.moment, 0) + 1
     return tuple(point for point in summed_power(own) if reporting[point[0]] == len(ids))
 
 
@@ -93,5 +93,5 @@ def site_output(site_id: str, inverters: Sequence[Asset], samples: Sequence[Samp
     # Invariant: SOL-13
     rows = [inverter_output(inverter, samples, period) for inverter in inverters]
     ids = {inverter.asset_id for inverter in inverters}
-    own = [s for s in samples if s.asset_id in ids and period.start <= s.at < period.end]
+    own = [sample for sample in samples if sample.asset_id in ids and period.start <= sample.moment < period.end]
     return output_of(site_id, sum(row.rated_kw for row in rows), own, coincident_peak(own), period)

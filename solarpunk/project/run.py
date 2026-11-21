@@ -105,9 +105,9 @@ def new_samples(conn: sqlite3.Connection, samples: tuple[Sample, ...]) -> tuple[
     stores nothing rather than raising on the duplicate key: with 10:00 stored, (10:00, 10:05) gives (10:05,); () is ()."""
     if not samples:
         return ()
-    span = Period(min(s.at for s in samples), max(s.at for s in samples) + SAMPLE_INTERVAL)
-    held = {s.at for s in sample_table.in_period(conn, samples[0].asset_id, span)}
-    return tuple(s for s in samples if s.at not in held)
+    span = Period(min(sample.moment for sample in samples), max(sample.moment for sample in samples) + SAMPLE_INTERVAL)
+    held = {sample.moment for sample in sample_table.in_period(conn, samples[0].asset_id, span)}
+    return tuple(sample for sample in samples if sample.moment not in held)
 
 
 def ping_all(conn: sqlite3.Connection, assets: tuple[Asset, ...], run_at: datetime) -> Pinged:

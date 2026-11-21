@@ -99,19 +99,19 @@ def check(conn: sqlite3.Connection, email: str, password: str) -> Account | None
     return account if account.active else None
 
 
-def record_failure(conn: sqlite3.Connection, email: str, at: datetime) -> None:
+def record_failure(conn: sqlite3.Connection, email: str, moment: datetime) -> None:
     """Keeps a failed sign-in: the account's email when it names one, else "no such account", so a password typed into
     the email field by mistake is never stored; and its instant. Nothing of the password is kept."""
     named = conn.execute("SELECT email FROM accounts WHERE email = ?", (email.strip(),)).fetchone()
     conn.execute("INSERT INTO failed_sign_ins (account, at) VALUES (?, ?)",
-                 (named[0] if named else NO_SUCH_ACCOUNT, utc(at).isoformat()))
+                 (named[0] if named else NO_SUCH_ACCOUNT, utc(moment).isoformat()))
     conn.commit()
 
 
 def failures(conn: sqlite3.Connection) -> tuple[tuple[str, datetime], ...]:
     """Every failed sign-in, oldest first, as (account, instant): (("site@oahe.example", 11:00 UTC),)."""
     rows = conn.execute("SELECT account, at FROM failed_sign_ins ORDER BY failure_id")
-    return tuple((account, datetime.fromisoformat(at)) for account, at in rows)
+    return tuple((account, datetime.fromisoformat(stamp)) for account, stamp in rows)
 
 
 def any_active(conn: sqlite3.Connection) -> bool:

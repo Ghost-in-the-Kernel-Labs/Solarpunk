@@ -45,18 +45,18 @@ def draw_power(canvas: tkinter.Canvas, curve: tuple[tuple[datetime, float], ...]
     bottom, right = CANVAS_HEIGHT - MARGIN, CANVAS_WIDTH - MARGIN
     canvas.create_line(MARGIN, MARGIN, MARGIN, bottom, right, bottom, fill=AXIS_COLOUR)
     for power in (0, top / 2, top):
-        y = y_of(power, top, CANVAS_HEIGHT)
-        canvas.create_text(MARGIN - 4, y, text=f"{power:g}", anchor=tkinter.E, fill=AXIS_COLOUR)
+        label_y = y_of(power, top, CANVAS_HEIGHT)
+        canvas.create_text(MARGIN - 4, label_y, text=f"{power:g}", anchor=tkinter.E, fill=AXIS_COLOUR)
     canvas.create_text(MARGIN, MARGIN - 14, text="kW", anchor=tkinter.W, fill=AXIS_COLOUR)
     for tick in tick_hours(period):
-        x = x_of(tick, period, CANVAS_WIDTH)
-        canvas.create_line(x, bottom, x, bottom + 4, fill=AXIS_COLOUR)
-        canvas.create_text(x, bottom + 14, text=tick.strftime("%H:%M"), fill=AXIS_COLOUR)
+        tick_x = x_of(tick, period, CANVAS_WIDTH)
+        canvas.create_line(tick_x, bottom, tick_x, bottom + 4, fill=AXIS_COLOUR)
+        canvas.create_text(tick_x, bottom + 14, text=tick.strftime("%H:%M"), fill=AXIS_COLOUR)
     canvas.create_text(right, bottom + 30, text="UTC", anchor=tkinter.E, fill=AXIS_COLOUR)
     for run in segments(curve, period, top):
         if len(run) == 1:
-            x, y = run[0]
-            canvas.create_oval(x - 1.5, y - 1.5, x + 1.5, y + 1.5, fill=LINE_COLOUR, outline=LINE_COLOUR, tags=(CURVE_TAG,))
+            point_x, point_y = run[0]
+            canvas.create_oval(point_x - 1.5, point_y - 1.5, point_x + 1.5, point_y + 1.5, fill=LINE_COLOUR, outline=LINE_COLOUR, tags=(CURVE_TAG,))
         else:
             canvas.create_line(*[value for point in run for value in point], fill=LINE_COLOUR, width=2, tags=(CURVE_TAG,))
 

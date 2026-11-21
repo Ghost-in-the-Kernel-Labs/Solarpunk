@@ -69,7 +69,7 @@ def empty_text(has_feed: bool, search: str) -> str:
 def power_curve(series: PowerSeries) -> tuple[tuple[datetime, float], ...]:
     """The samples that carry a power, as (instant, kW), in time order: a gap is left out, so the drawn line breaks
     there (chart.segments) and never shows it as zero (SOL-15)."""
-    return tuple((s.at, s.power_kw) for s in series.samples if s.power_kw is not None)
+    return tuple((sample.moment, sample.power_kw) for sample in series.samples if sample.power_kw is not None)
 
 
 def peak_of(series: PowerSeries) -> float | None:

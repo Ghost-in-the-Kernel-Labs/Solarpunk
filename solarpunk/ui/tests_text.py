@@ -76,5 +76,5 @@ def cannot_open(folder: Path, error: OSError) -> str:
 def widths(rows: list[tuple[str, ...]], measure: Callable[[str], int]) -> tuple[int, ...]:
     """Each column as wide as its heading or its widest cell plus padding, no wider than WIDEST, so no word is cut
     short below that: with each character 7 px, a Test column whose widest name is "reachable" is 18 + 63 = 81 px."""
-    return tuple(min(WIDEST, PADDING + max(measure(text) for text in (heading, *(row[i] for row in rows))))
-                 for i, heading in enumerate(COLUMNS))
+    return tuple(min(WIDEST, PADDING + max(measure(text) for text in (heading, *(row[column] for row in rows))))
+                 for column, heading in enumerate(COLUMNS))

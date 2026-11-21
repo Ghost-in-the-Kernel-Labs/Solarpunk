@@ -64,7 +64,7 @@ class Row:
     result_id: int
     action: str
     detail: str
-    at: str
+    stamp: str
 
 
 def text(reaction: object) -> str:
@@ -146,10 +146,10 @@ def schema() -> tuple[str, ...]:
     return SCHEMA
 
 
-def record(conn: sqlite3.Connection, result_id: int, action: str, detail: str, at: datetime) -> None:
+def record(conn: sqlite3.Connection, result_id: int, action: str, detail: str, moment: datetime) -> None:
     """Stores one reaction and commits: record(c, 7, "Mail", "mailed a@x.org", 10:00 UTC) adds a row; a reaction not
     carried out has the detail "skipped: <why>"; rows are only added, never changed; a naive instant raises NotUtc."""
-    conn.execute(INSERT, (result_id, action, detail, utc(at).isoformat()))
+    conn.execute(INSERT, (result_id, action, detail, utc(moment).isoformat()))
     conn.commit()
 
 

@@ -47,7 +47,7 @@ def view_line(view: project.TicketView) -> str:
 def move_line(found: project.Move) -> str:
     """One move of a ticket's history: "  2026-06-01T11:40:00+00:00  acknowledged  ops@oahe.example"; a move made where
     nobody was signed in names "nobody signed in" (SP-035)."""
-    return MOVE.format(at=found.at.isoformat(), status=found.status.value, who=found.actor or NOBODY)
+    return MOVE.format(at=found.moment.isoformat(), status=found.status.value, who=found.actor or NOBODY)
 
 
 def ticket_show(conn: sqlite3.Connection, args: argparse.Namespace, out: TextIO) -> None:

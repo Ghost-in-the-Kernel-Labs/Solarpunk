@@ -37,7 +37,7 @@ class NoEngineer(ValueError):
 class Mail:
     """One mail: Mail(("a@example.com",), "Solarpunk: OAHE-INV-003 INV-001", "Asset: OAHE-INV-003 (Inverter 3)\\n…")."""
 
-    to: tuple[str, ...]
+    recipients: tuple[str, ...]
     subject: str
     body: str
 
@@ -93,7 +93,7 @@ def record(conn: sqlite3.Connection, mail: Mail, asset_id: str, sent_at: datetim
     table returns 1 and stores ("a@x.org,b@x.org", subject, body); a naive sent_at raises NotUtc."""
     # Invariant: SOL-06
     stamp = utc(sent_at).isoformat()
-    recipients = RECIPIENT_SEPARATOR.join(mail.to)
+    recipients = RECIPIENT_SEPARATOR.join(mail.recipients)
     cursor = conn.execute(INSERT_MAIL, (stamp, recipients, mail.subject, mail.body, asset_id))
     conn.commit()
     return int(cursor.lastrowid)  # type: ignore[arg-type]

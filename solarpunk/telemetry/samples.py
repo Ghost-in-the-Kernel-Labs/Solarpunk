@@ -26,7 +26,7 @@ def schema() -> tuple[str, ...]:
 def row(sample: Sample) -> tuple[str, str, float | None, float | None, int]:
     """A sample as its table row: row(gap("OAHE-INV-001", 10:20)) is
     ("OAHE-INV-001", "2026-06-01T10:20:00+00:00", None, None, 1)."""
-    return (sample.asset_id, sample.at.isoformat(), sample.irradiance_w_m2, sample.power_kw, int(sample.gap))
+    return (sample.asset_id, sample.moment.isoformat(), sample.irradiance_w_m2, sample.power_kw, int(sample.gap))
 
 
 def store(connection: sqlite3.Connection, samples: tuple[Sample, ...]) -> None:
@@ -46,7 +46,7 @@ def in_period(connection: sqlite3.Connection, asset_id: str, period: Period) -> 
         f"SELECT {COLUMNS} FROM samples WHERE asset_id = ? AND at >= ? AND at < ? ORDER BY at",
         (asset_id, period.start.isoformat(), period.end.isoformat()),
     ).fetchall()
-    return tuple(Sample(r[0], datetime.fromisoformat(r[1]), r[2], r[3], bool(r[4])) for r in found)
+    return tuple(Sample(row[0], datetime.fromisoformat(row[1]), row[2], row[3], bool(row[4])) for row in found)
 
 
 def asset_ids(connection: sqlite3.Connection) -> tuple[str, ...]:

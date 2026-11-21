@@ -37,5 +37,5 @@ def run(asset: Asset, reads: tuple[Read, ...]) -> Result:
     ripple = round(max(held) - min(held), 3)
     allowed = f"rated {rated} kW x {RIPPLE_SHARE:.0%}"
     if ripple > rated * RIPPLE_SHARE:
-        return Result(False, f"{reads[0].at.isoformat()}: ripple {ripple} kW over {allowed}")
+        return Result(False, f"{reads[0].moment.isoformat()}: ripple {ripple} kW over {allowed}")
     return Result(True, f"{len(reads)} reads, ripple {ripple} kW within {allowed}")

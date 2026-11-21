@@ -28,5 +28,5 @@ def run(asset: Asset, samples: tuple[Sample, ...]) -> Result:
     read = [sample for sample in samples if sample.irradiance_w_m2 is not None]
     for sample in read:
         if not in_range(asset.kind, FIELD, sample.irradiance_w_m2):
-            return Result(False, f"{sample.at.isoformat()}: irradiance {sample.irradiance_w_m2} W/m2 out of range")
+            return Result(False, f"{sample.moment.isoformat()}: irradiance {sample.irradiance_w_m2} W/m2 out of range")
     return Result(True, f"{len(read)} irradiance readings in range")

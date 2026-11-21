@@ -123,7 +123,7 @@ class Attention:
 def attention(conn: sqlite3.Connection) -> Attention:
     """The three listings the fleet window counts at its top, each read once: nothing in them changes a status."""
     # Invariant: SOL-11 (a derate is not an outage)
-    outages = tuple(f for f in ledger.open_faults(conn) if f.catalogue_row().severity is Severity.OUTAGE)
+    outages = tuple(fault for fault in ledger.open_faults(conn) if fault.catalogue_row().severity is Severity.OUTAGE)
     return Attention(outages, suggestion_table.open_suggestions(conn), ticket_ledger.open_tickets(conn))
 
 
@@ -147,7 +147,7 @@ def asset_detail(conn: sqlite3.Connection, asset_id: str) -> AssetDetail:
     """The asset window's content for one id: asset_detail(conn, "OAHE-INV-003").engineers is ("site@oahe.example",)
     in the run fixture; an id the fleet lacks raises UnknownAsset."""
     asset = known(conn, asset_id)
-    faults = tuple((f, f.catalogue_row().meaning) for f in open_faults_of(conn, asset_id))
+    faults = tuple((fault, fault.catalogue_row().meaning) for fault in open_faults_of(conn, asset_id))
     return AssetDetail(
         asset=asset,
         open_faults=faults,
