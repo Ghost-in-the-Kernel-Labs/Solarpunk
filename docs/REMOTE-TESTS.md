@@ -13,6 +13,7 @@ the page but for `run`. The shape to read first is `solarpunk/remote/tests/power
 | `KINDS` | a non-empty tuple of `AssetKind`: the kinds the test runs on | the registry and the check |
 | `CLAUSES` | a non-empty tuple of clause ids, each a row of `docs/CLAUSE-REGISTER.md`: what the test evidences | the registry and the check |
 | `SUGGESTS` | a dict with one key per kind in `KINDS`: the catalogue code a failure suggests to an engineer, or `None`, with a comment saying why (SP-015) | the registry and the check |
+| `ACQUIRE` | optional (SP-020, 13.3): what the runner reads through the feed for the test, a value of the closed set in `solarpunk/remote/acquire.py`, `Burst(field, every_s, for_s)` first; a value outside the set, or a field the kinds do not hold, is refused | the registry and the check |
 | `run` | `run(asset, samples)`, below | the check (its shape), `test/solarpunk/test_diagnostics.py` (its results) |
 
 The module opens with a docstring that says in a sentence what the test checks, why a failure matters and the clause
@@ -26,6 +27,26 @@ it evidences.
 samples and the asset and hands them over; the same arguments give the same result on any day. The leaf clock's grid
 arithmetic (`solarpunk.leaf.clock`, which does sums on an instant it is given and never reads the time) is allowed.
 `run` returns a `Result` (`solarpunk/remote/results.py`) and nothing else.
+
+## A test's own reads
+
+The stored samples are five minutes apart, so a test that needs a faster look cannot judge them. It declares
+`ACQUIRE = Burst(field="power_kw", every_s=1, for_s=60)`: power read once a second for a minute. The runner does the
+reading, through the feed's live-read mode (one current reading of one field per request,
+`solarpunk.feed.client.read_now`; the simulator answers from its day at the request's instant), on a clock it is
+handed, each read's instant kept as a `Read(at, value)` (a read that failed has no value). The runner hands the reads to
+`run`, which stays a pure judgement and reads nothing else, so it is tested with hand-made reads and no network. Such a
+`run` is `run(asset, reads)`, calls `nothing_read(reads)` where other tests call `nothing_to_check`, and says no data for
+reads that hold no value. A test with no `ACQUIRE` judges the stored samples as ever; one given stored samples instead
+of reads (the field baseline, a one-off command line) says no data, never a pass. A failing burst raises its fault as
+any failing test does (SP-046). The tests use the simulator and a clock that never waits; a burst's duration is cut by
+`shorten_to_s`, never by sleeping a minute. The scheduled run takes reads only when the caller hands it an acquirer
+(`solarpunk.project.run.feed_acquirer(clock, shorten_to_s)`); with none, a burst test says no data.
+
+`power_ripple` is the first: the inverter's power, every second for a minute, highest less lowest at most 5% of
+`rated_kw`. The 5% is proposed, Ghost's to set: the simulator's healthy day moves at most about 1.2% of the rating in a
+minute (60 seeds), so a healthy inverter passes with four times the room, and a swing of 5% or more within a minute is
+hunting. Its rule table names no code (SP-047: no OUTAGE or DERATE for a test; the generic SIT-004 follows).
 
 ## The three results
 

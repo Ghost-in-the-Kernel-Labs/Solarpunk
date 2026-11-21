@@ -16,7 +16,8 @@ from solarpunk.leaf import store
 from solarpunk.leaf.assets import Asset
 from solarpunk.leaf.codes import AssetStatus
 from solarpunk.leaf.telemetry import Sample
-from solarpunk.remote.registry import BadRemoteTest, discover, tests_for
+from solarpunk.remote.acquire import Acquirer
+from solarpunk.remote.registry import BadRemoteTest, RemoteTest, discover, tests_for
 from solarpunk.remote.results import NO_DATA, NotStored, Result, record, stored_asset, stored_samples
 from solarpunk.remote.suite_registry import Suite
 
@@ -32,7 +33,17 @@ def run_test(name: str, asset: Asset, samples: tuple[Sample, ...]) -> Result:
     test = found[name]
     if asset.kind not in test.kinds:
         raise BadRemoteTest(f"{name} does not run against a {asset.kind.name}")
-    return test.run(asset, samples)
+    return judged(test, asset, samples)
+
+
+def judged(test: RemoteTest, asset: Asset, samples: tuple[Sample, ...], acquirer: Acquirer | None = None) -> Result:
+    """One test's verdict on one asset (13.3, SP-020): a test with no ACQUIRE judges the stored samples as ever; one with
+    ACQUIRE judges the reads the acquirer takes for it, and given no acquirer (nothing to read through) says no data,
+    never a pass: judged(power_ripple, inverter, samples) is no data, "needs live reads, not stored samples"."""
+    # Decision: SP-020 (the runner reads, `run` judges only what it is handed)
+    if test.acquire is None or acquirer is None:
+        return test.run(asset, samples)
+    return test.run(asset, acquirer(asset, test.acquire))
 
 
 def status_of(open_outage: bool, results: tuple[Result, ...]) -> AssetStatus:
@@ -52,16 +63,18 @@ def run_suite(
     samples_by_asset: dict[str, tuple[Sample, ...]],
     open_outages: dict[str, bool],
     run_at: datetime,
+    acquirer: Acquirer | None = None,
 ) -> dict[str, AssetStatus]:
     """Every discovered test against every asset of its kinds, each result recorded at run_at, and each asset's
     status by id: two inverters with stored samples, one over its rating, give {INV-001: GREEN, INV-002: YELLOW};
-    an asset missing from samples_by_asset is tested with no samples, one missing from open_outages has none."""
+    an asset missing from samples_by_asset is tested with no samples, one missing from open_outages has none. A test
+    with ACQUIRE is judged on the reads the acquirer takes for it, each read's instant kept (13.3)."""
     statuses: dict[str, AssetStatus] = {}
     for asset in assets:
         samples = samples_by_asset.get(asset.asset_id, ())
         results = []
         for test in tests_for(asset.kind):
-            result = test.run(asset, samples)
+            result = judged(test, asset, samples, acquirer)
             record(conn, test.name, asset.asset_id, run_at, result)
             results.append(result)
         # An asset missing from open_outages carries no open OUTAGE fault.
@@ -75,6 +88,7 @@ def run_named(
     assets: tuple[Asset, ...],
     samples_by_asset: dict[str, tuple[Sample, ...]],
     run_at: datetime,
+    acquirer: Acquirer | None = None,
 ) -> int:
     """One suite's tests against the assets in its reach, each result recorded at run_at carrying the suite's name
     (13.2), and the count of results written: a suite of reachable over two inverters and a meter, its KINDS the
@@ -86,7 +100,7 @@ def run_named(
             continue
         for name in suite.tests:
             if asset.kind in found[name].kinds:
-                result = found[name].run(asset, samples_by_asset.get(asset.asset_id, ()))
+                result = judged(found[name], asset, samples_by_asset.get(asset.asset_id, ()), acquirer)
                 record(conn, name, asset.asset_id, run_at, result, suite.name)
                 written += 1
     return written

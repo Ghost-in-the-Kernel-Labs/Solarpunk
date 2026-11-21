@@ -10,7 +10,7 @@ from datetime import datetime
 
 from solarpunk.leaf import asset_types
 from solarpunk.leaf.assets import Asset
-from solarpunk.leaf.clock import on_grid
+from solarpunk.leaf.clock import on_grid, utc
 from solarpunk.leaf.telemetry import Sample, gap
 
 FIELDS = ("asset_id", "at", "irradiance_w_m2", "power_kw", "gap")
@@ -20,6 +20,8 @@ CHUNK_BYTES = 65536
 ENCODING = "utf-8"
 NEWLINE = "\n"
 DEFAULT_TIMEOUT_S = 5.0
+READ_FIELDS = ("asset_id", "field", "at", "value")
+READ_CAP_BYTES = 4096
 
 
 class FeedError(ValueError):
@@ -35,15 +37,48 @@ def ping(asset: Asset, timeout_s: float = DEFAULT_TIMEOUT_S) -> tuple[Sample, ..
     return parse(asset, fetch(asset.host, asset.port, timeout_s, FEED_CAP_BYTES))
 
 
-def fetch(host: str, port: int, timeout_s: float, cap: int) -> bytes:
-    """Every byte the endpoint sends before it closes: fetch("127.0.0.1", 5020, 5.0, FEED_CAP_BYTES) against a
-    simulator is its records() text, encoded; a closed port raises FeedError("127.0.0.1:5020 is unreachable")."""
+def read_now(asset: Asset, field: str, at: datetime, timeout_s: float = DEFAULT_TIMEOUT_S) -> float | None:
+    """The live-read mode (13.3, SP-020): one current reading of one field of the asset, asked for at the instant given
+    (a simulator answers from its day at that instant, a real asset with what it reads now): against a simulator of
+    OAHE-INV-001, read_now(inverter, "power_kw", 10:00:30 UTC) is the day's power half way from 10:00 to 10:05; a
+    reading the asset has not got is None; an asset with no endpoint raises FeedError("OAHE-STR-001: no endpoint")."""
+    if asset.port is None:
+        raise FeedError(f"{asset.asset_id}: no endpoint")
+    request = json.dumps({"read": field, "at": utc(at).isoformat()}) + NEWLINE
+    return reading(asset, field, fetch(asset.host, asset.port, timeout_s, READ_CAP_BYTES, request.encode(ENCODING)))
+
+
+def reading(asset: Asset, field: str, payload: bytes) -> float | None:
+    """The answer to one live read: reading(inverter, "power_kw", b'{"asset_id": "OAHE-INV-001", "field": "power_kw",
+    "at": "2026-06-01T10:00:30+00:00", "value": 78.4}') is 78.4, a null value None; an answer for another asset or
+    field, one that is not those four keys, or {"error": "..."} raises FeedError."""
+    try:
+        raw = json.loads(payload.decode(ENCODING))
+    except (UnicodeDecodeError, json.JSONDecodeError) as error:
+        raise FeedError("malformed reading: not JSON") from error
+    if isinstance(raw, dict) and "error" in raw:
+        raise FeedError(f"read refused: {raw['error']}")
+    if not isinstance(raw, dict) or sorted(raw) != sorted(READ_FIELDS):
+        raise FeedError("malformed reading: keys are not " + ", ".join(READ_FIELDS))
+    if raw["asset_id"] != asset.asset_id or raw["field"] != field:
+        raise FeedError(f"reading of {raw['field']} for {raw['asset_id']}, not {field} for {asset.asset_id}")
+    return value(asset, field, raw["value"], raw["value"] is None)
+
+
+def fetch(host: str, port: int, timeout_s: float, cap: int, request: bytes = b"") -> bytes:
+    """Every byte the endpoint sends before it closes, after sending it the request (none for the day's feed) and then
+    closing the sending side, so a live simulator tells the two apart at once: fetch("127.0.0.1", 5020, 5.0,
+    FEED_CAP_BYTES) against a simulator is its records() text, encoded; a closed port raises FeedError("127.0.0.1:5020
+    is unreachable")."""
     try:
         conn = socket.create_connection((host, port), timeout=timeout_s)
     except OSError as error:
         raise FeedError(f"{host}:{port} is unreachable") from error
     with conn:
         try:
+            if request:
+                conn.sendall(request)
+            conn.shutdown(socket.SHUT_WR)
             return read_all(conn, cap)
         except TimeoutError as error:
             raise FeedError(f"{host}:{port} is slow: nothing for {timeout_s} s") from error

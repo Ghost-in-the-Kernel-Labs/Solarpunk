@@ -88,7 +88,7 @@ class TheTab(unittest.TestCase):
         self.assertEqual([window.tabs.tab(t, "text") for t in window.tabs.tabs()][:2], ["Runs", "By test"])  # then 10.5's
         canvas = window.timeline
         items = canvas.find_withtag(runs_window.MARK_TAG)
-        self.assertEqual(len(items), 2 * 7)  # two runs, seven tests each
+        self.assertEqual(len(items), 2 * 8)  # two runs, eight tests each
         fills = [canvas.itemcget(i, "fill") for i in items]
         self.assertEqual(fills.count(timeline.FAIL_COLOUR), 2)  # reachable failed in both runs
         texts = {canvas.itemcget(i, "text") for i in canvas.find_all() if canvas.type(i) == "text"}

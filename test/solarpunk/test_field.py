@@ -170,7 +170,7 @@ class TheBaseline(unittest.TestCase):
     def test_each_test_that_applies_runs_each_day_and_nothing_is_recorded(self) -> None:
         found = project.field_baseline(self.conn, DAY, date(2023, 2, 2))
         self.assertEqual(self.conn.execute("SELECT count(*) FROM results").fetchone()[0], 0)
-        per_kind = {"SEN": 3, "INV": 7}  # reachable, on_grid, irradiance_in_range; and the inverter's seven
+        per_kind = {"SEN": 3, "INV": 8}  # reachable, on_grid, irradiance_in_range; and the inverter's eight (power_ripple says no data)
         self.assertEqual(len(found.results), 2 * (2 * per_kind["SEN"] + 2 * per_kind["INV"]))
         tally = {(t.test, t.asset_id): (t.days_run, t.days_alarmed) for t in found.tallies}
         self.assertEqual(tally[("reachable", "PV1-INV-001")], (2, 1))  # the second day has no samples

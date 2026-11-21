@@ -7,7 +7,7 @@ CLAUSES (a non-empty tuple of strings), SUGGESTS (a dict with exactly one key pe
 no records is "no data" and never a pass (SP-039); no import of a store, a network or a clock reader, and no call that
 reads the time (`now`, `today`, `utcnow`); every numeric constant at module level carrying a comment (the line above,
 or at the end of its own line) and no number in a function body but 0 and 1 and a rounding's digits; and the module's
-name on the `Tests:` line of each of its kinds in docs/ASSET-MAINTENANCE-LIST.md. What a check cannot see, that `run`
+name on the `Tests:` line of each of its kinds in docs/ASSET-MAINTENANCE-LIST.md. A test may also declare ACQUIRE (SP-020): its `run` then takes (asset, reads) and calls nothing_read. What a check cannot see, that `run`
 returns a Result of the right shape, is held by test/solarpunk/test_diagnostics.py. The module is loaded to read its
 KINDS and SUGGESTS (on_grid computes its kinds); a module that will not load is itself a problem.
 """
@@ -26,13 +26,16 @@ from scripts.checks.common import matching, tracked_files  # noqa: E402
 from solarpunk.leaf.codes import AssetKind  # noqa: E402
 
 TESTS = "solarpunk/remote/tests/*.py"
-FIELDS = ("KINDS", "CLAUSES", "SUGGESTS", "run")
+FIELDS = ("KINDS", "CLAUSES", "SUGGESTS", "run")  # ACQUIRE is optional
 RUN_ARGUMENTS = ["asset", "samples"]
+ACQUIRED_ARGUMENTS = ["asset", "reads"]  # a test that declares ACQUIRE judges the reads the runner took (SP-020)
+ACQUIRE = "ACQUIRE"
+ACQUIRED_JUDGE = "nothing_read"
 # A module that opens a store, a socket or a clock reads what it was not handed; solarpunk.leaf.clock is allowed, it
 # only does grid arithmetic on an instant it is given.
 FORBIDDEN_MODULES = ("sqlite3", "socket", "ssl", "http", "urllib", "requests", "asyncio", "sched", "time",
                      "solarpunk.leaf.store", "solarpunk.feed", "solarpunk.receiver", "solarpunk.project",
-                     "solarpunk.remote.run", "solarpunk.remote.registry")
+                     "solarpunk.remote.run", "solarpunk.remote.registry")  # acquire (Burst, Read, nothing_read) is allowed
 CLOCK_CALLS = ("now", "today", "utcnow")
 PASS_CASE = "Result(True"
 FAIL_CASE = "Result(False"
@@ -105,18 +108,28 @@ def bare_numbers(tree: ast.Module) -> list[str]:
     return found
 
 
+def declares_acquire(tree: ast.Module) -> bool:
+    """Whether the module assigns ACQUIRE at its top: `ACQUIRE = Burst(...)` is True, a module without it False."""
+    return any(isinstance(node, ast.Assign) and any(isinstance(t, ast.Name) and t.id == ACQUIRE for t in node.targets)
+               for node in tree.body)
+
+
 def run_problems(tree: ast.Module) -> list[str]:
     """What `run` must be: a function of (asset, samples) whose docstring holds a passing and a failing case and that
-    calls nothing_to_check; no `run` at all gives ["has no run(asset, samples)"]."""
+    calls nothing_to_check; no `run` at all gives ["has no run(asset, samples)"]. A module that declares ACQUIRE
+    judges (asset, reads) and calls nothing_read instead (SP-020)."""
     runs = [n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name == "run"]
-    if not runs or [a.arg for a in runs[0].args.args] != RUN_ARGUMENTS:
-        return ["has no run(asset, samples)"]
+    acquires = declares_acquire(tree)
+    arguments = ACQUIRED_ARGUMENTS if acquires else RUN_ARGUMENTS
+    judge = ACQUIRED_JUDGE if acquires else JUDGE
+    if not runs or [a.arg for a in runs[0].args.args] != arguments:
+        return [f"has no run({', '.join(arguments)})"]
     found = []
     doc = ast.get_docstring(runs[0]) or ""
     found += [f"run's docstring has no {word} case ({case}...)" for word, case in (("passing", PASS_CASE),
               ("failing", FAIL_CASE)) if case not in doc]
-    if not any(isinstance(n, ast.Name) and n.id == JUDGE for n in ast.walk(runs[0])):
-        found.append(f"run never calls {JUDGE} (no records must be no data, never a pass)")
+    if not any(isinstance(n, ast.Name) and n.id == judge for n in ast.walk(runs[0])):
+        found.append(f"run never calls {judge} (no records must be no data, never a pass)")
     return found
 
 

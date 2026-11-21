@@ -34,11 +34,11 @@ class TheExamples(unittest.TestCase):
 
     def test_the_down_inverters_run(self) -> None:
         (run,) = project.asset_runs(self.conn, INV2)
-        self.assertEqual((run.run_at, len(run.results), run.failed), (at(2026, 6, 1, 13), 8, True))
+        self.assertEqual((run.run_at, len(run.results), run.failed), (at(2026, 6, 1, 13), 9, True))
         first = run.results[0]
         self.assertEqual((first.test_name, first.passed, first.reason), ("reachable", False, "127.0.0.1:9 is unreachable"))
         self.assertIn(("reachable", True, "156 records"), [(r.test_name, r.passed, r.reason) for r in run.results])
-        self.assertEqual([r.passed for r in run.results], [False] + [True] * 7)
+        self.assertEqual([r.passed for r in run.results], [False, False] + [True] * 7)  # power_ripple, with no live reads taken, says no data (13.3)
 
     def test_the_sensors_run(self) -> None:
         (run,) = project.asset_runs(self.conn, SEN)
