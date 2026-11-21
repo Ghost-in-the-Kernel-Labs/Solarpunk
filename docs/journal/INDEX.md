@@ -131,3 +131,4 @@ Written from `docs/journal/` by `scripts/journal_index.py`; do not edit by hand.
 | J-125 | SP-047: Phase 7's loose ends as 13.12 | decision | `J-100-199.md` |
 | J-126 | 13.12: Phase 7's loose ends | feature | `J-100-199.md` |
 | J-127 | 13.3: a test's own reads | feature | `J-100-199.md` |
+| J-128 | SP-048 and SP-049: historical mode in Phase 14; bursts in the demo; a reaction raises a fault | direction | `J-100-199.md` |

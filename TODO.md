@@ -85,13 +85,13 @@ SP-022; 12.1 split in two by SP-028 (accounts, then versions); 12.6 added on Gho
 
 ## Phase 13: the tests' record, at the root and per asset
 
-Lanes (P-15): 13.1 and 13.2 first (SP-019: what a test is, and the suites), then 13.3 (a test's own reads) and 13.4 (reactions, which need suites; SP-020), then 13.5 (the surface every window reads), then 13.6 and 13.7 in parallel, then the human maintainability pass (SP-042): 13.8, then 13.9, 13.10 and 13.11 in parallel, then 13.13 the pass; 13.12 (Phase 7's loose ends, SP-047) beside 13.3, in its own clone; the asset's history went to Phase 10 (SP-024). Moved after tickets and accounts by SP-022, after the fleet window and the ticket windows by SP-023, and after runs per asset (Phase 10) by SP-024. Moved after Phase 8 by SP-018. Ghost's direction, SP-016.
+Lanes (P-15): 13.1 and 13.2 first (SP-019: what a test is, and the suites), then 13.3 (a test's own reads) and 13.4 (reactions, which need suites; SP-020), then 13.5 (the surface every window reads), then 13.6 and 13.7 in parallel, then the human maintainability pass (SP-042): 13.8, then 13.9, 13.10 and 13.11 in parallel, then 13.14 the pass; 13.12 (Phase 7's loose ends, SP-047) beside 13.3, in its own clone; 13.13 (bursts in the demo, SP-049) after 13.4; the asset's history went to Phase 10 (SP-024). Moved after tickets and accounts by SP-022, after the fleet window and the ticket windows by SP-023, and after runs per asset (Phase 10) by SP-024. Moved after Phase 8 by SP-018. Ghost's direction, SP-016.
 
 ### 13.4 Reactions
 
 What a failure does is declared per test from a closed vocabulary, checked at load, and printed (SP-020).
 
-Check: a test declares `REACTIONS`, per kind a tuple of actions from a closed set (`Suggest(code)`, `Mail()`, `RunSuite(name)`, `OpenPreventive(note)`), replacing `SUGGESTS` (each test's rule becomes a `Suggest`, results unchanged); the registry refuses an unknown action, a code not of the kind's, a suite the folder lacks, and a chain where a suite started by a reaction would start itself, directly or through another, or run deeper than a stated limit; the scheduled run carries out each failing test's reactions, recording each; `solarpunk test list` prints each test's reactions; no action commands equipment; the fast loop green.
+Check: a test declares `REACTIONS`, per kind a tuple of actions from a closed set (`Fault(code)`, `Mail()`, `RunSuite(name)`, `OpenPreventive(note)`), replacing `SUGGESTS` (each test's rule becomes a `Fault`, the generic SIT-004 where it names none, results unchanged; SP-049); the registry refuses an unknown action, a code not of the kind's, a suite the folder lacks, and a chain where a suite started by a reaction would start itself, directly or through another, or run deeper than a stated limit; the scheduled run carries out each failing test's reactions, recording each; `solarpunk test list` prints each test's reactions; no action commands equipment; the fast loop green.
 
 ### 13.5 The record's surface and the timing
 
@@ -138,13 +138,24 @@ Each decision is mapped to the functions that hold it, and each function holding
 
 Check: `scripts/decision_map.py` writes `docs/DECISION-MAP.md`, for each decision in `theGhost.md` the functions (file and name) whose `# Decision:` or `# Invariant:` line cites it, "no function" otherwise; the fast loop fails when the file is stale; `scripts/checks/decision_map.py` fails when an in-force decision whose `Held by` names a file under `solarpunk/` or `scripts/` is cited by no function, or a citation names a decision or invariant that does not exist, with a planted break under `test/fixtures/broken/decision_map/`; the missing citations added to the functions that hold each decision; the fast loop green.
 
-### 13.13 Tune-up pass 13
+### 13.13 Bursts in the demo and on request
+
+The demo's run takes shortened burst reads so `power_ripple` shows a verdict, and the command line takes them only when
+asked (SP-049).
+
+Check: the demo's scheduled run hands the simulator's feed acquirer with bursts shortened to 5 reads, so every fed
+inverter's `power_ripple` is a pass or a fail, never no data; `solarpunk test run` takes burst reads only with
+`--acquire` (and `--shorten N`), recording no data without it as today; `power_ripple`'s threshold, 5 % of rated, is
+no longer marked proposed (Ghost, SP-049); the demo, its tests and DEMO.md updated; the fast loop green and the window
+tests green under xvfb.
+
+### 13.14 Tune-up pass 13
 
 Check: `docs/when/tune-up.md` followed in full; the metrics table written; the navigation log's "Last review" set.
 
 ## Phase 14: the traceability matrix
 
-Lanes (P-15): 14.1, then 14.2 and 14.3 in parallel, then 14.4, then 14.5, then 14.6, then 14.7 the pass. Ghost's direction, SP-044: the traceability matrix, ahead of quality management, with the network and the central server last.
+Lanes (P-15): 14.1, then 14.2 and 14.3 in parallel, then 14.4, then 14.5 and 14.6 (historical mode, SP-048), then 14.7 (the replay's speed), then 14.8, then 14.9, then 14.10 the pass. Ghost's direction, SP-044: the traceability matrix, ahead of quality management, with the network and the central server last.
 
 ### 14.1 The register's control column
 
@@ -170,19 +181,47 @@ For a clause, a site and a period, every record that evidences it and every asse
 
 Check: a `docs/CONTRACT.md` section with a worked example by hand: for a clause, a site and a period, each evidence record (remote results by the test's `CLAUSES`, faults, work orders and KPIs by 14.3's table) per asset of the site, and each asset the clause's control reaches with no record in the period listed as a gap; `project.evidence(conn, clause, site, start, end)` returns exactly the example's rows on the demo fleet; a clause the software alone holds returns its register status, not a gap; the fast loop green.
 
-### 14.5 The matrix command and export
+### 14.5 Historical import
+
+Years of readings load into a store of their own, from a documented file, so tests can be replayed over them (SP-048).
+
+Check: `docs/CONTRACT.md` documents a CSV of readings in the samples' shape (asset, instant in UTC, each field), with a
+worked three-row example; `solarpunk history import FILE --db PATH` loads it into a store marked historical, refusing a
+live store, an asset the fleet lacks, a naive instant and a malformed row (naming the line), and streaming the file so a
+year's rows never sit in memory at once; the simulator writes a multi-year file for the tests (its length a parameter);
+no customer file enters the repository (C-033); the fast loop green.
+
+### 14.6 The historical run
+
+The tests replay over a historical store's period; failures raise faults marked historical; nothing is ticketed, mailed
+or streaked (SP-048).
+
+Check: `solarpunk test history --db PATH --from DATE --to DATE [--suite NAME]` runs each test at its cadence over the
+stored readings, day by day, resuming after the last day stored when stopped; each result is stored marked historical;
+a failure raises its fault (7.7's code choice) marked historical, and opens no ticket, sends no mail and joins no
+streak; a test with `ACQUIRE` records "not replayable", never a pass; a live store is refused; the fast loop green.
+
+### 14.7 The replay's speed
+
+How long a replay of years takes is measured on simulated history before a limit is set (SP-048).
+
+Check: the replay of three simulated years over the demo fleet, and of one year over a fleet of 100 assets, timed and
+written in the journal with the store's size; the slowest step named; a time limit proposed to Ghost from the
+measurement (HANDOFF's For Ghost), not set by the agent; the fast loop green.
+
+### 14.8 The matrix command and export
 
 One command prints the matrix for a site and period and writes it to a file the operator names (SP-044).
 
-Check: `solarpunk matrix --site SITE --from DATE --to DATE [--db PATH] [--csv FILE]` prints one row per register clause (clause, requirement, control, evidence records, assets with a gap) and 14.2's chain verdict; the CSV goes where the operator names it, never into the repository by default (C-033); the output's first line says the matrix claims conformance to nothing (SOL-12); a golden of the demo fleet's matrix; the fast loop green.
+Check: `solarpunk matrix --site SITE --from DATE --to DATE [--db PATH] [--csv FILE]` prints, over a live store or a historical one (14.5, 14.6), one row per register clause (clause, requirement, control, evidence records, assets with a gap) and 14.2's chain verdict; the CSV goes where the operator names it, never into the repository by default (C-033); the output's first line says the matrix claims conformance to nothing (SOL-12); a golden of the demo fleet's matrix; the fast loop green.
 
-### 14.6 The matrix window
+### 14.9 The matrix window
 
 A Matrix button at the fleet window's root opens the matrix, and a clause opens its evidence and its gaps (SP-044).
 
-Check: a Matrix button at the fleet window's root opens a window of 14.5's rows for a chosen site and period, a clause's row opening its evidence records and gaps; its words in a pure text module tested in the fast loop; rendered under xvfb and the screenshot read before landing; `DEMO.md` quotes its words; the fast loop green.
+Check: a Matrix button at the fleet window's root opens a window of 14.8's rows for a chosen site and period, a clause's row opening its evidence records and gaps; its words in a pure text module tested in the fast loop; rendered under xvfb and the screenshot read before landing; `DEMO.md` quotes its words; the fast loop green.
 
-### 14.7 Tune-up pass 14
+### 14.10 Tune-up pass 14
 
 Check: `docs/when/tune-up.md` followed in full; the metrics table written; the navigation log's "Last review" set.
 

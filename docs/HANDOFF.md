@@ -4,7 +4,7 @@ Read `CLAUDE.md` first, then this. `TODO.md` is the chain in order; `docs/DONE.m
 
 ## Start here (2026-11-21, the session that ended at SP-043)
 
-Ghost, 2026-11-21 (SP-044, J-117): the roadmap leans into the ISO traceability matrix. After 13.3 to 13.13 comes Phase 14, the traceability matrix, then 15 quality management (was 18), 16, 17, 18 contractors (was 19), 19 vendors (was 20), 20 Azure (was 21), and last 21 the network's security with company sign-in (was 14) and 22 the central server (was 15).
+Ghost, 2026-11-21 (SP-044, J-117): the roadmap leans into the ISO traceability matrix. After 13.4 to 13.14 comes Phase 14, the traceability matrix, then 15 quality management (was 18), 16, 17, 18 contractors (was 19), 19 vendors (was 20), 20 Azure (was 21), and last 21 the network's security with company sign-in (was 14) and 22 the central server (was 15).
 
 Phase 12 is closed but for 12.7 (Phase W). `main` is clean and pushed at SP-043, every landing through the fast gate,
 Tune-up commit 12 through the full gate (cold 1.47 min, warm 1.47 min, fast loop 24.13 s). Every session branch on
@@ -14,7 +14,7 @@ GitHub is deleted; only `main` remains.
 started before this hand-off, so nothing is in flight.** 13.1 is the remote test's contract (`docs/REMOTE-TESTS.md` and
 a check); it must write down the three results 12.9 made (pass, fail, and "no data", `Result.no_data` and
 `nothing_to_check` in `solarpunk/remote/results.py`), which its Check line predates. 13.2 is the suites folder. Phase 13
-ends with Ghost's human maintainability pass (SP-042, 13.8 to 13.11), then its tune-up pass, 13.13.
+ends with Ghost's human maintainability pass (SP-042, 13.8 to 13.11), then its tune-up pass, 13.14.
 
 What this session landed, newest first (the journal has each):
 - SP-043 (J-113): the readability check runs in the fast checks (For Ghost 9 settled).

@@ -645,7 +645,7 @@ The core decisions above are inherited (Core C-001 to C-040); this project's beg
 - **Held by:** `docs/ROADMAP.md` and `TODO.md` 9.2 to 9.4, their checks when built.
 - **Source:** Ghost, in chat, 2026-11-18.
 - **Status:** in force
-- **See also:** SP-019, SP-015, SP-010
+- **See also:** SP-019, SP-015, SP-010, SP-049
 - **subject:** test suites
 
 ### SP-021: Email that updates tickets is withdrawn; issues go to a proper ticketing system, to be chosen
@@ -886,7 +886,7 @@ The core decisions above are inherited (Core C-001 to C-040); this project's beg
 - **Held by:** `docs/ROADMAP.md` §6, `TODO.md`, `README.md`'s roadmap lines (`test/test_readme.py`), `docs/HANDOFF.md`.
 - **Source:** Ghost, in chat, 2026-11-21; the matrix's shape and its items are the coordinator's recommendation, taken by Ghost's word.
 - **Status:** in force
-- **See also:** SP-022, SP-029, SP-037, SOL-12, C-010, C-033
+- **See also:** SP-022, SP-029, SP-037, SOL-12, C-010, C-033, SP-048
 - **subject:** roadmap
 
 ### SP-045: A tune-up commit is due every twenty-fifth commit on main
@@ -917,3 +917,23 @@ The core decisions above are inherited (Core C-001 to C-040); this project's beg
 - **Status:** in force
 - **See also:** SP-046, SP-039, SOL-11
 - **subject:** faults
+
+### SP-048: Historical mode: the tests replay over years of stored readings to build the matrix for a whole history
+- **Decision:** Readings load from a documented CSV into a store of their own, marked historical (14.5); `solarpunk test history` replays each test at its cadence over a period, day by day and resumable (14.6). A failure raises its fault marked historical; nothing is ticketed, mailed or joined to a streak; a test that takes its own reads records "not replayable". The replay's speed is measured on simulated history before a limit is proposed (14.7). The matrix runs over a live or a historical store (14.8). SP-044's 14.5 to 14.7 become 14.8 to 14.10.
+- **Why:** Ghost, 2026-11-21: "we should have a mode where we run tests in historical mode against existing data. Years of existing data. During historical mode, no tickets are reported on outages. this way, we could run against solv's historical data and generate that coverage matrix for their their entire history." Then, of the coordinator's three questions, "go with your recommendations": faults raised and marked (so the matrix shows what the tests would have caught, comparable with the operator's own outage record), the place inside Phase 14, the speed measured first. A customer's data stays outside the repository (C-033); an adapter for an operator's own export waits on a sample of it.
+- **Held by:** `TODO.md` and `docs/ROADMAP.md` 14.5 to 14.8.
+- **Source:** Ghost, in chat, 2026-11-21.
+- **Status:** in force
+- **See also:** SP-044, SP-046, C-033, SOL-12
+- **subject:** history
+
+### SP-049: Bursts in the demo and on request; the ripple threshold; a reaction raises a fault
+- **Decision:** The demo's run takes burst reads shortened to 5, so `power_ripple` shows a verdict; `solarpunk test run` takes them only with `--acquire` (13.13). `power_ripple`'s threshold is a spread of at most 5 % of rated power over the minute. 13.4's reaction `Suggest(code)` is `Fault(code)`: a failing test raises its fault (SP-046), so no reaction suggests.
+- **Why:** Ghost, 2026-11-21, of the coordinator's three recommendations after 13.3: "go with your recommendations". The simulator's worst minute over 40 seeds spread 1.1 % of rated (J-127), so 5 % leaves a healthy inverter four times the room and reads a swing past it as hunting; a live burst is a minute per inverter, too long for a run nobody asked to wait for.
+- **Supersedes:** SP-020, in part: the reaction "raise a suggestion", now raising a fault. The rest of SP-020 stands, so its Status stays `in force` and its See also names SP-049.
+- **Held by:** `TODO.md` and `docs/ROADMAP.md` 13.4 and 13.13; `solarpunk/remote/tests/power_ripple.py`.
+- **Source:** Ghost, in chat, 2026-11-21.
+- **Status:** in force
+- **See also:** SP-020, SP-046, SP-047
+- **subject:** remote tests
+

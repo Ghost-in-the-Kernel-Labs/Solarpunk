@@ -463,7 +463,7 @@ result kept. It adds to `docs/GOAL.md`'s SCADA analytics (2) and quality managem
   `Burst(field="power_kw", every_s=1, for_s=60)`; the feed and its simulator gain a live-read mode, the runner takes
   the reads and hands them to the test's pure `run`; a test without `ACQUIRE` judges the stored samples as today.
 - **13.4 Reactions (`solarpunk/remote/`, `solarpunk/project/`; SP-020).** A test's `REACTIONS` per kind from a closed
-  vocabulary (suggest, mail, run a follow-up suite, open a preventive work order), replacing `SUGGESTS`; checked at
+  vocabulary (raise a fault, SP-049; mail, run a follow-up suite, open a preventive work order), replacing `SUGGESTS`; checked at
   load, no unknown action or suite, no suite that starts itself; `solarpunk test list` prints them; nothing commands
   equipment.
 - **13.5 The record's surface and the timing (`solarpunk/remote/`, `solarpunk/project/`).** Each test's run is timed and
@@ -488,7 +488,9 @@ result kept. It adds to `docs/GOAL.md`'s SCADA analytics (2) and quality managem
 - **13.12 Phase 7's loose ends (SP-047).** A failed `reachable` raises the generic SIT-004 where its table named an
   outage, since a lost link is not a dead inverter; `solarpunk test results` lists result ids for `ticket open
   --result`; the code 7.7 left unused removed.
-- **13.13 Tune-up pass 13.** (The asset's history, 13.8 before SP-024, is Phase 10.)
+- **13.13 Bursts in the demo and on request (SP-049).** The demo takes shortened bursts, so `power_ripple` shows a
+  verdict; the command line takes them with `--acquire`; the 5 % threshold Ghost's.
+- **13.14 Tune-up pass 13.** (The asset's history, 13.8 before SP-024, is Phase 10.)
 
 ### Phase 14: the traceability matrix
 
@@ -504,11 +506,16 @@ claims conformance to nothing (SOL-12), and no real organisation's records enter
   code and KPI evidences (root causes are free text, SP-046).
 - **14.4 The evidence query.** For a clause, a site and a period, every record that evidences it and every asset with
   none, from a worked example first.
-- **14.5 The matrix command and export.** One command prints the matrix for a site and period and writes it to a file
-  the operator names.
-- **14.6 The matrix window.** A Matrix button at the fleet window's root opens the matrix, and a clause opens its
+- **14.5 Historical import (SP-048).** Years of readings load from a documented CSV into a store of their own, never
+  into the repository; the simulator writes a multi-year file for the tests.
+- **14.6 The historical run (SP-048).** The tests replay over a historical period day by day, resumable; failures raise
+  faults marked historical; no ticket, mail or streak; a test that takes its own reads is "not replayable".
+- **14.7 The replay's speed (SP-048).** Years of simulated history timed before any limit is proposed to Ghost.
+- **14.8 The matrix command and export.** One command prints the matrix for a site and period, over a live or a
+  historical store, and writes it to a file the operator names.
+- **14.9 The matrix window.** A Matrix button at the fleet window's root opens the matrix, and a clause opens its
   evidence and its gaps.
-- **14.7 Tune-up pass 14.**
+- **14.10 Tune-up pass 14.**
 
 ### Phase 15: quality management
 
