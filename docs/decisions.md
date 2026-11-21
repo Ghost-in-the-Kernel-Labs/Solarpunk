@@ -86,3 +86,4 @@ Written by `scripts/decisions_index.py` from `theGhost.md`; do not edit here. Se
 | SP-040 | Solarpunk no longer follows Ghost-Core | in force | lineage |
 | SP-041 | The philosophy's opening is the lineage's shared text, word for word | in force | philosophy |
 | SP-042 | A human maintainability pass: names, a README per module, purpose comments, a decision map | in force | maintainability |
+| SP-043 | The readability check runs in the fast checks | in force | gates |

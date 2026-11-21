@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 # The Python stack's gate, run by scripts/gate.sh when stacks/python/PRESENT exists: pytest, ruff, the readability
 # and lockfile checks. Mutation is not a step here (SP-012): it is stacks/python/mutate.sh, its own regime, run nightly.
-# With --fast (the fast checks, C-040) it stops after pytest and ruff and says `python gate: fast checks passed`.
+# With --fast (the fast checks, C-040) it stops after pytest, ruff and the readability check and says `python gate: fast
+# checks passed`. SP-043: the readability check runs in the fast checks, so a function over its lines or without its
+# docstring is refused at its landing, not at the next pass (J-100, J-111).
 # SP-017: ruff runs in the fast checks, so lint is held at every landing, not at the next pass; pytest runs under
 # `xvfb-run -a` where it is installed, so the window tests run (the fast loop's python3 has no tkinter and skips them);
 # where it is not, the line `note: window tests not run (no xvfb-run)` says so, and scripts/gate.sh shows it.
@@ -19,7 +21,7 @@ else
   echo "note: window tests not run (no xvfb-run)"
 fi
 $bin/ruff check . || { echo "python gate: ruff"; exit 1; }
-[ "${1:-}" != --fast ] || { echo "python gate: fast checks passed"; exit 0; }
 $bin/python -I scripts/checks/readability.py || { echo "python gate: readability (stacks/python/README.md)"; exit 1; }
+[ "${1:-}" != --fast ] || { echo "python gate: fast checks passed"; exit 0; }
 $bin/python -I scripts/checks/imports.py || { echo "python gate: an import not in requirements.lock"; exit 1; }
 echo "python gate: passed"

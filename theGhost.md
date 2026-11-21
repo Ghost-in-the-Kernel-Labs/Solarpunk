@@ -868,3 +868,13 @@ The core decisions above are inherited (Core C-001 to C-040); this project's beg
 - **Status:** in force
 - **See also:** SP-041, C-011, C-012
 - **subject:** maintainability
+
+### SP-043: The readability check runs in the fast checks
+- **Decision:** `stacks/python/gate.sh --fast` runs `scripts/checks/readability.py` after pytest and ruff, so every landing is held to the readability rules (function length, a docstring per function, no `*args`), not only the full gate at a tune-up.
+- **Why:** Twice a function landed through the fast checks and was refused only by the next full gate: `AssetWindow.__init__` at 41 lines (J-100) and 12.9's `Result.__post_init__` without a docstring (J-111). The check takes under a second. SP-042 asks every function's purpose to be commented, which only a check at landing keeps. Ghost, 2026-11-21, in chat: "yes to For Ghost 9".
+- **Supersedes:** none. It widens SP-017 (ruff in the fast checks) to the readability check.
+- **Held by:** `stacks/python/gate.sh`.
+- **Source:** Ghost, in chat, 2026-11-21.
+- **Status:** in force
+- **See also:** SP-017, SP-042, C-040
+- **subject:** gates

@@ -124,12 +124,8 @@ email on the asset, a mailer to those engineers on degradation, and the Save/Can
    acknowledged within 1 h and worked on within 4 h; DERATE (P2) 4 h and 24 h; INFO (P3) 24 h and 72 h. A preventive work
    order, having no fault, is P3 (J-063), also Claude's proposal. Closing a fault alone (`solarpunk fault close`) leaves
    its ticket open, to be closed with a root cause; since 11.2 `solarpunk ticket ack|comment|resolve` and the asset window's ticket panel move it (J-083).
-9. The fast loop's margin (Tune-up pass 8, J-064): settled by SP-025 (J-071), `test/test_gates.py` moved to the full
-   gate's "the slow tests" step on Ghost's word. Also open (Tune-up pass 9, J-072): the Python stack's fast checks
-   do not run `scripts/checks/readability.py`, so a function grew past its 39 lines over five landings and only the
-   pass's full gate refused it; running the check in `stacks/python/gate.sh --fast` costs under a second (a change to
-   a gate script, so a decision). It happened again at Tune-up commit 12 (J-111): 12.9's `Result.__post_init__`
-   landed without a docstring. Still open: run the fast loop with `-W error::DeprecationWarning`, which would have caught 8.2's Python 3.14
+9. The fast loop's margin: settled by SP-025 (J-071). The readability check in the fast checks: settled by SP-043
+   (2026-11-21). Still open: run the fast loop with `-W error::DeprecationWarning`, which would have caught 8.2's Python 3.14
    placeholder warning at once (a change to `scripts/fast.sh`, so a decision).
 10. The scheduled run still stops at the first test script that cannot load, naming it (SP-010), though the Manage
     tests window lists it and carries on (9.8, J-091). Say whether the run should skip a broken script, report it,
