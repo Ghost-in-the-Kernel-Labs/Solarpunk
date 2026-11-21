@@ -543,3 +543,22 @@ Ghost's direction of 2026-11-20 (SP-029), after the network's security rules how
 - **20.1 Vendor profiles.** Each maker's register map, units and fault words in a declared profile, normalized to the
   leaf's sample by the feed; the simulator serves two makers; whether a real device is connected is a decision of its own.
 - **20.2 Tune-up pass 20.**
+
+### Phase 21: Azure
+
+Ghost's direction of 2026-11-20 (SP-037): Solarpunk runs in Azure. What configuration and the standard library can do
+comes here; what needs a dependency is decided where it belongs: sign-in with Entra ID is 14.1's option already; a
+managed database (Azure SQL or PostgreSQL) for the central store is Phase 15's; reading telemetry from Azure IoT Hub or
+Event Hubs is Phase 20's feed. The desktop windows stay on the engineers' machines.
+
+- **21.1 The Azure deployment guide (`docs/AZURE.md`).** Today's Solarpunk on an Azure VM with no code changed: cron or
+  Task Scheduler from the one job, the store on a managed disk, a VPN or ExpressRoute to the plant network, the network
+  security group opening the receiver's port to named sources, email through Azure Communication Services' SMTP
+  endpoint; each Azure claim linked and dated.
+- **21.2 Secrets from Key Vault by managed identity (`solarpunk/mailer/`).** The SMTP credential fetched at send time,
+  `urllib` alone, never written anywhere.
+- **21.3 Reports and exports to Blob Storage.** The report and the baseline's output put to a container as well as a
+  file.
+- **21.4 Health and alarms to Azure Monitor.** A health record per scheduled run and a record per failing test through
+  the Logs Ingestion API; the alert rule for a run that stops reporting.
+- **21.5 Tune-up pass 21.**

@@ -808,3 +808,13 @@ The core decisions above are inherited (Core C-001 to C-040); this project's beg
 - **See also:** C-033, SP-015, SP-035
 - **subject:** field data
 
+### SP-037: Solarpunk runs in Azure, by configuration and the standard library first
+- **Decision:** Azure is the place Solarpunk is deployed. Phase 21 adds what configuration and the standard library can: a deployment guide for today's Solarpunk on an Azure VM (21.1), the mailer's credential from Key Vault by managed identity (21.2), reports and exports to Blob Storage (21.3), and the scheduled run's health and alarms to Azure Monitor (21.4), each through Azure's REST APIs with `urllib`, each tested against a local stand-in, never against Azure. What needs a dependency is decided where it belongs, one decision each: Entra ID sign-in (14.1's option), a managed database for the central store (Phase 15), IoT Hub or Event Hubs telemetry (Phase 20's feed). The desktop windows stay on the engineers' machines.
+- **Why:** Ghost, 2026-11-20, in chat: "lets assume we will be going into an azure environment", then "add these to the roadmap". The product takes no dependency without a decision (C-034's rules, C-035), and a VM, managed identity and Azure's REST APIs cover deployment, secrets, storage and monitoring without one; the parts that cannot are already planned in Phases 14, 15 and 20. No test reaches Azure: a session holds no Azure account, and nothing that requires one may be the repository's (AGT-01).
+- **Supersedes:** none.
+- **Held by:** `TODO.md` Phase 21, `docs/ROADMAP.md` Phase 21.
+- **Source:** Ghost, in chat, 2026-11-20.
+- **Status:** in force
+- **See also:** SP-022, SP-029, C-034, C-035
+- **subject:** deployment
+

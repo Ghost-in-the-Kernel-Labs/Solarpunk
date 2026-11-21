@@ -324,6 +324,54 @@ decision of its own (Phase 14's); the fast loop green.
 
 Check: `docs/when/tune-up.md` followed in full; the metrics table written; the navigation log's "Last review" set.
 
+## Phase 21: Azure
+
+Lanes (P-15): 21.1 first (the guide), then 21.2, 21.3 and 21.4 in parallel, then 21.5 the pass. Ghost's direction,
+SP-037: Azure as the place Solarpunk runs, by configuration and the standard library alone; what needs a dependency is
+Phase 14's and 15's to decide.
+
+### 21.1 The Azure deployment guide
+
+Solarpunk as it is, on an Azure virtual machine, with no code changed (SP-037).
+
+Check: `docs/AZURE.md` says how to run Solarpunk on an Azure VM (Linux with cron, or Windows with Task Scheduler, from
+the one job definition), where the store lives (a managed disk, with snapshots), how the VM reaches a plant's devices
+(a site-to-site VPN or ExpressRoute into the plant network) and what the network security group opens (the receiver's
+port, to named sources only), and how the mailer sends through Azure Communication Services Email's SMTP endpoint, by
+settings alone; every claim about Azure carries the link to the page it was read from and the date it was read; a
+check holds the document's links and its pointers; the fast loop green.
+
+### 21.2 Secrets from Key Vault by managed identity
+
+The mailer's SMTP credential read from Azure Key Vault, never from a file (SP-037, the supply-chain rules).
+
+Check: with a vault and a secret name configured, the mailer's credential is fetched at send time through the VM's
+managed identity (a token from the instance metadata endpoint, then the vault's REST API), with `urllib` alone; the
+credential is never printed, logged, stored or put in a message; without the setting, the mailer reads its settings as
+before; tested against a local stand-in for both endpoints, the real ones never called by a test; the fast loop green.
+
+### 21.3 Reports and exports to Blob Storage
+
+A report or an export written to an Azure Blob Storage container as well as to a file (SP-037).
+
+Check: with a container configured, `solarpunk report` and the field baseline's output are also put to the container
+through its REST API by managed identity, `urllib` alone; a failed upload says so and keeps the local file; tested
+against a local stand-in; the fast loop green.
+
+### 21.4 Health and alarms to Azure Monitor
+
+The scheduled run's health and alarms sent to a Log Analytics workspace, so Azure can page someone when the run stops
+(SP-037).
+
+Check: with a data collection endpoint and rule configured, each scheduled run sends one health record (when it ran,
+how many assets, how many failed) and one record per failing test through the Logs Ingestion API by managed identity,
+`urllib` alone; a failed send never stops the run; `docs/AZURE.md` gives the alert rule for a run that stops
+reporting; tested against a local stand-in; the fast loop green.
+
+### 21.5 Tune-up pass 21
+
+Check: `docs/when/tune-up.md` followed in full; the metrics table written; the navigation log's "Last review" set.
+
 ## Phase W: waiting on Ghost
 
 ### 12.7 Known failures caught, on labelled field data

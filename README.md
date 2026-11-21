@@ -66,6 +66,7 @@ moving only once origin takes it (SP-014), and the full `scripts/gate.sh` runs a
   (SP-029).
 - Phase 19, contractor performance management: not started (SP-029).
 - Phase 20, multiple inverter vendors (vendor profiles, normalized and simulated): not started (SP-029).
+- Phase 21, Azure (the deployment guide, Key Vault, Blob Storage, Azure Monitor; standard library only): not started (SP-037).
 
 `docs/ROADMAP.md` holds the plan, `TODO.md` the open items in order, `docs/DONE.md` what is finished;
 `test/test_readme.py` holds each line above to those two files.
