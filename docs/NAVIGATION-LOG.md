@@ -17,3 +17,9 @@ Last review: 3be733f (2026-11-21, Tune-up commit 12)
 
 An entry is `### <date> · <task> · <who>`, then four bullets: **Task**, **Opened** (files, in order), **Complaints**,
 **Suggestions**.
+
+### 2026-11-21 · coordinator assignment pointer · coordinator
+- **Task**: make CLAUDE.md send the coordinator to the agent assignment logic (J-114).
+- **Opened**: `docs/when/handoff.md`, `docs/when/coordinate.md`, `docs/HANDOFF.md`, `docs/when/grades.md`, `theGhost.md` (C-020, C-022, C-036), `docs/when/hand-out-a-task.md`, `scripts/checks/grades.py`.
+- **Complaints**: "You coordinate other agents rather than build" did not read as an entry condition to a session Ghost started, so the assignment rules were met only when looked for.
+- **Suggestions**: none beyond J-114.
