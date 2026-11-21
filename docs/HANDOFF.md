@@ -194,6 +194,13 @@ email on the asset, a mailer to those engineers on degradation, and the Save/Can
     red; `reachable` over the demo reads 3 failures where 2 assets are down, since a dead feed's ping stores its own
     failed `reachable` beside the suite's (J-050's double). Say if the overview should count one per run instead.
 
+24. From the demo's ISO walk dry run (J-141, SP-052), six choices before the demo item is placed: (1) which asset carries
+   the loop: OAHE-INV-002 (works with a revived feed, also carries the INV-001 outage) or OAHE-SEN-001 (a cleaner story,
+   needs a sensor feed); (2) a demo store with accounts so every move names a person, or `--by` on `ticket ack` and
+   `resolve`; (3) demo acts stamped on the demo's day or the wall clock; (4) the demo's telemetry at zero during
+   OAHE-INV-002's outage; (5) the clause register's sentences reworded to cover every remote test that cites them (14.1);
+   (6) the SOL-14 hours, still a proposal, and whether a result's ticket clock starts at the failure.
+
 ## Advisories under the gate's threshold (Tune-up commit 7, 2026-11-21; unchanged since pass 0)
 
 The Python stack's gate runs no audit step (`pip-audit` is not in the lock; `stacks/python/README.md` names it for a

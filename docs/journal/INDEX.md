@@ -144,3 +144,4 @@ Written from `docs/journal/` by `scripts/journal_index.py`; do not edit by hand.
 | J-138 | SP-052: the demo on a throwaway store; a Fable dry run of the ISO walk | decision | `J-100-199.md` |
 | J-139 | 13.8 part 2: names under solarpunk/ say what they hold | feature | `J-100-199.md` |
 | J-140 | 13.8 part 1's files, missing from its own commit | failure-caught | `J-100-199.md` |
+| J-141 | The demo's ISO walk, dry-run: what is missing | measurement | `J-100-199.md` |
