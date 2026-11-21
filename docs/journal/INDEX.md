@@ -123,3 +123,4 @@ Written from `docs/journal/` by `scripts/journal_index.py`; do not edit by hand.
 | J-117 | SP-044: the ISO traceability matrix as Phase 14; the network, sign-in and the server last | direction | `J-100-199.md` |
 | J-118 | Every worker in its own clone beside the coordinator's checkout | direction | `J-100-199.md` |
 | J-119 | SP-045: a tune-up commit every twenty-fifth commit | decision | `J-100-199.md` |
+| J-120 | SP-046: faults from telemetry, no accept or dismiss, a written root cause, a ticket from a failed test | direction | `J-100-199.md` |

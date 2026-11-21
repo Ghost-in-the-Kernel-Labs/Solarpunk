@@ -319,6 +319,13 @@ when it was called in. It adds to `docs/GOAL.md`'s quality management (4: who de
   The asset window lists open suggestions (the device's first, then by run) with Accept and Dismiss, each taking the
   engineer and, for a call-in, the operator; `solarpunk fault suggestions|accept|dismiss`.
 - **7.6 Tune-up pass 7.**
+- **7.7 Faults from telemetry (SP-046).** A failing test raises its fault itself, by its rule table's code or a
+  generic one; a streak of failures is one fault; accept and dismiss are removed, and nothing changes a fault in place.
+- **7.8 The root cause, written by an engineer (SP-046).** Blank until an engineer writes it as free text, kept as a new
+  row with who and when; the closed list of SP-011 retired; a ticket closes only once the cause is written.
+- **7.9 A ticket from a failed test (SP-046).** "Open a ticket" on a failed result, not the asset; a streak of
+  failures shares one ticket, one ticket to many failed results.
+- **7.10 Tune-up commit 7.**
 
 ### Phase 8: local tickets
 
@@ -491,7 +498,7 @@ claims conformance to nothing (SOL-12), and no real organisation's records enter
 - **14.2 Evidence that cannot be deleted.** The evidence tables are append-only and each row is chained to the one
   before by hash, so a deleted or changed record is found.
 - **14.3 Clause links for faults, work orders and KPIs.** One declared table in the leaf says which clauses each fault
-  code, root-cause code and KPI evidences.
+  code and KPI evidences (root causes are free text, SP-046).
 - **14.4 The evidence query.** For a clause, a site and a period, every record that evidences it and every asset with
   none, from a worked example first.
 - **14.5 The matrix command and export.** One command prints the matrix for a site and period and writes it to a file

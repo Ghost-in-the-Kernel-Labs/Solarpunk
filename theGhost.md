@@ -562,7 +562,7 @@ The core decisions above are inherited (Core C-001 to C-040); this project's beg
 - **Held by:** `solarpunk/leaf/root_causes.py`, `test/solarpunk/iso/test_iso9001.py` (the 10.2.1 test), `docs/modules.json`.
 - **Source:** the ghost section Ghost approved on 2026-11-17 and his word to clear the roadmap (C-040); the list the coordinator's proposal.
 - **Status:** in force
-- **See also:** SP-003, SP-010, SOL-04
+- **See also:** SP-003, SP-010, SOL-04, SP-046
 - **subject:** work-orders
 
 ### SP-012: Mutation testing leaves the gate for its own nightly regime
@@ -599,7 +599,7 @@ The core decisions above are inherited (Core C-001 to C-040); this project's beg
 - **Held by:** `docs/ROADMAP.md` Phase 7 and `TODO.md` 7.1 to 7.3, their tests when built. The network's security, Phase 7 by SP-013, becomes Phase 8 (8.1, 8.2) to make room.
 - **Source:** Ghost, in chat, 2026-11-18.
 - **Status:** in force
-- **See also:** SP-008, SP-006, SOL-04, SOL-07, SOL-10
+- **See also:** SP-008, SP-006, SOL-04, SOL-07, SOL-10, SP-046
 - **subject:** fault assignment
 
 ### SP-016: The tests' record is shown, at the root and per asset, and kept whole
@@ -898,3 +898,13 @@ The core decisions above are inherited (Core C-001 to C-040); this project's beg
 - **Status:** in force
 - **See also:** C-024, C-037, C-040
 - **subject:** gates
+
+### SP-046: Telemetry assigns a fault; nothing is accepted or dismissed; an engineer writes the root cause in words; a ticket opens from a failed test
+- **Decision:** A failing remote test raises its fault itself, by its rule table's code, or by one generic catalogue code (a remote test failed, its cause not yet known) where the table names none; a no-data result raises none. Accepting and dismissing a suggestion are removed: no person hides or rewrites what the telemetry showed, and no code changes a fault's state in place; a later fact is a new row. A fault's root cause is blank until an engineer writes it, as free text, kept with who and when, a later writing superseding without erasing; a ticket on a fault closes only once its root cause is written. A ticket opens from a failed test result (the asset, the test and the run), not from the asset; one ticket maps to many failed results: a failure of the same test on the same asset in the run right after a failure joins that failure's ticket and fault, and a pass ends the streak. A false alarm stays on record, and its root cause says why. Built as Phase 7 reopened: 7.7 faults from telemetry, 7.8 the root cause written by an engineer, 7.9 a ticket from a failed test, 7.10 the tune-up commit; next in the chain, ahead of 13.3.
+- **Why:** Ghost, 2026-11-21, after opening the demo: "We shouldn't be dismissing should we? People simply dismissing records as they show isnt exactly the definition of append only records?"; "the faults should be assigned by telemetry, not by humans"; "there should be a root cause, that is blank and can be assigned by an engineer. Root cause is a string. Not a drop down."; "Ticket should have open a ticket control. However, this shouldnt be tied to the asset, it should be tied to the faulty test run against that asset." Then: "A test that fails every run has the same ticket assigned to it if the same fail time occured on the previous test. This allows a one to many mapping of tickets to failed tests"; "Yes to generic codes"; "yes to root cause analysis" (a ticket closes only with the cause written). The code showed accept and dismiss as an `UPDATE` of the suggestion's state (`solarpunk/remote/suggestions.py`, `ACCEPT`, `DISMISS`), not an append. Said once, as C-040 allows: SP-015 was Ghost's rule of 2026-11-18 that an engineer, not a test, assigns a fault; SP-011's closed list made root-cause analysis a query and held 9001-10.2.1; with free text, recurrence is counted by fault code (15.2 already does), and a cause typed three ways is three causes. The streak reading (consecutive runs, a pass ends it) is the coordinator's reading of "the same fail ... on the previous test"; Ghost may correct it. The place in the chain is the coordinator's recommendation, unanswered and taken: Phase 14's evidence assumes these records are append-only.
+- **Supersedes:** SP-015, in part: "only an engineer assigns one" and the suggestion an engineer accepts or dismisses; an engineer's word now arrives as the root cause. SP-011, in part: the closed list of root-cause codes in the leaf and an order closed only with one of them; a ticket now closes only once its fault's root cause is written. The rest of each stands, so their Status stays `in force` and their See also names SP-046.
+- **Held by:** `TODO.md` and `docs/ROADMAP.md` 7.7 to 7.10; `README.md`'s Phase 7 line; 14.3's text (fault codes and KPIs only).
+- **Source:** Ghost, in chat, 2026-11-21.
+- **Status:** in force
+- **See also:** SP-011, SP-015, SP-022, SP-044, C-010
+- **subject:** faults

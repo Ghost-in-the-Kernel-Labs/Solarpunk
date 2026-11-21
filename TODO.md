@@ -44,6 +44,34 @@ Lanes (P-15): 6.1 and 6.2 in parallel, landed in that order (done, J-041); 6.3 a
 
 Lanes (P-15): 7.1 (done, J-050), then 7.2 and 7.3 (SP-017, put ahead by Ghost), then 7.4 (it needs 7.1's `assigned_by`), then 7.5, then 7.6 the pass. Ghost's direction, SP-015.
 
+## Phase 7: faults suggested by tests, assigned by engineers
+
+Lanes (P-15): 7.7, then 7.8, then 7.9, then 7.10 the tune-up commit. Reopened by SP-046 on Ghost's word, after running
+the demo: telemetry assigns a fault, nothing is accepted or dismissed, an engineer writes the root cause as free text,
+and a ticket opens from a failed test result, one ticket to many failed results.
+
+### 7.7 Faults from telemetry
+
+A failing test raises its fault itself; nobody accepts or dismisses it (SP-046).
+
+Check: a failing remote test result raises a fault itself, with its rule table's code, or the catalogue's generic code (one new code in the leaf's catalogue: a remote test failed, its cause not yet known) where the table names none; a failure of a test on an asset in the run right after that test failed on that asset joins the earlier failure's fault, and a pass ends the streak; a no-data result raises none; accepting and dismissing a suggestion are gone from the windows, the command line and `project`, and no code updates a fault's or a suggestion's state in place (a later fact is a new row); a store made before 7.7 reads its suggestions and faults as they were; the clause register rows that name the old behaviour, and their tests, are reworded with it; the fast loop green.
+
+### 7.8 The root cause, written by an engineer
+
+A fault's root cause is blank until an engineer writes it, in words (SP-046).
+
+Check: a fault carries a root cause, blank until an engineer writes it as free text (no list, no dropdown), kept as a new row with who and when, a later writing superseding an earlier one without erasing it; `solarpunk/leaf/root_causes.py` is retired (SP-011 superseded); a ticket on a fault closes only once the fault's root cause is written; the clause register's 9001-10.2.1 row and its test say so; the asset window shows a fault's root cause and a box to write it, and `solarpunk fault cause FAULT_ID TEXT` writes one; the fast loop green.
+
+### 7.9 A ticket from a failed test
+
+A ticket opens from the failed test run against an asset, not from the asset (SP-046).
+
+Check: an "Open a ticket" control sits on a failed test result (its asset, test and run) in the asset window and the Runs window, and `solarpunk ticket open --result ID`, not on the asset; one ticket maps to many failed results: a failure in the run right after a failure of the same test on the same asset joins that failure's ticket, a pass ending the streak, and opening a ticket on a failed result already in a ticket's streak shows that ticket instead of opening a second; the ticket window lists its failed results; the fast loop green.
+
+### 7.10 Tune-up commit 7
+
+Check: `docs/when/tune-up.md` steps 1, 2, 5 and 6 (a reopened phase of three items or fewer); the metrics table written; the navigation log's "Last review" set.
+
 ## Phase 8: local tickets
 
 Lanes (P-15): 8.1 first (the contract), then 8.2, then 8.3 the pass. Ghost's direction, SP-021 and
@@ -161,9 +189,9 @@ Check: a `docs/CONTRACT.md` section under a new SOL id names the evidence tables
 
 ### 14.3 Clause links for faults, work orders and KPIs
 
-One declared table in the leaf says which clauses each fault code, root-cause code and KPI evidences (SP-044).
+One declared table in the leaf says which clauses each fault code and KPI evidences (SP-044; root causes are free text since SP-046).
 
-Check: a declared table in `solarpunk/leaf/` maps each fault-catalogue code, each root-cause code and each KPI to zero or more clause ids, each a register row (a check, with a planted break); `project` resolves a record's clauses from it at read time and stores no copy; the register's Evidence column names the tables these links reach; the fast loop green.
+Check: a declared table in `solarpunk/leaf/` maps each fault-catalogue code and each KPI to zero or more clause ids, each a register row (a check, with a planted break); `project` resolves a record's clauses from it at read time and stores no copy; the register's Evidence column names the tables these links reach; the fast loop green.
 
 ### 14.4 The evidence query
 

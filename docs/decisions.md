@@ -89,3 +89,4 @@ Written by `scripts/decisions_index.py` from `theGhost.md`; do not edit here. Se
 | SP-043 | The readability check runs in the fast checks | in force | gates |
 | SP-044 | The ISO traceability matrix is Phase 14, quality management next; the network, company sign-in and the central server last | in force | roadmap |
 | SP-045 | A tune-up commit is due every twenty-fifth commit on main | in force | gates |
+| SP-046 | Telemetry assigns a fault; nothing is accepted or dismissed; an engineer writes the root cause in words; a ticket opens from a failed test | in force | faults |
