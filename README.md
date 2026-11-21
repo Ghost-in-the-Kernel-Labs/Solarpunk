@@ -57,16 +57,17 @@ moving only once origin takes it (SP-014), and the full `scripts/gate.sh` runs a
 - Phase 12, accounts and authentication (every act attributed to a signed-in account): in progress, every item done but 12.7, which waits (SP-036; Tune-up pass 12, J-104).
 - Phase 13, the tests and their record (what a test is, suites, a Tests window): in progress, 13.1 and 13.2 done
   (SP-016, SP-019, SP-020; J-115, J-116).
-- Phase 14, the network's security (the feed, the receiver, and the central server's design): not started.
-- Phase 15, the network (a central server with many clients, planned from Phase 14's decisions): not started.
+- Phase 14, the ISO traceability matrix (clause, control, evidence per site and period; evidence that cannot be deleted): not started (SP-044).
+- Phase 15, quality management (inspection checklists and evidence, CAPA effectiveness, document control): not started
+  (SP-029; was Phase 18, SP-044).
 - Phase 16, condition and maintenance planning (baselines, preventive schedules, condition-based work): not started
   (SP-029).
 - Phase 17, anomaly detection and alarm correlation: not started (SP-029).
-- Phase 18, quality management (inspection checklists and evidence, CAPA effectiveness, document control): not started
-  (SP-029).
-- Phase 19, contractor performance management: not started (SP-029).
-- Phase 20, multiple inverter vendors (vendor profiles, normalized and simulated): not started (SP-029).
-- Phase 21, Azure (the deployment guide, Key Vault, Blob Storage, Azure Monitor; standard library only): not started (SP-037).
+- Phase 18, contractor performance management: not started (SP-029; was Phase 19, SP-044).
+- Phase 19, multiple inverter vendors (vendor profiles, normalized and simulated): not started (SP-029; was Phase 20, SP-044).
+- Phase 20, Azure (the deployment guide, Key Vault, Blob Storage, Azure Monitor; standard library only): not started (SP-037; was Phase 21, SP-044).
+- Phase 21, the network's security (the feed, the receiver, company sign-in, and the central server's design): not started (was Phase 14, SP-044).
+- Phase 22, the network (a central server with many clients, planned from Phase 21's decisions): not started (was Phase 15, SP-044).
 
 `docs/ROADMAP.md` holds the plan, `TODO.md` the open items in order, `docs/DONE.md` what is finished;
 `test/test_readme.py` holds each line above to those two files.
