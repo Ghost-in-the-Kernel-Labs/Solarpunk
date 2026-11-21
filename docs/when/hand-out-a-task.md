@@ -35,6 +35,13 @@ task: `docs/when/handoff.md`.
   (J-025 to J-028). A brief whose lane changes a shared shape (the store's table list, a result type) says "grep test/
   for the old shape" and names the armed metrics a lane can trip: the largest source file under 400 lines, the fast loop
   under 30 s (`docs/AGENT.md`; J-031).
+- A worker on a branch meets three things the brief must say (12.4, 12.5, 12.6; J-096, J-097): the fast checks stop
+  at `test_metrics` on its tree (the metrics row is the coordinator's), which hides the lint and window tests behind it,
+  so the brief sanctions copying `docs/AGENT.md` aside, running `python3 -I scripts/metrics.py --write` and
+  `scripts/gate.sh --fast`, then restoring the copy; the window tests need tkinter and a display, and where the fast
+  loop's interpreter has no tkinter they run under `xvfb-run -a` with one that has; and the worker works on a branch in
+  the main checkout, never in a worktree under `.claude/worktrees/`, whose copy of the planted supply-chain fixtures the
+  disk-reading scan reports as worm artefacts.
 - The working set is the Start-here files of the routing row the item matches, plus the files the
   item names; nothing else. Say explicitly what the agent may and may not do: agents read silence
   literally.
@@ -66,8 +73,8 @@ Never: weaken a test or a check to pass; change an auto-execution surface withou
 its header allows (See also, Held by); add a dependency; push; create or edit a hook or anything under
 .claude/; git stash, --amend, reset or force; stop, undo or overwrite what you did not start.
 
-Commit mode: <save only: scripts/save.sh -m "<what changed>" on your branch at the end of each item and before
-your turn ends; the coordinator lands it | land, one commit per item: scripts/gate.sh --fast, then
+Commit mode: <save only: scripts/gate.sh --fast passing (its verdict line quoted), then scripts/save.sh -m "<what
+changed>" on your branch at the end of each item and before your turn ends; the coordinator lands it | land, one commit per item: scripts/gate.sh --fast, then
 scripts/commit.sh -a -F -, authored as Ghost, subject "<n.n> <what changed> (J-nnn)", the fast checks' verdict
 line quoted; if commit.sh says a tune-up is due, stop: the coordinator makes it>. Never a raw commit or push
 on main (C-040).

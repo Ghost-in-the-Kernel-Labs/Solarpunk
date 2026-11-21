@@ -103,3 +103,4 @@ Written from `docs/journal/` by `scripts/journal_index.py`; do not edit by hand.
 | J-097 | 12.4: attribution from the account (SP-015, SP-022, SP-032, SP-035) | feature | `J-000-099.md` |
 | J-098 | 12.6 added: field data from a public PV dataset | direction | `J-000-099.md` |
 | J-099 | 12.6 reshaped: no public PV dataset records its failures; a false-alarm baseline first (SP-036) | contradiction | `J-000-099.md` |
+| J-100 | Tune-up commit, mid-Phase 12 | measurement | `J-100-199.md` |

@@ -208,13 +208,17 @@ class AssetWindow(tk.Toplevel):
         self.build_engineer()
         self.ticket_panel = TicketPanel(self, conn, asset_id, self.ticket_changed, account=account)  # 11.2, 12.4
         self.ticket_panel.pack(fill="x", padx=8, pady=4)
+        self.build_message_line()
+        self.fill(detail)
+
+    def build_message_line(self) -> None:
+        """The message line under the ticket panel, where a refusal shows, and its Refresh button (12.2)."""
         last = ttk.Frame(self)
         last.pack(fill="x", padx=8, pady=4)
         self.message = tk.Label(last, anchor="w", foreground=RED_TEXT)
         self.message.pack(side="left", fill="x", expand=True)
         self.refresh_button = ttk.Button(last, text=cells.REFRESH, command=self.refresh)
         self.refresh_button.pack(side="right")
-        self.fill(detail)
 
     def refresh(self) -> None:
         """Refresh (12.2, SOL-16): clears the message lines, rereads the asset and redraws; nothing is resubmitted."""
