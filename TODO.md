@@ -87,12 +87,6 @@ SP-022; 12.1 split in two by SP-028 (accounts, then versions); 12.6 added on Gho
 
 Lanes (P-15): 13.1 and 13.2 first (SP-019: what a test is, and the suites), then 13.3 (a test's own reads) and 13.4 (reactions, which need suites; SP-020), then 13.5 (the surface every window reads), then 13.6 and 13.7 in parallel, then the human maintainability pass (SP-042): 13.8, then 13.9, 13.10 and 13.11 in parallel, then 13.14 the pass; 13.12 (Phase 7's loose ends, SP-047) beside 13.3, in its own clone; 13.13 (bursts in the demo, SP-049) after 13.4; the asset's history went to Phase 10 (SP-024). Moved after tickets and accounts by SP-022, after the fleet window and the ticket windows by SP-023, and after runs per asset (Phase 10) by SP-024. Moved after Phase 8 by SP-018. Ghost's direction, SP-016.
 
-### 13.7 The Tests window
-
-The master list from the root of the window: every test, its run time, and its last 100 runs (SP-016).
-
-Check: `solarpunk/ui/record_window.py` (its words in `solarpunk/ui/record_text.py`; `tests_window.py` is 9.8's Manage tests window, left as it is) opens from a "Tests" button in the fleet window; it lists `project.tests_overview` (name, kinds, assets, last run, duration, passes, failures, no data; SP-050) and, for the selected test, `project.test_log` (asset, instant, result, reason, duration), failures red; `test/solarpunk/test_ui_record.py` builds it under xvfb over the demo store with its pure half headless; a screenshot read back; the fast loop green.
-
 ### 13.8 Names of three characters or more
 
 No variable, argument or loop name in `solarpunk/`, `scripts/` or `test/` is two characters or fewer, held by a check

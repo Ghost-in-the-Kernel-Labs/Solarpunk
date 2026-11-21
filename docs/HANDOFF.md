@@ -2,18 +2,19 @@
 
 Read `CLAUDE.md` first, then this. `TODO.md` is the chain in order; `docs/DONE.md` is what is finished.
 
-## Start here (2026-11-21, the session that landed 13.5)
+## Start here (2026-11-21, the session that landed 13.5 to 13.7)
 
-**Next: 13.6 (last run in the asset window) and 13.7 (the Tests window) in parallel, each a mid worker in its own clone;
-both read 13.5's `project.tests_overview` and `project.test_log` (`solarpunk/project/record.py`). `main` is clean and
-pushed at 13.5.** Then Ghost's human
-maintainability pass (SP-042, 13.8 to 13.11, which `scripts/score.py` places strong: they read most of the tree), then
-13.14 the pass. After Phase 13 comes Phase 14, the traceability matrix, now with historical mode inside it (SP-048:
+**Next: 13.8, Ghost's human maintainability pass (SP-042), names of three characters or more, then 13.9 to 13.11 in
+parallel. 13.5 to 13.7 landed this session; `main` is clean and pushed.** `scripts/score.py` places 13.8 to 13.11
+strong: they read most of the tree. Then 13.14 the pass. After Phase 13 comes Phase 14, the traceability matrix, now with historical mode inside it (SP-048:
 14.5 historical import, 14.6 the historical run, 14.7 the replay's speed, 14.8 the matrix over a live or historical
 store, 14.9 its window, 14.10 the pass), then 15 to 20, and last 21 security with company sign-in and 22 the server
 (SP-044).
 
 What this session landed, newest first (the journal has each):
+- 13.7 (J-135): the Tests window (`record_window.py`, "Tests" beside Reports); J-133 moved it off 9.8's files.
+- 13.6 (J-134): last run and duration in the asset window's diagnostics; `asset_text.duration_words`.
+- SP-050 (J-132): 13.5's readings, as built.
 - 13.5 (J-131): `results.duration_ms`, each test timed in `remote/run.py`'s `timed`; `project.tests_overview` and
   `project.test_log`. A duration not recorded reads None, never 0.
 - 13.13 (J-130): the demo takes five quick burst reads, so OAHE-INV-001's `power_ripple` passes; `test run --acquire
@@ -188,6 +189,10 @@ email on the asset, a mailer to those engineers on degradation, and the Save/Can
 22. From 13.6 (J-134): a test that judges stored samples takes under a millisecond, so the asset window reads "0 ms"
     for most of the demo's tests (measured, not missing; only the ping's untimed `reachable` reads "—"). Say if a
     measured duration should round up to 1 ms, or read "<1 ms".
+
+23. From 13.7 (J-135), the Tests window's readings: the log leaves out the suite; an overview row with any failure is
+    red; `reachable` over the demo reads 3 failures where 2 assets are down, since a dead feed's ping stores its own
+    failed `reachable` beside the suite's (J-050's double). Say if the overview should count one per run instead.
 
 ## Advisories under the gate's threshold (Tune-up commit 7, 2026-11-21; unchanged since pass 0)
 

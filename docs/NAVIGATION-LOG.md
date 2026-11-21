@@ -18,6 +18,12 @@ Last review: 805522c (2026-11-21, Tune-up commit 7)
 An entry is `### <date> · <task> · <who>`, then four bullets: **Task**, **Opened** (files, in order), **Complaints**,
 **Suggestions**.
 
+### 2026-11-21 · 13.7 the Tests window · mid-grade worker
+- **Task**: the Tests window over `tests_overview` and `test_log` (J-135).
+- **Opened**: `solarpunk/project/record.py`, `solarpunk/ui/__main__.py`, `solarpunk/ui/runs_window.py`, `solarpunk/ui/runs_text.py`, `solarpunk/ui/cells.py`, `test/solarpunk/test_ui_statusbar.py`, `DEMO.md`.
+- **Complaints**: the shared scratchpad (one worker's `shot.py` overwrote the other's); `scripts/gate.sh --fast` ran the stack check under `sh` once, with a getcwd error, and passed on the re-run.
+- **Suggestions**: a brief for parallel workers names a scratch file per worker.
+
 ### 2026-11-21 · 13.6 last run in the asset window · mid-grade worker
 - **Task**: last-run and duration columns in the asset window's diagnostics (J-134).
 - **Opened**: `solarpunk/project/surface.py`, `solarpunk/ui/asset_text.py`, `solarpunk/ui/asset_window.py`, `test/solarpunk/test_ui_asset.py`, `DEMO.md`.

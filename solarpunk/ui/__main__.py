@@ -1,8 +1,8 @@
 """Run: python3 -m solarpunk.ui --db fleet.db opens the fleet window on that store, made if missing; python3 -m
 solarpunk.ui --demo rebuilds demo.db in the current directory (solarpunk/ui/demo.py), starts the feed simulator for
 OAHE-INV-001, runs the suite once and opens the fleet window on it. Either way a click on a row opens the asset window,
-whose changes refresh the fleet window, "Add asset" above the list opens the add-asset window and "Reports" the
-power-output report (6.3). Every window wears Solarpunk's icon; --shortcut puts a desktop shortcut wearing it, starting
+whose changes refresh the fleet window, "Add asset" above the list opens the add-asset window, "Reports" the
+power-output report (6.3) and "Tests" the Tests window, every test's record and last 100 runs (13.7). Every window wears Solarpunk's icon; --shortcut puts a desktop shortcut wearing it, starting
 in the current directory, and opens no window (9.7)."""
 import argparse
 import base64
@@ -22,6 +22,7 @@ from solarpunk.ui import cells, demo, icon, shortcut, sign_in
 from solarpunk.ui.add_asset import AddAssetWindow
 from solarpunk.ui.app import FleetWindow
 from solarpunk.ui.errors_window import ErrorsWindow
+from solarpunk.ui.record_window import RecordWindow
 from solarpunk.ui.runs_window import RunsWindow
 from solarpunk.ui.tests_window import ManageTestsWindow
 from solarpunk.ui.tickets_window import TicketsWindow
@@ -35,6 +36,7 @@ DEMO_TITLE = "Solarpunk fleet — demo (OAHE, 2026-06-01)"
 ADD_ASSET = "Add asset"
 MANAGE_TESTS = "Manage tests"
 REPORTS = "Reports"
+TESTS = "Tests"
 ERRORS = "Errors"
 TICKETS = "Tickets"
 STORE_LINE = "demo: store {name} rebuilt\n"
@@ -68,7 +70,7 @@ def run_line(report: project.RunReport) -> str:
 def open_fleet(root: tkinter.Tk, conn: sqlite3.Connection, account: project.Account | None = None) -> FleetWindow:
     """The fleet window wired to the others: a click opens AssetWindow(root, conn, id, on_change=refresh), the "Add asset"
     button in the window's toolbar opens AddAssetWindow(root, conn, on_saved) which refreshes after a save, "Manage tests"
-    beside it the ManageTestsWindow over the remote tests' folder (9.8), and "Reports" after it opens ReportsWindow(root, conn) (6.3), then "Errors" the fleet's ErrorsWindow, whose rows open a Runs window
+    beside it the ManageTestsWindow over the remote tests' folder (9.8), and "Reports" after it opens ReportsWindow(root, conn) (6.3), "Tests" after that the RecordWindow(root, conn) (13.7), then "Errors" the fleet's ErrorsWindow, whose rows open a Runs window
     (10.7), then "Tickets" the TicketsWindow, a double click opening the ticket's asset window (11.2); Refresh stands
     at the toolbar's right (9.5). The account signed in (None in a store with none) is kept on the window and named in
     its status bar (12.3), and every asset window acts as it (12.4)."""
@@ -86,6 +88,8 @@ def open_fleet(root: tkinter.Tk, conn: sqlite3.Connection, account: project.Acco
     window.tests_button.pack(side=tkinter.LEFT)  # 9.8: between Add asset and Reports
     window.reports_button = ttk.Button(bar, text=REPORTS, command=lambda: ReportsWindow(root, conn))
     window.reports_button.pack(side=tkinter.LEFT)
+    window.record_button = ttk.Button(bar, text=TESTS, command=lambda: RecordWindow(root, conn))
+    window.record_button.pack(side=tkinter.LEFT)  # 13.7: beside Reports
     window.errors_button = ttk.Button(bar, text=ERRORS, command=lambda: ErrorsWindow(root, conn, window.on_open_runs))
     window.errors_button.pack(side=tkinter.LEFT)  # 10.7
     window.tickets_button = ttk.Button(bar, text=TICKETS,
