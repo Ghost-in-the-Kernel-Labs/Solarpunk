@@ -5,7 +5,7 @@ ticket_panel.py lay them out over project.tickets_by_target."""
 from datetime import datetime
 
 from solarpunk.leaf.tickets import TargetState
-from solarpunk.project import Move, TicketView
+from solarpunk.project import Move, Recorded, ResultTicket, TicketView
 from solarpunk.ui.cells import instant_text
 
 COLUMNS = ("ticket", "asset", "priority", "status", "acknowledge", "respond", "opened")
@@ -61,3 +61,34 @@ def history_text(moves: tuple[Move, ...]) -> str:
     """The ticket's history in the panel, oldest first, one line per move; a ticket never moved says "No move yet"."""
     # Decision: SP-035 (a ticket's every move is on record with who made it)
     return "\n".join(move_line(found) for found in moves) or NO_MOVES
+
+
+# A ticket from a failed result (7.9, SP-046): the words of the "Open a ticket" control and of the failed results a
+# ticket holds, one row each (test, run, reason).
+OPEN_TICKET = "Open a ticket"
+CHOOSE_FAILED = "Choose a failed result to open a ticket on."
+RESULT_COLUMNS = ("test", "run", "reason")
+RESULT_HEADINGS = ("Test", "Run", "Reason")
+RESULTS_TITLE = "Failed results in the selected ticket"
+RESULTS_LINE = "Failed results: {count}"
+NO_RESULTS = "No failed result: this ticket was opened from a fault"
+OPENED_LINE = "Ticket {wo_id} opened on the failed result: {count} failed result{plural} in it"
+SHOWN_LINE = "Ticket {wo_id} already holds this result: {count} failed result{plural} in it"
+
+
+def result_row(found: Recorded) -> tuple[str, str, str]:
+    """A failed result as a row: ("reachable", "2026-06-01 13:00 UTC", "127.0.0.1:9 is unreachable")."""
+    return (found.test_name, instant_text(found.run_at), found.reason)
+
+
+def results_text(found: tuple[Recorded, ...]) -> str:
+    """The ticket panel's line of the failed results the ticket holds: "Failed results: 2"; a ticket opened from a fault
+    says it holds none."""
+    return RESULTS_LINE.format(count=len(found)) if found else NO_RESULTS
+
+
+def opened_text(found: ResultTicket) -> str:
+    """What the control says after it ran: "Ticket 3 opened on the failed result: 1 failed result in it"; a result
+    already in a ticket gives "Ticket 3 already holds this result: 2 failed results in it"."""
+    words = OPENED_LINE if found.opened else SHOWN_LINE
+    return words.format(wo_id=found.ticket.wo_id, count=len(found.results), plural="" if len(found.results) == 1 else "s")

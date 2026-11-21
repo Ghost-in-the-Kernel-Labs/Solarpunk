@@ -31,6 +31,7 @@ from solarpunk.telemetry import generate as generator
 from solarpunk.telemetry import samples as sample_table
 from solarpunk.leaf.tickets import Priority, priority_of
 from solarpunk.workorders import ledger as work_ledger
+from solarpunk.workorders import ticket_results
 from solarpunk.workorders import tickets as ticket_ledger
 from solarpunk.workorders.ledger import WorkOrder, WorkOrderError
 
@@ -39,7 +40,7 @@ SITE_EMAIL = "site@oahe.example"
 LOOPBACK = "127.0.0.1"
 INVERTER_EMAIL = "inverter@oahe.example"
 STORE_TABLES = ("assets", "faults", "samples")
-# The tables Phases 2, 4 and 12 added, by name, each with its schema: a store made before them gains them on reopening.
+# The tables Phases 2, 4, 7 and 12 added, by name, each with its schema: a store made before them gains them on reopening.
 LATER_TABLES: tuple[tuple[str, tuple[str, ...]], ...] = (
     ("results", result_table.schema()),
     ("mails", mail_table.schema()),
@@ -47,6 +48,7 @@ LATER_TABLES: tuple[tuple[str, tuple[str, ...]], ...] = (
     ("suggestions", suggestion_table.schema()),
     ("accounts", account_table.schema()),
     ("fault_causes", ledger.causes_schema()),  # 7.8, SP-046
+    ("ticket_results", ticket_results.schema()),  # 7.9, SP-046
 )
 TABLE_NAMES = "SELECT name FROM sqlite_master WHERE type = 'table'"
 

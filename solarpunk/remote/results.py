@@ -4,7 +4,7 @@ The module offers its schema; project applies it with solarpunk.leaf.store.apply
 assets, by name, so `python3 -m solarpunk.remote.run` can run one test against one asset's stored samples without
 importing another lane's module (MOD-05)."""
 import sqlite3
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 
 from solarpunk.leaf.assets import Asset
@@ -33,10 +33,15 @@ INSERT = (
     "INSERT INTO results (test_name, asset_id, run_at, passed, reason, no_data, suite) VALUES (?, ?, ?, ?, ?, ?, ?)"
 )
 RESULT_COLUMNS = "test_name, asset_id, run_at, passed, reason, no_data, suite"
+WITH_ID = RESULT_COLUMNS + ", result_id"  # 7.9: a result's id, which a ticket is opened from
+# The result just before another of the same test on the same asset, in (run_at, result_id) order (7.9, SP-046).
+PREVIOUS = (f"SELECT {WITH_ID} FROM results WHERE asset_id = ? AND test_name = ?"
+            " AND (run_at < ? OR (run_at = ? AND result_id < ?)) ORDER BY run_at DESC, result_id DESC LIMIT 1")
+BY_ID = f"SELECT {WITH_ID} FROM results WHERE result_id = ?"
 LAST_OF_SUITE = "SELECT max(run_at) FROM results WHERE suite = ?"
 # Failures first, then no data, then passes (a no-data row stores passed 0), each by test name.
 LATEST = (
-    f"SELECT {RESULT_COLUMNS} FROM results"
+    f"SELECT {WITH_ID} FROM results"
     " WHERE asset_id = ? AND run_at = (SELECT max(run_at) FROM results WHERE asset_id = ?)"
     " ORDER BY passed, no_data, test_name"
 )
@@ -84,7 +89,8 @@ class Result:
 class Recorded:
     """One stored result: Recorded("reachable", "OAHE-INV-001", 2026-06-01T10:00Z, False, "no records"); a no-data
     result has no_data True and passed False, and a row stored before 12.9 reads as the pass or fail it was; suite names
-    the suite that ran it (13.2), "all" for a row stored before suites."""
+    the suite that ran it (13.2), "all" for a row stored before suites; result_id is the row's id (7.9), 0 for one not
+    read from the store, and takes no part in equality."""
 
     test_name: str
     asset_id: str
@@ -93,6 +99,7 @@ class Recorded:
     reason: str
     no_data: bool = False
     suite: str = ALL
+    result_id: int = field(default=0, compare=False)
 
     @property
     def failed(self) -> bool:
@@ -133,7 +140,7 @@ def upgrade(conn: sqlite3.Connection) -> None:
 
 def _recorded(row: sqlite3.Row | tuple) -> Recorded:
     """One results row as a Recorded."""
-    return Recorded(row[0], row[1], datetime.fromisoformat(row[2]), bool(row[3]), row[4], bool(row[5]), row[6])
+    return Recorded(row[0], row[1], datetime.fromisoformat(row[2]), bool(row[3]), row[4], bool(row[5]), row[6], row[7])
 
 
 def record(conn: sqlite3.Connection, test_name: str, asset_id: str, run_at: datetime, result: Result,
@@ -165,9 +172,24 @@ def latest_for(conn: sqlite3.Connection, asset_id: str) -> tuple[Recorded, ...]:
 def results_of(conn: sqlite3.Connection, asset_id: str) -> tuple[Recorded, ...]:
     """Every result stored for the asset, newest run first, then in the order stored: after runs at 10:00 and 11:00,
     the 11:00 results come first; an asset never run gives (). Nothing is deleted to make it (SP-016)."""
-    rows = conn.execute(f"SELECT {RESULT_COLUMNS} FROM results WHERE asset_id = ? ORDER BY run_at DESC, result_id",
+    rows = conn.execute(f"SELECT {WITH_ID} FROM results WHERE asset_id = ? ORDER BY run_at DESC, result_id",
                         (asset_id,)).fetchall()
     return tuple(_recorded(row) for row in rows)
+
+
+def get(conn: sqlite3.Connection, result_id: int) -> Recorded | None:
+    """One stored result by its id, or None: get(conn, 1) is the first result recorded."""
+    row = conn.execute(BY_ID, (result_id,)).fetchone()
+    return None if row is None else _recorded(row)
+
+
+def previous_of(conn: sqlite3.Connection, found: Recorded) -> Recorded | None:
+    """The result of the same test on the same asset just before this one, or None for the first (7.9, SP-046): no other
+    result of that test on that asset lies between them, ordered by run instant and then by id; after a pass at 10:00
+    and a failure at 11:00, the failure's previous is the pass."""
+    row = conn.execute(PREVIOUS, (found.asset_id, found.test_name, utc(found.run_at).isoformat(),
+                                  utc(found.run_at).isoformat(), found.result_id)).fetchone()
+    return None if row is None else _recorded(row)
 
 
 def last_run_at(conn: sqlite3.Connection) -> datetime | None:

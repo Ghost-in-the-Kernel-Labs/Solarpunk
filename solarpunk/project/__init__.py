@@ -48,6 +48,8 @@ from solarpunk.project.reports import (
     report_rows,
     report_sites,
 )
+from solarpunk.project.result_tickets import (ResultTicket, ResultTicketError, open_ticket_from_result, results_of_ticket,
+                                            ticket_of_result)
 from solarpunk.project.suggest import (
     fault_from_device,
     faults_from_run,
@@ -143,6 +145,7 @@ from solarpunk.project.access import (
 from solarpunk.project.attribution import (
     assign_fault_as,
     comment_on_ticket_as,
+    open_ticket_from_result_as,
     recorded_as,
     resolve_ticket_as,
     word_engineers,
@@ -258,6 +261,12 @@ __all__ = [
     "by_telemetry",
     "fault_from_device",
     "faults_from_run",
+    "ResultTicket",
+    "ResultTicketError",
+    "results_of_ticket",
+    "ticket_of_result",
+    "open_ticket_from_result",
+    "open_ticket_from_result_as",
     "open_suggestions",
     "open_suggestions_for",
     "open_tickets",

@@ -18,6 +18,12 @@ Last review: 3be733f (2026-11-21, Tune-up commit 12)
 An entry is `### <date> · <task> · <who>`, then four bullets: **Task**, **Opened** (files, in order), **Complaints**,
 **Suggestions**.
 
+### 2026-11-21 · 7.9 a ticket from a failed test · mid-grade worker
+- **Task**: an "Open a ticket" control on a failed result; one ticket to a streak of failed results (J-123).
+- **Opened**: the product row's ledgers, `project/orchestrator.py`, `project/suggest.py`, `remote/results.py`, the CLI and window files, `docs/CONTRACT.md`.
+- **Complaints**: `test_project.py` and `test_cli.py` pin the store's table list in order, so one new table edits about nine expected lists; the readability check caps a function at 39 lines; the CLI's stderr can carry a Python warning before "error:".
+- **Suggestions**: the table-list tests read the list from one constant, so a new table edits one line.
+
 ### 2026-11-21 · 7.8 the root cause · mid-grade worker
 - **Task**: a fault's root cause as free text an engineer writes, append-only; a ticket closes only once it is written (J-122).
 - **Opened**: `grep -rn "root_cause\|RootCause"` first, then the product row's ledgers, `project/orchestrator.py`, the CLI and window files, the clause register.

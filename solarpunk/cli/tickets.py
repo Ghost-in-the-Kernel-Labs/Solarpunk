@@ -1,5 +1,6 @@
 """The ticket commands (11.2, SOL-14): `ticket list` (the open tickets, the nearest target first, a breach marked),
-`ticket show ID` (its line and its moves), `ticket ack ID`, `ticket comment ID WORDS…` and `ticket resolve ID --done WORDS…`, each one project call
+`ticket show ID` (its line, its moves and the failed results it holds), `ticket open --result ID` (a ticket opens from a
+failed test result, 7.9, SP-046), `ticket ack ID`, `ticket comment ID WORDS…` and `ticket resolve ID --done WORDS…`, each one project call
 (MOD-02) at the instant --at names, now when it names none, as the account signed in (12.4; a store with no accounts
 names a comment's author with --by). main.py adds them to its parser."""
 import argparse
@@ -8,7 +9,7 @@ from datetime import datetime, timezone
 from typing import TextIO
 
 from solarpunk import project
-from solarpunk.cli.signin import acting
+from solarpunk.cli.signin import acting, attributed
 
 BREACH = "  PAST TARGET"
 LINE = "{wo_id}  {asset}  {priority}  {status}  acknowledge {ack}  respond {respond}{breach}"
@@ -16,6 +17,7 @@ NONE_OPEN = "no open ticket"
 NO_TARGET = "—"
 MOVE = "  {at}  {status}  {who}"
 NOBODY = "nobody signed in"
+RESULT = "  result {result_id}  {test}  {at}  {reason}"
 
 
 def moment_of(args: argparse.Namespace) -> datetime:
@@ -55,6 +57,9 @@ def ticket_show(conn: sqlite3.Connection, args: argparse.Namespace, out: TextIO)
     out.write(view_line(project.view_of(found, moment_of(args))) + "\n")
     for made in moves:
         out.write(move_line(made) + "\n")
+    for result in project.results_of_ticket(conn, args.wo_id):
+        out.write(RESULT.format(result_id=result.result_id, test=result.test_name, at=result.run_at.isoformat(),
+                                reason=result.reason) + "\n")
 
 
 def ticket_list(conn: sqlite3.Connection, args: argparse.Namespace, out: TextIO) -> None:
@@ -66,6 +71,18 @@ def ticket_list(conn: sqlite3.Connection, args: argparse.Namespace, out: TextIO)
         out.write(view_line(view) + "\n")
     if not views:
         out.write(NONE_OPEN + "\n")
+
+
+def ticket_open(conn: sqlite3.Connection, args: argparse.Namespace, out: TextIO) -> None:
+    """ticket open --result 2 --by site@oahe.example [--at INSTANT]: opens the ticket for a failed test result, as the
+    account signed in or as named (--as; --for an engineer's word; with no accounts --by [--recorded-by]), and prints "1
+    opened on result 2 (2 failed results: 1, 2)"; a result already in a ticket prints that ticket, "1 already open on
+    result 1 (…)", opening none; a pass, no data or an unstored result is refused, "error: result 9 is not stored" (7.9)."""
+    found = project.open_ticket_from_result_as(conn, args.account, args.result, moment_of(args), args.by,
+                                               args.recorded_by, args.for_engineer)
+    held = ", ".join(str(result.result_id) for result in found.results)
+    state = "opened" if found.opened else "already open"
+    out.write(f"{found.ticket.wo_id} {state} on result {args.result} ({len(found.results)} failed results: {held})\n")
 
 
 def ticket_ack(conn: sqlite3.Connection, args: argparse.Namespace, out: TextIO) -> None:
@@ -96,6 +113,9 @@ def add_tickets(commands: argparse._SubParsersAction) -> None:
     show = acting(ticket.add_parser("show"))
     show.add_argument("wo_id", type=int)
     show.set_defaults(handler=ticket_show)
+    opening = attributed(acting(ticket.add_parser("open")))
+    opening.add_argument("--result", type=int, required=True)
+    opening.set_defaults(handler=ticket_open)
     ack = acting(ticket.add_parser("ack"))
     ack.add_argument("wo_id", type=int)
     ack.set_defaults(handler=ticket_ack)
@@ -108,5 +128,5 @@ def add_tickets(commands: argparse._SubParsersAction) -> None:
     resolve.add_argument("wo_id", type=int)
     resolve.add_argument("--done", nargs="+", required=True)
     resolve.set_defaults(handler=ticket_resolve)
-    for parser in (listing, show, ack, comment, resolve):
+    for parser in (listing, show, opening, ack, comment, resolve):
         parser.add_argument("--at")

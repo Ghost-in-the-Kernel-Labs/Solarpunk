@@ -9,12 +9,14 @@ from tkinter import font as tkfont
 from tkinter import ttk
 
 from solarpunk import project
-from solarpunk.ui import bars, runs_text, timeline
+from solarpunk.ui import bars, runs_text, ticket_text, timeline
+from solarpunk.ui.open_ticket import OpenTicketButton, Who
 from solarpunk.ui.chart import CANVAS_HEIGHT, CANVAS_WIDTH
 from solarpunk.ui.reports import draw_power
 
 RED_TEXT = "#c0392b"
 GREY_TEXT = "#808080"
+GREEN_TEXT = "#2e8b57"
 FAILED_TAG = "failed"
 NO_DATA_TAG = "nodata"
 RUN_COLUMNS = ("instant", "results", "verdict")
@@ -47,12 +49,15 @@ class RunsWindow(tk.Toplevel):
     """One asset's runs: RunsWindow(root, conn, "OAHE-INV-002") titled "Runs — OAHE-INV-002 Inverter 2", its list
     holding the demo's one run; an id the fleet lacks raises UnknownAsset before any window is drawn."""
 
-    def __init__(self, parent: tk.Misc, conn: sqlite3.Connection, asset_id: str) -> None:
-        """Reads the asset once for its name and endpoint, lays the window out and fills the list."""
+    def __init__(self, parent: tk.Misc, conn: sqlite3.Connection, asset_id: str,
+                 account: project.Account | None = None) -> None:
+        """Reads the asset once for its name and endpoint, lays the window out and fills the list; account is the one
+        signed in (None in a store with none), which a ticket opened from a result is recorded as (7.9, 12.4)."""
         asset = project.asset_detail(conn, asset_id).asset
         super().__init__(parent)
         self.conn = conn
         self.asset_id = asset_id
+        self.account = account
         self.has_feed = asset.host is not None and asset.port is not None
         self.runs: tuple[project.Run, ...] = ()
         self.title(runs_text.title(asset_id, asset.name))
@@ -70,6 +75,7 @@ class RunsWindow(tk.Toplevel):
         self.tabs.add(runs_tab, text=RUNS_TAB)
         self.run_tree = self.tree(runs_tab, RUN_COLUMNS, RUN_HEADINGS, RUN_WIDTHS, height=10)
         self.result_tree = self.tree(runs_tab, RESULT_COLUMNS, RESULT_HEADINGS, RESULT_WIDTHS, height=8)
+        self.build_open_ticket(runs_tab)
         by_test = ttk.Frame(self.tabs)
         self.tabs.add(by_test, text=BY_TEST_TAB)
         self.timeline = tk.Canvas(by_test, width=timeline.WIDTH, height=timeline.height_of(1), background="white",
@@ -81,6 +87,36 @@ class RunsWindow(tk.Toplevel):
         self.run_tree.bind("<<TreeviewSelect>>", lambda _e: self.show_results())
         self.search_text.trace_add("write", lambda *_: self.fill())
         self.fill()
+
+    def build_open_ticket(self, tab: tk.Misc) -> None:
+        """The "Open a ticket" control under a run's results (7.9, SP-046): it acts on the failed result selected there,
+        recorded as the engineer its picker names (none for an engineer signed in), and says what it did beside it."""
+        self.who = Who(tab, self.conn, self.account, self.asset_id)
+        self.who.pack(fill="x", padx=8)
+        row = ttk.Frame(tab)
+        row.pack(fill="x", padx=8, pady=2)
+        self.ticket_line = tk.Label(row, anchor="w")
+        self.open_ticket_button = OpenTicketButton(row, self.conn, self.account, self.chosen_result,
+                                                   lambda: self.who.named(self.say), self.say, self.ticket_opened)
+        self.open_ticket_button.pack(side="left")
+        self.ticket_line.pack(side="left", padx=8)
+
+    def say(self, words: str) -> None:
+        """A refusal or a missing choice, in red beside the control."""
+        self.ticket_line.configure(text=words, foreground=RED_TEXT)
+
+    def ticket_opened(self, found: project.ResultTicket) -> None:
+        """After a ticket opened or shown from a result: says which ticket, in green."""
+        self.ticket_line.configure(text=ticket_text.opened_text(found), foreground=GREEN_TEXT)
+
+    def chosen_result(self) -> int | None:
+        """The id of the failed result selected in the chosen run's results, or None when none is selected or it is no
+        failure."""
+        run, result = self.run_tree.selection(), self.result_tree.selection()
+        if not run or not result:
+            return None
+        found = self.runs[int(run[0])].results[int(result[0])]
+        return found.result_id if found.failed else None
 
     def make_power_tab(self) -> None:
         """The Power tab (10.5): a day box opening on the day of the store's last run, Show, a line of counts, and the
@@ -210,6 +246,6 @@ class RunsWindow(tk.Toplevel):
         chosen = self.run_tree.selection()
         if not chosen:
             return
-        for result in self.runs[int(chosen[0])].results:
-            self.result_tree.insert("", "end", values=runs_text.result_line(result),
+        for index, result in enumerate(self.runs[int(chosen[0])].results):
+            self.result_tree.insert("", "end", iid=str(index), values=runs_text.result_line(result),
                                     tags=tags_of(result.failed, result.no_data))

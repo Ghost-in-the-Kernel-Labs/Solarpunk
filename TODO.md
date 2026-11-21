@@ -50,12 +50,6 @@ Lanes (P-15): 7.7, then 7.8, then 7.9, then 7.10 the tune-up commit. Reopened by
 the demo: telemetry assigns a fault, nothing is accepted or dismissed, an engineer writes the root cause as free text,
 and a ticket opens from a failed test result, one ticket to many failed results.
 
-### 7.9 A ticket from a failed test
-
-A ticket opens from the failed test run against an asset, not from the asset (SP-046).
-
-Check: an "Open a ticket" control sits on a failed test result (its asset, test and run) in the asset window and the Runs window, and `solarpunk ticket open --result ID`, not on the asset; one ticket maps to many failed results: a failure in the run right after a failure of the same test on the same asset joins that failure's ticket, a pass ending the streak, and opening a ticket on a failed result already in a ticket's streak shows that ticket instead of opening a second; the ticket window lists its failed results; the fast loop green.
-
 ### 7.10 Tune-up commit 7
 
 Check: `docs/when/tune-up.md` steps 1, 2, 5 and 6 (a reopened phase of three items or fewer); the metrics table written; the navigation log's "Last review" set.
