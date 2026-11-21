@@ -292,7 +292,7 @@ how work is done, then how the repository is kept.
 - **Status:** in force
 - **Core:** part of Ghost-Core; may not apply to every project, but a rule that appears in four projects is there for a reason.
 - **subject:** tune-up
-- **See also:** C-025 (the review's input), C-022 and C-023 (the metrics it re-measures), C-034 (why the gate is a script the recipe requires, never a git hook an agent installs); `docs/when/tune-up.md` "The structure half (optional)" and its reopened-phase edge case (Ghost, 2026-11-06 and 2026-11-07)
+- **See also:** C-025 (the review's input), C-022 and C-023 (the metrics it re-measures), C-034 (why the gate is a script the recipe requires, never a git hook an agent installs); `docs/when/tune-up.md` "The structure half (optional)" and its reopened-phase edge case (Ghost, 2026-11-06 and 2026-11-07), SP-045
 
 ### C-025: Every agent debriefs on navigation; the debriefs are the tune-up's input
 - **Decision:** After a task, the agent appends its complaints and suggestions about finding its way (what it opened, in order; what it could not find; what a row should have said) to the navigation log. At every tune-up (C-024: every eighth commit, and the pass that closes a phase) the agent doing it reads the entries for what agents who did not see each other converge on. Nothing actionable: a journal entry, and the file is wiped. Actionable: the journal entry, the file wiped, each item checked against the code and the valid ones fixed; an open question goes to a Claude Fable instance, read-only. The journal entry keeps the trace: how many entries, what converged, what was done. There is no second counter: the review is due when the tune-up is, and the commit gate holds both (C-024). The parents ran it on its own counter (ten commits, pre-push refusing past twenty).
@@ -888,3 +888,13 @@ The core decisions above are inherited (Core C-001 to C-040); this project's beg
 - **Status:** in force
 - **See also:** SP-022, SP-029, SP-037, SOL-12, C-010, C-033
 - **subject:** roadmap
+
+### SP-045: A tune-up commit is due every twenty-fifth commit on main
+- **Decision:** `scripts/commit.sh` refuses any but a `tune-up:` commit once twenty-five commits have landed on `main` since the last tune-up (`TUNE_UP_EVERY`, default 25), where C-024 set eight. The tune-up passes that close each phase are unchanged, and so is everything else C-024 decides.
+- **Why:** Ghost, 2026-11-21, in chat: "update the tuneup to be only once ever 25 commits." Each phase already closes with its own tune-up pass, so a tune-up commit every eighth landing came due mid-phase and spent a coordinator's turn on an environment review the phase's pass would hold anyway.
+- **Supersedes:** C-024's count, in part: "every eighth commit" and its test "refuses a non-tune-up commit at eight" now read twenty-five; the rest of C-024 stands, so its Status stays `in force`.
+- **Held by:** `scripts/commit.sh` (`TUNE_UP_EVERY`), `test/test_gates.py` (`TheTuneUpRule`), `test/test_fast_checks.py`, `docs/when/tune-up.md`, `docs/paths/process.md`.
+- **Source:** Ghost, in chat, 2026-11-21.
+- **Status:** in force
+- **See also:** C-024, C-037, C-040
+- **subject:** gates

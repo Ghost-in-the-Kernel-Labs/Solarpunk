@@ -88,3 +88,4 @@ Written by `scripts/decisions_index.py` from `theGhost.md`; do not edit here. Se
 | SP-042 | A human maintainability pass: names, a README per module, purpose comments, a decision map | in force | maintainability |
 | SP-043 | The readability check runs in the fast checks | in force | gates |
 | SP-044 | The ISO traceability matrix is Phase 14, quality management next; the network, company sign-in and the central server last | in force | roadmap |
+| SP-045 | A tune-up commit is due every twenty-fifth commit on main | in force | gates |

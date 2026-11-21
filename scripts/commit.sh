@@ -27,7 +27,7 @@
 # never installs one (C-034), and nothing checks a commit after it exists (C-037).
 set -uo pipefail
 cd "$(dirname "$0")/.."
-TUNE_UP_EVERY=${TUNE_UP_EVERY:-8}
+TUNE_UP_EVERY=${TUNE_UP_EVERY:-25}  # Decision: SP-045 (was 8, C-024's eighth commit)
 AUTHOR_NAME=Ghost
 AUTHOR_EMAIL=118085043+ghost-in-the-kernel@users.noreply.github.com
 COMMITTER_NAME=Claude
