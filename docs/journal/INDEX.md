@@ -141,3 +141,4 @@ Written from `docs/journal/` by `scripts/journal_index.py`; do not edit by hand.
 | J-135 | 13.7: the Tests window | feature | `J-100-199.md` |
 | J-136 | SP-051: the windows show the record as measured | decision | `J-100-199.md` |
 | J-137 | 13.8 part 1: the names check | feature | `J-100-199.md` |
+| J-138 | SP-052: the demo on a throwaway store; a Fable dry run of the ISO walk | decision | `J-100-199.md` |

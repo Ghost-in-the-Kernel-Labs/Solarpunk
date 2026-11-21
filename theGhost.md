@@ -957,3 +957,13 @@ The core decisions above are inherited (Core C-001 to C-040); this project's beg
 - **Status:** in force
 - **See also:** SP-016, SP-050
 - **subject:** test record
+
+### SP-052: The demo works on a throwaway copy of its store, outside the repository
+- **Decision:** `--demo` builds its store in a fresh folder outside the repository and deletes it on exit, so a presenter may write anything live (acknowledge, comment, write a root cause, resolve, re-run) and the tree stays clean. The demo exists to make a convincing argument: one ISO requirement walked to its evidence and its corrective action, live, on the demo store. Which files change, and whether `demo.db` stays tracked, is placed from the Fable dry run's report (J-138).
+- **Why:** Ghost, 2026-11-21, after the coordinator found `run_demo` rebuilding a tracked `demo.db` in the current directory, so every live write dirtied the tree and put a run's output in the repository (C-033). Chosen over an untracked rebuilt `demo.db` and a reset command: "The point here is for demo to be able to make a convincing argument."
+- **Supersedes:** none.
+- **Held by:** `solarpunk/ui/__main__.py` (`run_demo`), `solarpunk/ui/demo.py`, once the item it opens is built.
+- **Source:** Ghost, in chat, 2026-11-21.
+- **Status:** in force
+- **See also:** C-033, SP-016
+- **subject:** demo

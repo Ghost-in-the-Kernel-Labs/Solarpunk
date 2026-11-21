@@ -95,3 +95,4 @@ Written by `scripts/decisions_index.py` from `theGhost.md`; do not edit here. Se
 | SP-049 | Bursts in the demo and on request; the ripple threshold; a reaction raises a fault | in force | remote tests |
 | SP-050 | The tests' record counts the run of every test; its edges read empty | in force | test record |
 | SP-051 | The windows show the record as measured and stored | in force | test record |
+| SP-052 | The demo works on a throwaway copy of its store, outside the repository | in force | demo |
