@@ -5,11 +5,13 @@ Read `CLAUDE.md` first, then this. `TODO.md` is the chain in order; `docs/DONE.m
 ## Start here (2026-11-21, the session that ended at Tune-up pass 12)
 
 Phase 12 is closed but for 12.7, which waits in Phase W. `main` is clean and pushed, every landing through the fast
-gate, the pass through the full gate (cold 1.47 min, warm 1.50 min, fast loop 24.35 s). **Next: 13.1 and 13.2**,
-Phase 13's first lane (what a test looks like, and the suites folder; SP-016, SP-019), in parallel. Phase 13 defines
-what a test is, so Ghost may want to read its items before they are handed out.
+gate, the pass through the full gate (cold 1.47 min, warm 1.50 min, fast loop 24.35 s). **Next: 12.9 and 12.11**, in parallel, then 12.10, then the
+tune-up commit 12.12: Phase 12 reopened by SP-039 for Ghost's eleven calls (J-106), ahead of Phase 13. 12.9 adds the
+"no data" result, which 13.1's test contract then writes down. Then 13.1 and 13.2.
 
 What this session landed, newest first (the journal has each):
+- After the hand-off (J-106): SP-039, Ghost's eleven calls, all as recommended, call 0 as a third "no data" result;
+  Phase 12 reopened with 12.9 to 12.12. SP-040: Solarpunk no longer follows Ghost-Core (For Ghost 4 and 14 settled).
 - After the hand-off (J-105): `asset_window.py` split, its words and pure functions to `solarpunk/ui/asset_text.py`
   (the window 255 lines); a refactor, no result changed.
 - Tune-up pass 12 (J-104): Phase 12 closed; the Core look not made (For Ghost 14); the open calls of 12.4 to 12.6
@@ -42,9 +44,7 @@ Mind, before adding:
   and be caught only by a pass's full gate, as `AssetWindow.__init__` was (J-100).
 - The field data's local copy (/home/user/field-data/) lived in this session's container and is gone with it;
   `docs/FIELD-DATA.md` says how to fetch it again.
-- Session branches left on GitHub, every one landed or parked and superseded: `claude/sp-033-supply-chain-split`,
-  `agent/12.4a-attribution`, `agent/12.4b-versions`, `agent/12.4c-ticket-record`, `agent/12.5-account-admin`,
-  `agent/12.6-baseline`, `claude/12.6-landing`; delete them from GitHub's branches page when convenient (item 12).
+- Session branches on GitHub: 33 on 2026-11-21, every one landed or superseded; Ghost is deleting them (item 12).
 - Not run from here: the shortcut and Open folder on Windows or a Mac (no such machine in a cloud session); the
   window's title bar (the test display has no window manager).
 
@@ -105,12 +105,9 @@ email on the asset, a mailer to those engineers on degradation, and the Save/Can
    the one mail path (SP-009).
 2. Phase 2's open question: does the scheduled job run `python3 -m solarpunk.cli`, or a frozen entry point?
 3. The clause numbers in `docs/CLAUSE-REGISTER.md` (ISO 9001:2015 7.5.2, 7.5.3, 8.7.1, 8.7.2, 9.1.1, 9.1.3, 10.2.1, 10.2.2; ISO 55001:2014 6.2.1, 6.2.2, 7.5, 9.1) are from the worker's knowledge of the standards' numbering: confirm them against your copies.
-4. Ghost-Core owes the fixes for F-001 to F-004 (`docs/FINDINGS.md`); this project carries them locally.
-5. A remote test with no records passes (J-045): the demo's OAHE-SEN-001 does not answer, its `reachable` fails, and
-   its `on_grid` and `irradiance_in_range` read "pass" over 0 readings in the asset window's diagnostics. The colour is
-   right (yellow, from `reachable`); the passes are vacuous. The proposal: a third result, "no data", for a test that
-   had nothing to check, shown grey like "not run" and never counted as a pass. It changes `Result` and every remote
-   test, so it is your ruling first.
+4. Settled 2026-11-21 (SP-040): Solarpunk no longer follows Ghost-Core; F-001 to F-004's local fixes are its own.
+5. Settled 2026-11-21 (SP-039): no data is not a pass; `reachable` fails it as a disconnection, the other tests
+   return a grey "no data". Built by 12.9.
 6. The rule table (7.4, J-053) is Claude's proposal, `solarpunk test list` prints it: an unreachable inverter suggests
    INV-001, a meter MTR-001, a weather station SEN-001 (as does its irradiance out of range); a tracker, and every
    data-quality failure, suggest nothing. Two gaps in the catalogue keep two diagnostics silent: no inverter code for
@@ -133,8 +130,8 @@ email on the asset, a mailer to those engineers on degradation, and the Save/Can
     and run the rest; it would be a roadmap item.
 11. The icon's visor covers both eyes, not one as the brief said (SP-031, J-090); left as painted. Send it back to the
     art agent if you want the one-eye glass; new files replace `solarpunk/ui/art/` under the same decision.
-12. Six old `claude/*` session branches remain on GitHub, every one already in `main`; deleting one from a cloud
-    session did nothing. Delete them from GitHub's branches page when convenient.
+12. The 33 session branches on GitHub, all landed or superseded, listed for Ghost on 2026-11-21, who deletes them.
+    `claude/hold-8.1-token` alone holds code `main` lacks: SP-018's reply-token draft, dead since SP-021.
 
 13. From the mid-Phase 12 tune-up commit (J-100), each a decision or a roadmap line, none acted on: (a) a worker's fast
     checks stop at `test_metrics` because the metrics row is the coordinator's, hiding lint and the window tests; the
@@ -147,21 +144,14 @@ email on the asset, a mailer to those engineers on degradation, and the Save/Can
     run in the full gate; the fast loop is 25.6 s.
     (f) For Ghost-Core: the navigation log's entry line came from the stamp cut off at "An entry is `"; completed here.
 
-14. From Tune-up pass 12 (J-104): the Core look (`docs/when/core-update.md`) was not made. Only pass 0 recorded one, and
-    a session's GitHub access covers Solarpunk alone; reading Ghost-Core here was refused. Attach Ghost-Core to a session
-    (read access) for the next pass, or run the look yourself: `git log 9a29945..main` in Core, one SP decision for each
-    new C-nnn.
-15. Open calls from 12.4 to 12.6, each small, each yours. 12.6 (J-101): an irradiance minimum of -5 W/m2; an inverter
-    night-power minimum of about -2% of its rating; a 1% tolerance on `power_under_rated`; `reachable` not counting a gap
-    as a record; which POA station an inverter's sample carries; whether the field loader follows each logger's daylight
-    saving. 12.5 (J-096): refuse deactivating an account already stopped; check `--site` before the password is asked.
-    12.4 (J-097): a closed ticket's move history shown somewhere; `fault dismiss` printing the operator who entered it.
+14. Settled 2026-11-21 (SP-040): no Core look; Solarpunk no longer follows Ghost-Core.
+15. Settled 2026-11-21 (SP-039, J-106): the open calls of 12.4 to 12.6, each as recommended; built by 12.10 and 12.11.
 
 ## Advisories under the gate's threshold (Tune-up pass 12; unchanged since pass 0)
 
 The Python stack's gate runs no audit step (`pip-audit` is not in the lock; `stacks/python/README.md` names it for a
 dependency review, not the gate), so none were reported; the 20 pins are tools alone (pytest, ruff, mutmut and theirs).
-A Core question: whether the stack gate should run an audit each pass.
+Whether the stack gate should run an audit each pass is Solarpunk's own question now (SP-040).
 
 ## Trials: questions settled by a run, not an argument
 
@@ -170,5 +160,5 @@ A Core question: whether the stack gate should run an audit each pass.
 ## What to distrust
 
 - The Python stack's "image" is a venv made per session (`stacks/python/README.md`), not a Docker image; the gate has run under it here.
-- 19 tests under `test/test_stacks.py` skip as "no TypeScript stack in this tree": stamp residue from Core's `stamp.py`, which copies every stack's tests; left in place (a Core-owned file) and named for Core under "For Ghost" (Tune-up pass 1).
+- 19 tests under `test/test_stacks.py` skip as "no TypeScript stack in this tree": stamp residue from Core's `stamp.py`, which copies every stack's tests; Solarpunk's own file since SP-040, to keep or trim.
 - `docs/AGENT.md`'s Fast loop and Gate cells are Ghost-Core's numbers until Tune-up pass 0 re-measures them here.

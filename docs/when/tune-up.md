@@ -45,7 +45,8 @@ structure half (below) moves code with a proof that nothing it does changed.
    or more agents ran into separately is actionable; one agent's alone is noted, not acted on, unless
    it is plainly a fact gone wrong. Each fix is one small diff; the fast loop after every fix.
    `CLAUDE.md` stays under its word ceiling.
-   Pass only, stamped projects: `docs/when/core-update.md` (Core's later decisions, adopted or refused).
+   Pass only, stamped projects: `docs/when/core-update.md` (Core's later decisions, adopted or refused); not in
+   Solarpunk, which no longer follows Ghost-Core (SP-040).
 
 ### The structure half (optional)
 

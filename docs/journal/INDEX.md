@@ -109,3 +109,4 @@ Written from `docs/journal/` by `scripts/journal_index.py`; do not edit by hand.
 | J-103 | SP-038: the gate's own scratch-repository tests move to the full gate | decision | `J-100-199.md` |
 | J-104 | Tune-up pass 12: Phase 12 closed | measurement | `J-100-199.md` |
 | J-105 | The asset window split: its words to `asset_text.py` | decision | `J-100-199.md` |
+| J-106 | Ghost's eleven calls (SP-039) and Ghost-Core left behind (SP-040) | decision | `J-100-199.md` |

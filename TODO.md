@@ -77,6 +77,34 @@ SP-023, so the Tickets window and the attention band's tickets land in the rewor
 Lanes (P-15): 12.1, then 12.2 (versions), then 12.3 and 12.5 in parallel, then 12.4, then 12.6 (a false-alarm baseline on field data), then 12.8 the pass; 12.7 waits (Phase W). Ghost's direction,
 SP-022; 12.1 split in two by SP-028 (accounts, then versions); 12.6 added on Ghost's word, 2026-11-20 (J-098).
 
+## Phase 12: accounts and authentication
+
+Lanes (P-15): 12.9 and 12.11 in parallel, then 12.10 (it changes `on_grid` and `power_under_rated` after 12.9 does), then 12.12 the tune-up commit. Reopened by SP-039 on Ghost's word: the open calls of 12.4 to 12.6 (For Ghost 5 and 15), each taken as recommended (J-106).
+
+### 12.9 No data is not a pass
+
+A remote test that had nothing to check no longer passes: `reachable` fails it as a disconnection, every other test
+returns "no data" (SP-039, calls 0 and 4).
+
+Check: `Result` holds a third state, no data, and the results table stores it (a store made before keeps its rows, read as pass or fail); `reachable` fails when every record is a gap ("no records: N gaps"), so its rule suggests the kind's equipment code; every other remote test returns no data, never a pass, when it has no record that is not a gap; a day of real records with none of the kind a test needs (no daylight record, no night record) is judged as today, not as no data; the asset's status, the mailer, `solarpunk test` and the windows read no data as neither a pass nor a failure, shown grey like "not run"; `docs/CONTRACT.md`'s run example and `docs/ASSET-MAINTENANCE-LIST.md` say so; the demo's OAHE-SEN-001 shows `reachable` FAIL first and its other two tests "no data"; the screenshot read back under xvfb; the fast loop green.
+
+### 12.10 The field thresholds
+
+Three thresholds and the field loader's irradiance station set from 12.6's baseline (SP-039, calls 1, 2, 3, 5 and 6).
+
+Check: the irradiance minimum -5 W/m2 for the inverter and the weather station in `solarpunk/leaf/asset_types.json` and `docs/ASSET-MAINTENANCE-LIST.md`; `on_grid` holds an inverter's power to a minimum of -2% of its rating, 0 with no rating; `power_under_rated` allows 1% over the rating; each threshold a named constant whose comment cites J-101; the field loader gives inverter N the irradiance of the station named for pad N, the site's first station otherwise, tested on `test/fixtures/pvdaq/`; the fixed offset kept and its daylight-saving artefact named in `docs/FIELD-DATA.md`; the baseline re-run over J-101's window and its new alarm counts in the journal, or, where the session cannot fetch the data, a line under HANDOFF's "For Ghost" saying so; the fast loop green.
+
+### 12.11 Four loose ends of accounts and tickets
+
+Deactivating twice, the password asked too soon, a closed ticket's history, and who entered a dismissal (SP-039, calls
+7 to 10).
+
+Check: deactivating an account already deactivated is refused ("already deactivated"); `account add` and `account reset` refuse before asking a password what needs none (no admin signed in, a blank name or email, a role other than admin with no `--site`, an email already held, an unknown email to reset), in one project call as `init` does with `permit_first_admin`; `solarpunk ticket show ID` prints the ticket's line and one line per move, any status, within the account's sites; `fault dismiss` prints " entered by <operator>" when an operator entered it, as a fault's line does; `docs/CONTRACT.md` SOL-16 says so; the fast loop green.
+
+### 12.12 Tune-up commit 12
+
+Check: `docs/when/tune-up.md` steps 1, 2, 5 and 6 (a reopened phase of three items or fewer); the metrics table written; the navigation log's "Last review" set.
+
 ## Phase 13: the tests' record, at the root and per asset
 
 Lanes (P-15): 13.1 and 13.2 first (SP-019: what a test is, and the suites), then 13.3 (a test's own reads) and 13.4 (reactions, which need suites; SP-020), then 13.5 (the surface every window reads), then 13.6 and 13.7 in parallel, then 13.8 the pass; the asset's history went to Phase 10 (SP-024). Moved after tickets and accounts by SP-022, after the fleet window and the ticket windows by SP-023, and after runs per asset (Phase 10) by SP-024. Moved after Phase 8 by SP-018. Ghost's direction, SP-016.

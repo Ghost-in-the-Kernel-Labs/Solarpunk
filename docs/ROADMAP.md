@@ -428,6 +428,15 @@ authenticated rather than chosen from a dropdown. On one machine first; the netw
 - **12.7 Known failures caught, on labelled field data (waiting).** A dataset that labels its failures with their times;
   each one caught, or its miss explained. Waits on such a dataset and on a rule for readings finer than five minutes.
 - **12.8 Tune-up pass 12.**
+- **12.9 No data is not a pass (`solarpunk/remote/`, `solarpunk/project/`, `solarpunk/ui/`; SP-039).** Reopened Phase 12, on
+  Ghost's word: a test with nothing to check is a disconnection, an error, said once by `reachable`; the others return a
+  third result, "no data", grey and never a pass.
+- **12.10 The field thresholds (`solarpunk/leaf/asset_types.json`, `solarpunk/remote/tests/`, `solarpunk/telemetry/`;
+  SP-039).** The irradiance minimum -5 W/m2, an inverter's power minimum -2% of its rating, 1% over the rating allowed,
+  inverter N's irradiance from pad N's station; the baseline re-run.
+- **12.11 Four loose ends of accounts and tickets (`solarpunk/project/`, `solarpunk/cli/`; SP-039).** Deactivating twice
+  refused, the password asked last, `ticket show`, the operator named on a dismissal.
+- **12.12 Tune-up commit 12.** The reopened phase closed (three items, C-024).
 
 ### Phase 13: the tests' record, at the root and per asset
 

@@ -828,3 +828,23 @@ The core decisions above are inherited (Core C-001 to C-040); this project's beg
 - **See also:** SP-025, C-022, C-040
 - **subject:** gates
 
+
+### SP-039: No data is not a pass; the field thresholds and 12.4 to 12.6's loose ends as recommended
+- **Decision:** Eleven calls left open by 12.4 to 12.6 (For Ghost 5 and 15), each taken as recommended, built as a reopened Phase 12 (12.9 to 12.11). (0) A remote test that had nothing to check does not pass: `reachable` fails it, a disconnection, an error whose rule suggests the kind's equipment code; every other test returns a third result, "no data", shown grey and never counted as a pass. A day of real records with none of the kind a test needs (no daylight record, no night record) is not "no data". (4) `reachable` fails when every record is a gap. (1) The irradiance minimum is -5 W/m2 for the inverter and the weather station. (2) An inverter's power minimum is -2% of its rating in `on_grid`, 0 with no rating. (3) `power_under_rated` allows 1% over the rating. (5) The field loader gives inverter N the irradiance of the station named for pad N, the site's first station otherwise. (6) The field loader keeps its fixed offset; the daylight-saving artefact stays named in `docs/FIELD-DATA.md`. (7) Deactivating an account already deactivated is refused. (8) `account add` and `reset` refuse what needs no password before asking for one, in one project call. (9) `solarpunk ticket show ID` prints a ticket's moves, any status. (10) `fault dismiss` prints the operator who entered a dismissal.
+- **Why:** J-101's baseline: sensors read -0.06 to -4.39 W/m2 at night and inverters draw up to 1.3% of rating, about 1,800 false alarms between them, while the failed cell at -296 W/m2 is still caught; a reading 0.09% over the rating is metering, not a fault; six empty channels passed every test because a gap counted as a record. A disconnection said once by `reachable`, rather than by every test, is one alarm for one cause. Ghost, 2026-11-21, in chat: "a no data test result should read as a disconnection. Its a network problem that has a suspicion of a broken solar panel, so its an error", then, on the eleven choice lists (J-106): "all recommended, call 0 is b".
+- **Supersedes:** none. It changes SOL-03's ranges (the asset maintenance list) and the remote tests' `Result`.
+- **Held by:** `TODO.md` 12.9, 12.10 and 12.11; `docs/ASSET-MAINTENANCE-LIST.md`; the tests those items add.
+- **Source:** Ghost, in chat, 2026-11-21.
+- **Status:** in force
+- **See also:** SP-015, SP-035, SP-036
+- **subject:** remote tests
+
+### SP-040: Solarpunk no longer follows Ghost-Core
+- **Decision:** Ghost-Core was Solarpunk's launchpad and is not part of its direction. A tune-up pass makes no Core look (`docs/when/core-update.md` does not apply here); nothing is owed to or waited on from Core; the files stamped from it (the four findings' local fixes, the stamp's skipped tests) are Solarpunk's own, kept or changed by Solarpunk's decisions. The C-nnn decisions already inherited stay in force until a decision here changes one.
+- **Why:** Ghost, 2026-11-21, in chat: "ghost core is no longer relevant to the forward direction of solarpunk, it was our launchpad." Tune-up pass 12 could not make the look (a session reaches Solarpunk alone, For Ghost 14), and four findings sat "open in Core" with no one to close them.
+- **Supersedes:** none.
+- **Held by:** `docs/when/tune-up.md` (step 4's Core line), `docs/HANDOFF.md`.
+- **Source:** Ghost, in chat, 2026-11-21.
+- **Status:** in force
+- **See also:** SP-001, C-024
+- **subject:** lineage
