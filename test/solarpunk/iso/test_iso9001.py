@@ -12,6 +12,7 @@ from solarpunk.leaf.clock import Period
 from solarpunk.leaf.telemetry import Sample, gap
 from solarpunk.kpi import availability
 from solarpunk import project
+from solarpunk.remote import results
 
 ENGINEER = "site@oahe.example"  # SP-015: a fault names the engineer who assigned it; the fixtures' site engineer
 
@@ -75,11 +76,19 @@ class Iso9001(unittest.TestCase):
 
     def test_a_fault_records_its_asset_code_and_instant(self) -> None:
         """Clause: 9001-8.7.2
-        A fault keeps the asset, the catalogue code and its opening instant, and its code leads back to the catalogue row."""
+        A fault keeps the asset, the catalogue code and its opening instant, and its code leads back to the catalogue row;
+        a failing remote test's own fault (SP-046) also keeps the test that raised it."""
         fault = Fault(7, "OAHE-INV-003", "INV-001", at(2026, 6, 1, 10, 10), None)
         self.assertEqual((fault.asset_id, fault.code, fault.opened), ("OAHE-INV-003", "INV-001", at(2026, 6, 1, 10, 10)))
         self.assertIs(fault.catalogue_row().severity, Severity.OUTAGE)
         self.assertIsNone(fault.duration())
+        conn = project.open_store()
+        self.addCleanup(conn.close)
+        project.load_fleet(conn, project.demo_fleet())
+        results.record(conn, "reachable", "OAHE-SEN-001", at(2026, 6, 1, 13), results.Result(False, "no records"))
+        (raised,) = project.faults_from_run(conn, ("OAHE-SEN-001",), at(2026, 6, 1, 13))
+        self.assertEqual((raised.asset_id, raised.code, raised.opened, raised.assigned_by),
+                         ("OAHE-SEN-001", "SEN-001", at(2026, 6, 1, 13), "test:reachable"))
 
     def test_every_kpi_has_a_worked_example(self) -> None:
         """Clause: 9001-9.1.1

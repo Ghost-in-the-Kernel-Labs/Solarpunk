@@ -1,14 +1,16 @@
-"""The asset window's suggested faults (7.5, SP-015): the rows headless, then the window under a display over the demo
-store, where the dead weather station waits with SEN-001: Accept and Dismiss need a suggestion chosen and an engineer
-chosen, Dismiss a reason; accepting opens the fault as that engineer and moves it to Open faults, dismissing empties the
-list and the asset falls back from the suggestion's yellow. Skips "no tkinter" or "no display" as test_ui.py does."""
+"""The asset window's earlier suggestions (7.7, SP-046, superseding 7.5): a store made before 7.7 keeps its suggestions,
+which the window lists read only; there is no Accept, no Dismiss and no reason box, and the demo's dead weather station
+carries SEN-001, raised by its failing reachable and assigned by that test, under Open faults. Skips "no tkinter" or
+"no display" as test_ui.py does."""
 import importlib.util
 import tempfile
 import unittest
 from pathlib import Path
 
 from solarpunk import project
+from solarpunk.leaf.clock import at
 from solarpunk.ui import demo
+from test.solarpunk.old_store import old_suggestion
 
 HAS_TKINTER = importlib.util.find_spec("tkinter") is not None
 if HAS_TKINTER:
@@ -16,7 +18,6 @@ if HAS_TKINTER:
 
     from solarpunk.ui import asset_text, asset_window
 
-SITE_EMAIL = "site@oahe.example"
 UNREACHABLE = "127.0.0.1:9 is unreachable"
 
 
@@ -46,11 +47,17 @@ class DemoStore(unittest.TestCase):
 
 @unittest.skipUnless(HAS_TKINTER, "no tkinter")
 class TheRows(DemoStore):
-    def test_the_weather_stations_suggestion_reads_with_its_meaning_source_and_why(self) -> None:
-        (line,) = asset_text.suggestion_lines(project.asset_detail(self.conn, demo.SENSOR))
-        self.assertEqual((line[0], line[2], line[3], line[4]), ("SEN-001", "reachable", UNREACHABLE, "2026-06-01 13:00 UTC"))
-        self.assertTrue(line[1].startswith("Irradiance sensor out of range"))
-        self.assertEqual(asset_text.suggestion_lines(project.asset_detail(self.conn, demo.FED)), ())
+    def test_an_old_stores_suggestion_reads_with_its_meaning_source_and_why(self) -> None:
+        old_suggestion(self.conn, demo.FED, "INV-002", at(2026, 6, 1, 13), "reachable", UNREACHABLE)
+        (line,) = asset_text.suggestion_lines(project.asset_detail(self.conn, demo.FED))
+        self.assertEqual((line[0], line[2], line[3], line[4]), ("INV-002", "reachable", UNREACHABLE, "2026-06-01 13:00 UTC"))
+        self.assertTrue(line[1].startswith("Inverter over-temperature"))
+        self.assertEqual(asset_text.suggestion_lines(project.asset_detail(self.conn, demo.SENSOR)), ())
+
+    def test_the_weather_stations_fault_is_the_tests_and_is_not_called_cover(self) -> None:
+        detail = project.asset_detail(self.conn, demo.SENSOR)
+        (row,) = asset_text.fault_lines(detail)
+        self.assertEqual((row[0], row[3]), ("SEN-001", "test:reachable"))
 
 
 @unittest.skipUnless(display_available(), "no display")
@@ -61,43 +68,19 @@ class TheWindow(DemoStore):
         self.root = tkinter.Tk()
         self.root.withdraw()
         self.addCleanup(self.root.destroy)
-        self.changes: list[int] = []
-        self.window = asset_window.AssetWindow(self.root, self.conn, demo.SENSOR, lambda: self.changes.append(1))
+        self.window = asset_window.AssetWindow(self.root, self.conn, demo.SENSOR)
         self.root.update()
 
-    def message(self) -> str:
-        """The window's message line."""
-        return str(self.window.message.cget("text"))
-
-    def test_the_list_holds_the_suggestion_by_its_id(self) -> None:
-        (item,) = self.window.suggestion_tree.get_children()
-        self.assertEqual(int(item), project.open_suggestions(self.conn, demo.SENSOR)[0].suggestion_id)
-        self.assertEqual(self.window.suggestion_tree.item(item, "values")[0], "SEN-001")
-
-    def test_accept_needs_a_suggestion_then_an_engineer_then_opens_the_fault(self) -> None:
-        self.window.accept_button.invoke()
-        self.assertEqual(self.message(), asset_text.CHOOSE_SUGGESTION)
-        self.window.suggestion_tree.selection_set(self.window.suggestion_tree.get_children()[0])
-        self.window.accept_button.invoke()
-        self.assertEqual(self.message(), asset_text.CHOOSE_ENGINEER)
-        self.window.assigned_by_box.set(SITE_EMAIL)
-        self.window.accept_button.invoke()
-        self.assertEqual((self.message(), self.changes), ("", [1]))
-        (fault, _), = project.asset_detail(self.conn, demo.SENSOR).open_faults
-        self.assertEqual((fault.code, fault.assigned_by), ("SEN-001", SITE_EMAIL))
+    def test_the_fault_the_test_raised_is_listed_and_nothing_waits_to_be_decided(self) -> None:
         self.assertEqual(self.window.suggestion_tree.get_children(), ())
-        self.assertEqual([self.window.fault_tree.item(i, "values")[0] for i in self.window.fault_tree.get_children()],
-                         ["SEN-001"])
+        rows = [self.window.fault_tree.item(i, "values") for i in self.window.fault_tree.get_children()]
+        self.assertEqual([(r[0], r[3]) for r in rows], [("SEN-001", "test:reachable")])
 
-    def test_dismiss_needs_a_reason_and_records_it(self) -> None:
-        self.window.suggestion_tree.selection_set(self.window.suggestion_tree.get_children()[0])
-        self.window.assigned_by_box.set(SITE_EMAIL)
-        self.window.dismiss_button.invoke()
-        self.assertEqual(self.message(), asset_text.GIVE_REASON)
-        self.window.reason_box.insert(0, "station rebooted, feed back")
-        self.window.dismiss_button.invoke()
-        self.assertEqual((self.message(), self.changes, project.open_suggestions(self.conn, demo.SENSOR)), ("", [1], ()))
-        self.assertEqual(project.faults_listing(self.conn, True)[0].asset_id, demo.DOWN)  # no fault on the station
+    def test_there_is_no_accept_dismiss_or_reason(self) -> None:
+        for gone in ("accept_button", "dismiss_button", "reason_box", "accept", "dismiss"):
+            self.assertFalse(hasattr(self.window, gone), gone)
+        for gone in ("ACCEPT_TEXT", "DISMISS_TEXT", "GIVE_REASON", "CHOOSE_SUGGESTION"):
+            self.assertFalse(hasattr(asset_text, gone), gone)
 
     def test_the_section_is_titled_and_its_columns_named(self) -> None:
         titles = [c.cget("text") for c in self.window.winfo_children() if c.winfo_class() == "TLabel"]

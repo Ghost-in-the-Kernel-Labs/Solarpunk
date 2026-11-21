@@ -81,10 +81,10 @@ class TheExamples(unittest.TestCase):
         self.has("irradiance_in_range and on_grid no data (\"no records\"), never a pass")
 
     def test_the_error_counts(self) -> None:
-        self.assertEqual(errors_of(self.conn, demo.SENSOR), (Counter(), Counter({"SEN-001": 1})))
+        self.assertEqual(errors_of(self.conn, demo.SENSOR), (Counter({"SEN-001": 1}), Counter()))  # SP-046: a fault, no suggestion
         self.assertEqual(errors_of(self.conn, demo.DOWN), (Counter({"INV-001": 1}), Counter()))
         self.assertEqual(errors_of(self.conn, demo.FED), (Counter({"INV-002": 1}), Counter()))
-        self.has("errors, OAHE-SEN-001, the day faults: none; suggestions: SEN-001 1 (open)")
+        self.has("errors, OAHE-SEN-001, the day faults: SEN-001 1 (open since 13:00); suggestions: none")
         self.has("errors, OAHE-INV-002, the day faults: INV-001 1 (open since 11:30); suggestions: none")
         self.has("errors, OAHE-INV-001, the day faults: INV-002 1 (10:05 to 10:45); suggestions: none")
 

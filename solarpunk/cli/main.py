@@ -35,7 +35,7 @@ The window
   solarpunk --help                             this list
 
 The remote tests
-  test list                                    each remote test, its kinds, clauses and the fault it suggests
+  test list                                    each remote test, its kinds, clauses and the fault a failure raises
   test run [--db PATH] [--at INSTANT]          run every remote test over every asset of the store, once
   test add NAME --clause ID [--kind KIND]      scaffold a new remote test; it fails until its run is written
   suite list                                   each suite with its tests and cadence
@@ -48,9 +48,7 @@ The fleet and its faults
   fault assign ID CODE OPENED [--for ENGINEER] open a fault as the engineer signed in, or on their word
   fault close FAULT_ID CLOSED                  close a fault
   fault list [--open]                          the faults, or the open ones alone
-  fault suggestions [--asset ID]               the faults the tests and the devices suggest, waiting
-  fault accept ID [--for ENGINEER]             accept a suggestion into a fault, as fault assign does
-  fault dismiss ID --reason WHY                dismiss a suggestion, saying why [--for ENGINEER]
+  fault suggestions [--asset ID]               the suggestions a store made before 7.7 still holds, read only
 
 The tickets (each takes --at INSTANT, now by default)
   ticket list                                  the open tickets, the nearest target first, a breach marked
@@ -79,7 +77,7 @@ Public field data (docs/FIELD-DATA.md; the data stays outside the repository)
 
 Every command but test run reads solarpunk.db in this folder; for another store,
 python -m solarpunk.cli --db PATH <command>. In a store with accounts, a command that acts
-(load, assign, close, accept, dismiss, generate, ack, comment, resolve, account add, reset,
+(load, assign, close, generate, ack, comment, resolve, account add, reset,
 deactivate, field load) takes --as EMAIL and asks for its password, and acts as that account: an engineer as
 themself, an operator on an engineer's word with --for ENGINEER. test run acts as no person and asks
 nothing. A store with no accounts names who acts with --by (an operator's entry: --recorded-by).
@@ -95,10 +93,10 @@ def instant(text: str) -> datetime:
 def fault_line(fault: project.Fault, cover: bool = False) -> str:
     """One fault as a line, who assigned it last (SP-015): Fault(1, "OAHE-INV-001", "INV-001", 10:10 UTC, None,
     "tech@oahe.example") is "1 OAHE-INV-001 INV-001 2026-06-01T10:10:00+00:00 open by tech@oahe.example"; entered by an
-    operator it adds " entered by <operator>", and with cover " (cover)"."""
+    operator it adds " entered by <operator>", and with cover " (cover)", never on a fault telemetry raised (SP-046)."""
     closed = "open" if fault.closed is None else fault.closed.isoformat()
     entered = "" if fault.recorded_by is None else f" entered by {fault.recorded_by}"
-    covering = " (cover)" if cover else ""
+    covering = " (cover)" if cover and not project.by_telemetry(fault.assigned_by) else ""
     return (f"{fault.fault_id} {fault.asset_id} {fault.code} {fault.opened.isoformat()} {closed}"
             f" by {fault.assigned_by}{entered}{covering}")
 
@@ -139,7 +137,7 @@ def fault_list(conn: sqlite3.Connection, args: argparse.Namespace, out: TextIO) 
 
 
 def suggestion_line(found: project.Suggestion) -> str:
-    """One suggestion as a line (SP-015): "1 OAHE-SEN-001 SEN-001 from reachable at 2026-06-01T13:00:00+00:00:
+    """One suggestion of an earlier store as a line (SP-015): "1 OAHE-SEN-001 SEN-001 from reachable at 2026-06-01T13:00:00+00:00:
     127.0.0.1:9 is unreachable"; a pushed one reads "from device"."""
     return (f"{found.suggestion_id} {found.asset_id} {found.code} from {found.source} at {found.raised_at.isoformat()}:"
             f" {found.reason}")
@@ -149,25 +147,6 @@ def fault_suggestions(conn: sqlite3.Connection, args: argparse.Namespace, out: T
     """fault suggestions [--asset ID]: one suggestion_line per open suggestion, of one asset (a device's first) or all."""
     for found in project.open_suggestions(conn, args.asset):
         out.write(suggestion_line(found) + "\n")
-
-
-def fault_accept(conn: sqlite3.Connection, args: argparse.Namespace, out: TextIO) -> None:
-    """fault accept 1 --as site@oahe.example [--for ENGINEER]: opens the suggested fault as the engineer and prints its
-    fault_line, "1 OAHE-SEN-001 SEN-001 2026-06-01T13:00:00+00:00 open by site@oahe.example" (12.4); with no accounts,
-    --by ENGINEER [--recorded-by OPERATOR]."""
-    fault = project.accept_suggestion_as(conn, args.account, args.suggestion_id, args.by, args.recorded_by,
-                                         args.for_engineer)
-    out.write(fault_line(fault, project.is_cover(conn, fault)) + "\n")
-
-
-def fault_dismiss(conn: sqlite3.Connection, args: argparse.Namespace, out: TextIO) -> None:
-    """fault dismiss 1 --as site@oahe.example --reason "fibre repaired" prints "dismissed 1 by site@oahe.example:
-    fibre repaired" (12.4: an operator adds --for ENGINEER; with no accounts, --by ENGINEER); entered by an operator it
-    reads "by site@oahe.example entered by ops@oahe.example: …", as a fault's line does (SP-039)."""
-    found = project.dismiss_suggestion_as(conn, args.account, args.suggestion_id, args.reason, args.by,
-                                          args.for_engineer)
-    entered = "" if found.recorded_by is None else f" entered by {found.recorded_by}"
-    out.write(f"dismissed {found.suggestion_id} by {found.decided_by}{entered}: {found.dismissal}\n")
 
 
 def telemetry_generate(conn: sqlite3.Connection, args: argparse.Namespace, out: TextIO) -> None:
@@ -295,19 +274,10 @@ def add_fleet_and_faults(commands: argparse._SubParsersAction) -> None:
 
 
 def add_suggestion_commands(fault: argparse._SubParsersAction) -> None:
-    """The suggestion subcommands of fault (7.5): "fault accept 1 --by x@y" parses to fault_accept with suggestion_id 1."""
+    """The suggestion subcommand of fault, read only since 7.7 (SP-046): "fault suggestions --asset X" parses to fault_suggestions."""
     suggested = fault.add_parser("suggestions")
     suggested.add_argument("--asset")
     suggested.set_defaults(handler=fault_suggestions)
-    accept = acting(fault.add_parser("accept"))
-    accept.add_argument("suggestion_id", type=int)
-    attributed(accept)
-    accept.set_defaults(handler=fault_accept)
-    dismiss = acting(fault.add_parser("dismiss"))
-    dismiss.add_argument("suggestion_id", type=int)
-    attributed(dismiss, operator=False)
-    dismiss.add_argument("--reason", required=True)
-    dismiss.set_defaults(handler=fault_dismiss)
 
 
 def add_the_rest(commands: argparse._SubParsersAction) -> None:

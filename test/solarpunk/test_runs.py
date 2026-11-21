@@ -8,6 +8,7 @@ from datetime import date, timedelta
 from pathlib import Path
 
 from solarpunk import project
+from test.solarpunk.old_store import old_suggestion
 from solarpunk.leaf.clock import at
 from solarpunk.leaf.codes import UnknownFaultCode
 from solarpunk.remote import results
@@ -46,7 +47,7 @@ class TheExamples(unittest.TestCase):
                           ("irradiance_in_range", False, True), ("on_grid", False, True)])  # SP-039: no data, not a pass
 
     def test_the_error_counts(self) -> None:
-        self.assertEqual(project.asset_code_counts(self.conn, SEN, DAY), (project.CodeCount("SEN-001", 0, 1),))
+        self.assertEqual(project.asset_code_counts(self.conn, SEN, DAY), (project.CodeCount("SEN-001", 1, 0),))  # SP-046: a fault, not a suggestion
         self.assertEqual(project.asset_code_counts(self.conn, INV2, DAY), (project.CodeCount("INV-001", 1, 0),))
         self.assertEqual(project.asset_code_counts(self.conn, INV1, DAY), (project.CodeCount("INV-002", 1, 0),))
         self.assertEqual(project.code_counts_by_asset(self.conn, "INV-001", DAY), (project.AssetCount(INV2, 1, 0),))
@@ -91,17 +92,18 @@ class TheCountingRules(unittest.TestCase):
         self.addCleanup(self.conn.close)
         project.load_fleet(self.conn, project.demo_fleet())
 
-    def test_a_dismissed_suggestion_counts_and_an_accepted_ones_fault_counts_as_a_fault(self) -> None:
-        dismissed = project.suggest_pushed(self.conn, INV1, "INV-001", at(2026, 6, 1, 9))
-        project.dismiss_suggestion(self.conn, dismissed.suggestion_id, ENGINEER, "a reboot, not a fault")
-        accepted = project.suggest_pushed(self.conn, INV1, "INV-001", at(2026, 6, 1, 10))
-        project.accept_suggestion(self.conn, accepted.suggestion_id, ENGINEER)
+    def test_a_store_made_before_7_7_still_counts_its_decided_suggestions_beside_the_fault(self) -> None:
+        old_suggestion(self.conn, INV1, "INV-001", at(2026, 6, 1, 9), state="dismissed", decided_by=ENGINEER,
+                       dismissal="a reboot, not a fault")
+        fault = project.assign_fault(self.conn, INV1, "INV-001", at(2026, 6, 1, 10), ENGINEER)
+        old_suggestion(self.conn, INV1, "INV-001", at(2026, 6, 1, 10), state="accepted", decided_by=ENGINEER,
+                       fault_id=fault.fault_id)
         self.assertEqual(project.asset_code_counts(self.conn, INV1, DAY), (project.CodeCount("INV-001", 1, 2),))
 
     def test_the_period_is_half_open_and_counts_by_opening(self) -> None:
         project.assign_fault(self.conn, INV1, "INV-001", at(2026, 6, 1), ENGINEER)
         project.assign_fault(self.conn, INV1, "INV-002", at(2026, 6, 2), ENGINEER)
-        project.suggest_pushed(self.conn, INV2, "INV-001", at(2026, 6, 1, 23, 55))
+        old_suggestion(self.conn, INV2, "INV-001", at(2026, 6, 1, 23, 55))
         self.assertEqual(project.asset_code_counts(self.conn, INV1, DAY), (project.CodeCount("INV-001", 1, 0),))
         self.assertEqual(project.code_counts_by_asset(self.conn, "INV-001", DAY),
                          (project.AssetCount(INV1, 1, 0), project.AssetCount(INV2, 0, 1)))

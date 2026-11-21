@@ -17,7 +17,7 @@ refuses a held row with no tagged test and a tagged test with no row.
 | 9001-7.5.2 | Each recorded decision says why it was made and what keeps it true | test/solarpunk/iso/test_iso9001.py::test_every_decision_has_a_why_and_a_holder | held |
 | 9001-7.5.3 | The list of fault codes is one controlled list: each code unique, each with its meaning written beside it | test/solarpunk/iso/test_iso9001.py::test_the_catalogue_is_one_list_with_a_meaning_per_code | held |
 | 9001-8.7.1 | A code the catalogue does not hold is refused, never stored | test/solarpunk/iso/test_iso9001.py::test_an_unknown_code_is_refused | held |
-| 9001-8.7.2 | A fault is kept as a record naming the asset, the catalogue code and when it opened | test/solarpunk/iso/test_iso9001.py::test_a_fault_records_its_asset_code_and_instant | held |
+| 9001-8.7.2 | A fault is kept as a record naming the asset, the catalogue code, when it opened and, for a failing remote test's own fault, the test that raised it | test/solarpunk/iso/test_iso9001.py::test_a_fault_records_its_asset_code_and_instant | held |
 | 9001-9.1.1 | Every number the plant is judged by has a written method and an example a person checks by hand | test/solarpunk/iso/test_iso9001.py::test_every_kpi_has_a_worked_example | held |
 | 9001-9.1.3 | A KPI says how many of its expected samples were missing and how it treated them | test/solarpunk/iso/test_iso9001.py::test_a_kpi_reports_its_gaps_beside_the_number | held |
 | 9001-10.2.1 | A work order closes only with a root-cause code from the closed list | test/solarpunk/iso/test_iso9001.py::test_a_work_order_closes_only_with_a_listed_root_cause | held |

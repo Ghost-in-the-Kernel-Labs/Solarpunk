@@ -9,6 +9,7 @@ from datetime import date
 from pathlib import Path
 
 from solarpunk import project
+from test.solarpunk.old_store import old_suggestion
 from solarpunk.leaf.clock import at
 from solarpunk.leaf.codes import CATALOGUE
 from solarpunk.ui import demo, runs_text
@@ -67,7 +68,7 @@ class TheWindow(unittest.TestCase):
         demo.build_demo_store(Path(folder.name) / demo.DB_NAME, port)
         self.conn = project.open_or_create(Path(folder.name) / demo.DB_NAME)
         self.addCleanup(self.conn.close)
-        project.suggest_pushed(self.conn, demo.FED, "INV-001", at(2026, 6, 1, 14))
+        old_suggestion(self.conn, demo.FED, "INV-001", at(2026, 6, 1, 14))
         self.opened: list[str] = []
         self.window = errors_window.ErrorsWindow(self.root, self.conn, self.opened.append)
         self.root.update()

@@ -20,7 +20,6 @@ from solarpunk.cli.main import main
 from solarpunk.leaf.accounts import ALL_SITES, Account
 from solarpunk.project import NotPermitted, Role, TicketStatus
 from solarpunk.project import access, attribution
-from solarpunk.remote import suggestions as suggestion_table
 from solarpunk.ui import cells
 from test.solarpunk.test_accounts import CREATED, CREW, SITE, passphrase, section
 
@@ -108,17 +107,6 @@ class WithAccounts(unittest.TestCase):
                 self.refused(lambda account=account: project.assign_fault_as(self.conn, account, ASSET, "INV-001",
                                                                              OPENED), words)
 
-    def test_suggestions_are_decided_as_the_account(self) -> None:
-        first = project.suggest_pushed(self.conn, ASSET, "INV-001", OPENED)
-        admin = held(ADMIN, Role.ADMIN, (ALL_SITES,))
-        self.refused(lambda: project.accept_suggestion_as(self.conn, admin, first.suggestion_id),
-                     "admin@oahe.example is an admin and decides no suggestion")
-        fault = project.accept_suggestion_as(self.conn, OPERATOR, first.suggestion_id, for_engineer=SITE)
-        self.assertEqual((fault.assigned_by, fault.recorded_by), (SITE, OPS))
-        second = project.suggest_pushed(self.conn, "OAHE-INV-002", "INV-001", OPENED)
-        dismissed = project.dismiss_suggestion_as(self.conn, ENGINEER, second.suggestion_id, "reset remotely")
-        self.assertEqual((dismissed.state, dismissed.decided_by), ("dismissed", SITE))
-
     def test_a_ticket_is_worked_by_an_engineer_or_an_operator_as_their_own(self) -> None:
         project.assign_fault_as(self.conn, ENGINEER, ASSET, "INV-001", OPENED)
         wo_id = project.open_tickets(self.conn)[0].wo_id
@@ -140,15 +128,6 @@ class WithAccounts(unittest.TestCase):
                          TicketStatus.CLOSED)
 
 
-    def test_an_operators_decision_records_the_operator_on_the_suggestion(self) -> None:
-        first = project.suggest_pushed(self.conn, ASSET, "INV-001", OPENED)
-        project.accept_suggestion_as(self.conn, OPERATOR, first.suggestion_id, for_engineer=SITE)
-        second = project.suggest_pushed(self.conn, "OAHE-INV-002", "INV-001", OPENED)
-        dismissed = project.dismiss_suggestion_as(self.conn, ENGINEER, second.suggestion_id, "reset remotely")
-        accepted = suggestion_table.get(self.conn, first.suggestion_id)
-        self.assertEqual([(found.decided_by, found.recorded_by) for found in (accepted, dismissed)],
-                         [(SITE, OPS), (SITE, None)])
-
     def test_a_ticket_is_read_within_the_accounts_sites_by_any_role(self) -> None:
         project.assign_fault(self.conn, ASSET, "INV-001", OPENED, SITE)
         wo_id = project.open_tickets(self.conn)[0].wo_id
@@ -159,28 +138,12 @@ class WithAccounts(unittest.TestCase):
         with self.assertRaisesRegex(NotPermitted, "crew@bigs.example may not see site OAHE"):
             project.moves_for(self.conn, held(CREW, Role.ENGINEER, ("BIGS",)), wo_id)
 
-    def test_a_dismissal_by_an_operator_prints_who_entered_it(self) -> None:
-        from argparse import Namespace
-        from solarpunk.cli.main import fault_dismiss
-        lines = []
-        for account, engineer in ((OPERATOR, SITE), (ENGINEER, None)):
-            found = project.suggest_pushed(self.conn, ASSET, "INV-001", OPENED)
-            out = io.StringIO()
-            fault_dismiss(self.conn, Namespace(account=account, suggestion_id=found.suggestion_id, reason="why", by=None,
-                                               for_engineer=engineer), out)
-            lines.append(out.getvalue().split(" ", 2)[2])
-        self.assertEqual(lines, [f"by {SITE} entered by {OPS}: why\n", f"by {SITE}: why\n"])
-
-    def test_a_fleet_address_with_no_engineer_account_decides_nothing(self) -> None:
-        found = project.suggest_pushed(self.conn, ASSET, "INV-001", OPENED)
-        inverter, operator = (f"{who} is not an active engineer of site OAHE" for who in (INVERTER, OPS))
-        for act, words in ((lambda: project.accept_suggestion(self.conn, found.suggestion_id, INVERTER), inverter),
-                           (lambda: project.dismiss_suggestion(self.conn, found.suggestion_id, INVERTER, "x"), inverter),
-                           (lambda: project.assign_fault(self.conn, ASSET, "INV-002", OPENED, OPS), operator)):
-            with self.subTest(words=words), self.assertRaises(project.UnknownEngineer) as caught:
-                act()
-            self.assertEqual(str(caught.exception), words)
-        self.assertEqual((project.open_suggestions(self.conn), project.faults_listing(self.conn, False)), ((found,), ()))
+    def test_a_fleet_address_with_no_engineer_account_assigns_nothing(self) -> None:
+        # SP-046 removed the decisions on a suggestion; the engineer check still stands for a fault an engineer assigns.
+        with self.assertRaises(project.UnknownEngineer) as caught:
+            project.assign_fault(self.conn, ASSET, "INV-002", OPENED, OPS)
+        self.assertEqual(str(caught.exception), f"{OPS} is not an active engineer of site OAHE")
+        self.assertEqual(project.faults_listing(self.conn, False), ())
 
 
 class TheFirstExample(WithAccounts):

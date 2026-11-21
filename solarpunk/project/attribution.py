@@ -1,7 +1,7 @@
 """Who an act is recorded as (12.4, SOL-16, SP-015, SP-032, SP-035): in a store with an active account the actor is the
-account signed in, never an address chosen. An engineer assigns a fault and decides a suggestion as themself; an
-operator enters one on a named engineer's word, the record saying both (the engineer as assigned_by or decided_by, the
-operator as recorded_by, a dismissal's too); an admin and a viewer assign and decide nothing. A ticket is worked by an
+account signed in, never an address chosen. An engineer assigns a fault as themself; an operator enters one on a named
+engineer's word, the record saying both (the engineer as assigned_by, the operator as recorded_by); an admin and a
+viewer assign nothing. A fault telemetry raises (SP-046) names its test or device and no account. A ticket is worked by an
 engineer or an operator, as their own act, each move logged with their email. A store with no active account works as before accounts: the addresses given are taken as written, and
 nobody signed in acts. Every refusal names the account and writes nothing."""
 import sqlite3
@@ -14,10 +14,7 @@ from solarpunk.project.access import (SIGN_IN_FIRST, NotPermitted, actor_of, art
                                       permit_ticket_work)
 from solarpunk.project.engineers import site_engineer
 from solarpunk.project.orchestrator import assign_fault
-from solarpunk.project.suggest import accept_suggestion, dismiss_suggestion
 from solarpunk.project.tickets import comment_on_ticket, resolve_ticket
-from solarpunk.remote import suggestions as suggestion_table
-from solarpunk.remote.suggestions import Suggestion
 from solarpunk.workorders.tickets import Comment, Ticket
 
 ACCOUNT_ACTS = "this store has accounts: the signed-in account is used, so --by and --recorded-by are not taken"
@@ -26,7 +23,6 @@ FOR_NEEDS_ACCOUNTS = ("this store has no accounts: name the engineer with --by, 
 NAME_ENGINEER = "this store has no accounts: name the engineer with --by"
 NAME_AUTHOR = "this store has no accounts: name the comment's author with --by"
 ASSIGNS = "assigns no fault"
-DECIDES = "decides no suggestion"
 
 
 def no_account_acts(conn: sqlite3.Connection, by: str | None, missing: str, for_engineer: str | None = None) -> None:
@@ -94,29 +90,6 @@ def assign_fault_as(conn: sqlite3.Connection, account: Account | None, asset_id:
     # Decision: SP-015
     engineer, operator = recorded_as(conn, account, asset_id, by, recorded_by, for_engineer)
     return assign_fault(conn, asset_id, code, opened, engineer, operator)
-
-
-def accept_suggestion_as(conn: sqlite3.Connection, account: Account | None, suggestion_id: int, by: str | None = None,
-                         recorded_by: str | None = None, for_engineer: str | None = None,
-                         read_at: int | None = None) -> Fault:
-    """Accepts a suggestion as accept_suggestion does, the fault recorded as recorded_as says: an admin is refused
-    ("… is an admin and decides no suggestion") and the suggestion stays open."""
-    # Decision: SP-015
-    asset_id = suggestion_table.get(conn, suggestion_id).asset_id
-    engineer, operator = recorded_as(conn, account, asset_id, by, recorded_by, for_engineer, DECIDES)
-    return accept_suggestion(conn, suggestion_id, engineer, operator, None, read_at)
-
-
-def dismiss_suggestion_as(conn: sqlite3.Connection, account: Account | None, suggestion_id: int, reason: str,
-                          by: str | None = None, for_engineer: str | None = None,
-                          read_at: int | None = None) -> Suggestion:
-    """Dismisses a suggestion as dismiss_suggestion does, recorded as recorded_as says: ops@oahe.example, an operator,
-    for site@oahe.example gives decided_by site@oahe.example, recorded_by ops@oahe.example (SP-035); an engineer signed
-    in, decided_by its email and recorded_by empty; with no account, decided_by the engineer given by."""
-    # Decision: SP-015; SP-035 (an operator's dismissal records the operator, as a fault does)
-    asset_id = suggestion_table.get(conn, suggestion_id).asset_id
-    engineer, operator = recorded_as(conn, account, asset_id, by, None, for_engineer, DECIDES)
-    return dismiss_suggestion(conn, suggestion_id, engineer, reason, read_at, operator)
 
 
 def comment_on_ticket_as(conn: sqlite3.Connection, account: Account | None, wo_id: int, moment: datetime, body: str,

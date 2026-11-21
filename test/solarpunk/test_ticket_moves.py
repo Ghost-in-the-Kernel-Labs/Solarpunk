@@ -17,6 +17,7 @@ from test.solarpunk.test_accounts import BIGS, CREW, SITE, section
 from test.solarpunk.test_attribution import ASSET, ENGINEER, INVERTER, OPENED, OPERATOR, OPS, held, stored
 from test.solarpunk.test_ui_suggestions import HAS_TKINTER, display_available
 from test.support import ROOT
+from test.solarpunk.old_store import old_suggestion
 
 if HAS_TKINTER:
     import tkinter
@@ -77,13 +78,6 @@ class TheWorkedExample(unittest.TestCase):
         (line,) = history(conn)
         self.assertEqual(line, "2026-06-01 11:40 UTC · acknowledged · nobody signed in")
         self.says("a ticket acknowledged at 11:40 in a store with no account", line)
-
-    def test_an_operators_dismissal_records_the_operator(self) -> None:
-        found = project.suggest_pushed(self.conn, "OAHE-SEN-001", "SEN-001", OPENED)
-        dismissed = project.dismiss_suggestion_as(self.conn, OPERATOR, found.suggestion_id, "cleaned", for_engineer=SITE)
-        self.assertEqual((dismissed.decided_by, dismissed.recorded_by), (SITE, OPS))
-        self.says("ops@oahe.example dismisses a suggestion --for site@oahe.example",
-                  f"decided by {dismissed.decided_by}, recorded by {dismissed.recorded_by}")
 
     def test_an_engineer_account_is_an_engineer_and_a_fleet_address_alone_is_not(self) -> None:
         crew = held(CREW, Role.ENGINEER, ("BIGS",))
@@ -146,7 +140,7 @@ class AnOlderStore(unittest.TestCase):
         project.load_fleet(conn, project.demo_fleet())
         project.assign_fault(conn, ASSET, "INV-001", OPENED, INVERTER)
         project.move_ticket(conn, 1, TicketStatus.ACKNOWLEDGED, ACKED, actor=INVERTER)
-        project.suggest_pushed(conn, "OAHE-SEN-001", "SEN-001", OPENED)
+        old_suggestion(conn, "OAHE-SEN-001", "SEN-001", OPENED)
         conn.execute("DROP TABLE ticket_moves")  # as a store made before 12.4 holds neither
         conn.execute("ALTER TABLE suggestions DROP COLUMN recorded_by")
         conn.commit()

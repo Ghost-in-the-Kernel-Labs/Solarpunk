@@ -51,20 +51,20 @@ class DemoStore(unittest.TestCase):
 
 
 class TheCounts(DemoStore):
-    def test_each_count_is_its_listings_length_and_the_demo_gives_one_each(self) -> None:
+    def test_each_count_is_its_listings_length_and_the_demo_gives_an_outage_and_an_order(self) -> None:
         found = project.attention(self.conn)
         outages = [f for f in project.faults_listing(self.conn, True) if f.catalogue_row().severity is Severity.OUTAGE]
         self.assertEqual(len(found.outages), len(outages))
         self.assertEqual(len(found.suggestions), len(project.open_suggestions(self.conn)))
         self.assertEqual(len(found.orders), len(project.open_tickets(self.conn)))
         self.assertEqual(cells.band_counts(found), (("outages", "Open outages: 1"),
-                                                    ("suggestions", "Awaiting an engineer: 1"),
+                                                    ("suggestions", "Awaiting an engineer: 0"),  # SP-046: nothing is suggested now
                                                     ("orders", "Open work orders: 1")))
 
     def test_each_count_names_its_assets(self) -> None:
         found = project.attention(self.conn)
         self.assertEqual(cells.band_assets(found, "outages"), {demo.DOWN})
-        self.assertEqual(cells.band_assets(found, "suggestions"), {demo.SENSOR})
+        self.assertEqual(cells.band_assets(found, "suggestions"), set())  # SP-046
         self.assertEqual(cells.band_assets(found, "orders"), {demo.DOWN})
 
     def test_a_derate_is_not_counted_as_an_outage(self) -> None:
@@ -111,7 +111,7 @@ class TheBand(DemoStore):
 
     def test_the_band_stands_above_the_list_with_its_three_counts(self) -> None:
         texts = [self.window.band_buttons[key].cget("text") for key, _ in cells.BAND]
-        self.assertEqual(texts, ["Open outages: 1", "Awaiting an engineer: 1", "Open work orders: 1"])
+        self.assertEqual(texts, ["Open outages: 1", "Awaiting an engineer: 0", "Open work orders: 1"])  # SP-046
         self.assertLess(self.window.band.grid_info()["row"], self.window.canvas.grid_info()["row"])
 
     def test_a_click_filters_and_a_second_clears(self) -> None:
@@ -125,10 +125,13 @@ class TheBand(DemoStore):
 
     def test_another_count_replaces_the_filter_and_a_click_opens_the_kept_row(self) -> None:
         self.window.band_buttons["outages"].invoke()
+        self.assertEqual(self.shown(), [demo.DOWN])
         self.window.band_buttons["suggestions"].invoke()
-        self.assertEqual(self.shown(), [demo.SENSOR])
+        self.assertEqual(self.shown(), [])  # SP-046: nothing awaits an engineer in a store made since 7.7
+        self.window.band_buttons["orders"].invoke()
+        self.assertEqual(self.shown(), [demo.DOWN])
         self.window.on_click(Click(100, 10))
-        self.assertEqual(self.window.opened, [demo.SENSOR])
+        self.assertEqual(self.window.opened, [demo.DOWN])
 
 
 if __name__ == "__main__":

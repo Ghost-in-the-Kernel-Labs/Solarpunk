@@ -59,12 +59,10 @@ class Opening(unittest.TestCase):
         self.assertEqual(priorities, [Priority.P2, Priority.P2, Priority.P3])
         self.assertEqual(project.ticket_of(self.conn, preventive.wo_id).kind, "preventive")
 
-    def test_a_suggestion_opens_no_ticket_and_accepting_it_opens_one(self) -> None:
-        suggestion = project.suggest_pushed(self.conn, INV1, "INV-001", at(2026, 6, 1, 10))
+    def test_a_fault_telemetry_raises_opens_no_ticket_here(self) -> None:
+        # SP-046: a ticket opens from a failed test result in 7.9; until then only an engineer's assignment opens one.
+        project.fault_from_device(self.conn, INV1, "INV-001", at(2026, 6, 1, 10))
         self.assertEqual(project.open_tickets(self.conn), ())
-        project.accept_suggestion(self.conn, suggestion.suggestion_id, ENGINEER)
-        (ticket,) = project.open_tickets(self.conn)
-        self.assertEqual((ticket.asset_id, ticket.priority), (INV1, Priority.P1))
 
     def test_a_refused_assignment_opens_no_ticket(self) -> None:
         with self.assertRaises(project.UnknownEngineer):

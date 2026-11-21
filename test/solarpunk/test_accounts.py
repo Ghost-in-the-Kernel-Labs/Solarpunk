@@ -18,6 +18,7 @@ from solarpunk.project import (
     WeakPassword,
 )
 from test.support import ROOT
+from test.solarpunk.old_store import old_suggestion
 
 SITE, AUDITOR, CREW = "site@oahe.example", "auditor@oahe.example", "crew@bigs.example"
 CREATED = at(2026, 6, 1, 10)
@@ -61,7 +62,7 @@ def example_store() -> sqlite3.Connection:
     project.create_account(conn, AUDITOR, "Auditor", Role.VIEWER, passphrase(), (ALL_SITES,), CREATED)
     project.create_account(conn, CREW, "BIGS crew", Role.ENGINEER, passphrase(), ("BIGS",), CREATED)
     project.assign_fault(conn, "OAHE-INV-002", "INV-001", OPENED, SITE)
-    project.suggest_pushed(conn, "OAHE-SEN-001", "SEN-001", OPENED)
+    old_suggestion(conn, "OAHE-SEN-001", "SEN-001", OPENED)
     return conn
 
 
@@ -246,7 +247,7 @@ class TheSiteScope(Store):
         super().setUp()
         project.load_fleet(self.conn, BIGS)
         project.assign_fault(self.conn, "BIGS-INV-001", "INV-001", OPENED, CREW)  # SP-035: BIGS's engineer account
-        project.suggest_pushed(self.conn, "BIGS-INV-001", "INV-001", OPENED)
+        old_suggestion(self.conn, "BIGS-INV-001", "INV-001", OPENED)
 
     def sites(self, records: tuple) -> set[str]:
         """The sites of the assets a listing names: {"OAHE"} for OAHE's eleven."""

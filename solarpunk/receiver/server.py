@@ -1,9 +1,8 @@
 """The receiver: the one inbound surface, where an asset pushes a line `<asset-id> <fault-code>` over TCP. It refuses
-first (an asset the fleet lacks, SOL-05; a code the catalogue lacks, SOL-04). A good line is not assigned: only an
-engineer assigns a fault (SP-015, superseding SP-008 in part), so a pushed code is stored as a suggestion from the
-device, which keeps the asset yellow until an engineer accepts or dismisses it (7.4). It reaches the fleet and the
-ledger only through project (MOD-06, SP-010). One line per connection; the answer is `ok suggestion <id>` or
-`refused <reason>`; the same code pushed again while its suggestion is open answers with the same id."""
+first (an asset the fleet lacks, SOL-05; a code the catalogue lacks, SOL-04). A good line raises the fault itself,
+assigned by "device" (SP-046, superseding SP-015 and SP-008 in part): nobody accepts or dismisses it. It reaches the
+fleet and the ledger only through project (MOD-06, SP-010). One line per connection; the answer is `ok fault <id>` or
+`refused <reason>`; the same code pushed again while its fault is open answers with the same id."""
 import argparse
 import socketserver
 import sqlite3
@@ -20,7 +19,7 @@ DECODE_ERRORS = "replace"
 LINE_LIMIT = 256
 NEWLINE = "\r\n"
 SEPARATOR = " "
-OK = "ok suggestion {}\n"
+OK = "ok fault {}\n"
 REFUSED = "refused {}\n"
 LISTENING = "receiver: listening on {}:{}\n"
 DEFAULT_HOST = "127.0.0.1"
@@ -42,16 +41,16 @@ def parse_line(line: str) -> tuple[str, str]:
     return fields[0], fields[1]
 
 
-def handle(conn: sqlite3.Connection, line: str, now: datetime) -> project.Suggestion:
-    """Stores the line's code as a suggestion from the device, raised at now, through project (SP-015): handle(conn,
-    "OAHE-INV-001 INV-001", 10:10 UTC) on the OAHE fleet is the open Suggestion(1, "OAHE-INV-001", "INV-001", "device",
-    …); "OAHE-INV-009 INV-001" raises ReceiverError("unknown asset OAHE-INV-009"), "OAHE-INV-001 INV-999"
+def handle(conn: sqlite3.Connection, line: str, now: datetime) -> project.Fault:
+    """Opens the line's code as a fault assigned by the device, at now, through project (SP-046): handle(conn,
+    "OAHE-INV-001 INV-001", 10:10 UTC) on the OAHE fleet is the open Fault(1, "OAHE-INV-001", "INV-001", 10:10 UTC, None,
+    "device"); "OAHE-INV-009 INV-001" raises ReceiverError("unknown asset OAHE-INV-009"), "OAHE-INV-001 INV-999"
     ReceiverError("unknown code INV-999"), each storing nothing."""
-    # Decision: SP-015 (a pushed code is a suggestion for an engineer, never a fault)
+    # Decision: SP-046 (a pushed code is a fault from the device, never a suggestion)
     # Invariant: SOL-04 (no code the catalogue lacks); SOL-05 (no asset the fleet lacks)
     asset_id, code = parse_line(line)
     try:
-        return project.suggest_pushed(conn, asset_id, code, now)
+        return project.fault_from_device(conn, asset_id, code, now)
     except project.UnknownAsset as refused:
         raise ReceiverError(f"unknown asset {asset_id}") from refused
     except UnknownFaultCode as refused:
@@ -60,14 +59,14 @@ def handle(conn: sqlite3.Connection, line: str, now: datetime) -> project.Sugges
 
 def reply(db_path: str | Path, line: str, now: datetime) -> str:
     """The answer to one pushed line, against the store at a path opened for this line alone: reply(db, "OAHE-INV-001
-    INV-001\\n", now) on a fresh OAHE store is "ok suggestion 1\\n"; reply(db, "OAHE-INV-009 INV-001\\n", now) is
+    INV-001\\n", now) on a fresh OAHE store is "ok fault 1\\n"; reply(db, "OAHE-INV-009 INV-001\\n", now) is
     "refused unknown asset OAHE-INV-009\\n"."""
     with closing(project.open_or_create(db_path)) as conn:
         try:
-            suggestion = handle(conn, line, now)
+            fault = handle(conn, line, now)
         except ReceiverError as refused:
             return REFUSED.format(refused)
-    return OK.format(suggestion.suggestion_id)
+    return OK.format(fault.fault_id)
 
 
 class LineHandler(socketserver.StreamRequestHandler):
