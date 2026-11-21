@@ -1,5 +1,6 @@
 """The registry: finds every module under solarpunk/remote/tests/ (SP-010), so a remote test is added by adding a file.
-A module must define KINDS (a tuple of AssetKind), CLAUSES (the register clauses it evidences), SUGGESTS (its rule table,
+A module may define ACQUIRE (13.3, SP-020: what the runner reads for it, a value of acquire.ACQUISITIONS) and must define
+KINDS (a tuple of AssetKind), CLAUSES (the register clauses it evidences), SUGGESTS (its rule table,
 SP-015: for each of its KINDS the catalogue code a failure suggests, or None) and run; one missing any of them, or a
 rule naming a kind it does not run on or a code not of that kind, is refused by name, never skipped. survey() reads a
 folder for the Manage tests window (9.8): there a script that cannot load is listed with its reason, not raised."""
@@ -13,10 +14,12 @@ from dataclasses import dataclass
 from pathlib import Path
 from types import ModuleType
 
+from solarpunk.leaf import asset_types
 from solarpunk.leaf.assets import Asset
 from solarpunk.leaf.codes import AssetKind, codes_for
 from solarpunk.leaf.telemetry import Sample
 from solarpunk.remote import tests
+from solarpunk.remote.acquire import ACQUISITIONS, reads_only
 from solarpunk.remote.results import Result
 
 REQUIRED = ("KINDS", "CLAUSES", "SUGGESTS", "run")
@@ -38,6 +41,7 @@ class RemoteTest:
     clauses: tuple[str, ...]
     run: Callable[[Asset, tuple[Sample, ...]], Result]
     suggests: dict[AssetKind, str | None] = dataclasses.field(default_factory=dict)
+    acquire: object | None = None  # a value of acquire.ACQUISITIONS: what the runner reads for this test (13.3)
 
     def suggestion(self, kind: AssetKind) -> str | None:
         """The code a failure on an asset of this kind suggests: reachable.suggestion(AssetKind.INVERTER) is "INV-001";
@@ -54,7 +58,24 @@ def from_module(name: str, module: ModuleType) -> RemoteTest:
     kinds = module.KINDS
     if not isinstance(kinds, tuple) or not all(isinstance(kind, AssetKind) for kind in kinds):
         raise BadRemoteTest(f"{module.__name__}: KINDS is not a tuple of AssetKind")
-    return RemoteTest(name, kinds, module.CLAUSES, module.run, checked_rules(module.__name__, kinds, module.SUGGESTS))
+    acquire = checked_acquire(module.__name__, kinds, getattr(module, "ACQUIRE", None))
+    run = module.run if acquire is None else reads_only(module.run)
+    return RemoteTest(name, kinds, module.CLAUSES, run, checked_rules(module.__name__, kinds, module.SUGGESTS), acquire)
+
+
+def checked_acquire(module: str, kinds: tuple[AssetKind, ...], declared: object) -> object | None:
+    """A module's ACQUIRE, held to the closed set and to its kinds' fields (SP-020): None (no ACQUIRE) and
+    Burst("power_kw", 1, 60) for INVERTER pass; "burst", or a Burst of a field the kind does not hold, raises BadRemoteTest."""
+    if declared is None:
+        return None
+    if not isinstance(declared, ACQUISITIONS):
+        raise BadRemoteTest(f"{module}: ACQUIRE is none of {', '.join(kind.__name__ for kind in ACQUISITIONS)}")
+    for kind in kinds:
+        try:
+            asset_types.in_range(kind, declared.field, 0)
+        except asset_types.UnknownField as error:
+            raise BadRemoteTest(f"{module}: ACQUIRE reads {declared.field}, which {kind.name} does not hold") from error
+    return declared
 
 
 def checked_rules(module: str, kinds: tuple[AssetKind, ...], rules: object) -> dict[AssetKind, str | None]:

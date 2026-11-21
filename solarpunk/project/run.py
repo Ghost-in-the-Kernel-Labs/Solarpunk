@@ -28,6 +28,7 @@ from solarpunk.remote import scaffold
 from solarpunk.remote import suggestions as suggestion_table
 from solarpunk.remote import registry as test_registry
 from solarpunk.remote import suite_registry
+from solarpunk.remote.acquire import Acquirer, Burst, Clock, ReadFailed, take
 from solarpunk.remote.registry import RemoteTest, Surveyed, discover, tests_for
 from solarpunk.remote.suite_registry import Suite
 from solarpunk.telemetry import samples as sample_table
@@ -61,6 +62,23 @@ class Pinged:
     records: int
     unreachable: tuple[str, ...]
     errors: tuple[str, ...]
+
+
+def feed_acquirer(clock: Clock, shorten_to_s: float | None = None) -> Acquirer:
+    """What the runner takes a test's ACQUIRE reads with (13.3, SP-020): every read one live request to the asset's
+    feed, at the instant the clock gives, so a clock that never waits drives a minute's burst at once (a simulator
+    answers from its day); shorten_to_s cuts a burst's duration. A feed that fails a read gives that read no value."""
+    def reader(asset: Asset, field: str, moment: datetime) -> float | None:
+        """One live read through the feed; a FeedError is the read's failure."""
+        try:
+            return feed.read_now(asset, field, moment)
+        except feed.FeedError as error:
+            raise ReadFailed(str(error)) from error
+
+    def acquire(asset: Asset, burst: Burst) -> tuple:
+        """The burst's reads of the asset, each with its instant."""
+        return take(asset, burst, reader, clock, shorten_to_s)
+    return acquire
 
 
 def window(run_at: datetime) -> Period:
@@ -173,10 +191,12 @@ def suggested_yellow(conn: sqlite3.Connection, statuses: dict[str, AssetStatus])
             for asset_id, status in statuses.items()}
 
 
-def scheduled_run(conn: sqlite3.Connection, run_at: datetime, settings_path: Path | None = None) -> RunReport:
+def scheduled_run(conn: sqlite3.Connection, run_at: datetime, settings_path: Path | None = None,
+                  acquirer: Acquirer | None = None) -> RunReport:
     """The job the clock runs, over every asset in the fleet: for the OAHE run fixture with a simulator for OAHE-INV-001,
     a closed port for OAHE-INV-002 and an open INV-001 on OAHE-INV-003, statuses GREEN, YELLOW and RED for the three
-    and, with a settings path, two mails sent and recorded; bad settings raise BadSettings before any ping."""
+    and, with a settings path, two mails sent and recorded; bad settings raise BadSettings before any ping. A test with
+    ACQUIRE is judged on the reads the acquirer takes through the feed (feed_acquirer); with none given it says no data."""
     # Decision: SP-006
     settings = None if settings_path is None else transport.load_settings(settings_path)
     assets = fleet_assets(conn, None)
@@ -187,7 +207,7 @@ def scheduled_run(conn: sqlite3.Connection, run_at: datetime, settings_path: Pat
     outages = open_outages(conn)
     flags = {asset_id: True for asset_id in outages}
     statuses = fault_statuses(tuple(asset for asset in assets if asset not in fed), outages)
-    statuses.update(stamped(remote.run_suite(conn, fed, samples, flags, run_at), pinged.unreachable))
+    statuses.update(stamped(remote.run_suite(conn, fed, samples, flags, run_at, acquirer), pinged.unreachable))
     # Decision: SP-046 (a failing test of the run raises its fault itself, at the run's instant)
     faults_from_run(conn, tuple(asset.asset_id for asset in fed), run_at)
     outages = open_outages(conn)  # the run's own faults count: an OUTAGE a test raised makes the asset RED at once
@@ -231,7 +251,7 @@ def survey_remote_tests(folder: Path | None = None) -> tuple[Surveyed, ...]:
 
 
 def run_suite_now(conn: sqlite3.Connection, name: str, run_at: datetime,
-                  where: Path | None = None) -> tuple[Suite, int]:
+                  where: Path | None = None, acquirer: Acquirer | None = None) -> tuple[Suite, int]:
     """Runs the suite by name at run_at over every asset with an endpoint and its stored samples of the day up to it, and
     returns it with the results written: run_suite_now(conn, "all", at) writes every test's result; an unknown name
     raises BadRemoteTest."""
@@ -239,4 +259,4 @@ def run_suite_now(conn: sqlite3.Connection, name: str, run_at: datetime,
     fed = fed_only(fleet_assets(conn, None))
     span = window(run_at)
     samples = {asset.asset_id: sample_table.in_period(conn, asset.asset_id, span) for asset in fed}
-    return suite, remote.run_named(conn, suite, fed, samples, run_at)
+    return suite, remote.run_named(conn, suite, fed, samples, run_at, acquirer)

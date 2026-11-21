@@ -64,7 +64,7 @@ class TheExamples(unittest.TestCase):
 
     def test_the_down_inverters_run(self) -> None:
         run = run_of(self.conn, demo.DOWN, RUN_AT)
-        self.assertEqual(len(run), 8)
+        self.assertEqual(len(run), 9)
         self.assertEqual(run[0], ("reachable", False, "127.0.0.1:9 is unreachable"))
         self.assertIn(("reachable", True, "156 records"), run)
         self.assertEqual(sum(passed is True for _, passed, _ in run), 7)

@@ -109,13 +109,14 @@ class TheWindows(unittest.TestCase):
         window = self.runs_of(demo.DOWN)
         self.assertEqual(window.title(), "Runs — OAHE-INV-002 Inverter 2")
         (item,) = window.run_tree.get_children()
-        self.assertEqual(window.run_tree.item(item, "values"), ("2026-06-01 13:00 UTC", "8 results", "1 failed"))
+        self.assertEqual(window.run_tree.item(item, "values"), ("2026-06-01 13:00 UTC", "9 results", "1 failed"))
         self.assertEqual(window.run_tree.item(item, "tags"), (runs_window.FAILED_TAG,))
         results = window.result_tree.get_children()
-        self.assertEqual(len(results), 8)
+        self.assertEqual(len(results), 9)
         self.assertEqual(window.result_tree.item(results[0], "values"), ("reachable", "FAIL", UNREACHABLE))
         self.assertEqual(window.result_tree.item(results[0], "tags"), (runs_window.FAILED_TAG,))
-        self.assertEqual(window.result_tree.item(results[1], "tags"), "")
+        self.assertEqual(window.result_tree.item(results[1], "tags"), ("nodata",))  # power_ripple: the run took no reads
+        self.assertEqual(window.result_tree.item(results[2], "tags"), "")
 
     def test_the_search_narrows_and_says_when_it_finds_none(self) -> None:
         window = self.runs_of(demo.DOWN)
@@ -134,7 +135,8 @@ class TheWindows(unittest.TestCase):
         window = self.runs_of(demo.FED)
         lines = [window.run_tree.item(i, "values")[0] for i in window.run_tree.get_children()]
         self.assertEqual(lines, ["2026-06-01 14:00 UTC", "2026-06-01 13:00 UTC"])
-        self.assertEqual(window.run_tree.item(window.run_tree.get_children()[1], "tags"), "")
+        # The demo's run hands no acquirer, so power_ripple says no data (13.3) and the run is grey, not black.
+        self.assertEqual(window.run_tree.item(window.run_tree.get_children()[1], "tags"), ("nodata",))
 
 
 if __name__ == "__main__":

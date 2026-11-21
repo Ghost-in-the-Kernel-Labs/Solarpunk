@@ -56,8 +56,8 @@ moving only once origin takes it (SP-014), and the full `scripts/gate.sh` runs a
 - Phase 10, runs per asset (a Runs button, each run, runs by test, power, error counts, graphed): done (SP-024).
 - Phase 11, tickets in the windows (the adapter, the local tracker, a Tickets window): done (SP-022, SP-023).
 - Phase 12, accounts and authentication (every act attributed to a signed-in account): in progress, every item done but 12.7, which waits (SP-036; Tune-up pass 12, J-104).
-- Phase 13, the tests and their record (what a test is, suites, a Tests window): in progress, 13.1 and 13.2 done
-  (SP-016, SP-019, SP-020; J-115, J-116).
+- Phase 13, the tests and their record (what a test is, suites, a Tests window): in progress, 13.1 to 13.3 and 13.12 done
+  (SP-016, SP-019, SP-020, SP-047; J-115, J-116, J-126, J-127).
 - Phase 14, the ISO traceability matrix (clause, control, evidence per site and period; evidence that cannot be deleted): not started (SP-044).
 - Phase 15, quality management (inspection checklists and evidence, CAPA effectiveness, document control): not started
   (SP-029; was Phase 18, SP-044).

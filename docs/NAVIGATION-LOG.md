@@ -18,6 +18,12 @@ Last review: 805522c (2026-11-21, Tune-up commit 7)
 An entry is `### <date> · <task> · <who>`, then four bullets: **Task**, **Opened** (files, in order), **Complaints**,
 **Suggestions**.
 
+### 2026-11-21 · 13.3 a test's own reads · mid-grade worker
+- **Task**: `ACQUIRE` and `Burst`, the feed's live read, the runner's hand-off, `power_ripple` (J-127).
+- **Opened**: `docs/REMOTE-TESTS.md`, `solarpunk/remote/tests/power_under_rated.py`, `solarpunk/remote/registry.py`, `solarpunk/feed/client.py`, `solarpunk/feed/simulate.py`, `solarpunk/remote/run.py`, `solarpunk/project/run.py`, `docs/modules.json`.
+- **Complaints**: the live feed had to share the ping's port, so a request and a ping are told apart by a half-close; `RemoteTest` equality needed the read guard cached per `run`.
+- **Suggestions**: none.
+
 ### 2026-11-21 · 13.12 Phase 7's loose ends · mid-grade worker
 - **Task**: reachable's inverter row to SIT-004, `solarpunk test results`, 7.7's unused code removed (J-126).
 - **Opened**: `solarpunk/remote/tests/reachable.py`, `grep -rn "INV-001"` over the tests and DEMO.md, `solarpunk/cli/main.py`, `solarpunk/project/runs.py`, `solarpunk/ui/cells.py`, `solarpunk/project/access.py`.
