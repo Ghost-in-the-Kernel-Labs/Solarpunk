@@ -54,7 +54,7 @@ moving only once origin takes it (SP-014), and the full `scripts/gate.sh` runs a
   SP-030).
 - Phase 10, runs per asset (a Runs button, each run, runs by test, power, error counts, graphed): done (SP-024).
 - Phase 11, tickets in the windows (the adapter, the local tracker, a Tickets window): done (SP-022, SP-023).
-- Phase 12, accounts and authentication (every act attributed to a signed-in account): in progress (SP-022, SP-028).
+- Phase 12, accounts and authentication (every act attributed to a signed-in account): in progress, every item done but 12.7, which waits (SP-036; Tune-up pass 12, J-104).
 - Phase 13, the tests and their record (what a test is, suites, a Tests window): not started (SP-016, SP-019,
   SP-020).
 - Phase 14, the network's security (the feed, the receiver, and the central server's design): not started.

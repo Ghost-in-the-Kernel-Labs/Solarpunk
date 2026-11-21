@@ -10,7 +10,8 @@ act as the signed-in account, the windows passing the version they read, a ticke
 clean and pushed, every landing through the fast gate. 12.6, the false-alarm baseline on public
 field data, landed (J-101: the checks caught a failed reference cell, dead inverters and a logger replaying its last
 value; the false alarms are three thresholds and two data artefacts, each change named for Ghost), after the
-mid-Phase 12 tune-up commit (J-100). Next: **12.8, the pass**. 12.7, known failures, waits in Phase W.
+mid-Phase 12 tune-up commit (J-100). Then SP-038 (J-103) and Tune-up pass 12 (J-104) closed Phase 12. Next: **13.1 and 13.2**, Phase 13's first lane (the
+tests' record). 12.7, known failures, waits in Phase W.
 
 What that session landed, newest first (the journal has each):
 - 12.3 signing in (J-094, SP-032): a store with no active account asks nobody and says "no accounts yet: anyone at this
@@ -38,7 +39,7 @@ Mind, before adding:
 
 ## Where the project stands (2026-11-20, rewritten at the mid-Phase 12 tune-up commit)
 
-Phases 0 to 11 are closed; Phase 12 (accounts and authentication) has 12.8, its pass, open;
+Phases 0 to 12 are closed (12.7 waits in Phase W);
 12.7 waits in Phase W. What is done, item by item, is `docs/DONE.md`; why, the journal (`docs/journal/INDEX.md`). The
 order of what is next is `TODO.md`; Ghost's direction for the product is `docs/GOAL.md`; the phases ahead are 13 (the
 tests' record), 14 (the network's security) and 15 (a central server).
@@ -135,7 +136,17 @@ email on the asset, a mailer to those engineers on degradation, and the Save/Can
     run in the full gate; the fast loop is 25.6 s.
     (f) For Ghost-Core: the navigation log's entry line came from the stamp cut off at "An entry is `"; completed here.
 
-## Advisories under the gate's threshold (Tune-up commit 9; unchanged since pass 0)
+14. From Tune-up pass 12 (J-104): the Core look (`docs/when/core-update.md`) was not made. Only pass 0 recorded one, and
+    a session's GitHub access covers Solarpunk alone; reading Ghost-Core here was refused. Attach Ghost-Core to a session
+    (read access) for the next pass, or run the look yourself: `git log 9a29945..main` in Core, one SP decision for each
+    new C-nnn.
+15. Open calls from 12.4 to 12.6, each small, each yours. 12.6 (J-101): an irradiance minimum of -5 W/m2; an inverter
+    night-power minimum of about -2% of its rating; a 1% tolerance on `power_under_rated`; `reachable` not counting a gap
+    as a record; which POA station an inverter's sample carries; whether the field loader follows each logger's daylight
+    saving. 12.5 (J-096): refuse deactivating an account already stopped; check `--site` before the password is asked.
+    12.4 (J-097): a closed ticket's move history shown somewhere; `fault dismiss` printing the operator who entered it.
+
+## Advisories under the gate's threshold (Tune-up pass 12; unchanged since pass 0)
 
 The Python stack's gate runs no audit step (`pip-audit` is not in the lock; `stacks/python/README.md` names it for a
 dependency review, not the gate), so none were reported; the 20 pins are tools alone (pytest, ruff, mutmut and theirs).
