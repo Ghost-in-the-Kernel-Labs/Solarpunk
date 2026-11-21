@@ -154,6 +154,11 @@ email on the asset, a mailer to those engineers on degradation, and the Save/Can
     which means moving `field_range` where both can reach it (the leaf), a module question. Also: irradiance from -5 to
     0 now enters the performance ratio's reference sum as a small negative term (`solarpunk/kpi/performance.py`);
     clamping it to 0 there would be a change to SOL-08's arithmetic.
+18. From 13.2 (J-115): a named suite's tests also run as `all` on every run, so once a named suite exists its
+   results are stored twice at one instant, and `latest_for` and the windows read both rows; a named suite's results
+   do not change an asset's status. Choose: readers filter to `all`, dedupe by test, or `all` stops being every test
+   once named suites exist. No suite file ships, so nothing doubles today. The cadence spelling is the worker's:
+   `"every run"`, `"hourly"`, `"daily at HH"` (UTC).
 
 ## Advisories under the gate's threshold (Tune-up pass 12; unchanged since pass 0)
 

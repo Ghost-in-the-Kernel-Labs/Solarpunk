@@ -23,3 +23,9 @@ An entry is `### <date> · <task> · <who>`, then four bullets: **Task**, **Open
 - **Opened**: `docs/when/handoff.md`, `docs/when/coordinate.md`, `docs/HANDOFF.md`, `docs/when/grades.md`, `theGhost.md` (C-020, C-022, C-036), `docs/when/hand-out-a-task.md`, `scripts/checks/grades.py`.
 - **Complaints**: "You coordinate other agents rather than build" did not read as an entry condition to a session Ghost started, so the assignment rules were met only when looked for.
 - **Suggestions**: none beyond J-114.
+
+### 2026-11-21 · 13.2 the suites folder · mid-grade worker
+- **Task**: TODO 13.2, SP-019 and SP-020.
+- **Opened**: theGhost.md (SP-019, SP-020), `TODO.md`, `solarpunk/remote/registry.py`, `solarpunk/remote/run.py`, `solarpunk/remote/results.py`, `solarpunk/remote/scaffold.py`, `solarpunk/project/run.py`, `solarpunk/cli/main.py`, `solarpunk/cli/tickets.py`, `docs/modules.json`.
+- **Complaints**: the fast checks stop at `test_metrics` on a worker's tree (the copy-aside works); a writer that imports a folder function by name escapes a test's patch and writes into the real folder.
+- **Suggestions**: a routing row "A suite" in `docs/paths/product.md`; a line on the suites folder in `docs/`.

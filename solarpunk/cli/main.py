@@ -15,6 +15,7 @@ from solarpunk.cli import signin
 from solarpunk.cli.accounts import add_accounts
 from solarpunk.cli.field import add_field
 from solarpunk.cli.signin import acting, attributed
+from solarpunk.cli.suites import add_suites
 from solarpunk.cli.tickets import add_tickets
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -37,6 +38,9 @@ The remote tests
   test list                                    each remote test, its kinds, clauses and the fault it suggests
   test run [--db PATH] [--at INSTANT]          run every remote test over every asset of the store, once
   test add NAME --clause ID [--kind KIND]      scaffold a new remote test; it fails until its run is written
+  suite list                                   each suite with its tests and cadence
+  suite run NAME [--db PATH]                   run one suite now
+  suite add NAME --test T [--kind K] [--cadence C]  write a suite: every run, hourly, or daily at HH
 
 The fleet and its faults
   fleet load --demo                            register the OAHE example fleet
@@ -356,6 +360,7 @@ def build_parser() -> argparse.ArgumentParser:
     add_fleet_and_faults(commands)
     add_the_rest(commands)
     add_tests(commands)
+    add_suites(commands)  # 13.2
     add_tickets(commands)  # 11.2
     add_accounts(commands)  # 12.5
     add_field(commands)  # 12.6

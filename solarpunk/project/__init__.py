@@ -56,7 +56,9 @@ from solarpunk.project.suggest import (
     suggest_pushed,
 )
 from solarpunk.project.run import (RunReport, add_remote_test, remote_tests, remote_tests_folder, scheduled_run,
-                                   survey_remote_tests)
+                                   run_suite_now, survey_remote_tests)
+from solarpunk.project.suites import add_suite, test_suites
+from solarpunk.remote.suite_registry import Suite
 from solarpunk.project.surface import (
     AssetDetail,
     Attention,
@@ -275,6 +277,10 @@ __all__ = [
     "ping_asset",
     "power_report",
     "register_asset",
+    "add_suite",
+    "run_suite_now",
+    "test_suites",
+    "Suite",
     "remote_tests",
     "remote_tests_folder",
     "report_csv",

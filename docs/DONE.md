@@ -340,3 +340,9 @@ Done 2026-11-21 (J-109). Check: the irradiance minimum -5 W/m2 for the inverter 
 ### 12.12 Tune-up commit 12
 
 Done 2026-11-21 (J-111). Check: `docs/when/tune-up.md` steps 1, 2, 5 and 6 (a reopened phase of three items or fewer); the metrics table written; the navigation log's "Last review" set. ✓ Cold gate 1.47 min, refused first at the stack's readability check (`Result.__post_init__`, from 12.9, with no docstring: For Ghost 9's gap a second time), passing after its docstring; warm gate 1.47 min, fast loop 24.13 s; 9 of 9 metrics measured, none regressed; four debriefs given verdicts; the log wiped, Last review 3be733f.
+
+## Phase 13: the tests' record, at the root and per asset
+
+### 13.2 The suites folder
+
+Done 2026-11-21 (J-115). Check: a suite is a module in `solarpunk/remote/suites/` declaring `TESTS` (names the registry holds), `KINDS` and `SITES` (its reach) and `CADENCE` (a value of a closed set: every run, hourly, daily at an hour), and nothing else of its own; the registry finds every suite as it finds every test, refusing one with a test, kind or cadence it lacks, or with a function of its own; the scheduled run runs each suite due at its instant and stores its results as today, a result carrying its suite; `solarpunk suite list` prints each suite with its tests and cadence, `suite run NAME [--db PATH]` runs one now, `suite add NAME --test T [--kind K] [--cadence C]` writes one; the default suite `all` runs every test on every run, so a store with no other suite behaves as before; the fast loop green. ✓
