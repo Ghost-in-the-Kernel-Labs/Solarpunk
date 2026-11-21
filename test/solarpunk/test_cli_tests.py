@@ -75,7 +75,7 @@ class TestCommands(unittest.TestCase):
         """What test run prints for load's fleet at an instant: its first line is "run <run_at>: pinged 1, records 0,
         results N", N the inverter's tests and the failed ping's reachable beside them, from the registry (SP-017)."""
         results = len(remote_registry.tests_for(AssetKind.INVERTER)) + 1
-        return (f"run {run_at}: pinged 1, records 0, results {results}\nOAHE-INV-001  red\nOAHE-SIT-001  green\n"  # SP-046: the failing reachable raised INV-001, an outage
+        return (f"run {run_at}: pinged 1, records 0, results {results}\nOAHE-INV-001  yellow\nOAHE-SIT-001  green\n"  # SP-047: the failing reachable raises the generic SIT-004, INFO, so yellow
                 f"error OAHE-INV-001: {LOCAL}:{port} is unreachable\n")
 
 
@@ -85,7 +85,7 @@ class ListAndAdd(TestCommands):
         self.assertEqual((code, out.splitlines(), err), (0, TEST_LIST, ""))
         self.assertFalse(Path(self.db).exists())
         # The rule table Ghost reviews, held as written (SP-015): an unreachable asset suggests its kind's fault.
-        self.assertIn("reachable  INV,MTR,SEN,TRK  55000-9.1  suggests INV:INV-001,MTR:MTR-001,SEN:SEN-001", out.splitlines())
+        self.assertIn("reachable  INV,MTR,SEN,TRK  55000-9.1  suggests MTR:MTR-001,SEN:SEN-001", out.splitlines())
 
     def test_add_calls_project_and_says_what_it_wrote(self) -> None:
         with mock.patch.object(cli.project, "add_remote_test", return_value=Path("tests/tracker_moving.py")) as add:
@@ -141,13 +141,46 @@ class Run(TestCommands):
         self.run_cli(["test", "run", "--db", self.db, "--at", RUN_AT])
         code, out, err = self.run_cli(["--db", self.db, "fleet", "list"])
         self.assertEqual((code, err), (0, ""))
-        self.assertEqual(out.splitlines(), ["OAHE-INV-001  INV  Inverter 1  red", "OAHE-SIT-001  SIT  Oahe  green"])
+        self.assertEqual(out.splitlines(), ["OAHE-INV-001  INV  Inverter 1  yellow", "OAHE-SIT-001  SIT  Oahe  green"])
 
     def test_a_naive_instant_is_refused(self) -> None:
         self.load()
         code, out, err = self.run_cli(["test", "run", "--db", self.db, "--at", "2026-06-01T13:00:00"])
         self.assertEqual((code, out), (2, ""))
         self.assertTrue(err.startswith("error: "))
+
+
+class Results(TestCommands):
+    def lines(self, failed: bool = False) -> list[str]:
+        """What test results prints for OAHE-INV-001 after one run at RUN_AT (the closed port), one line per result."""
+        code, out, err = self.run_cli(["test", "results", "--db", self.db, "--asset", "OAHE-INV-001"] + (["--failed"] if failed else []))
+        self.assertEqual((code, err), (0, ""))
+        return out.splitlines()
+
+    def test_each_result_is_a_line_with_its_id_and_the_failures_alone_are_filtered(self) -> None:
+        port = self.load()
+        self.run_cli(["test", "run", "--db", self.db, "--at", RUN_AT])
+        every, failed = self.lines(), self.lines(True)
+        self.assertEqual(len(every), len(remote_registry.tests_for(AssetKind.INVERTER)) + 1)
+        self.assertIn(f"1  {RUN_AT}  reachable  fail  {LOCAL}:{port} is unreachable", failed)  # SP-047: the id ticket open takes
+        self.assertEqual({line.split("  ")[3] for line in failed}, {"fail"})
+        self.assertTrue(set(failed) <= set(every))
+        self.assertTrue(all(line.split("  ")[3] in ("pass", "fail", "no data") for line in every))
+
+    def test_the_newest_run_comes_first(self) -> None:
+        self.load()
+        later = "2026-06-01T14:00:00+00:00"
+        for at in (RUN_AT, later):
+            self.run_cli(["test", "run", "--db", self.db, "--at", at])
+        self.assertEqual([line.split("  ")[1] for line in self.lines(True)],
+                         [later, later, RUN_AT, RUN_AT])
+
+    def test_an_unknown_asset_is_refused_and_an_asset_is_needed(self) -> None:
+        self.load()
+        code, out, err = self.run_cli(["test", "results", "--db", self.db, "--asset", "OAHE-INV-009"])
+        self.assertEqual((code, out), (2, ""))
+        self.assertTrue(err.startswith("error: "))
+        self.assertEqual(self.run_cli(["test", "results", "--db", self.db])[0], 2)
 
 
 class Help(TestCommands):

@@ -10,7 +10,6 @@ import unittest
 from solarpunk import project
 from solarpunk.leaf.clock import at
 from solarpunk.project import StaleWrite, TicketStatus
-from solarpunk.ui import cells
 from test.solarpunk.test_attribution import ENGINEER, SITE, stored
 from test.solarpunk.test_ui_suggestions import HAS_TKINTER, display_available
 from test.solarpunk.old_store import old_suggestion
@@ -57,11 +56,6 @@ class Headless(unittest.TestCase):
             project.resolve_ticket(self.conn, 1, "breaker reset", LATEST, 1)
         self.assertIs(project.resolve_ticket(self.conn, 1, "breaker reset", LATEST, 2).status,
                       TicketStatus.CLOSED)
-
-    def test_the_version_a_suggestion_was_drawn_at(self) -> None:
-        detail = project.asset_detail(self.conn, SENSOR)
-        (found,) = detail.suggestions
-        self.assertEqual(cells.drawn(detail, found.suggestion_id), 1)
 
 
 @unittest.skipUnless(display_available(), "no display")

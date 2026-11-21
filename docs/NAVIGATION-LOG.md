@@ -18,6 +18,12 @@ Last review: 805522c (2026-11-21, Tune-up commit 7)
 An entry is `### <date> · <task> · <who>`, then four bullets: **Task**, **Opened** (files, in order), **Complaints**,
 **Suggestions**.
 
+### 2026-11-21 · 13.12 Phase 7's loose ends · mid-grade worker
+- **Task**: reachable's inverter row to SIT-004, `solarpunk test results`, 7.7's unused code removed (J-126).
+- **Opened**: `solarpunk/remote/tests/reachable.py`, `grep -rn "INV-001"` over the tests and DEMO.md, `solarpunk/cli/main.py`, `solarpunk/project/runs.py`, `solarpunk/ui/cells.py`, `solarpunk/project/access.py`.
+- **Complaints**: `solarpunk/cli/main.py` at 399 lines leaves no room for the next command; a brief's metrics restore leaves `test_metrics` red on the branch.
+- **Suggestions**: split the CLI's `test` commands out of `main.py`, as `cli/tickets.py` is.
+
 ### 2026-11-21 · 7.10 tune-up commit 7 (re-measure) · mid-grade worker
 - **Task**: steps 1, 2, 5 and 6 of a reopened Phase 7's closing tune-up commit: cold and warm full gate, the metrics table, the log wiped.
 - **Opened**: `docs/when/tune-up.md`, `docs/when/long-run.md`, `docs/NAVIGATION-LOG.md`, `docs/AGENT.md`, `docs/HANDOFF.md`.

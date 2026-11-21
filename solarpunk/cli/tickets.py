@@ -114,7 +114,8 @@ def add_tickets(commands: argparse._SubParsersAction) -> None:
     show.add_argument("wo_id", type=int)
     show.set_defaults(handler=ticket_show)
     opening = attributed(acting(ticket.add_parser("open")))
-    opening.add_argument("--result", type=int, required=True)
+    opening.add_argument("--result", type=int, required=True,
+                         help="the failed result's id (ids: solarpunk test results --asset ID --failed)")
     opening.set_defaults(handler=ticket_open)
     ack = acting(ticket.add_parser("ack"))
     ack.add_argument("wo_id", type=int)

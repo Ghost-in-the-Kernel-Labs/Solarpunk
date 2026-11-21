@@ -167,7 +167,7 @@ email on the asset, a mailer to those engineers on degradation, and the Save/Can
    (J-117). Reported, never edited (CLAUDE.md, `docs/when/coordinate.md`). Answered by Ghost's word of 2026-11-21
    (J-118): every worker in its own clone, so the coordinator's tree stays clean. Change the hook itself only if you
    want it to.
-20. Settled 2026-11-21 (SP-047, J-125): "go with your recommendations": (a) SIT-004 for a lost link, (c) and (d) as 13.12; (b) as built; (e), (f) and (g) stand open. From Phase 7's reopening (J-121 to J-124):
+20. Settled 2026-11-21 (SP-047, J-125): "go with your recommendations": (a) SIT-004 for a lost link, (c) and (d) as 13.12 (done, J-126); (b) as built; (e), (f) and (g) stand open. From Phase 7's reopening (J-121 to J-124):
     (a) a failed `reachable` on an inverter raises INV-001, an OUTAGE, so it counts against availability with no one
     between; the coordinator recommends the generic SIT-004 (INFO) for an unreachable asset, since a lost link is not a
     dead inverter; (b) no data ends a ticket's streak, so a short comms gap splits one problem into two tickets; the

@@ -58,8 +58,8 @@ derate on OAHE-INV-001 (10:00 to 10:45). The run is stamped 2026-06-01 13:00 UTC
 
 ## What to click, in order
 
-1. **Read the band above the list.** "Open outages: 1", "Awaiting an engineer: 0", "Open work orders: 1": what waits
-   on a person (nothing is suggested now: a failing test raises its fault itself, SP-046). Click one and the list keeps only its assets (the outage: OAHE-INV-002); click it again for all eleven.
+1. **Read the band above the list.** "Open outages: 1", "Open work orders: 1": what waits
+   on a person. Click one and the list keeps only its assets (the outage: OAHE-INV-002); click it again for all eleven.
    The status bar at the foot names the store and its last run ("demo.db, last run 2026-06-01 13:00 UTC").
 2. **Read the headings, then mouse over a row.** Each column is named (Asset, Name, Kind, Status, Cause, Last run, Failing),
    and the Cause says why a row is its colour: OAHE-INV-002 "INV-001 since 2026-06-01 11:30 UTC", OAHE-SEN-001
@@ -91,7 +91,7 @@ derate on OAHE-INV-001 (10:00 to 10:45). The run is stamped 2026-06-01 13:00 UTC
    nothing to check, which is never a pass (SP-039), and so raise nothing. The failure's rule raises SEN-001 (readings
    unreliable) itself, under "Open faults", assigned by `test:reachable`: nobody accepts or dismisses it, and a later
    failure of the same test joins it. Where a test's rule names no code the fault is SIT-004, "Remote test failed: its
-   cause is not yet known". A store made before 7.7 lists its suggestions under "Earlier suggestions", read only.
+   cause is not yet known": so OAHE-INV-002's lost link raises SIT-004 beside its INV-001 (SP-047: a lost link is not a dead inverter). A store made before 7.7 lists its suggestions under "Earlier suggestions", read only.
 6. **The engineer.** In the same window type an address into Engineer and press Save, or Cancel to leave it. If
    someone changed the asset since the window drew it, the save is refused ("changed by someone else since you read
    it; refresh") and **Refresh** beside the message redraws it; the ticket panel has its own.

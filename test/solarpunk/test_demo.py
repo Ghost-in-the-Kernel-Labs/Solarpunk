@@ -76,8 +76,8 @@ class TheDemoStore(DemoFixture):
         conn = self.opened()
         faults = project.faults_listing(conn, False)
         self.assertEqual([f.assigned_by for f in faults], [demo.SITE_ENGINEER, demo.INVERTER_ENGINEER, demo.INVERTER_ENGINEER,
-                          "test:reachable"])  # SP-046: the sensor's SEN-001 was raised by its failing reachable
-        outage, sensor_fault = project.faults_listing(conn, True)  # SP-046: the sensor's SEN-001 is open too
+                          "test:reachable", "test:reachable"])  # SP-046, SP-047: the inverter's SIT-004 and the sensor's SEN-001 were raised by their failing reachable
+        outage, _lost_link, sensor_fault = project.faults_listing(conn, True)  # SP-047: the inverter's SIT-004 and the sensor's SEN-001 are open too
         self.assertEqual((sensor_fault.asset_id, sensor_fault.recorded_by), (demo.SENSOR, None))
         self.assertEqual((outage.asset_id, outage.recorded_by, project.is_cover(conn, outage)),
                          (demo.DOWN, demo.OPERATOR, True))
@@ -122,6 +122,7 @@ class TheDemoStore(DemoFixture):
             ("OAHE-SIT-001", "SIT-002", at(2026, 6, 1, 12), at(2026, 6, 1, 13)),
             (INV1, "INV-002", at(2026, 6, 1, 10, 5), at(2026, 6, 1, 10, 45)),
             (INV2, "INV-001", at(2026, 6, 1, 11, 30), None),
+            (INV2, "SIT-004", RUN_AT, None),  # SP-047: the dead feed's failing reachable, the generic code beside the operator's INV-001
             (demo.SENSOR, "SEN-001", RUN_AT, None),  # SP-046: raised by the run's failing reachable
         ])
         self.assertEqual(conn.execute("SELECT count(*) FROM samples").fetchone()[0], 576)
@@ -161,7 +162,7 @@ class TheDemoStore(DemoFixture):
         again = demo.build_demo_store(self.path, self.port)
         self.assertIs(again.run_report.statuses[INV2], AssetStatus.RED)
         with closing(project.open_or_create(self.path)) as conn:
-            self.assertEqual(len(project.faults_listing(conn, False)), 4)  # SP-046: the sensor's SEN-001 too
+            self.assertEqual(len(project.faults_listing(conn, False)), 5)  # SP-046, SP-047: the sensor's SEN-001 and the inverter's SIT-004 too
             self.assertEqual(conn.execute("SELECT count(*) FROM samples").fetchone()[0], 576)
 
 

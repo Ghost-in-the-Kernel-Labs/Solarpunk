@@ -145,18 +145,6 @@ Each decision is mapped to the functions that hold it, and each function holding
 
 Check: `scripts/decision_map.py` writes `docs/DECISION-MAP.md`, for each decision in `theGhost.md` the functions (file and name) whose `# Decision:` or `# Invariant:` line cites it, "no function" otherwise; the fast loop fails when the file is stale; `scripts/checks/decision_map.py` fails when an in-force decision whose `Held by` names a file under `solarpunk/` or `scripts/` is cited by no function, or a citation names a decision or invariant that does not exist, with a planted break under `test/fixtures/broken/decision_map/`; the missing citations added to the functions that hold each decision; the fast loop green.
 
-### 13.12 Phase 7's loose ends
-
-A lost link raises no outage, a result's id can be found from the command line, and the code 7.7 left unused is gone
-(SP-047).
-
-Check: `reachable`'s rule table names no OUTAGE or DERATE code (an unreachable inverter raises the generic SIT-004; the
-sensor's SEN-001 and the meter's MTR-001, both INFO, stay), with the demo, the goldens and the tests that pinned INV-001
-updated; `solarpunk test results --asset ID [--failed]` prints each stored result with its id, newest first, and
-`ticket open --result ID` names it in its help; `cells.drawn`, `access.permit_suggestion`, `access.open_suggestions_for`
-and the "Awaiting an engineer" band cell are removed with the tests and docs that held them; the fast loop green and the
-window tests green under xvfb.
-
 ### 13.13 Tune-up pass 13
 
 Check: `docs/when/tune-up.md` followed in full; the metrics table written; the navigation log's "Last review" set.
