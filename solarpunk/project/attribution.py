@@ -9,9 +9,12 @@ from datetime import datetime
 
 from solarpunk.accounts import table as account_table
 from solarpunk.leaf.accounts import Account, Role, site_of
+from solarpunk.faults import ledger
+from solarpunk.faults.ledger import FaultCause
 from solarpunk.leaf.faults import Fault
 from solarpunk.project.access import (SIGN_IN_FIRST, NotPermitted, actor_of, article, needs_sign_in, permit_asset,
                                       permit_ticket_work)
+from solarpunk.project.causes import write_fault_cause
 from solarpunk.project.engineers import site_engineer
 from solarpunk.project.orchestrator import assign_fault
 from solarpunk.project.tickets import comment_on_ticket, resolve_ticket
@@ -23,6 +26,7 @@ FOR_NEEDS_ACCOUNTS = ("this store has no accounts: name the engineer with --by, 
 NAME_ENGINEER = "this store has no accounts: name the engineer with --by"
 NAME_AUTHOR = "this store has no accounts: name the comment's author with --by"
 ASSIGNS = "assigns no fault"
+WRITES = "writes no root cause"
 
 
 def no_account_acts(conn: sqlite3.Connection, by: str | None, missing: str, for_engineer: str | None = None) -> None:
@@ -92,6 +96,17 @@ def assign_fault_as(conn: sqlite3.Connection, account: Account | None, asset_id:
     return assign_fault(conn, asset_id, code, opened, engineer, operator)
 
 
+def write_cause_as(conn: sqlite3.Connection, account: Account | None, fault_id: int, cause: str, moment: datetime,
+                   by: str | None = None, recorded_by: str | None = None, for_engineer: str | None = None) -> FaultCause:
+    """Writes a fault's root cause as write_fault_cause does, recorded as recorded_as says, as an assignment is: an
+    engineer signed in writes as themself, an operator on the word of the engineer named by for_engineer; an admin,
+    a viewer or an account outside the fault's site is refused ("admin@oahe.example is an admin and writes no root
+    cause") and nothing is written."""
+    # Decision: SP-046 (an engineer writes the root cause); SP-015 (the record says whose word it is)
+    engineer, operator = recorded_as(conn, account, ledger.get(conn, fault_id).asset_id, by, recorded_by, for_engineer, WRITES)
+    return write_fault_cause(conn, fault_id, cause, engineer, moment, operator)
+
+
 def comment_on_ticket_as(conn: sqlite3.Connection, account: Account | None, wo_id: int, moment: datetime, body: str,
                          by: str | None = None) -> Comment:
     """Adds a comment as comment_on_ticket does, its author the account signed in (an engineer or an operator, as
@@ -107,11 +122,11 @@ def comment_on_ticket_as(conn: sqlite3.Connection, account: Account | None, wo_i
     return comment_on_ticket(conn, wo_id, account.email, moment, body)
 
 
-def resolve_ticket_as(conn: sqlite3.Connection, account: Account | None, wo_id: int, done: str, root_cause: str,
+def resolve_ticket_as(conn: sqlite3.Connection, account: Account | None, wo_id: int, done: str,
                       moment: datetime, read_at: int | None = None) -> Ticket:
-    """Resolves and closes a ticket as resolve_ticket does, once the account may work it (permit_ticket_work): an
+    """Resolves and closes a ticket as resolve_ticket does (its fault's root cause written first), once the account may work it (permit_ticket_work): an
     admin is refused ("… is an admin and works no ticket") and nothing moves; a ticket read at an older version than
     read_at, StaleWrite (12.2) and nothing moves. Each move is logged as the account's (SP-035)."""
     # Decision: SP-035 (a ticket's every move is logged with who made it)
     permit_ticket_work(conn, account, wo_id)
-    return resolve_ticket(conn, wo_id, done, root_cause, moment, read_at, actor_of(account))
+    return resolve_ticket(conn, wo_id, done, moment, read_at, actor_of(account))

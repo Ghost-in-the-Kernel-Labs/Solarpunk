@@ -29,10 +29,10 @@ COLOURS: dict[AssetStatus, str] = {
     AssetStatus.YELLOW: "#e0b000",
     AssetStatus.RED: "#c0392b",
 }
-FAULT_COLUMNS = ("code", "meaning", "opened", "by")
-FAULT_HEADINGS = ("Code", "Meaning", "Opened", "Assigned by")
+FAULT_COLUMNS = ("code", "meaning", "opened", "by", "cause")
+FAULT_HEADINGS = ("Code", "Meaning", "Opened", "Assigned by", "Root cause")
 # The open faults' column widths in px: who assigned it, with an operator and cover, is the longest cell (SP-015).
-FAULT_WIDTHS = (70, 175, 165, 470)
+FAULT_WIDTHS = (70, 175, 165, 470, 260)
 RESULT_COLUMNS = ("test", "result", "reason")
 RESULT_HEADINGS = ("Test", "Result", "Reason")
 # The diagnostics' column widths in px: the reason is the column a reader needs whole (6.4).
@@ -41,6 +41,10 @@ OPEN_FAULTS_TITLE = "Open faults"
 DIAGNOSTICS_TITLE = "Diagnostics"
 ASSIGN_TITLE = "Assign a fault"
 ASSIGN_TEXT = "Assign"
+CAUSE_TITLE = "Root cause of the selected fault"
+CAUSE_WRITE_TEXT = "Write"
+CAUSE_BLANK = "not written"
+CHOOSE_FAULT = "Choose the fault whose root cause you are writing."
 ENGINEER_TITLE = "Engineer"
 SAVE_TEXT = "Save"
 CANCEL_TEXT = "Cancel"
@@ -111,12 +115,19 @@ def assigned_text(fault: project.Fault, cover: bool) -> str:
     return f"{fault.assigned_by}{entered}{covering}"
 
 
-def fault_lines(detail: project.AssetDetail) -> tuple[tuple[str, str, str, str], ...]:
-    """The open-faults rows (code, meaning, opened, assigned by): an open INV-001 opened 2026-06-01 10:10 UTC by
-    tech@oahe.example gives (("INV-001", "Inverter offline: …", "2026-06-01 10:10 UTC", "tech@oahe.example"),); no open
-    fault gives ()."""
-    return tuple((fault.code, meaning, fault.opened.strftime(OPENED_FORMAT), assigned_text(fault, cover))
-                 for (fault, meaning), cover in zip(detail.open_faults, detail.cover))
+def cause_text(written: project.FaultCause | None) -> str:
+    """A fault's root cause as the window shows it (SP-046): the engineer's words as written, "worn fuse holder"; none
+    written yet reads "not written"."""
+    return CAUSE_BLANK if written is None else written.cause
+
+
+def fault_lines(detail: project.AssetDetail) -> tuple[tuple[str, str, str, str, str], ...]:
+    """The open-faults rows (code, meaning, opened, assigned by, root cause): an open INV-001 opened 2026-06-01 10:10 UTC
+    by tech@oahe.example, its cause not written, gives (("INV-001", "Inverter offline: …", "2026-06-01 10:10 UTC",
+    "tech@oahe.example", "not written"),); no open fault gives ()."""
+    causes = detail.causes or (None,) * len(detail.open_faults)
+    return tuple((fault.code, meaning, fault.opened.strftime(OPENED_FORMAT), assigned_text(fault, cover), cause_text(written))
+                 for (fault, meaning), cover, written in zip(detail.open_faults, detail.cover, causes))
 
 
 def result_lines(detail: project.AssetDetail) -> tuple[tuple[str, str, str], ...]:

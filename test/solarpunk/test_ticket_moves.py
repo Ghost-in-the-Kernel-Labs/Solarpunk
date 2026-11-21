@@ -11,7 +11,7 @@ from pathlib import Path
 
 from solarpunk import project
 from solarpunk.leaf.clock import at
-from solarpunk.project import BadMove, Role, StaleWrite, TicketStatus, UnknownEngineer, UnknownRootCause, WorkOrderError
+from solarpunk.project import BadMove, Role, StaleWrite, TicketStatus, NoRootCause, UnknownEngineer, WorkOrderError
 from solarpunk.ui import ticket_text
 from test.solarpunk.test_accounts import BIGS, CREW, SITE, section
 from test.solarpunk.test_attribution import ASSET, ENGINEER, INVERTER, OPENED, OPERATOR, OPS, held, stored
@@ -62,7 +62,8 @@ class TheWorkedExample(unittest.TestCase):
     def test_a_tickets_history_names_who_moved_it(self) -> None:
         project.assign_fault_as(self.conn, ENGINEER, ASSET, "INV-001", OPENED)
         project.move_ticket_as(self.conn, OPERATOR, 1, TicketStatus.ACKNOWLEDGED, ACKED)
-        project.resolve_ticket_as(self.conn, ENGINEER, 1, "fuse swapped", "RC-COMPONENT", CLOSED)
+        project.write_cause_as(self.conn, ENGINEER, 1, "worn fuse holder", ACKED)
+        project.resolve_ticket_as(self.conn, ENGINEER, 1, "fuse swapped", CLOSED)
         lines = history(self.conn)
         self.assertEqual(lines, ["2026-06-01 11:40 UTC · acknowledged · ops@oahe.example",
                                  "2026-06-01 12:00 UTC · in progress · site@oahe.example",
@@ -102,11 +103,14 @@ class TheLog(unittest.TestCase):
         refusals = ((BadMove, lambda: project.move_ticket(self.conn, 1, TicketStatus.RESOLVED, ACKED, "x")),
                     (WorkOrderError, lambda: project.move_ticket(self.conn, 1, TicketStatus.CLOSED, ACKED)),
                     (StaleWrite, lambda: project.move_ticket(self.conn, 1, TicketStatus.ACKNOWLEDGED, ACKED, read_at=9)),
-                    (StaleWrite, lambda: project.close_work_order(self.conn, 1, "RC-COMPONENT", CLOSED, read_at=9)),
-                    (UnknownRootCause, lambda: project.close_work_order(self.conn, 1, "RC-NONE", CLOSED, actor=SITE)))
+                    (NoRootCause, lambda: project.close_work_order(self.conn, 1, CLOSED, actor=SITE)))
         for error, act in refusals:
             with self.subTest(error=error.__name__), self.assertRaises(error):
                 act()
+        self.assertEqual(project.ticket_moves(self.conn, 1), ())
+        project.write_fault_cause(self.conn, 1, "worn fuse holder", SITE, ACKED)  # the cause is there; the read is stale
+        with self.assertRaises(StaleWrite):
+            project.close_work_order(self.conn, 1, CLOSED, read_at=9)
         self.assertEqual(project.ticket_moves(self.conn, 1), ())
 
     def test_a_reopen_adds_a_row_and_changes_none(self) -> None:
@@ -114,7 +118,8 @@ class TheLog(unittest.TestCase):
         project.move_ticket(self.conn, 1, TicketStatus.RESOLVED, ACKED, "fuse", actor=SITE)
         before = project.ticket_moves(self.conn, 1)
         project.move_ticket(self.conn, 1, TicketStatus.IN_PROGRESS, CLOSED, actor=OPS)
-        project.close_work_order(self.conn, 1, "RC-COMPONENT", CLOSED)
+        project.write_fault_cause(self.conn, 1, "worn fuse holder", SITE, ACKED)
+        project.close_work_order(self.conn, 1, CLOSED)
         after = project.ticket_moves(self.conn, 1)
         self.assertEqual(after[:2], before)
         self.assertEqual([(m.status, m.actor) for m in after[2:]],

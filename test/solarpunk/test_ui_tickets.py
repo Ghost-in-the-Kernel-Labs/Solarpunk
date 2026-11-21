@@ -32,11 +32,8 @@ class TheWords(unittest.TestCase):
         self.assertEqual(ticket_text.target_cell(project.TargetState.MET, at(2026, 6, 1, 12, 30)), "met")
         self.assertEqual(ticket_text.target_cell(None, None), "—")
 
-    def test_the_root_causes(self) -> None:
-        choices = ticket_text.cause_choices()
-        self.assertEqual(len(choices), len(project.RootCause))
-        self.assertEqual([ticket_text.cause_of(c) for c in choices], [c.value for c in project.RootCause])
-        self.assertEqual(ticket_text.cause_of(""), "")
+    def test_no_root_cause_list_is_offered(self) -> None:
+        self.assertFalse(hasattr(ticket_text, "cause_choices"))  # SP-046: the cause is free text, written in the asset window
 
 
 @unittest.skipUnless(HAS_TKINTER, "no tkinter")
@@ -91,12 +88,16 @@ class TheWindows(unittest.TestCase):
         self.assertEqual([c.body for c in project.ticket_comments(self.conn, 3)], ["on my way"])
         panel.done_box.insert(0, "AC breaker reset")
         panel.resolve_button.invoke()
-        self.assertEqual(panel.message.cget("text"), "choose a root cause from the list")
-        panel.cause_box.set(ticket_text.cause_choices()[0])
+        self.assertEqual(panel.message.cget("text"),
+                         "fault 3 has no root cause written: an engineer writes it before its ticket closes")
+        window.assigned_by_box.set(demo.INVERTER_ENGINEER)  # the cause is written in the asset window, as free text (SP-046)
+        window.cause_box.insert(0, "the AC breaker tripped on a grid surge")
+        window.cause_button.invoke()
+        self.assertEqual(window.message.cget("text"), "")
         panel.resolve_button.invoke()
         self.assertEqual((panel.message.cget("text"), panel.line.cget("text")), ("", "No open ticket"))
         self.assertIs(project.asset_status(self.conn, demo.DOWN), AssetStatus.YELLOW)  # outage closed; ping still fails
-        self.assertEqual(len(changes), 3)
+        self.assertEqual(len(changes), 4)
 
     def test_the_program_opens_the_tickets_window(self) -> None:
         top = tkinter.Toplevel(self.root)

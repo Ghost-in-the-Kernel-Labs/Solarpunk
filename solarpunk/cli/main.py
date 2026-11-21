@@ -46,6 +46,7 @@ The fleet and its faults
   fleet load --demo                            register the OAHE example fleet
   fleet list [--site SITE]                     each asset with its kind, name and status
   fault assign ID CODE OPENED [--for ENGINEER] open a fault as the engineer signed in, or on their word
+  fault cause FAULT_ID TEXT [--for ENGINEER]   write a fault's root cause, in your own words, as the engineer
   fault close FAULT_ID CLOSED                  close a fault
   fault list [--open]                          the faults, or the open ones alone
   fault suggestions [--asset ID]               the suggestions a store made before 7.7 still holds, read only
@@ -55,7 +56,7 @@ The tickets (each takes --at INSTANT, now by default)
   ticket show ID                               a ticket's line and its moves, any status, within your sites
   ticket ack ID                                acknowledge a ticket
   ticket comment ID WORDS                      add a comment, kept as written, by the account signed in
-  ticket resolve ID --cause CODE --done WORDS  resolve and close a ticket and its fault with a root cause
+  ticket resolve ID --done WORDS               resolve and close a ticket and its fault, once the fault's root cause is written
 
 The accounts (a password is asked twice, never shown)
   account init                                 make the first admin, on this machine, once: asks name, email, password
@@ -121,6 +122,18 @@ def fault_assign(conn: sqlite3.Connection, args: argparse.Namespace, out: TextIO
     fault = project.assign_fault_as(conn, args.account, args.asset_id, args.code, instant(args.opened), args.by,
                                     args.recorded_by, args.for_engineer)
     out.write(fault_line(fault, project.is_cover(conn, fault)) + "\n")
+
+
+def fault_cause(conn: sqlite3.Connection, args: argparse.Namespace, out: TextIO) -> None:
+    """fault cause 1 worn fuse holder [--at INSTANT] --as inverter@oahe.example writes the fault's root cause, free text,
+    as a new row (an earlier writing is superseded, never erased) and prints "1 cause worn fuse holder by
+    inverter@oahe.example at 2026-06-01T10:20:00+00:00" (SP-046); an operator adds --for ENGINEER, a store with no
+    accounts takes --by ENGINEER [--recorded-by OPERATOR], as fault assign does."""
+    moment = datetime.fromisoformat(args.at) if args.at else datetime.now(timezone.utc)
+    found = project.write_cause_as(conn, args.account, args.fault_id, " ".join(args.text), moment, args.by,
+                                   args.recorded_by, args.for_engineer)
+    entered = "" if found.recorded_by is None else f" entered by {found.recorded_by}"
+    out.write(f"{found.fault_id} cause {found.cause} by {found.written_by}{entered} at {found.written_at.isoformat()}\n")
 
 
 def fault_close(conn: sqlite3.Connection, args: argparse.Namespace, out: TextIO) -> None:
@@ -263,6 +276,12 @@ def add_fleet_and_faults(commands: argparse._SubParsersAction) -> None:
     assign.add_argument("opened")
     attributed(assign)
     assign.set_defaults(handler=fault_assign)
+    cause = acting(fault.add_parser("cause"))
+    cause.add_argument("fault_id", type=int)
+    cause.add_argument("text", nargs="+")
+    cause.add_argument("--at")
+    attributed(cause)
+    cause.set_defaults(handler=fault_cause)
     close = acting(fault.add_parser("close"))
     close.add_argument("fault_id", type=int)
     close.add_argument("closed")

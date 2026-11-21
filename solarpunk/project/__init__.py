@@ -2,15 +2,15 @@
 solarpunk/project/orchestrator.py; the only module that imports fleet, faults, telemetry and kpi together (MOD-02).
 The scheduled run is in run.py (2.7, SP-006); the reports' surface in reports.py (6.1, 6.3); the one surface the Phase
 3 windows call is in surface.py (SP-007). The errors a surface catches are re-exported here, so receiver and ui catch
-them exactly without importing a lane (MOD-06); so are the work order and the root-cause list (4.1). Who may act, and
+them exactly without importing a lane (MOD-06); so are the work order (4.1) and the fault's root cause (7.8, causes.py). Who may act, and
 where, is in access.py (12.1, SOL-16): the account calls, the viewer's refusal and the site scope on every reading,
 and the admin's account management (12.5); who an act is recorded as, the signed-in account, in attribution.py (12.4).
 Public field telemetry's load and its false-alarm baseline are in field.py (12.6, SP-036)."""
-from solarpunk.faults.ledger import LedgerError
+from solarpunk.faults.ledger import FaultCause, LedgerError
 from solarpunk.feed.client import FeedError
 from solarpunk.fleet.registry import RegistryError
 from solarpunk.kpi import PowerOutput
-from solarpunk.leaf.root_causes import RootCause, UnknownRootCause
+from solarpunk.project.causes import NoRootCause, write_fault_cause
 from solarpunk.project.orchestrator import (
     Fault,
     SiteKpis,
@@ -146,6 +146,7 @@ from solarpunk.project.attribution import (
     recorded_as,
     resolve_ticket_as,
     word_engineers,
+    write_cause_as,
 )
 
 __all__ = [
@@ -175,9 +176,13 @@ __all__ = [
     "Diagnostic",
     "Drained",
     "Fault",
+    "FaultCause",
     "FeedError",
     "LedgerError",
     "Move",
+    "NoRootCause",
+    "write_fault_cause",
+    "write_cause_as",
     "NotPermitted",
     "OUTPUT_FIELDS",
     "PowerOutput",
@@ -190,7 +195,6 @@ __all__ = [
     "StaleWrite",
     "Surveyed",
     "Role",
-    "RootCause",
     "Run",
     "RunReport",
     "SiteKpis",
@@ -202,7 +206,6 @@ __all__ = [
     "TicketView",
     "UnknownAsset",
     "UnknownEngineer",
-    "UnknownRootCause",
     "WeakPassword",
     "WorkOrder",
     "WorkOrderError",

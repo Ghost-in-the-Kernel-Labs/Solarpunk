@@ -1,15 +1,16 @@
 """The tickets' surface (8.2, SOL-14, SP-022): what the windows and the command line call to read and move a ticket.
-A ticket opens with its fault (orchestrator.assign_fault) and closes with a root cause (orchestrator.close_work_order,
-4.1); in between, these calls acknowledge, start, resolve and reopen it, set who works it, comment on it, and report
+A ticket opens with its fault (orchestrator.assign_fault) and closes once its fault's root cause is written (orchestrator.close_work_order,
+4.1, SP-046); in between, these calls acknowledge, start, resolve and reopen it, set who works it, comment on it, and report
 the tickets past a target. Each move is logged with the actor project hands down, the account's email or None where
 nobody is signed in (SP-035), and its history read back oldest first. Each is one call into the ticket ledger, so the rules are written once (MOD-02)."""
 import sqlite3
 from dataclasses import dataclass
 from datetime import datetime, timezone
 
-from solarpunk.leaf.root_causes import lookup_root_cause
 from solarpunk.leaf.tickets import TARGETS, TargetState, TicketStatus, target_state
+from solarpunk.project.causes import require_cause
 from solarpunk.project.orchestrator import close_work_order
+from solarpunk.workorders import ledger as work_ledger
 from solarpunk.workorders.ledger import WorkOrderError
 from solarpunk.workorders import tickets as ticket_ledger
 from solarpunk.workorders.tickets import Breach, Comment, Move, Ticket
@@ -108,21 +109,21 @@ def tickets_by_target(conn: sqlite3.Connection, moment: datetime) -> tuple[Ticke
     return tuple(sorted(views, key=lambda v: (v.next_due or far, v.ticket.wo_id)))
 
 
-def resolve_ticket(conn: sqlite3.Connection, wo_id: int, done: str, root_cause: str, moment: datetime,
+def resolve_ticket(conn: sqlite3.Connection, wo_id: int, done: str, moment: datetime,
                    read_at: int | None = None, actor: str | None = None) -> Ticket:
-    """Resolves a ticket with what was done and closes it with a root cause from the closed list, in one act at an
-    instant (11.2's Resolve): a ticket not yet in progress moves there first, then to resolved with the words, then to
-    closed with the cause, which closes its fault (4.1). A cause outside the list (UnknownRootCause), no words
-    (WorkOrderError) or a ticket read at an older version (StaleWrite, 12.2) writes nothing: read_at is checked by the
+    """Resolves a ticket with what was done and closes it, in one act at an instant (11.2's Resolve): a ticket not yet
+    in progress moves there first, then to resolved with the words, then to closed, which closes its fault (4.1). A
+    ticket on a fault whose root cause is not written (NoRootCause, SP-046), no words (WorkOrderError) or a ticket read at an older version (StaleWrite, 12.2) writes nothing: read_at is checked by the
     act's first move, and the moves after it carry on from the version that move made. Each move is logged as actor's
     (SP-035)."""
     # Decision: SP-028 (a write from a screen names the version it read)
-    lookup_root_cause(root_cause)
+    # Decision: SP-046 (a ticket on a fault closes only once the fault's root cause is written)
+    require_cause(conn, work_ledger.get(conn, wo_id))
     if not done.strip():
         raise WorkOrderError(f"work order {wo_id} resolves with evidence of what was done")
     if ticket_ledger.ticket(conn, wo_id).status in (TicketStatus.OPEN, TicketStatus.ACKNOWLEDGED):
         ticket_ledger.move(conn, wo_id, TicketStatus.IN_PROGRESS, moment, None, read_at, actor)
         read_at = None
     ticket_ledger.move(conn, wo_id, TicketStatus.RESOLVED, moment, done, read_at, actor)
-    close_work_order(conn, wo_id, root_cause, moment, actor=actor)
+    close_work_order(conn, wo_id, moment, actor=actor)
     return ticket_ledger.ticket(conn, wo_id)

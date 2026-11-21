@@ -177,8 +177,8 @@ never kept. Worked example: over
 
 A ticket (SP-022) is the work an engineer-assigned fault needs; it opens when the fault is assigned, never from a
 suggestion. Its statuses are `open`, `acknowledged` (someone has taken it), `in progress` (work has started: the
-response), `resolved` (the work is done, awaiting closure) and `closed` (closed with a root cause from the closed list,
-which closes the fault, 4.1). Only these moves are allowed; any other is refused:
+response), `resolved` (the work is done, awaiting closure) and `closed` (closed once its fault's root cause is written,
+which closes the fault, 4.1, SP-046). Only these moves are allowed; any other is refused:
 
 | From | To |
 | --- | --- |
@@ -223,8 +223,10 @@ In the ledger (8.2), every work order is a ticket. A corrective one opens with i
 it, its priority from the fault's code; a preventive one, having no fault, is P3 (Claude's proposal, Ghost's to set). A
 move out of `open` stamps the acknowledged instant, the first move into `in progress` the responded instant; `resolved`
 stamps the resolved instant and needs closeout evidence (words saying what was done), and a move back to `in progress`
-clears both. No instant may come before the ticket's opening. Closing takes a root cause from the closed list (4.1) and
-closes the fault if it is still open. Closing a ticket that has not reached `resolved` (the one-step close-out of 4.1)
+clears both. No instant may come before the ticket's opening. A fault's root cause is blank until an engineer writes it as free text (no list, no dropdown), each writing a new
+row with who wrote it (and the operator, when entered on the engineer's word) and when, the latest superseding the
+earlier without erasing it (7.8, SP-046). A ticket on a fault closes only once the fault's root cause is written, and
+closes the fault if it is still open (4.1); a ticket with no fault (preventive) closes without one. Closing a ticket that has not reached `resolved` (the one-step close-out of 4.1)
 is the allowed moves taken at the one instant: `open` to `in progress` to `resolved` to `closed`, an instant already
 stamped kept. So a ticket closed at 13:00 that nobody acknowledged has its acknowledgement and response at 13:00, and
 its targets read what that says. Comments carry their author and instant and are never edited or deleted. Every move,
@@ -233,7 +235,7 @@ made it, or none where nobody is signed in (SOL-16, SP-035): a row is only ever 
 none, the history reads oldest first, and a store made before it gains the empty history on opening, nothing
 back-filled. A ticket is
 past a target when, at the instant asked, a target is `late` or `overdue`. Closing the fault alone (`solarpunk fault
-close`) ends the downtime and leaves the ticket open, to be closed with its root cause.
+close`) ends the downtime and leaves the ticket open, to be closed once its root cause is written.
 
 When a remote tracker is joined behind an adapter (11.1), each field has one owner, and the other side's copy is for
 display only:

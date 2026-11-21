@@ -18,7 +18,7 @@ from test.solarpunk.old_store import old_suggestion
 if HAS_TKINTER:
     import tkinter
 
-    from solarpunk.ui import asset_window, ticket_text
+    from solarpunk.ui import asset_window
 
 INVERTER, SENSOR = "OAHE-INV-002", "OAHE-SEN-001"
 OPENED, LATER, LATEST = at(2026, 6, 1, 11, 30), at(2026, 6, 1, 11, 40), at(2026, 6, 1, 11, 50)
@@ -41,19 +41,21 @@ class Headless(unittest.TestCase):
         self.addCleanup(self.conn.close)
 
     def test_resolve_checks_the_version_read_and_writes_nothing_when_stale(self) -> None:
+        project.write_cause_as(self.conn, ENGINEER, 1, "the breaker tripped on a surge", LATEST)
         project.set_ticket_assignee(self.conn, 1, "crew B", LATER)
         with self.assertRaisesRegex(StaleWrite, f"^ticket 1 {STALE}$"):
-            project.resolve_ticket_as(self.conn, ENGINEER, 1, "breaker reset", "RC-COMPONENT", LATEST, 1)
+            project.resolve_ticket_as(self.conn, ENGINEER, 1, "breaker reset", LATEST, 1)
         found = project.ticket_of(self.conn, 1)
         self.assertEqual((found.status, found.version), (TicketStatus.OPEN, 2))
-        closed = project.resolve_ticket_as(self.conn, ENGINEER, 1, "breaker reset", "RC-COMPONENT", LATEST, 2)
+        closed = project.resolve_ticket_as(self.conn, ENGINEER, 1, "breaker reset", LATEST, 2)
         self.assertIs(closed.status, TicketStatus.CLOSED)
 
     def test_resolve_from_in_progress_checks_its_one_move(self) -> None:
+        project.write_cause_as(self.conn, ENGINEER, 1, "the breaker tripped on a surge", LATEST)
         project.move_ticket(self.conn, 1, TicketStatus.IN_PROGRESS, LATER)
         with self.assertRaisesRegex(StaleWrite, f"^ticket 1 {STALE}$"):
-            project.resolve_ticket(self.conn, 1, "breaker reset", "RC-COMPONENT", LATEST, 1)
-        self.assertIs(project.resolve_ticket(self.conn, 1, "breaker reset", "RC-COMPONENT", LATEST, 2).status,
+            project.resolve_ticket(self.conn, 1, "breaker reset", LATEST, 1)
+        self.assertIs(project.resolve_ticket(self.conn, 1, "breaker reset", LATEST, 2).status,
                       TicketStatus.CLOSED)
 
     def test_the_version_a_suggestion_was_drawn_at(self) -> None:
@@ -110,7 +112,7 @@ class StaleScreens(unittest.TestCase):
         self.assertEqual((panel.message.cget("text"), project.ticket_of(self.conn, 1).version), ("", 3))
         panel.now = lambda: LATEST
         panel.done_box.insert(0, "breaker reset")
-        panel.cause_box.set(ticket_text.cause_choices()[0])
+        project.write_cause_as(self.conn, ENGINEER, 1, "the breaker tripped on a surge", LATEST)
         project.move_ticket(self.conn, 1, TicketStatus.IN_PROGRESS, LATER)  # version 4, under the panel
         panel.resolve_button.invoke()
         self.assertEqual(panel.message.cget("text"), f"ticket 1 {STALE}")

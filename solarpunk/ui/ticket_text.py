@@ -1,10 +1,9 @@
 """The tickets' words in the windows (11.2, SOL-14), with no tkinter so the fast loop tests them: a ticket's line in the
 Tickets window (its targets' states and due instants, a breach marked), the asset window's ticket line and its history
-(one line per move: when, status, who, SP-035), and the root cause choices Resolve offers. tickets_window.py and
+(one line per move: when, status, who, SP-035). tickets_window.py and
 ticket_panel.py lay them out over project.tickets_by_target."""
 from datetime import datetime
 
-from solarpunk.leaf.root_causes import MEANINGS, RootCause
 from solarpunk.leaf.tickets import TargetState
 from solarpunk.project import Move, TicketView
 from solarpunk.ui.cells import instant_text
@@ -62,13 +61,3 @@ def history_text(moves: tuple[Move, ...]) -> str:
     """The ticket's history in the panel, oldest first, one line per move; a ticket never moved says "No move yet"."""
     # Decision: SP-035 (a ticket's every move is on record with who made it)
     return "\n".join(move_line(found) for found in moves) or NO_MOVES
-
-
-def cause_choices() -> tuple[str, ...]:
-    """Resolve's root cause choices, the closed list with each meaning: "RC-COMPONENT A component failed …"."""
-    return tuple(f"{cause.value} {MEANINGS[cause]}" for cause in RootCause)
-
-
-def cause_of(choice: str) -> str:
-    """The code a choice names: cause_of("RC-GRID The grid …") is "RC-GRID"; an empty choice is ""."""
-    return choice.split(" ", 1)[0] if choice else ""

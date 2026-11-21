@@ -2,7 +2,7 @@
 each move stamping its instant (acknowledged, responded, resolved) and logged with who made it, a history only ever
 added to (SP-035); resolving needs closeout evidence; the working assignee is free text a person sets; comments carry
 their author and instant and are never edited or deleted; a query reports the tickets past a target. Closing is the
-ledger's `close`, with a root cause (4.1). It imports the leaf and its own module's ledger alone (MOD-05): project sets
+ledger's `close` (4.1; the fault's root cause is written first, SP-046). It imports the leaf and its own module's ledger alone (MOD-05): project sets
 a ticket's priority from its fault and opens it with the fault, and hands each move its actor as a plain email."""
 import sqlite3
 from dataclasses import dataclass
@@ -126,11 +126,11 @@ def _checked(conn: sqlite3.Connection, wo_id: int, target: TicketStatus, moment:
              read_at: int | None) -> Ticket:
     """The ticket, once it was read at its current version (12.2), the move to target is one SOL-14 allows by this call
     and the instant is not before its last stamp: a move to closed raises WorkOrderError (closing takes a root cause:
-    the ledger's close)."""
+    the ledger's close, once the fault's root cause is written)."""
     check_read(conn, wo_id, read_at)
     found = ticket(conn, wo_id)
     if target is TicketStatus.CLOSED:
-        raise WorkOrderError(f"work order {wo_id} closes with a root cause, by close")
+        raise WorkOrderError(f"work order {wo_id} closes by close, once its fault's root cause is written")
     # Invariant: SOL-14 (only the six moves)
     check_move(found.status, target)
     if utc(moment) < last_stamp(conn, wo_id):
