@@ -2,38 +2,48 @@
 
 Read `CLAUDE.md` first, then this. `TODO.md` is the chain in order; `docs/DONE.md` is what is finished.
 
-## Start here (2026-11-20, the session that ended at bf76dc6)
+## Start here (2026-11-21, the session that ended at Tune-up pass 12)
 
-The last session closed Phase 9 again and landed 12.2 and 12.3; this one landed SP-033 and SP-034 (J-095), 12.5,
-account administration (J-096: `solarpunk account init|add|reset|deactivate|list`), and 12.4, attribution (J-097: every
-act as the signed-in account, the windows passing the version they read, a ticket's moves logged by SP-035). `main` is
-clean and pushed, every landing through the fast gate. 12.6, the false-alarm baseline on public
-field data, landed (J-101: the checks caught a failed reference cell, dead inverters and a logger replaying its last
-value; the false alarms are three thresholds and two data artefacts, each change named for Ghost), after the
-mid-Phase 12 tune-up commit (J-100). Then SP-038 (J-103) and Tune-up pass 12 (J-104) closed Phase 12. Next: **13.1 and 13.2**, Phase 13's first lane (the
-tests' record). 12.7, known failures, waits in Phase W.
+Phase 12 is closed but for 12.7, which waits in Phase W. `main` is clean and pushed, every landing through the fast
+gate, the pass through the full gate (cold 1.47 min, warm 1.50 min, fast loop 24.35 s). **Next: 13.1 and 13.2**,
+Phase 13's first lane (what a test looks like, and the suites folder; SP-016, SP-019), in parallel. Phase 13 defines
+what a test is, so Ghost may want to read its items before they are handed out.
 
-What that session landed, newest first (the journal has each):
-- 12.3 signing in (J-094, SP-032): a store with no active account asks nobody and says "no accounts yet: anyone at this
-  machine acts" (the demo holds none); with one, the windows open on a sign-in and an acting command takes `--as
-  EMAIL` and asks with `getpass`; failed sign-ins kept by account and instant, never a password. Acts are still
-  attributed as before: that is 12.4.
-- 12.2 versions (J-093): a version on every asset, fault, suggestion and ticket, a stale write refused with SOL-16's
-  words. Enforced in project and the modules; **no window passes a version yet**, so no screen is protected until 12.4.
-- 9.9 Tune-up commit 9 (J-092): cold 1.32 min, warm 1.30 min, fast loop 24.3 s, 9 of 9 metrics, none regressed.
-- 9.8 Manage tests (J-091): the button between Add asset and Reports; a broken script listed in red, not raised.
-- SP-031 (J-090): the icon is Ghost's painted art, `solarpunk/ui/art/`, the repository's first binary files (CC0).
-- 9.7 (J-089): the icon on every window; `solarpunk --shortcut` puts a desktop shortcut wearing it.
+What this session landed, newest first (the journal has each):
+- Tune-up pass 12 (J-104): Phase 12 closed; the Core look not made (For Ghost 14); the open calls of 12.4 to 12.6
+  gathered as For Ghost 15.
+- SP-038 (J-103): the gate's own scratch-repository tests run in the full gate; the fast loop from about 31 s to 24 s.
+- SP-037, Phase 21 Azure (J-102): a deployment guide, Key Vault, Blob Storage and Azure Monitor, by managed identity
+  and `urllib`; what needs a dependency stays with Phases 14, 15 and 20.
+- 12.6 the false-alarm baseline (J-101, SP-036): `solarpunk field load|baseline` over 89 days of NREL PVDAQ telemetry
+  (CC BY 4.0), the data outside the repository; the checks caught a failed reference cell, dead inverters and a logger
+  replaying its last value; nearly every false alarm is one of three thresholds (For Ghost 15). No reachable public
+  dataset labels its failures (J-099), so 12.7, known failures caught, waits.
+- The mid-Phase 12 tune-up commit (J-100): five debriefs given verdicts; the brief template gains the branch worker's
+  three facts (the metrics write-and-restore, the window tests under `xvfb-run`, no worktrees); For Ghost 13.
+- 12.4 attribution (J-097, SP-035): every act as the signed-in account, an operator on a named engineer's word, the
+  windows passing the version they read with a Refresh, every ticket move logged with who made it.
+- 12.5 account administration (J-096): `solarpunk account init|add|reset|deactivate|list`.
+- SP-033 and SP-034 (J-095): the supply-chain rules on the act moved to `docs/SUPPLY-CHAIN.md`; `CLAUDE.md`'s ceiling
+  1,500 words.
+
+How this session worked: Ghost said what to build; the coordinator wrote a one-page brief per item
+(`docs/when/hand-out-a-task.md`) and a strong-grade agent built it on an `agent/` branch in the main checkout; the
+coordinator read the diff, ran the window tests under `xvfb-run -a /usr/bin/python3.12` (the default python3 has no
+tkinter), wrote the records and landed it. An item too wide for one agent went to two or three in sequence, each on the
+last one's branch (12.4).
 
 Mind, before adding:
-- One metric sits at its edge: the largest file 398 of 400 lines (`test/solarpunk/test_project_run.py`: a new test of
-  the scheduled run goes in a new file). `solarpunk/project/orchestrator.py` is at 391. Mandatory context is off its
-  edge: 1,123 of 1,500 words, by SP-033 (five supply-chain rules on the act moved to `docs/SUPPLY-CHAIN.md`, J-095)
-  and SP-034 (the ceiling raised on Ghost's word).
-- The fast loop is over its 30 s here: `main` before 12.5 ran 31 s in this session's container (26 s in the morning's),
-  33 to 36 s with 12.5's 11 tests (about 1.5 s of scrypt). Measure it at 12.8; if it holds over, trim or move slow tests.
-- The navigation log holds debriefs for 9.7, 9.8 (wiped at 9.9), 12.2 and 12.3 for the next pass; 12.1's agent's two
-  suggestions are carried in J-092.
+- The largest files sit at their edge: `solarpunk/ui/asset_window.py` 399 of 400 lines (its next change splits it),
+  `test/solarpunk/test_project_run.py` 398 (a new test of the scheduled run goes in a new file);
+  `solarpunk/project/orchestrator.py` 381. Mandatory context is 1,123 of 1,500 words.
+- The stack's fast checks do not run the readability check (For Ghost 9), so a function can pass 39 lines at a landing
+  and be caught only by a pass's full gate, as `AssetWindow.__init__` was (J-100).
+- The field data's local copy (/home/user/field-data/) lived in this session's container and is gone with it;
+  `docs/FIELD-DATA.md` says how to fetch it again.
+- Session branches left on GitHub, every one landed or parked and superseded: `claude/sp-033-supply-chain-split`,
+  `agent/12.4a-attribution`, `agent/12.4b-versions`, `agent/12.4c-ticket-record`, `agent/12.5-account-admin`,
+  `agent/12.6-baseline`, `claude/12.6-landing`; delete them from GitHub's branches page when convenient (item 12).
 - Not run from here: the shortcut and Open folder on Windows or a Mac (no such machine in a cloud session); the
   window's title bar (the test display has no window manager).
 
