@@ -18,6 +18,12 @@ Last review: 805522c (2026-11-21, Tune-up commit 7)
 An entry is `### <date> · <task> · <who>`, then four bullets: **Task**, **Opened** (files, in order), **Complaints**,
 **Suggestions**.
 
+### 2026-11-21 · 13.6 last run in the asset window · mid-grade worker
+- **Task**: last-run and duration columns in the asset window's diagnostics (J-134).
+- **Opened**: `solarpunk/project/surface.py`, `solarpunk/ui/asset_text.py`, `solarpunk/ui/asset_window.py`, `test/solarpunk/test_ui_asset.py`, `DEMO.md`.
+- **Complaints**: the scratchpad is shared by parallel workers: one's `shot.py` replaced the other's.
+- **Suggestions**: a brief for parallel workers names a scratch file per worker.
+
 ### 2026-11-21 · 13.5 the record's surface · mid-grade worker
 - **Task**: `duration_ms` on each result, `tests_overview` and `test_log` (J-131).
 - **Opened**: `solarpunk/remote/results.py`, `solarpunk/remote/run.py`, `solarpunk/project/runs.py` (the pattern), `solarpunk/project/__init__.py`, `test/solarpunk/test_remote.py`.

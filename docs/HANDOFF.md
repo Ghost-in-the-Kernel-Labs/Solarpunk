@@ -185,6 +185,10 @@ email on the asset, a mailer to those engineers on degradation, and the Save/Can
     its suite; an unknown test name, and a limit below 1, give () rather than a refusal; the ping's failed `reachable`
     is untimed (None). Say if any should change before 13.7 shows them.
 
+22. From 13.6 (J-134): a test that judges stored samples takes under a millisecond, so the asset window reads "0 ms"
+    for most of the demo's tests (measured, not missing; only the ping's untimed `reachable` reads "—"). Say if a
+    measured duration should round up to 1 ms, or read "<1 ms".
+
 ## Advisories under the gate's threshold (Tune-up commit 7, 2026-11-21; unchanged since pass 0)
 
 The Python stack's gate runs no audit step (`pip-audit` is not in the lock; `stacks/python/README.md` names it for a

@@ -70,7 +70,7 @@ derate on OAHE-INV-001 (10:00 to 10:45). The run is stamped 2026-06-01 13:00 UTC
    in the search box (Ctrl+F) or pick a status or a kind to narrow the list, Esc to clear; Up and Down move the
    selection and Enter opens it; F5 rereads the store.
 3. **Click OAHE-INV-002.** The asset window shows the open INV-001 outage with its meaning, and its diagnostics with
-   `reachable` failing first, in red, with its reason.
+   `reachable` failing first, in red, with its reason, and each test's last run and how long it took.
    Its **Runs** link (the blue word at the row's end) opens its runs instead: one run at 13:00 UTC, "8 results",
    "1 failed", in red; below it the run's results, the ping's failed `reachable` first ("127.0.0.1:9 is unreachable"),
    then the seven that passed, the test's own `reachable` among them. Type "fail" or a test's name to narrow the list.
