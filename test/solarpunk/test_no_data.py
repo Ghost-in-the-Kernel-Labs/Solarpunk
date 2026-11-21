@@ -71,7 +71,7 @@ class TheTests(unittest.TestCase):
         self.assertEqual(performance_above_floor.run(INV1, overcast), Result(True, "no daylight records"))
         self.assertEqual(night_power_near_zero.run(INV1, overcast), Result(True, "0 night records near zero"))
         no_power = (reading(SEN, T0, 300.0, None),)
-        self.assertEqual(power_under_rated.run(INV1, no_power), Result(True, "1 records at or under 100.0 kW"))
+        self.assertEqual(power_under_rated.run(INV1, no_power), Result(True, "1 records at or under rated 100.0 kW + 1%"))
         self.assertEqual(irradiance_in_range.run(INV1, (reading(INV1, NIGHT, None, 0.0),)),
                          Result(True, "0 irradiance readings in range"))
 

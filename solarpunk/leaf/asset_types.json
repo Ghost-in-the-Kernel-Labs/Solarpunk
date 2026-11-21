@@ -10,12 +10,12 @@
     "kind": "INVERTER",
     "description": "Turns its strings' direct current into grid alternating current; the asset whose output the KPIs count.",
     "fields": {
-      "irradiance_w_m2": {"unit": "W/m2", "min": 0, "max": 1500},
+      "irradiance_w_m2": {"unit": "W/m2", "min": -5, "max": 1500},
       "power_kw": {"unit": "kW", "min": 0, "max": null},
       "temperature_c": {"unit": "°C", "min": -40, "max": 90}
     },
     "tests": ["reachable", "on_grid", "irradiance_in_range", "power_under_rated", "night_power_near_zero", "performance_above_floor", "power_not_frozen"],
-    "passing": "The endpoint answers within the timeout with a sample whose every field is in range, power at or under the inverter's rated_kw, near zero at night, at least 0.75 of what its rating and the sun promise in daylight, and never the same non-zero value for half an hour."
+    "passing": "The endpoint answers within the timeout with a sample whose every field is in range, power at or under the inverter's rated_kw with 1% over allowed, near zero at night, at least 0.75 of what its rating and the sun promise in daylight, and never the same non-zero value for half an hour."
   },
   {
     "kind": "STRING",
@@ -46,7 +46,7 @@
     "kind": "SENSOR",
     "description": "A weather station: plane-of-array irradiance and temperature, the denominator of the performance ratio.",
     "fields": {
-      "irradiance_w_m2": {"unit": "W/m2", "min": 0, "max": 1500},
+      "irradiance_w_m2": {"unit": "W/m2", "min": -5, "max": 1500},
       "temperature_c": {"unit": "°C", "min": -40, "max": 90}
     },
     "tests": ["reachable", "on_grid", "irradiance_in_range"],

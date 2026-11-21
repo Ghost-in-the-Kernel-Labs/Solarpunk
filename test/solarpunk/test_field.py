@@ -75,7 +75,7 @@ class TheSamples(unittest.TestCase):
             with self.subTest(asset_id=asset_id):
                 self.assertEqual([sample.at for sample in made], [instant(minute) for minute in range(0, 30, 5)])
 
-    def test_an_inverter_carries_the_first_stations_irradiance_and_its_gaps_are_never_zeros(self) -> None:
+    def test_inverter_1_carries_pad_1s_irradiance_and_its_gaps_are_never_zeros(self) -> None:
         inverter = "PV1-INV-001"
         self.assertEqual(self.made[inverter], (
             Sample(inverter, instant(0), 600.0, 900.0, False),
@@ -85,6 +85,29 @@ class TheSamples(unittest.TestCase):
             Sample(inverter, instant(20), -3.0, 905.0, False),
             Sample(inverter, instant(25), 610.0, 906.0, False),
         ))
+
+    def test_inverter_n_carries_the_irradiance_of_pad_ns_station(self) -> None:
+        """SP-039, J-101's cause G: inverter 2 reads pad 2's pyranometer (PV1-SEN-002), not the first station's."""
+        inverter = "PV1-INV-002"
+        self.assertEqual(self.made[inverter][:3], (
+            Sample(inverter, instant(0), 610.0, 880.0, False),
+            Sample(inverter, instant(5), 612.0, 881.0, False),
+            Sample(inverter, instant(10), None, 883.0, False),  # pad 2's station has no row then
+        ))
+        self.assertEqual(field.station_for(self.export, self.export.channels[3]).asset.asset_id, "PV1-SEN-002")
+
+    def test_with_no_station_named_for_its_pad_an_inverter_reads_the_first(self) -> None:
+        made = tempfile.TemporaryDirectory()
+        self.addCleanup(made.cleanup)
+        folder = Path(made.name)
+        for name in ("1_system_metadata.json", "1_ac_power_data.csv"):
+            shutil.copy(SAMPLE / name, folder)
+        text = (SAMPLE / "1_irradiance_data.csv").read_text(encoding="utf-8")
+        (folder / "1_irradiance_data.csv").write_text(text.replace("_pad_2_", "_cell_2_"), encoding="utf-8")
+        export = field.read(folder)
+        inverter = next(channel for channel in export.channels if channel.asset.asset_id == "PV1-INV-002")
+        self.assertEqual(field.station_for(export, inverter).asset.asset_id, "PV1-SEN-001")
+        self.assertEqual(field.samples(export, inverter)[0], Sample("PV1-INV-002", instant(0), 600.0, 880.0, False))
 
     def test_a_sentinel_and_a_word_are_gaps(self) -> None:
         self.assertEqual([sample.gap for sample in self.made["PV1-INV-002"]], [False, False, False, True, True, True])

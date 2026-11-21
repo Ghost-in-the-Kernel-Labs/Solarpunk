@@ -51,9 +51,12 @@ A system's local copy is one folder holding its `<id>_system_metadata.json` and 
 - **Weather stations**: each plane-of-array column `…_poa_irradiance_(w/m2)_o_<metric>` is a station
   `PV<id>-SEN-<nnn>` (kind SEN), numbered in file then column order, its irradiance_w_m2 the cell in W/m² as read.
   The temperature-compensated duplicates (`…_poa_irradiance_temp_compensated_…`) and the GHI channel are not loaded.
-- **The irradiance an inverter's sample carries** is the first station's (`PV<id>-SEN-001`) at the same instant:
-  9068's pad 1 pyranometer, 9069's reference cell 01. The leaf's sample holds irradiance and power together, and the
-  inverter tests compare the two.
+- **The irradiance an inverter's sample carries** is, at the same instant, that of the station whose column names the
+  inverter's pad (`…_pad_<n>_…` for `inverter_<n>_…`), the site's first station (`PV<id>-SEN-001`) where none does
+  (SP-039): 9068's inverter 1 reads pad 1's pyranometer and inverter 2 pad 2's; 9069's stations name no pad, so all 40
+  inverters read reference cell 01. The metadata links no inverter to a station (`source_id` is null), so the match is
+  by name. The leaf's sample holds irradiance and power together, and the inverter tests compare the two; J-101's
+  first-station mapping carried pad 1's outage into inverter 2's night (three false alarms, its cause G).
 - **Not loaded**: the meters (9068's `meter_ac_power_*`, 9069's `meter_data.csv`): the leaf's sample has no energy
   field and a meter's power in power_kw would fail on_grid on the mapping itself; temperatures (the sample has no
   temperature field); DC, current, voltage, power-factor and tracker channels.
@@ -65,8 +68,10 @@ for 9069), a fixed offset. The clocks keep daylight saving, so after a change a 
 files move with the US change on 12 March 2023; at 9069 the power file moves on 12 March but the irradiance file only
 about 26 March, so for two weeks its power and irradiance disagree by an hour. No test compares a reading with the clock,
 and UTC midnight is night at both sites, so the hour moves no daylight reading into another day; the two-week
-disagreement at 9069 is a data artefact the baseline names. A stamp repeated by an autumn change would be a duplicate, skipped and
-counted.
+disagreement at 9069 is a data artefact the baseline names: from 12 to 26 March `night_power_near_zero` fires on
+9069's producing inverters (on every one in J-101's counterfactual with a rating given), power an hour off against
+irradiance (J-101). The offset stays fixed (SP-039, call 6; J-106: following daylight saving fixes no alarm the
+baseline counts). A stamp repeated by an autumn change would be a duplicate, skipped and counted.
 
 **Values.** A cell is a reading in the column's unit as read. A missing row, an empty cell, a word ("NaN", "n/a"), a
 non-finite number or a register sentinel (32767, -32768, 65535) is a gap, never a zero (SOL-06); none of the sentinels

@@ -3,8 +3,9 @@
 `measured_on` column of local stamps then one column per channel. An inverter is a column named
 `inverter_<n>_ac_power_(kw)_inv_<metric>`, its rated_kw the metadata's "AC capacity(kW)" for `*_inv_<n>`, None where
 the metadata gives none; a weather station is each plane-of-array column `…_poa_irradiance_(w/m2)_o_<metric>`, in file
-then column order, and every inverter's sample carries the first station's irradiance at its instant. A stamp is the
-site's local clock: UTC is it plus the metadata's timezone_code hours. docs/FIELD-DATA.md has the mapping and why.
+then column order, and inverter n's sample carries the irradiance of the station whose column names pad n
+(`…_pad_<n>_…`), the site's first station where none does, at its instant. A stamp is the site's local clock: UTC is it
+plus the metadata's timezone_code hours, a fixed offset. docs/FIELD-DATA.md has the mapping and why.
 A missing row, an empty cell, a word or a register sentinel is a gap, never a zero (SOL-06); a stamp off the 5-minute
 grid, or a second row for one stamp, is skipped and counted, never moved (gridding is 12.7's)."""
 import csv
@@ -26,6 +27,9 @@ STAMP = "%Y-%m-%d %H:%M:%S"
 POWER_COLUMN = re.compile(r"^inverter_(\d+)_ac_power_\(kw\)_inv_\d+$")
 POA_COLUMN = re.compile(r"_poa_irradiance_\(w/m2\)_o_\d+$")
 RATED_NAME = re.compile(r"_inv_(\d+)$")
+# J-101: carrying pad 1's irradiance into inverter 2 during pad 1's outage gave three false night_power alarms (cause G);
+# a station whose column names pad n is inverter n's (SP-039, call 5).
+PAD_NAME = re.compile(r"_pad_(\d+)_")
 RATING_KEY = "AC capacity(kW)"
 # Register sentinels a logger writes for "no value"; none occurs in the window docs/FIELD-DATA.md names.
 SENTINELS = frozenset({32767.0, -32768.0, 65535.0})
@@ -205,13 +209,26 @@ def instants(export: Export) -> Iterator[datetime]:
         moment += SAMPLE_INTERVAL
 
 
+def station_for(export: Export, channel: Channel) -> Channel | None:
+    """The station whose irradiance an inverter's samples carry: inverter_2's is the station whose column names pad 2
+    (`…_pad_2_poa_irradiance_…`), the export's first station where no station names its pad, None with no station."""
+    # Decision: SP-039 (inverter N reads pad N's station, the site's first otherwise)
+    stations = [held for held in export.channels if held.asset.kind is AssetKind.SENSOR]
+    power = POWER_COLUMN.match(channel.column)
+    for held in stations:
+        pad = PAD_NAME.search(held.column)
+        if power is not None and pad is not None and int(pad.group(1)) == int(power.group(1)):
+            return held
+    return stations[0] if stations else None
+
+
 def samples(export: Export, channel: Channel) -> tuple[Sample, ...]:
-    """One asset's sample at every instant of the span: a station's reading as irradiance; an inverter's power with the
-    first station's irradiance at that instant; a missing reading gap(asset_id, at) (SOL-06): an inverter with power
-    "812.0" and the first station "905.1" at 17:05 gives Sample(id, 17:05, 905.1, 812.0, False)."""
+    """One asset's sample at every instant of the span: a station's reading as irradiance; an inverter's power with its
+    station's irradiance at that instant (station_for); a missing reading gap(asset_id, at) (SOL-06): an inverter with
+    power "812.0" and its station "905.1" at 17:05 gives Sample(id, 17:05, 905.1, 812.0, False)."""
     # Invariant: SOL-06 (every instant of the span present, a missing reading a gap, never a zero)
     asset_id = channel.asset.asset_id
-    reference = export.channels[0]
+    reference = station_for(export, channel)
     station = channel.asset.kind is AssetKind.SENSOR
     made = []
     for moment in instants(export):
@@ -221,6 +238,6 @@ def samples(export: Export, channel: Channel) -> tuple[Sample, ...]:
         elif station:
             made.append(Sample(asset_id, moment, own, None, False))
         else:
-            sun = reading(export, reference, moment) if reference.asset.kind is AssetKind.SENSOR else None
+            sun = reading(export, reference, moment) if reference is not None else None
             made.append(Sample(asset_id, moment, sun, own, False))
     return tuple(made)

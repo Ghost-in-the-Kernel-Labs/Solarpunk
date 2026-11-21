@@ -189,8 +189,17 @@ class OnGrid(unittest.TestCase):
         self.assertEqual(on_grid.run(INV1, samples), expected)
 
     def test_fails_on_a_power_out_of_range(self) -> None:
-        samples = (reading(INV1, T1, None, -1.0),)
-        self.assertEqual(on_grid.run(INV1, samples), Result(False, f"{STAMP}: power_kw -1.0 out of range"))
+        samples = (reading(INV1, T1, None, -2.5),)
+        self.assertEqual(on_grid.run(INV1, samples), Result(False, f"{STAMP}: power_kw -2.5 out of range"))
+
+    def test_an_inverter_may_draw_two_percent_of_its_rating(self) -> None:
+        """SP-039 (J-101's night draw): rated 100 kW holds -2.0 kW and refuses -2.01; with no rating the floor is 0."""
+        self.assertTrue(on_grid.run(INV1, (reading(INV1, T1, -5.0, -2.0),)).passed)
+        self.assertFalse(on_grid.run(INV1, (reading(INV1, T1, None, -2.01),)).passed)
+        self.assertEqual(on_grid.run(UNRATED, (reading(UNRATED, T1, None, -0.1),)),
+                         Result(False, f"{STAMP}: power_kw -0.1 out of range"))
+        self.assertEqual(on_grid.run(SEN, (reading(SEN, T1, -5.5, None),)),
+                         Result(False, f"{STAMP}: irradiance_w_m2 -5.5 out of range"))
 
     def test_fails_on_a_field_the_kind_does_not_answer(self) -> None:
         samples = (reading(TRK, T1, None, 5.0),)
@@ -208,15 +217,22 @@ class OnGrid(unittest.TestCase):
 class PowerUnderRated(unittest.TestCase):
     def test_passes_at_or_under_the_rating(self) -> None:
         samples = (reading(INV1, T0, 800.0, 100.0), gap(INV1.asset_id, T1))
-        self.assertEqual(power_under_rated.run(INV1, samples), Result(True, "2 records at or under 100.0 kW"))
+        self.assertEqual(power_under_rated.run(INV1, samples),
+                         Result(True, "2 records at or under rated 100.0 kW + 1%"))
+
+    def test_one_percent_over_the_rating_passes(self) -> None:
+        """SP-039 (J-101: 825.2 to 825.7 kW against 825 kW is metering): rated 100 holds 101.0, refuses 101.01."""
+        self.assertTrue(power_under_rated.run(INV1, (reading(INV1, T0, 800.0, 101.0),)).passed)
+        self.assertFalse(power_under_rated.run(INV1, (reading(INV1, T0, 800.0, 101.01),)).passed)
 
     def test_skips_a_record_with_no_power(self) -> None:
         samples = (reading(INV1, T0, 800.0, None),)
-        self.assertEqual(power_under_rated.run(INV1, samples), Result(True, "1 records at or under 100.0 kW"))
+        self.assertEqual(power_under_rated.run(INV1, samples),
+                         Result(True, "1 records at or under rated 100.0 kW + 1%"))
 
     def test_fails_naming_the_first_excess(self) -> None:
-        samples = (reading(INV1, T0, 800.0, 99.0), reading(INV1, T1, 900.0, 100.5))
-        expected = Result(False, f"{STAMP}: power 100.5 kW over rated 100.0 kW")
+        samples = (reading(INV1, T0, 800.0, 99.0), reading(INV1, T1, 900.0, 101.5))
+        expected = Result(False, f"{STAMP}: power 101.5 kW over rated 100.0 kW + 1%")
         self.assertEqual(power_under_rated.run(INV1, samples), expected)
 
     def test_fails_with_no_rating(self) -> None:
@@ -308,13 +324,13 @@ class RunningTests(unittest.TestCase):
         conn = fresh()
         samples = {
             INV1.asset_id: (reading(INV1, T0, 800.0, 60.0), gap(INV1.asset_id, T1)),
-            INV2.asset_id: (reading(INV2, T0, 800.0, 101.0),),
+            INV2.asset_id: (reading(INV2, T0, 800.0, 101.5),),
         }
         statuses = run.run_suite(conn, (INV1, INV2, SEN), samples, {INV1.asset_id: False, SEN.asset_id: True}, T1)
         self.assertEqual(values(statuses), {INV1.asset_id: "green", INV2.asset_id: "yellow", SEN.asset_id: "red"})
         self.assertEqual(results.latest_for(conn, INV2.asset_id)[0],
                          Recorded("power_under_rated", INV2.asset_id, T1, False,
-                                  "2026-06-01T10:00:00+00:00: power 101.0 kW over rated 100.0 kW"))
+                                  "2026-06-01T10:00:00+00:00: power 101.5 kW over rated 100.0 kW + 1%"))
         latest = results.latest_for(conn, SEN.asset_id)
         self.assertEqual(sorted(r.test_name for r in latest), sorted(t.name for t in registry.tests_for(AssetKind.SENSOR)))
         # failing first, then no data, each by name (SP-039)
@@ -336,7 +352,7 @@ class TheCommandLine(unittest.TestCase):
         conn = store.connect(path)
         store.apply(conn, fleet.schema() + telemetry.schema() + results.schema())
         fleet.load_fleet(conn, (SITE, INV1, INV2))
-        telemetry.store(conn, (reading(INV1, T0, 800.0, 60.0), reading(INV1, T1, 800.0, 101.0)))
+        telemetry.store(conn, (reading(INV1, T0, 800.0, 60.0), reading(INV1, T1, 800.0, 101.5)))
         conn.close()
         return path
 
@@ -352,7 +368,7 @@ class TheCommandLine(unittest.TestCase):
             self.assertEqual(self.verdict(["reachable", INV1.asset_id, "--db", db]), (0, "pass\n"))
             self.assertEqual(self.verdict(["reachable", INV2.asset_id, "--db", db]), (1, "fail no records\n"))
             self.assertEqual(self.verdict(["power_under_rated", INV1.asset_id, "--db", db]),
-                             (1, f"fail {STAMP}: power 101.0 kW over rated 100.0 kW\n"))
+                             (1, f"fail {STAMP}: power 101.5 kW over rated 100.0 kW + 1%\n"))
 
     def test_errors(self) -> None:
         with tempfile.TemporaryDirectory() as root:
