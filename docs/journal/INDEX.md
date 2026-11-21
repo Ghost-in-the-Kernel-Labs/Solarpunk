@@ -136,3 +136,4 @@ Written from `docs/journal/` by `scripts/journal_index.py`; do not edit by hand.
 | J-130 | 13.13: bursts in the demo and on request | failure-caught | `J-100-199.md` |
 | J-131 | 13.5: the record's surface and the timing | feature | `J-100-199.md` |
 | J-132 | SP-050: the tests' record, as 13.5 built it | decision | `J-100-199.md` |
+| J-133 | 13.7's files collide with 9.8's | contradiction | `J-100-199.md` |

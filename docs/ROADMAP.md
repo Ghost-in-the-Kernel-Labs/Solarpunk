@@ -473,7 +473,7 @@ result kept. It adds to `docs/GOAL.md`'s SCADA analytics (2) and quality managem
   (SP-024). Nothing is deleted.
 - **13.6 Last run in the asset window (`solarpunk/ui/asset_window.py`).** The diagnostics table gains each test's last-run
   instant (and duration); a test never run reads "never".
-- **13.7 The Tests window (`solarpunk/ui/tests_window.py`).** "Tests" beside "Reports" in the fleet window: every remote
+- **13.7 The Tests window (`solarpunk/ui/record_window.py`; `tests_window.py` is 9.8's Manage tests window).** "Tests" beside "Reports" in the fleet window: every remote
   test with its kinds, asset count, last run, duration and pass/fail counts; selecting one shows its last 100 runs
   (asset, instant, result, reason, duration), failures red.
 - **13.8 Names of three characters or more (`scripts/checks/names.py`; SP-042).** Ghost's human maintainability pass,

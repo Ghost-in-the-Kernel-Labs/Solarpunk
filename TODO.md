@@ -97,7 +97,7 @@ Check: `solarpunk/ui/asset_window.py`'s diagnostics table has columns for the la
 
 The master list from the root of the window: every test, its run time, and its last 100 runs (SP-016).
 
-Check: `solarpunk/ui/tests_window.py` opens from a "Tests" button in the fleet window; it lists `project.tests_overview` (name, kinds, assets, last run, duration, passes, failures) and, for the selected test, `project.test_log` (asset, instant, result, reason, duration), failures red; `test/solarpunk/test_ui_tests.py` builds it under xvfb over the demo store with its pure half headless; a screenshot read back; the fast loop green.
+Check: `solarpunk/ui/record_window.py` (its words in `solarpunk/ui/record_text.py`; `tests_window.py` is 9.8's Manage tests window, left as it is) opens from a "Tests" button in the fleet window; it lists `project.tests_overview` (name, kinds, assets, last run, duration, passes, failures, no data; SP-050) and, for the selected test, `project.test_log` (asset, instant, result, reason, duration), failures red; `test/solarpunk/test_ui_record.py` builds it under xvfb over the demo store with its pure half headless; a screenshot read back; the fast loop green.
 
 ### 13.8 Names of three characters or more
 
