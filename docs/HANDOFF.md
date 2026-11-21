@@ -5,8 +5,10 @@ Read `CLAUDE.md` first, then this. `TODO.md` is the chain in order; `docs/DONE.m
 ## Start here (2026-11-21, the session that ended at Tune-up pass 12)
 
 Phase 12 is closed but for 12.7, which waits in Phase W. `main` is clean and pushed, every landing through the fast
-gate, the pass through the full gate (cold 1.47 min, warm 1.50 min, fast loop 24.35 s). **Next: the tune-up commit 12.12**, closing the reopened
-Phase 12; 12.9, 12.11 and 12.10 landed (J-107, J-108, J-109): Phase 12 reopened by SP-039 for Ghost's eleven calls (J-106), ahead of Phase 13. 12.9 adds the
+gate, the pass through the full gate (cold 1.47 min, warm 1.50 min, fast loop 24.35 s). Phase 12 closed again by the tune-up commit 12.12 (J-111);
+12.9, 12.11 and 12.10 landed (J-107, J-108, J-109). **Next: Ghost's human maintainability pass** (2026-11-21: every
+variable well named, a README for people explaining each part, every function's purpose commented, each decision mapped
+to the functions that hold it), being planned as items: Phase 12 reopened by SP-039 for Ghost's eleven calls (J-106), ahead of Phase 13. 12.9 adds the
 "no data" result, which 13.1's test contract then writes down. Then 13.1 and 13.2.
 
 What this session landed, newest first (the journal has each):
@@ -123,7 +125,8 @@ email on the asset, a mailer to those engineers on degradation, and the Save/Can
    gate's "the slow tests" step on Ghost's word. Also open (Tune-up pass 9, J-072): the Python stack's fast checks
    do not run `scripts/checks/readability.py`, so a function grew past its 39 lines over five landings and only the
    pass's full gate refused it; running the check in `stacks/python/gate.sh --fast` costs under a second (a change to
-   a gate script, so a decision). Still open: run the fast loop with `-W error::DeprecationWarning`, which would have caught 8.2's Python 3.14
+   a gate script, so a decision). It happened again at Tune-up commit 12 (J-111): 12.9's `Result.__post_init__`
+   landed without a docstring. Still open: run the fast loop with `-W error::DeprecationWarning`, which would have caught 8.2's Python 3.14
    placeholder warning at once (a change to `scripts/fast.sh`, so a decision).
 10. The scheduled run still stops at the first test script that cannot load, naming it (SP-010), though the Manage
     tests window lists it and carries on (9.8, J-091). Say whether the run should skip a broken script, report it,

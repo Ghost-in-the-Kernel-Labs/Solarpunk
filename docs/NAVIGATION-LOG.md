@@ -11,33 +11,9 @@ to the ruling grade; record the review in the journal; set the line below to the
 review ran at (`git rev-parse --short HEAD`, not the tune-up's own, which does not exist yet). Each entry's **Opened** list, read against the routing row its task matched, is the measure
 of whether a fresh agent found its way: files, in order; `CLAUDE.md` does not count.
 
-Last review: 1a02a15 (2026-11-21, Tune-up pass 12)
+Last review: 3be733f (2026-11-21, Tune-up commit 12)
 
 ## Entries
 
 An entry is `### <date> · <task> · <who>`, then four bullets: **Task**, **Opened** (files, in order), **Complaints**,
 **Suggestions**.
-
-### 2026-11-21 · split `asset_window.py` (J-105) · Claude, coordinator
-- **Task**: move the asset window's words and pure functions to their own module, no result changed.
-- **Opened**: `docs/HANDOFF.md`, `TODO.md`, `solarpunk/ui/asset_window.py`, `solarpunk/ui/ticket_text.py`, `docs/paths/product.md`, `docs/modules.json`, `solarpunk/ui/demo.py`, `solarpunk/project/orchestrator.py`, `docs/when/handoff.md`, `docs/JOURNAL.md`.
-- **Complaints**: the product row asks to render the changed window and read the screenshot, but names no command for it; I wrote a throwaway script over `demo.build_demo_store`, and first reached for `project.open_store`, which refuses a store that exists (`open_or_create` is the one).
-- **Suggestions**: a small `scripts/` or test helper that renders a named window over the demo store to a PNG, so a refactor can diff its screenshots before and after.
-
-### 2026-11-21 · 12.9 no data is not a pass · strong-grade agent
-- **Task**: 12.9.
-- **Opened**: CLAUDE.md, TODO.md, docs/ROADMAP.md, theGhost.md, docs/journal/J-100-199.md, solarpunk/remote/results.py, the seven tests, registry.py, run.py, scaffold.py, solarpunk/project/orchestrator.py, runs.py, suggest.py, run.py, field.py, surface.py, solarpunk/ui/asset_text.py, runs_text.py, timeline.py, runs_window.py, asset_window.py, solarpunk/cli/main.py, docs/paths/product.md, docs/CONTRACT.md, docs/ASSET-MAINTENANCE-LIST.md, DEMO.md, five test files, docs/when/handoff.md, docs/when/hand-out-a-task.md.
-- **Complaints**: the fast loop measured 29.99 s once, then 23 to 24 s: noisy at its limit. The unclosed-connection ResourceWarnings can fail `test_output` at random. The brief's "propose the schema only if the obvious reading fails" against its stop limit "never pick a schema" took a moment to reconcile.
-- **Suggestions**: close the connections `test_remote`'s `fresh()` helper opens; `test_runs_contract` reads raw rows, so a shared row reader would keep a new column from touching it.
-
-### 2026-11-21 · 12.11 four loose ends · mid-grade agent
-- **Task**: 12.11.
-- **Opened**: CLAUDE.md, TODO.md, docs/ROADMAP.md, theGhost.md, the journal, solarpunk/accounts/table.py, solarpunk/project/access.py, solarpunk/cli/accounts.py, solarpunk/project/tickets.py, solarpunk/cli/tickets.py, solarpunk/cli/main.py, docs/CONTRACT.md, docs/modules.json, the three test files.
-- **Complaints**: a first draft put a new test after `if __name__ == "__main__"`, caught by ruff. The random ResourceWarning failure in a test outside the working set blocked the gate.
-- **Suggestions**: close the stores the earlier test files leave open (J-033), so a test that captures stderr does not depend on when garbage is collected.
-
-### 2026-11-21 · 12.10 the field thresholds · strong-grade agent
-- **Task**: 12.10.
-- **Opened**: CLAUDE.md, TODO.md, docs/ROADMAP.md, theGhost.md, the journal, docs/paths/product.md, docs/paths/process.md, on_grid.py, power_under_rated.py, asset_types.json, asset_types.py, docs/ASSET-MAINTENANCE-LIST.md, scripts/checks/asset_types.py, irradiance_in_range.py, solarpunk/feed/client.py, solarpunk/telemetry/field.py, test/fixtures/pvdaq/, test_field.py, docs/FIELD-DATA.md, solarpunk/project/field.py, test_remote.py, test_diagnostics.py.
-- **Complaints**: `test_diagnostics` pins the irradiance edge, but the product row names it only for counts, so it was found by a failure. `field baseline` prints no count of no-data days, so splitting what 12.9 moved needed a script of its own. The S3 listing for 9069 stops at 1,000 keys, so files are asked for by prefix.
-- **Suggestions**: `docs/FIELD-DATA.md` could give the exact fetch method (object paths, a binary search on `measured_on`); the baseline could print a no-data column.

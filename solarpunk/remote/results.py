@@ -62,6 +62,7 @@ class Result:
     no_data: bool = False
 
     def __post_init__(self) -> None:
+        """Refuses a result that says both pass and no data: Result(True, "x", no_data=True) raises NotAVerdict."""
         # Decision: SP-039 (no data is never a pass)
         if self.passed and self.no_data:
             raise NotAVerdict(f"a result cannot pass with no data: {self.reason}")

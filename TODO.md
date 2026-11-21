@@ -77,14 +77,6 @@ SP-023, so the Tickets window and the attention band's tickets land in the rewor
 Lanes (P-15): 12.1, then 12.2 (versions), then 12.3 and 12.5 in parallel, then 12.4, then 12.6 (a false-alarm baseline on field data), then 12.8 the pass; 12.7 waits (Phase W). Ghost's direction,
 SP-022; 12.1 split in two by SP-028 (accounts, then versions); 12.6 added on Ghost's word, 2026-11-20 (J-098).
 
-## Phase 12: accounts and authentication
-
-Lanes (P-15): 12.9 and 12.11 in parallel, then 12.10 (it changes `on_grid` and `power_under_rated` after 12.9 does), then 12.12 the tune-up commit. Reopened by SP-039 on Ghost's word: the open calls of 12.4 to 12.6 (For Ghost 5 and 15), each taken as recommended (J-106).
-
-### 12.12 Tune-up commit 12
-
-Check: `docs/when/tune-up.md` steps 1, 2, 5 and 6 (a reopened phase of three items or fewer); the metrics table written; the navigation log's "Last review" set.
-
 ## Phase 13: the tests' record, at the root and per asset
 
 Lanes (P-15): 13.1 and 13.2 first (SP-019: what a test is, and the suites), then 13.3 (a test's own reads) and 13.4 (reactions, which need suites; SP-020), then 13.5 (the surface every window reads), then 13.6 and 13.7 in parallel, then 13.8 the pass; the asset's history went to Phase 10 (SP-024). Moved after tickets and accounts by SP-022, after the fleet window and the ticket windows by SP-023, and after runs per asset (Phase 10) by SP-024. Moved after Phase 8 by SP-018. Ghost's direction, SP-016.
