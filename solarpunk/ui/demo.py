@@ -9,8 +9,9 @@ import socketserver
 import sqlite3
 import threading
 from contextlib import closing
+from collections.abc import Callable
 from dataclasses import dataclass, replace
-from datetime import date
+from datetime import date, datetime, timedelta
 from pathlib import Path
 
 from solarpunk import project
@@ -32,6 +33,8 @@ DAY = date(2026, 6, 1)
 SEED = 7
 RUN_AT = at(2026, 6, 1, 13)
 POLL_INTERVAL_S = 0.1
+# The demo's bursts (13.13, SP-049): shortened to 5 reads, on a clock that never waits, so the demo opens as fast as ever.
+BURST_READS_S = 5
 DB_NAME = "demo.db"
 SITE_ENGINEER = "site@oahe.example"
 INVERTER_ENGINEER = "inverter@oahe.example"
@@ -107,15 +110,27 @@ def add_faults(conn: sqlite3.Connection) -> None:
     project.assign_fault(conn, asset_id, code, at(2026, 6, 1, opened_h, opened_m), engineer, operator)
 
 
+def instant_clock(start: datetime = RUN_AT) -> Callable[[float], datetime]:
+    """A clock that never waits: each call moves the instant on by the wait it is asked for and says it; from the run's
+    instant, instant_clock()(0) is 13:00:00 and the next call with 1 is 13:00:01."""
+    now = [start]
+
+    def clock(wait_s: float) -> datetime:
+        """The instant after waiting wait_s, without waiting."""
+        now[0] += timedelta(seconds=wait_s)
+        return now[0]
+    return clock
+
+
 def build_demo_store(path: Path, port: int) -> DemoState:
     """Removes the file at path if present and builds the demo there against a simulator on port, then runs the suite
-    once at 2026-06-01T13:00Z with no mail: build_demo_store(Path("demo.db"), 50123).run_report.statuses["OAHE-INV-002"]
+    once at 2026-06-01T13:00Z with no mail, its bursts shortened to 5 reads (13.13), so OAHE-INV-001's power_ripple passes: build_demo_store(Path("demo.db"), 50123).run_report.statuses["OAHE-INV-002"]
     is RED; a second call rebuilds the same store rather than raising on a duplicate key."""
     path.unlink(missing_ok=True)
     with closing(project.open_or_create(path)) as conn:
         project.load_fleet(conn, demo_assets(port))
         project.generate_and_store(conn, SITE, project.day_period(DAY), SEED)
         add_faults(conn)
-        report = project.scheduled_run(conn, RUN_AT)
+        report = project.scheduled_run(conn, RUN_AT, acquirer=project.feed_acquirer(instant_clock(), BURST_READS_S))
         conn.commit()
     return DemoState(path, port, report)

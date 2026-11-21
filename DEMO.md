@@ -46,7 +46,7 @@ The terminal prints one line per step:
 `demo.db` is made in the folder you ran from, removed and rebuilt every run. The window, titled "Solarpunk fleet —
 demo (OAHE, 2026-06-01)", lists the eleven assets of the Oahe site near Pierre:
 
-- **OAHE-INV-001 green**: a feed simulator inside the demo serves its day of telemetry; every remote test passed.
+- **OAHE-INV-001 green**: a feed simulator inside the demo serves its day of telemetry; every remote test passed, `power_ripple` among them, judged on five quick reads the run took from the simulator.
 - **OAHE-INV-002 red**: an open INV-001 outage (inverter offline) since 11:30, and its feed does not answer.
 - **OAHE-SEN-001 yellow**: the irradiance sensor's feed does not answer, so its `reachable` test failed; its other
   two tests had nothing to check and read "no data", grey, never a pass (SP-039).
@@ -79,7 +79,7 @@ derate on OAHE-INV-001 (10:00 to 10:45). The run is stamped 2026-06-01 13:00 UTC
    OAHE-INV-001's **Power** tab draws its day: "288 samples: records 279, gaps 9; peak 94.35 kW", the line broken at
    each gap (10:40, 13:25, 17:35, 17:50), never drawn down to zero. The **Errors** tab counts an asset's faults (red)
    and suggestions (amber) by code over the days chosen: OAHE-SEN-001 "SEN-001: 1 fault, 0 suggestions".
-4. **Close it, click OAHE-INV-001, and assign a fault.** Its seven diagnostics all pass, fed by the simulator. Pick
+4. **Close it, click OAHE-INV-001, and assign a fault.** Its seven diagnostics all pass, fed by the simulator (`power_ripple` on five quick reads). Pick
    INV-004 (firmware update pending, INFO) and press Assign without an engineer: it is refused, since only an engineer
    assigns a fault (SP-015). Choose inverter@oahe.example under "Assigned by" (and an operator under "Entered by" if it
    was called in) and press Assign: the fleet window stays green, since an INFO fault is not an outage. Then assign

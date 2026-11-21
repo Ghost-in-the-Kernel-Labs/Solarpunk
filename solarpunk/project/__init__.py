@@ -55,7 +55,7 @@ from solarpunk.project.suggest import (
     faults_from_run,
     open_suggestions,
 )
-from solarpunk.project.run import (RunReport, add_remote_test, remote_tests, remote_tests_folder, scheduled_run,
+from solarpunk.project.run import (RunReport, add_remote_test, feed_acquirer, live_acquirer, remote_tests, remote_tests_folder, scheduled_run,
                                    run_suite_now, survey_remote_tests)
 from solarpunk.project.suites import add_suite, test_suites
 from solarpunk.remote.suite_registry import Suite
@@ -290,6 +290,8 @@ __all__ = [
     "test_suites",
     "Suite",
     "remote_tests",
+    "feed_acquirer",
+    "live_acquirer",
     "remote_tests_folder",
     "report_csv",
     "report_day",

@@ -115,7 +115,7 @@ class TheWindows(unittest.TestCase):
         self.assertEqual(len(results), 9)
         self.assertEqual(window.result_tree.item(results[0], "values"), ("reachable", "FAIL", UNREACHABLE))
         self.assertEqual(window.result_tree.item(results[0], "tags"), (runs_window.FAILED_TAG,))
-        self.assertEqual(window.result_tree.item(results[1], "tags"), ("nodata",))  # power_ripple: the run took no reads
+        self.assertEqual(window.result_tree.item(results[1], "tags"), ("nodata",))  # power_ripple: INV-002's feed is dead, so its reads hold no value
         self.assertEqual(window.result_tree.item(results[2], "tags"), "")
 
     def test_the_search_narrows_and_says_when_it_finds_none(self) -> None:
@@ -135,8 +135,10 @@ class TheWindows(unittest.TestCase):
         window = self.runs_of(demo.FED)
         lines = [window.run_tree.item(i, "values")[0] for i in window.run_tree.get_children()]
         self.assertEqual(lines, ["2026-06-01 14:00 UTC", "2026-06-01 13:00 UTC"])
-        # The demo's run hands no acquirer, so power_ripple says no data (13.3) and the run is grey, not black.
-        self.assertEqual(window.run_tree.item(window.run_tree.get_children()[1], "tags"), ("nodata",))
+        # The demo's 13:00 run took five reads and passed: black. The 14:00 run here hands no acquirer, so power_ripple
+        # says no data (13.3) and it is grey.
+        kids = window.run_tree.get_children()
+        self.assertEqual((window.run_tree.item(kids[0], "tags"), window.run_tree.item(kids[1], "tags")), (("nodata",), ""))
 
 
 if __name__ == "__main__":

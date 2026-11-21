@@ -121,6 +121,30 @@ class Run(TestCommands):
         self.assertEqual(self.run_cli(["test", "run", "--db", self.db, "--at", RUN_AT]),
                          (0, self.report(port, RUN_AT), ""))
 
+    def test_without_acquire_the_run_takes_no_reads(self) -> None:
+        self.load()
+        with mock.patch.object(cli.project, "scheduled_run", wraps=project.scheduled_run) as run:
+            self.run_cli(["test", "run", "--db", self.db, "--at", RUN_AT])
+        self.assertIsNone(run.call_args.kwargs["acquirer"])
+
+    def test_acquire_hands_the_run_the_live_acquirer_and_shorten_cuts_its_reads(self) -> None:
+        self.load()
+        for argv, reads in ((["--acquire"], None), (["--acquire", "--shorten", "3"], 3)):
+            with self.subTest(argv=argv), mock.patch.object(project, "live_acquirer", return_value=lambda asset, burst: ()) as live:
+                with mock.patch.object(cli.project, "scheduled_run", wraps=project.scheduled_run) as run:
+                    code, _, err = self.run_cli(["test", "run", "--db", self.db, "--at", RUN_AT, *argv])
+                self.assertEqual((code, err), (0, ""))
+                live.assert_called_once_with(reads)
+                self.assertTrue(callable(run.call_args.kwargs["acquirer"]))
+
+    def test_shorten_alone_takes_no_reads_and_a_word_is_a_usage_error(self) -> None:
+        self.load()
+        with mock.patch.object(project, "live_acquirer") as live:
+            code, _, _ = self.run_cli(["test", "run", "--db", self.db, "--at", RUN_AT, "--shorten", "3"])
+        live.assert_not_called()
+        self.assertEqual(code, 0)
+        self.assertEqual(self.run_cli(["test", "run", "--shorten", "x"])[0], 2)
+
     def test_the_store_may_be_named_before_the_subcommand(self) -> None:
         port = self.load()
         self.assertEqual(self.run_cli(["--db", self.db, "test", "run", "--at", RUN_AT]),

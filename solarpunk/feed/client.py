@@ -3,6 +3,7 @@ the server closes, and turns each into a leaf Sample, refusing a record whose in
 SOL-06) or whose fields the asset maintenance list does not hold or holds out of range (Invariant: SOL-03); records()
 is the inverse, the wire text for some samples. One record on the wire:
 {"asset_id": "OAHE-INV-001", "at": "2026-06-01T10:05:00+00:00", "irradiance_w_m2": 812.0, "power_kw": 78.4, "gap": false}."""
+import errno
 import json
 import math
 import socket
@@ -78,10 +79,20 @@ def fetch(host: str, port: int, timeout_s: float, cap: int, request: bytes = b""
         try:
             if request:
                 conn.sendall(request)
-            conn.shutdown(socket.SHUT_WR)
+            half_close(conn)
             return read_all(conn, cap)
         except TimeoutError as error:
             raise FeedError(f"{host}:{port} is slow: nothing for {timeout_s} s") from error
+
+
+def half_close(conn: socket.socket) -> None:
+    """Closes the sending side; a server that already answered and closed makes that raise ENOTCONN, which is no failure
+    of the read, so the answer it sent is still read: any other OSError raises."""
+    try:
+        conn.shutdown(socket.SHUT_WR)
+    except OSError as error:
+        if error.errno != errno.ENOTCONN:
+            raise
 
 
 def read_all(conn: socket.socket, cap: int) -> bytes:

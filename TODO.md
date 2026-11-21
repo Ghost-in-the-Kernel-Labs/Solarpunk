@@ -132,17 +132,6 @@ Each decision is mapped to the functions that hold it, and each function holding
 
 Check: `scripts/decision_map.py` writes `docs/DECISION-MAP.md`, for each decision in `theGhost.md` the functions (file and name) whose `# Decision:` or `# Invariant:` line cites it, "no function" otherwise; the fast loop fails when the file is stale; `scripts/checks/decision_map.py` fails when an in-force decision whose `Held by` names a file under `solarpunk/` or `scripts/` is cited by no function, or a citation names a decision or invariant that does not exist, with a planted break under `test/fixtures/broken/decision_map/`; the missing citations added to the functions that hold each decision; the fast loop green.
 
-### 13.13 Bursts in the demo and on request
-
-The demo's run takes shortened burst reads so `power_ripple` shows a verdict, and the command line takes them only when
-asked (SP-049).
-
-Check: the demo's scheduled run hands the simulator's feed acquirer with bursts shortened to 5 reads, so every fed
-inverter's `power_ripple` is a pass or a fail, never no data; `solarpunk test run` takes burst reads only with
-`--acquire` (and `--shorten N`), recording no data without it as today; `power_ripple`'s threshold, 5 % of rated, is
-no longer marked proposed (Ghost, SP-049); the demo, its tests and DEMO.md updated; the fast loop green and the window
-tests green under xvfb.
-
 ### 13.14 Tune-up pass 13
 
 Check: `docs/when/tune-up.md` followed in full; the metrics table written; the navigation log's "Last review" set.

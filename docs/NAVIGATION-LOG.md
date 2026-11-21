@@ -18,6 +18,12 @@ Last review: 805522c (2026-11-21, Tune-up commit 7)
 An entry is `### <date> · <task> · <who>`, then four bullets: **Task**, **Opened** (files, in order), **Complaints**,
 **Suggestions**.
 
+### 2026-11-21 · 13.13 bursts in the demo · mid-grade worker
+- **Task**: shortened bursts in the demo's run, `--acquire` on the command line (J-130).
+- **Opened**: `solarpunk/ui/demo.py`, `solarpunk/project/run.py`, `solarpunk/remote/acquire.py`, `solarpunk/cli/main.py`, `solarpunk/feed/client.py`, `solarpunk/feed/simulate.py`, `solarpunk/project/orchestrator.py` (`feed_server`).
+- **Complaints**: `feed_server` built a simulator that does not answer live reads, so every acquirer over it failed, and the failure surfaced as an intermittent crash.
+- **Suggestions**: a brief that hands a run an acquirer names the function that builds its feed.
+
 ### 2026-11-21 · 13.4 reactions · mid-grade worker
 - **Task**: `REACTIONS` from a closed vocabulary replacing `SUGGESTS`, checked at load, carried out and recorded (J-129).
 - **Opened**: `grep -rn "SUGGESTS\|suggestion("` first, then `solarpunk/remote/acquire.py` (the pattern), `registry.py`, `remote/run.py`, `project/run.py`, `project/suggest.py`, `project/result_tickets.py`, `docs/REMOTE-TESTS.md`.
