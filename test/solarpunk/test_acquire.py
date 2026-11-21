@@ -6,6 +6,7 @@ import sqlite3
 import threading
 import types
 import unittest
+from unittest import mock
 from collections.abc import Callable
 from datetime import date, datetime, timedelta, timezone
 
@@ -183,7 +184,7 @@ class ThePowerRipple(unittest.TestCase):
         self.assertTrue(power_ripple.run(INVERTER, gappy).passed)
 
     def test_a_healthy_simulated_inverter_passes_a_minute_at_any_time_of_the_day(self) -> None:
-        # The proposed 5% leaves room over the simulator's worst minute (about 1.2% of rating, 60 seeds).
+        # SP-049's 5% leaves room over the simulator's worst minute (about 1.1% of rating, 40 seeds).
         for seed in (1, 7, 42):
             day = simulated_day(seed)
             with Serving(day) as asset:
@@ -194,6 +195,29 @@ class ThePowerRipple(unittest.TestCase):
                     self.assertEqual(len(taken), 12)
                     said = power_ripple.run(asset, taken)
                     self.assertTrue(said.passed or said.no_data, (seed, hour, said))
+
+
+class TheLiveAcquirer(unittest.TestCase):
+    def test_reads_cut_each_burst_to_that_many_reads_on_the_real_clock(self) -> None:
+        waits: list[float] = []
+
+        def clock(wait_s: float) -> datetime:
+            """Records the wait instead of sleeping it."""
+            waits.append(wait_s)
+            return START + timedelta(seconds=sum(waits))
+        with Serving(simulated_day()) as asset, mock.patch.object(project_run, "wall_clock", clock):
+            five = project_run.live_acquirer(5)(asset, Burst("power_kw", 1, 60))
+            two = project_run.live_acquirer(2)(asset, Burst("power_kw", 3, 60))
+        self.assertEqual((len(five), len(two)), (5, 2))
+        self.assertEqual(waits, [0.0, 1, 1, 1, 1, 0.0, 3])  # the burst's own period between reads
+
+    def test_a_dead_feed_gives_reads_with_no_value_so_the_test_says_no_data(self) -> None:
+        with Serving(simulated_day()) as asset:
+            pass
+        dead = asset  # its server has shut down: nothing answers on the port
+        taken = project_run.feed_acquirer(stepping(), 3)(dead, Burst("power_kw", 1, 60))
+        self.assertEqual([read.value for read in taken], [None, None, None])
+        self.assertTrue(power_ripple.run(dead, taken).no_data)
 
 
 class TheRunner(unittest.TestCase):

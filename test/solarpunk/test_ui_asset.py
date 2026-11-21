@@ -316,9 +316,8 @@ class TheDemosDiagnostics(unittest.TestCase):
     def test_the_fed_inverter_passes_every_inverter_test(self) -> None:
         found = project.asset_detail(self.conn, demo.FED).diagnostics
         self.assertEqual(len(found), len(remote_registry.tests_for(AssetKind.INVERTER)))
-        # power_ripple needs live reads, which the demo's scheduled run takes none of (13.3): no data, not a failure
-        self.assertEqual({d.state for d in found if d.test_name != "power_ripple"}, {"pass"}, found)
-        self.assertEqual([d.state for d in found if d.test_name == "power_ripple"], ["no data"])
+        # power_ripple is judged on the five reads the demo's run takes from the simulator (13.13, SP-049)
+        self.assertEqual({d.state for d in found}, {"pass"}, found)
 
     def test_the_sensors_failing_reachable_is_in_the_failures_shown_first(self) -> None:
         found = project.asset_detail(self.conn, demo.SENSOR).diagnostics

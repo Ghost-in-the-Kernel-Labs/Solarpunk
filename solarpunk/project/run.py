@@ -29,7 +29,7 @@ from solarpunk.remote import scaffold
 from solarpunk.remote import suggestions as suggestion_table
 from solarpunk.remote import registry as test_registry
 from solarpunk.remote import suite_registry
-from solarpunk.remote.acquire import Acquirer, Burst, Clock, ReadFailed, take
+from solarpunk.remote.acquire import Acquirer, Burst, Clock, ReadFailed, take, wall_clock
 from solarpunk.remote.registry import RemoteTest, Surveyed, discover, tests_for
 from solarpunk.remote.suite_registry import Suite
 from solarpunk.telemetry import samples as sample_table
@@ -70,15 +70,25 @@ def feed_acquirer(clock: Clock, shorten_to_s: float | None = None) -> Acquirer:
     feed, at the instant the clock gives, so a clock that never waits drives a minute's burst at once (a simulator
     answers from its day); shorten_to_s cuts a burst's duration. A feed that fails a read gives that read no value."""
     def reader(asset: Asset, field: str, moment: datetime) -> float | None:
-        """One live read through the feed; a FeedError is the read's failure."""
+        """One live read through the feed; a FeedError, or a connection reset mid-read, is the read's failure."""
         try:
             return feed.read_now(asset, field, moment)
-        except feed.FeedError as error:
+        except (feed.FeedError, ConnectionError) as error:
             raise ReadFailed(str(error)) from error
 
     def acquire(asset: Asset, burst: Burst) -> tuple:
         """The burst's reads of the asset, each with its instant."""
         return take(asset, burst, reader, clock, shorten_to_s)
+    return acquire
+
+
+def live_acquirer(reads: int | None = None) -> Acquirer:
+    """What the command line's `test run --acquire` takes reads with (13.13, SP-049): feed_acquirer on the real clock,
+    which waits between reads; reads cuts each burst to that many reads (its own period times reads), None leaves it
+    whole: Burst("power_kw", 1, 60) with reads 5 takes 5 reads over four seconds, with None sixty over a minute."""
+    def acquire(asset: Asset, burst: Burst) -> tuple:
+        """The burst's reads of the asset, at most reads of them."""
+        return feed_acquirer(wall_clock, None if reads is None else reads * burst.every_s)(asset, burst)
     return acquire
 
 

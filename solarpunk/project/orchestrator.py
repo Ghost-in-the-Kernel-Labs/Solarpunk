@@ -305,7 +305,7 @@ def simulated_day(asset: Asset, period: Period, seed: int) -> tuple[Sample, ...]
 def feed_server(samples: tuple[Sample, ...]) -> simulate.FeedServer:
     """A bound feed simulator on 127.0.0.1 and a free port answering each connection with the samples' records, not yet
     serving: feed_server(day).server_address is ("127.0.0.1", <the port>); the caller runs serve_forever."""
-    return simulate.make_server(samples, LOOPBACK, 0)
+    return simulate.make_server(samples, LOOPBACK, 0, live=True)
 
 
 def open_outages(conn: sqlite3.Connection) -> dict[str, Fault]:

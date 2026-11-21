@@ -41,11 +41,13 @@ reads that hold no value. A test with no `ACQUIRE` judges the stored samples as 
 of reads (the field baseline, a one-off command line) says no data, never a pass. A failing burst raises its fault as
 any failing test does (SP-046). The tests use the simulator and a clock that never waits; a burst's duration is cut by
 `shorten_to_s`, never by sleeping a minute. The scheduled run takes reads only when the caller hands it an acquirer
-(`solarpunk.project.run.feed_acquirer(clock, shorten_to_s)`); with none, a burst test says no data.
+(`solarpunk.project.run.feed_acquirer(clock, shorten_to_s)`); with none, a burst test says no data. The demo hands it a clock that never waits and bursts shortened to 5 reads, so the
+fed inverter's `power_ripple` passes; `solarpunk test run` takes burst reads only with `--acquire` (`--shorten N` cuts each
+burst to N reads), on the real clock, so a full burst takes its minute (SP-049).
 
 `power_ripple` is the first: the inverter's power, every second for a minute, highest less lowest at most 5% of
-`rated_kw`. The 5% is proposed, Ghost's to set: the simulator's healthy day moves at most about 1.2% of the rating in a
-minute (60 seeds), so a healthy inverter passes with four times the room, and a swing of 5% or more within a minute is
+`rated_kw`. The 5% is Ghost's (SP-049): the simulator's worst minute over 40 seeds moves 1.1% of the rating
+(J-127), so a healthy inverter passes with four times the room, and a swing of 5% or more within a minute is
 hunting. Its reactions name no code (SP-047: no OUTAGE or DERATE for a test; the generic SIT-004 follows).
 
 ## Reactions

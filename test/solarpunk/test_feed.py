@@ -2,13 +2,16 @@
 included, SOL-06), and every refusal (no endpoint, unreachable, slow, too large, malformed, another asset's record, off
 the grid, out of the maintenance list's range or not in it, SOL-03) carries its exact message."""
 import contextlib
+import errno
 import io
 import json
+import select
 import socket
 import subprocess
 import sys
 import threading
 import unittest
+from unittest import mock
 from collections.abc import Iterator
 from dataclasses import replace
 from datetime import date
@@ -163,6 +166,36 @@ class ThePing(unittest.TestCase):
         with self.assertRaises(FeedError) as caught:
             ping_text("\n" * (client.FEED_CAP_BYTES + 1))
         self.assertEqual(str(caught.exception), "feed too large: over 4194304 bytes")
+
+
+class TheHalfClose(unittest.TestCase):
+    def test_a_server_that_answered_and_closed_without_reading_resets_the_half_close(self) -> None:
+        listener = socket.socket()
+        listener.bind(("127.0.0.1", 0))
+        listener.listen(1)
+        self.addCleanup(listener.close)
+        conn = socket.create_connection(listener.getsockname(), timeout=5.0)
+        self.addCleanup(conn.close)
+        conn.sendall(b"ask\n")
+        served, _ = listener.accept()
+        served.sendall(b"answer\n")
+        served.close()  # the request is unread: the close resets the connection
+        select.select([conn], [], [], 5.0)  # the reset has reached the client, so it is readable: no timing involved
+        with self.assertRaises(OSError) as raised:
+            conn.shutdown(socket.SHUT_WR)
+        self.assertEqual(raised.exception.errno, errno.ENOTCONN)
+        client.half_close(conn)  # forgiven: no failure of the read
+
+    def test_only_enotconn_is_forgiven(self) -> None:
+        for number, forgiven in ((errno.ENOTCONN, True), (errno.EPIPE, False)):
+            with self.subTest(number=number):
+                conn = mock.Mock()
+                conn.shutdown.side_effect = OSError(number, "x")
+                if forgiven:
+                    client.half_close(conn)
+                else:
+                    with self.assertRaises(OSError):
+                        client.half_close(conn)
 
 
 class TheCap(unittest.TestCase):

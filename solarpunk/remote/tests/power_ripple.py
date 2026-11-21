@@ -2,9 +2,9 @@
 between its lowest and highest read. A healthy inverter's output follows the sun and the clouds slowly; a swing within
 the minute is a control loop hunting or a string dropping in and out, which the five-minute samples average away and
 never show. The runner takes the reads (ACQUIRE, SP-020); `run` judges only the reads it is handed. Evidences ISO 9001
-9.1.1 (a number the plant is judged by is checked against its written method). The threshold is proposed, Ghost's to
-set: 5% of rated_kw peak to peak over the minute; the simulator's day moves at most 1.2% of rating in a minute, so a
-healthy inverter passes with room, and hunting of 5% or more is flagged."""
+9.1.1 (a number the plant is judged by is checked against its written method). The threshold is Ghost's (SP-049):
+5% of rated_kw peak to peak over the minute; the simulator's worst minute over 40 seeds moves 1.1% of rating (J-127), so
+a healthy inverter passes with room, and hunting of more than 5% is flagged."""
 from solarpunk.leaf.assets import Asset
 from solarpunk.leaf.codes import AssetKind
 from solarpunk.remote.acquire import Burst, Read, nothing_read
@@ -17,8 +17,8 @@ CLAUSES = ("9001-9.1.1",)
 REACTIONS = {}  # the generic SIT-004 fault alone
 # What the runner reads for this test: power, once a second, for a minute (Ghost's example, SP-020).
 ACQUIRE = Burst(field="power_kw", every_s=1, for_s=60)
-# Proposed, Ghost's to set: the lowest to highest power of the minute as a share of the rating. A healthy day moves at
-# most 1.2% of rating in a minute (the simulator's, over 60 seeds), so 5% leaves four times the room.
+# Decision: SP-049. The lowest to highest power of the minute as a share of the rating. A healthy day moves at
+# most 1.1% of rating in a minute (the simulator's, over 40 seeds, J-127), so 5% leaves four times the room.
 RIPPLE_SHARE = 0.05
 
 

@@ -16,6 +16,7 @@ from solarpunk.cli.accounts import add_accounts
 from solarpunk.cli.field import add_field
 from solarpunk.cli.signin import acting, attributed
 from solarpunk.cli.suites import add_suites
+from solarpunk.cli.tests import add_tests
 from solarpunk.cli.tickets import add_tickets
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -36,7 +37,7 @@ The window
 
 The remote tests
   test list                                    each remote test, its kinds, clauses and the fault a failure raises
-  test run [--db PATH] [--at INSTANT]          run every remote test over every asset of the store, once
+  test run [--db PATH] [--at INSTANT] [--acquire [--shorten N]]  run every remote test over every asset of the store, once; --acquire takes the burst reads (N of them)
   test results --asset ID [--failed]           each stored result of an asset, newest first, with the id a ticket opens on
   test add NAME --clause ID [--kind KIND]      scaffold a new remote test; it fails until its run is written
   suite list                                   each suite with its tests and cadence
@@ -217,49 +218,6 @@ def show_help(args: argparse.Namespace, out: TextIO) -> None:
     out.write(HELP)
 
 
-def rules_text(test: project.RemoteTest) -> str:
-    """A test's reactions in words (13.4, SP-020), each kind its own: reachable's begins "INV: Fault(SIT-004); MTR:
-    Fault(MTR-001)", a kind that names none reacting with the generic fault alone."""
-    return "; ".join(f"{kind.value}: {', '.join(project.reaction_text(item) for item in test.reactions_for(kind))}"
-                     for kind in test.kinds)
-
-
-def test_list(args: argparse.Namespace, out: TextIO) -> None:
-    """test list: one line per remote test with its kinds, clauses and reactions,
-    "reachable  INV,MTR,SEN,TRK  55000-9.1  INV: Fault(SIT-004); MTR: Fault(MTR-001); ..."."""
-    for test in project.remote_tests():
-        kinds = ",".join(kind.value for kind in test.kinds)
-        out.write(f"{test.name}  {kinds}  {','.join(test.clauses)}  {rules_text(test)}\n")
-
-
-def test_results(conn: sqlite3.Connection, args: argparse.Namespace, out: TextIO) -> None:
-    """test results --asset ID [--failed]: one line per stored result, newest first, "17  2026-06-01T13:00:00+00:00
-    reachable  fail  127.0.0.1:9 is unreachable": id, instant, test, verdict, reason; --failed keeps the failures."""
-    for found, verdict in project.asset_results(conn, args.asset, args.failed):
-        out.write(f"{found.result_id}  {found.run_at.isoformat()}  {found.test_name}  {verdict}  {found.reason}\n")
-
-
-def test_add(args: argparse.Namespace, out: TextIO) -> None:
-    """test add tracker_moving --clause 55000-9.1 [--kind TRACKER]: scaffolds the test's module and prints
-    "wrote <its path>", then a line saying it fails until its run is written."""
-    path = project.add_remote_test(args.name, tuple(args.kind), tuple(args.clause))
-    out.write(f"wrote {path}\n{args.name} fails on every run until its run function is written\n")
-
-
-def test_run(conn: sqlite3.Connection, args: argparse.Namespace, out: TextIO) -> None:
-    """test run [--at INSTANT] [--db PATH]: the scheduled run once, now or at the instant given, over every asset of
-    the store: "run 2026-06-01T13:00:00+00:00: pinged 3, records 24, results 6", then "OAHE-INV-001  green" for each
-    asset and "error OAHE-INV-002: 127.0.0.1:9 is unreachable" for each feed that did not answer."""
-    run_at = datetime.now(timezone.utc).replace(microsecond=0) if args.at is None else instant(args.at)
-    report = project.scheduled_run(conn, run_at)
-    out.write(f"run {run_at.isoformat()}: pinged {report.pinged}, records {report.records},"
-              f" results {report.results}\n")
-    for asset_id, status in sorted(report.statuses.items()):
-        out.write(f"{asset_id}  {status.value}\n")
-    for error in report.errors:
-        out.write(f"error {error}\n")
-
-
 def run_clauses(out: TextIO, err: TextIO) -> int:
     """clauses: the one subcommand that is not a project call; it runs scripts/clauses.py isolated from the repository
     root and passes its output and exit code through: "9001: 7 held, 0 failing, 1 open" among its lines, exit 0."""
@@ -331,28 +289,6 @@ def add_the_rest(commands: argparse._SubParsersAction) -> None:
     commands.add_parser("clauses").set_defaults(handler=None)
 
 
-def add_tests(commands: argparse._SubParsersAction) -> None:
-    """The test subcommands and help: "test run --db f.db" parses to test_run with db "f.db" (the --db after the
-    subcommand, for the one-word launcher); list, add and help open no store."""
-    test = commands.add_parser("test").add_subparsers(required=True)
-    test.add_parser("list").set_defaults(plain=test_list)
-    add = test.add_parser("add")
-    add.add_argument("name")
-    add.add_argument("--kind", action="append", default=[])
-    add.add_argument("--clause", action="append", required=True)
-    add.set_defaults(plain=test_add)
-    results = test.add_parser("results")
-    results.add_argument("--asset", required=True)
-    results.add_argument("--failed", action="store_true")
-    results.add_argument("--db", default=argparse.SUPPRESS)
-    results.set_defaults(handler=test_results)
-    run = test.add_parser("run")
-    run.add_argument("--at")
-    run.add_argument("--db", default=argparse.SUPPRESS)
-    run.set_defaults(handler=test_run)
-    commands.add_parser("help").set_defaults(plain=show_help)
-
-
 def build_parser() -> argparse.ArgumentParser:
     """The whole parser: build_parser().parse_args(["fleet", "list"]).db is "solarpunk.db"."""
     parser = argparse.ArgumentParser(prog="python3 -m solarpunk.cli", description=DESCRIPTION)
@@ -361,7 +297,8 @@ def build_parser() -> argparse.ArgumentParser:
     commands = parser.add_subparsers(required=True)
     add_fleet_and_faults(commands)
     add_the_rest(commands)
-    add_tests(commands)
+    add_tests(commands)  # 13.13
+    commands.add_parser("help").set_defaults(plain=show_help)
     add_suites(commands)  # 13.2
     add_tickets(commands)  # 11.2
     add_accounts(commands)  # 12.5
