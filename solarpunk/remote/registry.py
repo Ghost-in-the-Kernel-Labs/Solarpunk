@@ -1,8 +1,9 @@
 """The registry: finds every module under solarpunk/remote/tests/ (SP-010), so a remote test is added by adding a file.
 A module may define ACQUIRE (13.3, SP-020: what the runner reads for it, a value of acquire.ACQUISITIONS) and must define
-KINDS (a tuple of AssetKind), CLAUSES (the register clauses it evidences), SUGGESTS (its rule table,
-SP-015: for each of its KINDS the catalogue code a failure suggests, or None) and run; one missing any of them, or a
-rule naming a kind it does not run on or a code not of that kind, is refused by name, never skipped. survey() reads a
+KINDS (a tuple of AssetKind), CLAUSES (the register clauses it evidences), REACTIONS (13.4, SP-020: for each kind what a
+failure does, a tuple of reactions.REACTIONS_SET, the generic SIT-004 fault where a kind names none) and run; one
+missing any of them, or a reaction outside the set, naming a kind it does not run on, a code not of that kind, a suite
+the folder lacks or a chain of started suites that loops or runs too deep, is refused by name, never skipped. survey() reads a
 folder for the Manage tests window (9.8): there a script that cannot load is listed with its reason, not raised."""
 import importlib
 import importlib.util
@@ -16,13 +17,14 @@ from types import ModuleType
 
 from solarpunk.leaf import asset_types
 from solarpunk.leaf.assets import Asset
-from solarpunk.leaf.codes import AssetKind, codes_for
+from solarpunk.leaf.codes import AssetKind
 from solarpunk.leaf.telemetry import Sample
-from solarpunk.remote import tests
+from solarpunk.remote import reactions as reaction_set
+from solarpunk.remote import suites, tests
 from solarpunk.remote.acquire import ACQUISITIONS, reads_only
-from solarpunk.remote.results import Result
+from solarpunk.remote.results import ALL, Result
 
-REQUIRED = ("KINDS", "CLAUSES", "SUGGESTS", "run")
+REQUIRED = ("KINDS", "CLAUSES", "REACTIONS", "run")
 SURVEY_PACKAGE = "solarpunk_survey"
 
 
@@ -34,19 +36,24 @@ class BadRemoteTest(ValueError):
 @dataclass(frozen=True)
 class RemoteTest:
     """One discovered test: RemoteTest("reachable", (AssetKind.INVERTER, …), ("55000-9.1",), reachable.run,
-    {AssetKind.INVERTER: "INV-001", …}); suggests maps each kind to the code a failure suggests, or None (SP-015)."""
+    {AssetKind.INVERTER: (Fault("INV-001"),), …}); reactions maps each kind to what a failure does (13.4)."""
 
     name: str
     kinds: tuple[AssetKind, ...]
     clauses: tuple[str, ...]
     run: Callable[[Asset, tuple[Sample, ...]], Result]
-    suggests: dict[AssetKind, str | None] = dataclasses.field(default_factory=dict)
+    reactions: dict[AssetKind, tuple] = dataclasses.field(default_factory=dict)
     acquire: object | None = None  # a value of acquire.ACQUISITIONS: what the runner reads for this test (13.3)
 
-    def suggestion(self, kind: AssetKind) -> str | None:
-        """The code a failure on an asset of this kind suggests: reachable.suggestion(AssetKind.INVERTER) is "INV-001";
-        on_grid's is None for every kind."""
-        return self.suggests.get(kind)
+    def reactions_for(self, kind: AssetKind) -> tuple:
+        """What a failure on an asset of this kind does, a Fault always among it: reachable's for a METER is
+        (Fault("MTR-001"),); a kind the test names none for is (Fault("SIT-004"),)."""
+        return reaction_set.with_fault(self.reactions.get(kind, ()))
+
+    def fault_code(self, kind: AssetKind) -> str:
+        """The code a failure on this kind raises: reachable's for a METER is "MTR-001", for an INVERTER the generic
+        "SIT-004" (SP-047: a lost link is no OUTAGE or DERATE)."""
+        return reaction_set.fault_code_of(self.reactions_for(kind))
 
 
 def from_module(name: str, module: ModuleType) -> RemoteTest:
@@ -60,7 +67,7 @@ def from_module(name: str, module: ModuleType) -> RemoteTest:
         raise BadRemoteTest(f"{module.__name__}: KINDS is not a tuple of AssetKind")
     acquire = checked_acquire(module.__name__, kinds, getattr(module, "ACQUIRE", None))
     run = module.run if acquire is None else reads_only(module.run)
-    return RemoteTest(name, kinds, module.CLAUSES, run, checked_rules(module.__name__, kinds, module.SUGGESTS), acquire)
+    return RemoteTest(name, kinds, module.CLAUSES, run, checked_reactions(module.__name__, kinds, module.REACTIONS), acquire)
 
 
 def checked_acquire(module: str, kinds: tuple[AssetKind, ...], declared: object) -> object | None:
@@ -78,16 +85,43 @@ def checked_acquire(module: str, kinds: tuple[AssetKind, ...], declared: object)
     return declared
 
 
-def checked_rules(module: str, kinds: tuple[AssetKind, ...], rules: object) -> dict[AssetKind, str | None]:
-    """A module's SUGGESTS, held to its KINDS and the catalogue (SP-015): {INVERTER: "INV-001"} for KINDS (INVERTER,)
-    passes; a rule for a kind it does not run on, a kind with no rule, or a code not of the kind's raises BadRemoteTest:
-    {INVERTER: "SEN-001"} names SEN-001 as no INVERTER code."""
-    if not isinstance(rules, dict) or set(rules) != set(kinds):
-        raise BadRemoteTest(f"{module}: SUGGESTS must give one rule for each of its KINDS")
-    for kind, code in rules.items():
-        if code is not None and code not in {row.code for row in codes_for(kind)}:
-            raise BadRemoteTest(f"{module}: SUGGESTS names {code}, which is no {kind.name} code")
-    return dict(rules)
+def suites_folder() -> Path:
+    """The suites' folder, solarpunk/remote/suites/, read here by name only: the suite registry imports this one."""
+    return Path(suites.__path__[0])
+
+
+def suite_names() -> frozenset[str]:
+    """The suites a RunSuite may name, `all` and each file of the folder: with an empty folder, {"all"}."""
+    return frozenset({ALL} | {path.stem for path in suites_folder().glob("*.py") if path.stem != "__init__"})
+
+
+def checked_reactions(module: str, kinds: tuple[AssetKind, ...], declared: object) -> dict[AssetKind, tuple]:
+    """A module's REACTIONS, held to the closed set, its KINDS, the catalogue and the folder's suites (SP-020): {INVERTER:
+    (Fault("INV-001"),)} for KINDS (INVERTER,) passes; {INVERTER: (Fault("SEN-001"),)} raises BadRemoteTest naming
+    SEN-001 as no INVERTER code."""
+    try:
+        return reaction_set.checked_reactions(module, kinds, suite_names(), declared)
+    except ValueError as error:
+        raise BadRemoteTest(str(error)) from error
+
+
+def checked_chains(found: dict[str, RemoteTest]) -> None:
+    """Refuses a folder where a suite a reaction starts starts itself, directly or through another, or runs deeper than
+    MAX_CHAIN suites (SP-020): reads each suite's TESTS from its file, so a suite that will not load is the suite
+    registry's to refuse, not this check's."""
+    started = {name: tuple(item.name for items in test.reactions.values() for item in items
+                           if isinstance(item, reaction_set.RunSuite)) for name, test in found.items()}
+    if not any(started.values()):
+        return
+    contents = {ALL: tuple(found)}
+    for path in sorted(suites_folder().glob("*.py")):
+        try:
+            contents[path.stem] = tuple(load_file(path).TESTS)
+        except (Exception, SystemExit):  # the suite registry names what is wrong with it
+            contents[path.stem] = ()
+    problem = reaction_set.chain_problem(started, contents)
+    if problem is not None:
+        raise BadRemoteTest(f"REACTIONS: {problem}")
 
 
 def load(package: str, paths: list[str]) -> dict[str, RemoteTest]:
@@ -99,6 +133,7 @@ def load(package: str, paths: list[str]) -> dict[str, RemoteTest]:
     for info in pkgutil.iter_modules(paths):
         module = importlib.import_module(f"{package}.{info.name}")
         found[info.name] = from_module(info.name, module)
+    checked_chains(found)
     return found
 
 

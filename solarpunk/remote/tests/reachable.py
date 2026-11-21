@@ -5,16 +5,17 @@ feed (2.2) pulls the samples, this test never opens a socket (MOD-05)."""
 from solarpunk.leaf.assets import Asset
 from solarpunk.leaf.codes import AssetKind
 from solarpunk.leaf.telemetry import Sample
+from solarpunk.remote.reactions import Fault
 from solarpunk.remote.results import Result, nothing_to_check
 
 KINDS = (AssetKind.INVERTER, AssetKind.METER, AssetKind.SENSOR, AssetKind.TRACKER)
 CLAUSES = ("55000-9.1",)
-# SP-015's rule table, as SP-047 narrowed it: an asset that does not answer suggests the INFO fault its kind's catalogue
+# SP-020's reactions (SP-015's rule table, as SP-047 narrowed it): an asset that does not answer raises the INFO fault its kind's catalogue
 # names for that, for an engineer to confirm. A lost link is not a dead inverter, so an inverter names no OUTAGE or DERATE
 # code and the generic SIT-004 follows (7.7's fault_code); a meter's lost link is MTR-001; a weather station that does not
 # answer leaves the performance ratio unreliable, SEN-001's effect. A tracker's catalogue has no code for it (TRK-001 is a
 # stalled tracker, which silence does not show).
-SUGGESTS = {AssetKind.INVERTER: None, AssetKind.METER: "MTR-001", AssetKind.SENSOR: "SEN-001", AssetKind.TRACKER: None}
+REACTIONS = {AssetKind.METER: (Fault("MTR-001"),), AssetKind.SENSOR: (Fault("SEN-001"),)}
 
 
 def run(asset: Asset, samples: tuple[Sample, ...]) -> Result:

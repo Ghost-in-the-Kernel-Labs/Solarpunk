@@ -5,6 +5,7 @@ from collections.abc import Callable
 from pathlib import Path
 
 from solarpunk import project
+from solarpunk.leaf.codes import GENERIC_TEST_FAILURE
 
 COLUMNS = ("Test", "Kinds", "Clauses", "Suggests", "Problem")
 PADDING = 18
@@ -16,7 +17,7 @@ BROKEN = "broken"
 def suggests_text(test: project.RemoteTest) -> str:
     """The codes a failure suggests, in the test's kind order, a kind with none left out: reachable's is "INV-001,
     MTR-001, SEN-001" (a tracker's silence suggests nothing); on_grid's, which suggests nothing, is "none"."""
-    codes = [code for code in (test.suggestion(kind) for kind in test.kinds) if code is not None]
+    codes = [code for code in (test.fault_code(kind) for kind in test.kinds) if code != GENERIC_TEST_FAILURE]
     return ", ".join(codes) or NONE
 
 

@@ -10,8 +10,8 @@ from solarpunk.remote.results import Result, no_data, nothing_to_check
 
 KINDS = tuple(kind for kind in kinds() if fields_of(kind))
 CLAUSES = ("55000-7.5", "9001-9.1.3")
-# SP-015's rule table: a record off the grid or out of range is the data's fault, not the equipment's: no code.
-SUGGESTS = {kind: None for kind in KINDS}
+# SP-020's reactions (SP-015's rule table): a record off the grid or out of range is the data's fault, not the equipment's: no code.
+REACTIONS = {}  # the generic SIT-004 fault alone
 SAMPLE_FIELDS = ("irradiance_w_m2", "power_kw")
 POWER_FIELD = "power_kw"
 # J-101: 9068's inverters draw 6 to 24 kW at night, up to 1.3% of their 1,910 kW rating; an inverter's power may fall

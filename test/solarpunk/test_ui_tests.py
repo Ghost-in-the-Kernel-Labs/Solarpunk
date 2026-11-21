@@ -21,11 +21,12 @@ if HAS_TKINTER:
     from solarpunk.ui import tests_window
 
 GOOD = '''from solarpunk.leaf.codes import AssetKind
+from solarpunk.remote.reactions import Fault
 from solarpunk.remote.results import Result
 
 KINDS = (AssetKind.METER,)
 CLAUSES = ("9001-9.1.1",)
-SUGGESTS = {AssetKind.METER: "MTR-001"}
+REACTIONS = {AssetKind.METER: (Fault("MTR-001"),)}
 
 
 def run(asset, samples):
@@ -33,7 +34,7 @@ def run(asset, samples):
 '''
 SCRIPTS = {
     "alpha": GOOD,
-    "missing": "KINDS = ()\nSUGGESTS = {}\n\n\ndef run(asset, samples):\n    return None\n",
+    "missing": "KINDS = ()\nREACTIONS = {}\n\n\ndef run(asset, samples):\n    return None\n",
     "unparsed": "KINDS = (\n",
     "raising": "raise RuntimeError('the vendor library is not installed')\n",
     "exiting": "import sys\nsys.exit(3)\n",

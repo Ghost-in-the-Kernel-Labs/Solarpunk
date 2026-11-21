@@ -18,6 +18,12 @@ Last review: 805522c (2026-11-21, Tune-up commit 7)
 An entry is `### <date> · <task> · <who>`, then four bullets: **Task**, **Opened** (files, in order), **Complaints**,
 **Suggestions**.
 
+### 2026-11-21 · 13.4 reactions · mid-grade worker
+- **Task**: `REACTIONS` from a closed vocabulary replacing `SUGGESTS`, checked at load, carried out and recorded (J-129).
+- **Opened**: `grep -rn "SUGGESTS\|suggestion("` first, then `solarpunk/remote/acquire.py` (the pattern), `registry.py`, `remote/run.py`, `project/run.py`, `project/suggest.py`, `project/result_tickets.py`, `docs/REMOTE-TESTS.md`.
+- **Complaints**: `AUTOINCREMENT` silently adds a table the table-list tests pin.
+- **Suggestions**: none.
+
 ### 2026-11-21 · 13.3 a test's own reads · mid-grade worker
 - **Task**: `ACQUIRE` and `Burst`, the feed's live read, the runner's hand-off, `power_ripple` (J-127).
 - **Opened**: `docs/REMOTE-TESTS.md`, `solarpunk/remote/tests/power_under_rated.py`, `solarpunk/remote/registry.py`, `solarpunk/feed/client.py`, `solarpunk/feed/simulate.py`, `solarpunk/remote/run.py`, `solarpunk/project/run.py`, `docs/modules.json`.

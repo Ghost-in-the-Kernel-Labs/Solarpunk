@@ -20,6 +20,7 @@ from solarpunk.mailer import mail as mailer
 from solarpunk.mailer import transport
 from solarpunk.project.orchestrator import fleet_assets, open_outages
 from solarpunk.project.tracker import drain_outbox, local_tracker
+from solarpunk.project.reactions import carry_out
 from solarpunk.project.suggest import faults_from_run
 from solarpunk.project.suites import run_due_suites
 from solarpunk.remote import results as result_table
@@ -214,8 +215,13 @@ def scheduled_run(conn: sqlite3.Connection, run_at: datetime, settings_path: Pat
     statuses = {asset_id: AssetStatus.RED if asset_id in outages else status for asset_id, status in statuses.items()}
     # Decision: SP-019 (the run runs each named suite due at its instant; the default suite is the run above)
     named_written = run_due_suites(conn, fed, samples, run_at)
+    # Decision: SP-020 (a failing test does what it declared: raise its fault, mail, run a suite, open a preventive order)
+    reaction_mails = carry_out(conn, fed, samples, run_at, settings, acquirer)
+    outages = open_outages(conn)  # a fault a reaction's suite raised counts too
+    statuses = {asset_id: AssetStatus.RED if asset_id in outages else status for asset_id, status in statuses.items()}
     statuses = suggested_yellow(conn, statuses)
     sent, mail_errors = (0, ()) if settings is None else mail_all(conn, assets, statuses, settings, run_at)
+    sent += reaction_mails
     written = len(pinged.unreachable) + sum(len(tests_for(asset.kind)) for asset in fed) + named_written
     # Decision: SP-027 (the run drains the ticket outbox into the tracker; a tracker down is an error line, not a stop)
     drained = drain_outbox(conn, local_tracker(conn), run_at)

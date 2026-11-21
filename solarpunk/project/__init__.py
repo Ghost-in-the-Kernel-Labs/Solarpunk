@@ -75,6 +75,7 @@ from solarpunk.project.surface import (
     register_asset,
     store_name,
 )
+from solarpunk.remote.reactions import text as reaction_text
 from solarpunk.remote.registry import RemoteTest, Surveyed
 from solarpunk.remote.results import Recorded
 from solarpunk.leaf.faults import by_telemetry
@@ -194,6 +195,7 @@ __all__ = [
     "Recorded",
     "RegistryError",
     "RemoteTest",
+    "reaction_text",
     "StaleWrite",
     "Surveyed",
     "Role",

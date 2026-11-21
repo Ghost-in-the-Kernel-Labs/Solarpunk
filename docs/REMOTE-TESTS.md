@@ -12,7 +12,7 @@ the page but for `run`. The shape to read first is `solarpunk/remote/tests/power
 | --- | --- | --- |
 | `KINDS` | a non-empty tuple of `AssetKind`: the kinds the test runs on | the registry and the check |
 | `CLAUSES` | a non-empty tuple of clause ids, each a row of `docs/CLAUSE-REGISTER.md`: what the test evidences | the registry and the check |
-| `SUGGESTS` | a dict with one key per kind in `KINDS`: the catalogue code a failure suggests to an engineer, or `None`, with a comment saying why (SP-015) | the registry and the check |
+| `REACTIONS` | a dict from kinds of `KINDS` to a tuple of reactions, what a failure on that kind does (SP-020, 13.4): `Fault(code)`, `Mail()`, `RunSuite(name)`, `OpenPreventive(note)`, the closed set in `solarpunk/remote/reactions.py`; a kind left out reacts with `Fault` of the generic SIT-004 alone, and so does one naming no `Fault`, with a comment saying why. Refused on load: an action outside the set, a `Fault` code the catalogue lacks or of another kind (SIT-004 is allowed for any), more than one `Fault` for a kind, a `RunSuite` naming a suite the suites' folder lacks, and a chain of suites started by reactions that starts itself or runs deeper than `MAX_CHAIN` (3) suites | the registry and the check |
 | `ACQUIRE` | optional (SP-020, 13.3): what the runner reads through the feed for the test, a value of the closed set in `solarpunk/remote/acquire.py`, `Burst(field, every_s, for_s)` first; a value outside the set, or a field the kinds do not hold, is refused | the registry and the check |
 | `run` | `run(asset, samples)`, below | the check (its shape), `test/solarpunk/test_diagnostics.py` (its results) |
 
@@ -46,7 +46,26 @@ any failing test does (SP-046). The tests use the simulator and a clock that nev
 `power_ripple` is the first: the inverter's power, every second for a minute, highest less lowest at most 5% of
 `rated_kw`. The 5% is proposed, Ghost's to set: the simulator's healthy day moves at most about 1.2% of the rating in a
 minute (60 seeds), so a healthy inverter passes with four times the room, and a swing of 5% or more within a minute is
-hunting. Its rule table names no code (SP-047: no OUTAGE or DERATE for a test; the generic SIT-004 follows).
+hunting. Its reactions name no code (SP-047: no OUTAGE or DERATE for a test; the generic SIT-004 follows).
+
+## Reactions
+
+What a failing test does is declared per test, per kind, from a closed set, and carried out by the scheduled run for
+each failed result (not no data, not a pass); each reaction carried out is a row of the append-only `reactions` table
+(`reaction_id`, `result_id`, `action`, `detail`, `at`), and one not carried out is a row whose detail starts
+"skipped: ". `solarpunk test list` prints them, as `INV: Fault(SIT-004)`.
+
+- `Fault(code)`: raises that catalogue fault on the asset and joins the streak's ticket, as a failing test did before
+  (SP-046, SP-049); at most one per kind, the generic SIT-004 where none is named.
+- `Mail()`: one mail to the asset's engineers naming the test and its reason, at the first failure of a streak only (the
+  test's previous result on the asset was not a failure), so a test failing every run mails once.
+- `RunSuite(name)`: runs that suite on that asset at once, its results stored under the suite's name; its own failures
+  react in turn, down to `MAX_CHAIN` (3) suites, a deeper one skipped.
+- `OpenPreventive(note)`: opens a preventive work order on the asset with the note, unless an open preventive order with
+  the same note is already on it.
+
+No member of the set commands equipment (`test/solarpunk/test_reactions.py` says the set holds these four and nothing
+else). A reaction that would start a suite which starts itself is refused when the test loads, never at 3 a.m.
 
 ## The three results
 
@@ -92,7 +111,7 @@ in its `KINDS`, and in the same kind's `tests` in `solarpunk/leaf/asset_types.js
 
 ## What the check sees and what it leaves
 
-`scripts/checks/remote_tests.py` reads each module's source and loads it for `KINDS` and `SUGGESTS`. It sees: the
+`scripts/checks/remote_tests.py` reads each module's source and loads it for `KINDS` and `REACTIONS`. It sees: the
 module docstring, the four fields and their shapes, the two cases in `run`'s docstring, the call to
 `nothing_to_check`, the forbidden imports and clock calls, a commentless or bare threshold, and the list lines. It does
 not see that `run` is right: each threshold's two sides and each reason's words are pinned by

@@ -2,14 +2,14 @@
 
 For each module in solarpunk/remote/tests/ (read from git's list, scripts/checks/common.py; C-001, so a new file is
 staged with `git add -N` first) it holds: a module docstring; the fields KINDS (a non-empty tuple of AssetKind),
-CLAUSES (a non-empty tuple of strings), SUGGESTS (a dict with exactly one key per kind) and `run(asset, samples)`; a
+CLAUSES (a non-empty tuple of strings), REACTIONS (a dict whose keys are kinds of KINDS; a kind left out reacts with the generic fault) and `run(asset, samples)`; a
 `run` docstring with a passing case, `Result(True`, and a failing one, `Result(False`; a call to nothing_to_check, so
 no records is "no data" and never a pass (SP-039); no import of a store, a network or a clock reader, and no call that
 reads the time (`now`, `today`, `utcnow`); every numeric constant at module level carrying a comment (the line above,
 or at the end of its own line) and no number in a function body but 0 and 1 and a rounding's digits; and the module's
 name on the `Tests:` line of each of its kinds in docs/ASSET-MAINTENANCE-LIST.md. A test may also declare ACQUIRE (SP-020): its `run` then takes (asset, reads) and calls nothing_read. What a check cannot see, that `run`
 returns a Result of the right shape, is held by test/solarpunk/test_diagnostics.py. The module is loaded to read its
-KINDS and SUGGESTS (on_grid computes its kinds); a module that will not load is itself a problem.
+KINDS and REACTIONS (on_grid computes its kinds); a module that will not load is itself a problem.
 """
 import ast
 import importlib.util
@@ -26,7 +26,7 @@ from scripts.checks.common import matching, tracked_files  # noqa: E402
 from solarpunk.leaf.codes import AssetKind  # noqa: E402
 
 TESTS = "solarpunk/remote/tests/*.py"
-FIELDS = ("KINDS", "CLAUSES", "SUGGESTS", "run")  # ACQUIRE is optional
+FIELDS = ("KINDS", "CLAUSES", "REACTIONS", "run")  # ACQUIRE is optional
 RUN_ARGUMENTS = ["asset", "samples"]
 ACQUIRED_ARGUMENTS = ["asset", "reads"]  # a test that declares ACQUIRE judges the reads the runner took (SP-020)
 ACQUIRE = "ACQUIRE"
@@ -145,8 +145,8 @@ def loaded(path: Path) -> ModuleType | str:
 
 
 def field_problems(tree: ast.Module, module: ModuleType) -> list[str]:
-    """The fields and their shapes: a module without SUGGESTS gives "has no SUGGESTS"; KINDS not a tuple of AssetKind,
-    CLAUSES not a tuple of strings, SUGGESTS keys other than KINDS each give one problem."""
+    """The fields and their shapes: a module without REACTIONS gives "has no REACTIONS"; KINDS not a tuple of AssetKind,
+    CLAUSES not a tuple of strings, REACTIONS not a dict keyed by kinds of KINDS each give one problem."""
     named = {n.name for n in tree.body if isinstance(n, ast.FunctionDef)}
     for node in tree.body:
         if isinstance(node, ast.Assign):
@@ -157,9 +157,9 @@ def field_problems(tree: ast.Module, module: ModuleType) -> list[str]:
         found.append("KINDS is not a non-empty tuple of AssetKind")
     if not (isinstance(clauses, tuple) and clauses and all(isinstance(c, str) for c in clauses)):
         found.append("CLAUSES is not a non-empty tuple of strings")
-    rules = getattr(module, "SUGGESTS", None)
-    if "SUGGESTS" in named and (not isinstance(rules, dict) or set(rules) != set(kinds or ())):
-        found.append("SUGGESTS is not a dict with one key per kind in KINDS")
+    reactions = getattr(module, "REACTIONS", None)
+    if "REACTIONS" in named and (not isinstance(reactions, dict) or not set(reactions) <= set(kinds or ())):
+        found.append("REACTIONS is not a dict keyed by kinds of KINDS")
     return found
 
 
@@ -171,7 +171,7 @@ def list_problems(name: str, kinds: tuple, document: dict[str, list[str]]) -> li
 
 def module_problems(path: Path, document: dict[str, list[str]]) -> list[str]:
     """Every way one test module breaks the contract, each starting with its file name's stem:
-    "broken: has no SUGGESTS"; [] when it holds."""
+    "broken: has no REACTIONS"; [] when it holds."""
     source = path.read_text(encoding="utf-8")
     tree = ast.parse(source)
     found = [] if ast.get_docstring(tree) else ["has no module docstring"]

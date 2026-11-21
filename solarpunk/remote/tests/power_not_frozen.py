@@ -9,8 +9,8 @@ from solarpunk.remote.results import Result, no_data, nothing_to_check
 
 KINDS = (AssetKind.INVERTER,)
 CLAUSES = ("9001-9.1.3",)
-# SP-015's rule table: the catalogue has no code for a logger replaying its last value. A gap for Ghost: no suggestion.
-SUGGESTS = {AssetKind.INVERTER: None}
+# SP-020's reactions (SP-015's rule table): the catalogue has no code for a logger replaying its last value. A gap for Ghost: no fault code of its own.
+REACTIONS = {}  # the generic SIT-004 fault alone
 # Six records on the five-minute grid (SOL-06) are half an hour.
 FROZEN_RUN = 6
 

@@ -25,6 +25,7 @@ from solarpunk.leaf.telemetry import Sample
 from solarpunk.mailer import mail as mail_table
 from solarpunk.project.causes import require_cause
 from solarpunk.project.engineers import check_engineer
+from solarpunk.remote import reactions as reaction_table
 from solarpunk.remote import results as result_table
 from solarpunk.remote import suggestions as suggestion_table
 from solarpunk.telemetry import generate as generator
@@ -49,6 +50,7 @@ LATER_TABLES: tuple[tuple[str, tuple[str, ...]], ...] = (
     ("accounts", account_table.schema()),
     ("fault_causes", ledger.causes_schema()),  # 7.8, SP-046
     ("ticket_results", ticket_results.schema()),  # 7.9, SP-046
+    ("reactions", reaction_table.schema()),  # 13.4, SP-020
 )
 TABLE_NAMES = "SELECT name FROM sqlite_master WHERE type = 'table'"
 

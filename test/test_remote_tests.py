@@ -17,7 +17,7 @@ from solarpunk.remote.results import Result, no_data, nothing_to_check
 
 KINDS = (AssetKind.INVERTER,)
 CLAUSES = ("9001-9.1.1",)
-SUGGESTS = {AssetKind.INVERTER: None}
+REACTIONS = {}
 # Why: a power over this is a bad reading.
 LIMIT = 40.0
 
@@ -52,7 +52,7 @@ class TheRepository(unittest.TestCase):
             "broken: run's docstring has no passing case (Result(True...)",
             "broken: run's docstring has no failing case (Result(False...)",
             "broken: run never calls nothing_to_check (no records must be no data, never a pass)",
-            "broken: has no SUGGESTS",
+            "broken: has no REACTIONS",
             "broken: INVERTER's Tests line does not name broken",
         ])
 
@@ -69,10 +69,10 @@ class TheContract(unittest.TestCase):
         source = GOOD.replace("from solarpunk.leaf.codes", "from solarpunk.leaf.clock import on_grid\nfrom solarpunk.leaf.codes", 1)
         self.assertEqual(remote_tests.problems(tree_with(source, "reachable")), [])
 
-    def test_suggests_must_name_each_kind(self) -> None:
-        source = GOOD.replace("{AssetKind.INVERTER: None}", "{}")
+    def test_reactions_must_be_keyed_by_the_kinds(self) -> None:
+        source = GOOD.replace("REACTIONS = {}", "REACTIONS = {AssetKind.METER: ()}")
         self.assertEqual(remote_tests.problems(tree_with(source, "reachable")),
-                         ["reachable: SUGGESTS is not a dict with one key per kind in KINDS"])
+                         ["reachable: REACTIONS is not a dict keyed by kinds of KINDS"])
 
     def test_a_threshold_with_its_comment_at_the_end_of_the_line_holds(self) -> None:
         source = GOOD.replace("# Why: a power over this is a bad reading.\nLIMIT = 40.0", "LIMIT = 40.0  # a bad reading")
