@@ -2,56 +2,51 @@
 
 Read `CLAUDE.md` first, then this. `TODO.md` is the chain in order; `docs/DONE.md` is what is finished.
 
-## Start here (2026-11-21, the session that ended at Tune-up pass 12)
+## Start here (2026-11-21, the session that ended at SP-043)
 
-Phase 12 is closed but for 12.7, which waits in Phase W: closed again by the tune-up commit 12.12 (J-111) after its
-reopening for Ghost's eleven calls (SP-039; 12.9, 12.11 and 12.10 landed, J-107 to J-109). `main` is clean and pushed,
-every landing through the fast gate, 12.12 through the full gate (cold 1.47 min, warm 1.47 min, fast loop 24.13 s).
-**Next: 13.1 and 13.2**, Phase 13's first lane (what a test looks like, and the suites folder; SP-016, SP-019), in
-parallel; 13.1 writes down the "no data" result 12.9 added. Phase 13 ends with Ghost's human maintainability pass
-(SP-042, 13.8 to 13.11: names, the decision map, a README for people in each module, purpose comments), the items
-before its tune-up pass, so it covers what 13.1 to 13.7 add.
+Phase 12 is closed but for 12.7 (Phase W). `main` is clean and pushed at SP-043, every landing through the fast gate,
+Tune-up commit 12 through the full gate (cold 1.47 min, warm 1.47 min, fast loop 24.13 s). Every session branch on
+GitHub is deleted; only `main` remains.
+
+**Next: 13.1 and 13.2, in parallel. Ghost approved starting them (2026-11-21: "start 13.1 and 13.2"); they were not
+started before this hand-off, so nothing is in flight.** 13.1 is the remote test's contract (`docs/REMOTE-TESTS.md` and
+a check); it must write down the three results 12.9 made (pass, fail, and "no data", `Result.no_data` and
+`nothing_to_check` in `solarpunk/remote/results.py`), which its Check line predates. 13.2 is the suites folder. Phase 13
+ends with Ghost's human maintainability pass (SP-042, 13.8 to 13.11), then its tune-up pass, 13.12.
 
 What this session landed, newest first (the journal has each):
-- After the hand-off (J-110 to J-112): SP-041, the philosophy's opening restored word for word from Suite Builder's;
-  Tune-up commit 12; SP-042, the human maintainability pass placed as 13.8 to 13.11.
-- After the hand-off (J-106): SP-039, Ghost's eleven calls, all as recommended, call 0 as a third "no data" result;
-  Phase 12 reopened with 12.9 to 12.12. SP-040: Solarpunk no longer follows Ghost-Core (For Ghost 4 and 14 settled).
-- After the hand-off (J-105): `asset_window.py` split, its words and pure functions to `solarpunk/ui/asset_text.py`
-  (the window 255 lines); a refactor, no result changed.
-- Tune-up pass 12 (J-104): Phase 12 closed; the Core look not made (For Ghost 14); the open calls of 12.4 to 12.6
-  gathered as For Ghost 15.
-- SP-038 (J-103): the gate's own scratch-repository tests run in the full gate; the fast loop from about 31 s to 24 s.
-- SP-037, Phase 21 Azure (J-102): a deployment guide, Key Vault, Blob Storage and Azure Monitor, by managed identity
-  and `urllib`; what needs a dependency stays with Phases 14, 15 and 20.
-- 12.6 the false-alarm baseline (J-101, SP-036): `solarpunk field load|baseline` over 89 days of NREL PVDAQ telemetry
-  (CC BY 4.0), the data outside the repository; the checks caught a failed reference cell, dead inverters and a logger
-  replaying its last value; nearly every false alarm is one of three thresholds (For Ghost 15). No reachable public
-  dataset labels its failures (J-099), so 12.7, known failures caught, waits.
-- The mid-Phase 12 tune-up commit (J-100): five debriefs given verdicts; the brief template gains the branch worker's
-  three facts (the metrics write-and-restore, the window tests under `xvfb-run`, no worktrees); For Ghost 13.
-- 12.4 attribution (J-097, SP-035): every act as the signed-in account, an operator on a named engineer's word, the
-  windows passing the version they read with a Refresh, every ticket move logged with who made it.
-- 12.5 account administration (J-096): `solarpunk account init|add|reset|deactivate|list`.
-- SP-033 and SP-034 (J-095): the supply-chain rules on the act moved to `docs/SUPPLY-CHAIN.md`; `CLAUDE.md`'s ceiling
-  1,500 words.
+- SP-043 (J-113): the readability check runs in the fast checks (For Ghost 9 settled).
+- SP-042 (J-112): the human maintainability pass placed as 13.8 to 13.11: no name of two characters or fewer (a
+  check), names and purpose comments reviewed, a README for people in each module, a generated decision map.
+- Tune-up commit 12 (J-111): the reopened Phase 12 closed; the cold gate caught 12.9's missing docstring.
+- SP-041 (J-110): `docs/GHOST-IN-THE-KERNEL.md` opens with Suite Builder's text word for word.
+- 12.10 (J-109): irradiance minimum -5 W/m2, an inverter's night floor -2% of its rating, 1% over the rating, inverter
+  N reading pad N's station; the baseline re-run: about 2,700 threshold false alarms gone, every real event still
+  caught, no new alarm (the counts are in J-109).
+- 12.11 (J-108): deactivating twice refused, the password asked last, `solarpunk ticket show ID`, a dismissal's operator.
+- 12.9 (J-107): no data is not a pass: `reachable` fails a disconnection, the other tests return a grey "no data".
+- SP-039 and SP-040 (J-106): Ghost's eleven calls, all as recommended; Solarpunk no longer follows Ghost-Core.
+- The asset window split (J-105): its words to `solarpunk/ui/asset_text.py`.
+- Before those, from Tune-up pass 12 back: J-095 to J-104 (12.4, 12.5, 12.6, SP-033 to SP-038).
 
 How this session worked: Ghost said what to build; the coordinator wrote a one-page brief per item
-(`docs/when/hand-out-a-task.md`) and a strong-grade agent built it on an `agent/` branch in the main checkout; the
-coordinator read the diff, ran the window tests under `xvfb-run -a /usr/bin/python3.12` (the default python3 has no
-tkinter), wrote the records and landed it. An item too wide for one agent went to two or three in sequence, each on the
-last one's branch (12.4).
+(`docs/when/hand-out-a-task.md`), an agent of the item's grade built it on an `agent/` branch and saved it with
+`scripts/save.sh`; the coordinator read the diff, ran the fast checks and the window tests under
+`xvfb-run -a /usr/bin/python3.12` (the default python3 has no tkinter), read the screenshot, squashed the branch onto
+`main` (`git merge --squash`), wrote the records and landed it with `scripts/commit.sh --ship`. Two agents in parallel
+worked in two checkouts, the main one and a clone beside it (`git clone`, its origin set to GitHub, `.venv` a symlink to
+the main one's), since two branches cannot share one working tree and briefs forbid worktrees under `.claude/` (J-108).
+Choice lists for Ghost were drawn by a read-only agent and put with a recommendation each (J-106).
 
 Mind, before adding:
-- The largest files sit at their edge: `test/solarpunk/test_project_run.py` 398 of 400 lines (a new test of the scheduled run goes in a new file);
-  `solarpunk/project/orchestrator.py` 381. Mandatory context is 1,123 of 1,500 words.
-- The stack's fast checks do not run the readability check (For Ghost 9), so a function can pass 39 lines at a landing
-  and be caught only by a pass's full gate, as `AssetWindow.__init__` was (J-100).
-- The field data's local copy (/home/user/field-data/) lived in this session's container and is gone with it;
-  `docs/FIELD-DATA.md` says how to fetch it again.
-- Session branches on GitHub: 33 on 2026-11-21, every one landed or superseded; Ghost is deleting them (item 12).
-- Not run from here: the shortcut and Open folder on Windows or a Mac (no such machine in a cloud session); the
-  window's title bar (the test display has no window manager).
+- The largest files sit at their edge: `test/solarpunk/test_project_run.py` 398 of 400 lines (a new test of the
+  scheduled run goes in a new file); `solarpunk/project/orchestrator.py` near 390; `solarpunk/cli/main.py` near 395.
+- A store some earlier test file leaves unclosed (J-033) is collected at random; a test that captures stderr then fails
+  on its ResourceWarning (12.9 in `test_output`, 12.11 in `test_field`). The guard is `gc.collect()` at the top of the
+  class's `setUp`; the fix is closing those stores (For Ghost 13d, now with two incidents).
+- The field data's local copy (/home/user/field-data/) lives in this container and goes with it; `docs/FIELD-DATA.md`
+  says how to fetch it again (the S3 listing stops at 1,000 keys: ask by prefix, J-109's debrief).
+- Not run from here: the shortcut and Open folder on Windows or a Mac; the window's title bar (no window manager).
 
 ## Where the project stands (2026-11-20, rewritten at the mid-Phase 12 tune-up commit)
 
