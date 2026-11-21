@@ -50,12 +50,6 @@ Lanes (P-15): 7.7, then 7.8, then 7.9, then 7.10 the tune-up commit. Reopened by
 the demo: telemetry assigns a fault, nothing is accepted or dismissed, an engineer writes the root cause as free text,
 and a ticket opens from a failed test result, one ticket to many failed results.
 
-### 7.7 Faults from telemetry
-
-A failing test raises its fault itself; nobody accepts or dismisses it (SP-046).
-
-Check: a failing remote test result raises a fault itself, with its rule table's code, or the catalogue's generic code (one new code in the leaf's catalogue: a remote test failed, its cause not yet known) where the table names none; a failure of a test on an asset in the run right after that test failed on that asset joins the earlier failure's fault, and a pass ends the streak; a no-data result raises none; accepting and dismissing a suggestion are gone from the windows, the command line and `project`, and no code updates a fault's or a suggestion's state in place (a later fact is a new row); a store made before 7.7 reads its suggestions and faults as they were; the clause register rows that name the old behaviour, and their tests, are reworded with it; the fast loop green.
-
 ### 7.8 The root cause, written by an engineer
 
 A fault's root cause is blank until an engineer writes it, in words (SP-046).

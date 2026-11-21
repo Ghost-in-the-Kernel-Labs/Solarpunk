@@ -24,15 +24,15 @@ ROOT = Path(__file__).resolve().parents[2]
 HOST = "127.0.0.1"
 INV1 = "OAHE-INV-001"
 NOW = at(2026, 6, 1, 10, 10)
-# SP-015: a good push is stored as a suggestion from the device, for an engineer; never a fault (7.4).
-OK_1 = "ok suggestion 1\n"
-OK_2 = "ok suggestion 2\n"
+# SP-046: a good push raises a fault itself, assigned by the device (it was a suggestion under SP-015, 7.4).
+OK_1 = "ok fault 1\n"
+OK_2 = "ok fault 2\n"
 WAIT = 10.0
 
 
 def push(port: int, payload: bytes) -> str:
     """Sends bytes to the receiver on a port and returns its whole answer: push(port, b"OAHE-INV-001 INV-001\\n") on
-    a fresh OAHE store is OK_1 (SP-015: a suggestion from the device)."""
+    a fresh OAHE store is OK_1 (SP-046: a fault from the device)."""
     with socket.create_connection((HOST, port), timeout=WAIT) as sock:
         sock.sendall(payload)
         sock.shutdown(socket.SHUT_WR)
@@ -68,7 +68,7 @@ class Receiving(unittest.TestCase):
 
     def served(self, payload: bytes) -> str:
         """Pushes bytes to a receiver on an ephemeral port that serves exactly that one connection in a thread, and
-        returns the answer: self.served(b"OAHE-INV-001 INV-001\\n") is OK_1 (SP-015: a suggestion from the device)."""
+        returns the answer: self.served(b"OAHE-INV-001 INV-001\\n") is OK_1 (SP-046: a fault from the device)."""
         with server.make_server(self.db, HOST, 0) as listening:
             worker = threading.Thread(daemon=True, target=listening.handle_request)
             worker.start()
@@ -80,14 +80,14 @@ class Receiving(unittest.TestCase):
 class Handle(Receiving):
     """handle and parse_line, called directly with a fixed instant."""
 
-    def test_a_good_line_is_a_suggestion_from_the_device_and_no_fault(self) -> None:
+    def test_a_good_line_is_a_fault_assigned_by_the_device(self) -> None:
         conn = self.store()
         found = receiver.handle(conn, "OAHE-INV-001 INV-001\n", NOW)
-        self.assertEqual((found.suggestion_id, found.asset_id, found.code, found.source, found.raised_at, found.state),
-                         (1, INV1, "INV-001", "device", NOW, "open"))
-        self.assertEqual(project.open_suggestions(conn, INV1), (found,))
-        self.assertEqual(project.faults_listing(conn, False), ())
-        self.assertIs(project.asset_status(conn, INV1), AssetStatus.YELLOW)  # yellow, never red, until an engineer acts
+        self.assertEqual((found.fault_id, found.asset_id, found.code, found.assigned_by, found.opened, found.closed),
+                         (1, INV1, "INV-001", "device", NOW, None))
+        self.assertEqual(project.faults_listing(conn, False), (found,))
+        self.assertEqual(project.open_suggestions(conn, INV1), ())  # nothing is suggested since 7.7
+        self.assertIs(project.asset_status(conn, INV1), AssetStatus.RED)  # INV-001 is an outage
 
     def test_carriage_return_is_stripped(self) -> None:
         self.assertEqual(receiver.parse_line("OAHE-INV-001 INV-001\r\n"), (INV1, "INV-001"))
@@ -115,12 +115,11 @@ class Handle(Receiving):
                 self.assertEqual(str(raised.exception), reason)
         self.assertEqual(project.faults_listing(conn, False), ())
 
-    def test_the_same_good_line_twice_is_one_open_suggestion(self) -> None:
+    def test_the_same_good_line_twice_is_one_open_fault(self) -> None:
         conn = self.store()
         first = receiver.handle(conn, "OAHE-INV-001 INV-001", NOW)
-        self.assertEqual(receiver.handle(conn, "OAHE-INV-001 INV-001", NOW).suggestion_id, first.suggestion_id)
-        self.assertEqual(len(project.open_suggestions(conn)), 1)
-        self.assertEqual(project.faults_listing(conn, False), ())
+        self.assertEqual(receiver.handle(conn, "OAHE-INV-001 INV-001", NOW).fault_id, first.fault_id)
+        self.assertEqual(len(project.faults_listing(conn, True)), 1)
 
     def test_refusal_keeps_its_cause(self) -> None:
         conn = self.store()
@@ -142,9 +141,8 @@ class Serving(Receiving):
         self.assertEqual(self.served(b"OAHE-INV-001 INV-999\n"), "refused unknown code INV-999\n")
         self.assertEqual(self.served(b"OAHE-INV-001\n"), "refused malformed line: 'OAHE-INV-001'\n")
         conn = self.store()
-        self.assertEqual(project.faults_listing(conn, False), ())
-        self.assertEqual([s.asset_id for s in project.open_suggestions(conn)], [INV1])
-        self.assertIs(project.asset_status(conn, INV1), AssetStatus.YELLOW)
+        self.assertEqual([f.asset_id for f in project.faults_listing(conn, False)], [INV1])  # SP-046: a fault, by the device
+        self.assertIs(project.asset_status(conn, INV1), AssetStatus.RED)
         self.assertIs(project.asset_status(conn, "OAHE-INV-002"), AssetStatus.GREEN)
 
     def test_a_line_is_read_up_to_its_limit(self) -> None:
@@ -187,7 +185,7 @@ class Serving(Receiving):
 
     def pushed_when_up(self, port: int, payload: bytes) -> str:
         """Pushes once the receiver on a port accepts connections, retrying a refused connect for up to WAIT seconds:
-        self.pushed_when_up(port, b"OAHE-INV-001 INV-001\\n") is OK_1 (SP-015: a suggestion from the device)."""
+        self.pushed_when_up(port, b"OAHE-INV-001 INV-001\\n") is OK_1 (SP-046: a fault from the device)."""
         deadline = time.monotonic() + WAIT
         while True:
             try:

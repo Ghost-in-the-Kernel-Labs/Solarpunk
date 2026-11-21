@@ -7,6 +7,7 @@ import sqlite3
 import unittest
 
 from solarpunk import project
+from test.solarpunk.old_store import old_suggestion
 from solarpunk.leaf.clock import at
 from solarpunk.leaf.codes import AssetKind, AssetStatus
 from solarpunk.ui import order
@@ -37,7 +38,7 @@ def store() -> sqlite3.Connection:
     conn = project.open_store()
     project.load_fleet(conn, project.demo_fleet())
     project.assign_fault(conn, INV2, "INV-001", at(2026, 6, 1, 11, 30), ENGINEER)
-    project.suggest_pushed(conn, SEN, "SEN-001", at(2026, 6, 1, 12))
+    old_suggestion(conn, SEN, "SEN-001", at(2026, 6, 1, 12))
     return conn
 
 

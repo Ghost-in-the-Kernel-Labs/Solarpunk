@@ -20,7 +20,7 @@ from solarpunk.mailer import mail as mailer
 from solarpunk.mailer import transport
 from solarpunk.project.orchestrator import fleet_assets, open_outages
 from solarpunk.project.tracker import drain_outbox, local_tracker
-from solarpunk.project.suggest import suggest_from_run
+from solarpunk.project.suggest import faults_from_run
 from solarpunk.project.suites import run_due_suites
 from solarpunk.remote import results as result_table
 from solarpunk.remote import run as remote
@@ -188,7 +188,10 @@ def scheduled_run(conn: sqlite3.Connection, run_at: datetime, settings_path: Pat
     flags = {asset_id: True for asset_id in outages}
     statuses = fault_statuses(tuple(asset for asset in assets if asset not in fed), outages)
     statuses.update(stamped(remote.run_suite(conn, fed, samples, flags, run_at), pinged.unreachable))
-    suggest_from_run(conn, tuple(asset.asset_id for asset in fed), run_at)
+    # Decision: SP-046 (a failing test of the run raises its fault itself, at the run's instant)
+    faults_from_run(conn, tuple(asset.asset_id for asset in fed), run_at)
+    outages = open_outages(conn)  # the run's own faults count: an OUTAGE a test raised makes the asset RED at once
+    statuses = {asset_id: AssetStatus.RED if asset_id in outages else status for asset_id, status in statuses.items()}
     # Decision: SP-019 (the run runs each named suite due at its instant; the default suite is the run above)
     named_written = run_due_suites(conn, fed, samples, run_at)
     statuses = suggested_yellow(conn, statuses)

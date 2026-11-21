@@ -77,13 +77,13 @@ class TheTab(unittest.TestCase):
         self.root.update()
         return found
 
-    def test_the_sensors_one_suggestion_and_the_inverters_one_fault(self) -> None:
+    def test_the_sensors_one_fault_raised_by_its_test_and_the_inverters_one_fault(self) -> None:
         sensor = self.window(demo.SENSOR)
         self.assertIn("Errors", [sensor.tabs.tab(t, "text") for t in sensor.tabs.tabs()])
-        self.assertEqual(self.texts(sensor), ["SEN-001", "0 faults", "1 suggestion"])
+        self.assertEqual(self.texts(sensor), ["SEN-001", "1 fault", "0 suggestions"])  # SP-046: a fault, not a suggestion
         bar_items = [i for i in sensor.errors_canvas.find_withtag("bar:SEN-001")
                      if sensor.errors_canvas.type(i) == "rectangle"]
-        self.assertEqual([sensor.errors_canvas.itemcget(i, "fill") for i in bar_items], [bars.SUGGESTION_COLOUR])
+        self.assertEqual([sensor.errors_canvas.itemcget(i, "fill") for i in bar_items], [bars.FAULT_COLOUR])
         self.assertEqual(self.texts(self.window(demo.FED)), ["INV-002", "1 fault", "0 suggestions"])
 
     def test_two_days_count_a_second_code_and_a_bad_or_empty_choice_says_so(self) -> None:

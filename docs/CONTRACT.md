@@ -275,9 +275,10 @@ A run **failed** when any of its results failed. An asset's runs are listed newe
 first, then no data, then by test name.
 
 **An error count** of an asset over a period is, per catalogue code, the faults opened on it inside the period and
-the suggestions raised on it inside the period, counted apart and never added together (a fault is an engineer's
-diagnosis, a suggestion a rule's or a device's guess, SP-015). A suggestion counts whether it is open, accepted or
-dismissed (it was raised all the same), and the fault an accepted one became counts once more as a fault. A fault
+the suggestions raised on it inside the period, counted apart and never added together (a fault is a
+record raised by a test, a device or an engineer; a suggestion is one an older store holds, raised before 7.7 and
+never since, SP-046). A suggestion counts whether it is open, accepted or dismissed (it was raised all the same), and
+the fault an accepted one became counts once more as a fault. A fault
 counts by its opening instant, a suggestion by its raising instant, the period half-open `[start, end)` (SOL-06). The
 fleet's count of one code is the same, per asset, over every asset that has one.
 
@@ -291,7 +292,7 @@ Worked examples, over the demo store (`python3 -m solarpunk.ui --demo`, one run 
                                     reachable passed ("156 records"), and its six other tests passed
     OAHE-SEN-001's run at 13:00     4 results, failed: two reachable failed ("127.0.0.1:9 is unreachable",
                                     "no records"), irradiance_in_range and on_grid no data ("no records"), never a pass
-    errors, OAHE-SEN-001, the day   faults: none; suggestions: SEN-001 1 (open)
+    errors, OAHE-SEN-001, the day   faults: SEN-001 1 (open since 13:00); suggestions: none
     errors, OAHE-INV-002, the day   faults: INV-001 1 (open since 11:30); suggestions: none
     errors, OAHE-INV-001, the day   faults: INV-002 1 (10:05 to 10:45); suggestions: none
     INV-001 across the fleet        OAHE-INV-002: faults 1, suggestions 0; no other asset
@@ -309,7 +310,7 @@ may see and act on, or all. An admin's scope is all.
 
 | Role | Acts |
 | --- | --- |
-| engineer | assigns faults, decides suggestions, works tickets, within its sites |
+| engineer | assigns faults, works tickets, within its sites |
 | operator | enters an engineer's call-in and works tickets, within its sites |
 | viewer | nothing: every write is refused, by name |
 | admin | manages accounts; every site |
@@ -338,12 +339,12 @@ Worked example, over the demo fleet (all of it site OAHE) with three accounts: `
 Held by `solarpunk/accounts/` (the table, the password check), `solarpunk/project/access.py` (the role and the scope),
 and `test/solarpunk/test_accounts.py`, which runs this example.
 
-**A stale screen never overwrites another person's change** (12.2, SP-028). An asset, a fault, a suggestion and a
-ticket each carry a **version**, 1 when made, its column in the table of the module that owns the record, raised by one
-in the same write as every change to it: an asset's engineer; a fault's close; a suggestion's accept or dismiss; a
+**A stale screen never overwrites another person's change** (12.2, SP-028). An asset, a fault, a suggestion (of an older
+store) and a ticket each carry a **version**, 1 when made, its column in the table of the module that owns the record, raised by one
+in the same write as every change to it: an asset's engineer; a fault's close; a
 ticket's move, assignee, note, priority and close. A comment changes no ticket (comments are only ever added, so none
 is lost). A write made from a screen names the version it read; one read at another version is refused with "<record>
-changed by someone else since you read it; refresh" and writes nothing (an accept that is refused opens no fault). A
+changed by someone else since you read it; refresh" and writes nothing A
 write that names no version (the scheduled run; the command line, which acts on what it reads in the same call) is not
 checked. A store made before 12.2 gains the columns on opening, every record at version 1.
 
@@ -365,13 +366,13 @@ match an active account", whichever part was wrong. A failed sign-in is kept wit
 account", and its instant; nothing of the password typed is kept.
 
 **Every act is the account's** (12.4, SP-015, SP-022). In a store with an active account, an act is recorded as the
-account signed in, never as an address chosen. An engineer assigns a fault, and accepts or dismisses a suggestion, as
-themself: `assigned_by` (or `decided_by`) its email, `recorded_by` empty. An operator enters one on an engineer's word
-and names the engineer (`--for ENGINEER` at the command line, "On the word of" in the window): `assigned_by` (or
-`decided_by`) that engineer, `recorded_by` the operator; the engineer named is an active engineer account whose sites
+account signed in, never as an address chosen. An engineer assigns a fault as
+themself: `assigned_by` its email, `recorded_by` empty. An operator enters one on an engineer's word
+and names the engineer (`--for ENGINEER` at the command line, "On the word of" in the window): `assigned_by`
+that engineer, `recorded_by` the operator; the engineer named is an active engineer account whose sites
 hold the asset's, else "<email> is not an active engineer of site OAHE", and an engineer naming one is refused, as
-they act as themself. A dismissal on an engineer's word records the operator as a fault does: `decided_by` the
-engineer, `recorded_by` the operator (SP-035). Whoever assigns a fault or decides a suggestion, by any door, is in such
+they act as themself. A fault a failing remote test or a pushed code raises (SP-046) is assigned by no account: `assigned_by` is
+`test:<name>` or `device`. Whoever assigns a fault, by any door, is in such
 a store an active engineer account whose sites hold the asset's: the fleet need not also name the address, so a new
 engineer acts once their account is made, and an address the fleet names with no such account is refused,
 "inverter@oahe.example is not an active engineer of site OAHE"; a store with no active account keeps SP-015's rule, an
@@ -400,7 +401,6 @@ BIGS, whose engineer the fleet names nowhere) loaded beside it; the panel's line
                                                                    2026-06-01 12:00 UTC · resolved · site@oahe.example
                                                                    2026-06-01 12:00 UTC · closed · site@oahe.example
     a ticket acknowledged at 11:40 in a store with no account      2026-06-01 11:40 UTC · acknowledged · nobody signed in
-    ops@oahe.example dismisses a suggestion --for site@oahe.example   decided by site@oahe.example, recorded by ops@oahe.example
     crew@bigs.example assigns INV-001 on BIGS-INV-001              open by crew@bigs.example
     a fault assigned as inverter@oahe.example, which the fleet names and no account holds
                                                                    refused: "inverter@oahe.example is not an active engineer of site OAHE"
@@ -423,5 +423,4 @@ as `account init` does with `permit_first_admin`), what needs none: no admin sig
 but an admin's with no `--site`, an email already held, an unknown email to reset. A new password
 is asked twice and the two must match. `account list` reads: email, name, role, active, sites and created, never the
 stored line. `solarpunk ticket show ID` prints a ticket's line and one line per
-move, oldest first, whatever its status, to an account that sees its site (a viewer reads; `moves_for`); `fault dismiss`
-prints " entered by <operator>" when an operator entered the dismissal, as a fault's line does (SP-039).
+move, oldest first, whatever its status, to an account that sees its site (a viewer reads; `moves_for`).

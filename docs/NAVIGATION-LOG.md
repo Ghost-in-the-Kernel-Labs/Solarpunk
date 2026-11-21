@@ -18,6 +18,12 @@ Last review: 3be733f (2026-11-21, Tune-up commit 12)
 An entry is `### <date> · <task> · <who>`, then four bullets: **Task**, **Opened** (files, in order), **Complaints**,
 **Suggestions**.
 
+### 2026-11-21 · 7.7 faults from telemetry · mid-grade worker
+- **Task**: a failing remote test raises its fault itself; accept and dismiss removed (J-121).
+- **Opened**: the brief's working set: `solarpunk/remote/suggestions.py`, `solarpunk/project/suggest.py`, the receiver, the CLI and UI files, `solarpunk/leaf/codes.py`, `docs/CLAUSE-REGISTER.md`, `docs/DEMO.md`, then the tests the removal broke.
+- **Complaints**: the working set was right but narrow on tests: eight test files outside the brief's list pinned the removed behaviour or the demo's counts; `test_metrics` needs `metrics.py --write` before `gate.sh --fast`, and its largest-file limit caught `test_project_run.py` at 402 lines.
+- **Suggestions**: a brief that removes a behaviour lists the tests by `grep -rln` for its names, not by guess.
+
 ### 2026-11-21 · coordinator assignment pointer · coordinator
 - **Task**: make CLAUDE.md send the coordinator to the agent assignment logic (J-114).
 - **Opened**: `docs/when/handoff.md`, `docs/when/coordinate.md`, `docs/HANDOFF.md`, `docs/when/grades.md`, `theGhost.md` (C-020, C-022, C-036), `docs/when/hand-out-a-task.md`, `scripts/checks/grades.py`.

@@ -20,7 +20,7 @@ from solarpunk.leaf import store
 from solarpunk.leaf.assets import Asset, site_id
 from solarpunk.leaf.clock import Period, at
 from solarpunk.leaf.codes import AssetKind, AssetStatus, Severity, lookup
-from solarpunk.leaf.faults import UNRECORDED, Fault
+from solarpunk.leaf.faults import UNRECORDED, Fault, by_telemetry
 from solarpunk.leaf.telemetry import Sample
 from solarpunk.mailer import mail as mail_table
 from solarpunk.project.engineers import check_engineer
@@ -182,7 +182,7 @@ def is_cover(conn: sqlite3.Connection, fault: Fault) -> bool:
     OAHE-INV-001 fault assigned by site@oahe.example is not cover (the site's engineer is in the chain); one assigned by
     an engineer of another site is; a fault stored before SP-015 ("unrecorded") is not called cover."""
     # Decision: SP-015 (cover is allowed, and visible)
-    if fault.assigned_by == UNRECORDED:
+    if fault.assigned_by == UNRECORDED or by_telemetry(fault.assigned_by):  # Decision: SP-046 (telemetry is no one's cover)
         return False
     return fault.assigned_by not in registry.engineers_for(conn, fault.asset_id)
 

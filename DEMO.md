@@ -58,12 +58,12 @@ derate on OAHE-INV-001 (10:00 to 10:45). The run is stamped 2026-06-01 13:00 UTC
 
 ## What to click, in order
 
-1. **Read the band above the list.** "Open outages: 1", "Awaiting an engineer: 1", "Open work orders: 1": what waits
-   on a person. Click one and the list keeps only its assets (the outage: OAHE-INV-002); click it again for all eleven.
+1. **Read the band above the list.** "Open outages: 1", "Awaiting an engineer: 0", "Open work orders: 1": what waits
+   on a person (nothing is suggested now: a failing test raises its fault itself, SP-046). Click one and the list keeps only its assets (the outage: OAHE-INV-002); click it again for all eleven.
    The status bar at the foot names the store and its last run ("demo.db, last run 2026-06-01 13:00 UTC").
 2. **Read the headings, then mouse over a row.** Each column is named (Asset, Name, Kind, Status, Cause, Last run, Failing),
    and the Cause says why a row is its colour: OAHE-INV-002 "INV-001 since 2026-06-01 11:30 UTC", OAHE-SEN-001
-   "suggested SEN-001";
+   "reachable" (its failing test);
    the tooltip gives the last status and the run's instant ("Last status: yellow at 2026-06-01 13:00 UTC"); a string,
    a tracker or the meter, having no endpoint the run can reach, reads "no feed", where an asset with one not yet run
    would read "never run". Click the Status heading to put the worst first (a second click turns it round); type
@@ -78,7 +78,7 @@ derate on OAHE-INV-001 (10:00 to 10:45). The run is stamped 2026-06-01 13:00 UTC
    the hours in UTC.
    OAHE-INV-001's **Power** tab draws its day: "288 samples: records 279, gaps 9; peak 94.35 kW", the line broken at
    each gap (10:40, 13:25, 17:35, 17:50), never drawn down to zero. The **Errors** tab counts an asset's faults (red)
-   and suggestions (amber) by code over the days chosen: OAHE-SEN-001 "SEN-001: 0 faults, 1 suggestion".
+   and suggestions (amber) by code over the days chosen: OAHE-SEN-001 "SEN-001: 1 fault, 0 suggestions".
 4. **Close it, click OAHE-INV-001, and assign a fault.** Its seven diagnostics all pass, fed by the simulator. Pick
    INV-004 (firmware update pending, INFO) and press Assign without an engineer: it is refused, since only an engineer
    assigns a fault (SP-015). Choose inverter@oahe.example under "Assigned by" (and an operator under "Entered by" if it
@@ -86,11 +86,12 @@ derate on OAHE-INV-001 (10:00 to 10:45). The run is stamped 2026-06-01 13:00 UTC
    INV-001: the fleet row turns red at once (the asset window refreshes the fleet window; Refresh does the same by
    hand). OAHE-INV-002's open outage shows who assigned it: inverter@oahe.example, entered by the operator, marked
    cover, since that engineer is not INV-002's own.
-5. **A suggested fault (SP-015).** Close it and click OAHE-SEN-001, the yellow weather station. Its `reachable` failed,
+5. **A fault a test raises (SP-046).** Close it and click OAHE-SEN-001, the yellow weather station. Its `reachable` failed,
    first and in red; `irradiance_in_range` and `on_grid` read "no data" in grey, since with no record there was
-   nothing to check, which is never a pass (SP-039). The failure's rule suggests SEN-001 (readings unreliable) under "Suggested faults": the tests propose, they do not
-   assign. Select it, choose site@oahe.example under "Assigned by" and press Accept: the fault opens as that engineer.
-   Or give a reason and press Dismiss. `solarpunk fault suggestions` lists the same on the command line.
+   nothing to check, which is never a pass (SP-039), and so raise nothing. The failure's rule raises SEN-001 (readings
+   unreliable) itself, under "Open faults", assigned by `test:reachable`: nobody accepts or dismisses it, and a later
+   failure of the same test joins it. Where a test's rule names no code the fault is SIT-004, "Remote test failed: its
+   cause is not yet known". A store made before 7.7 lists its suggestions under "Earlier suggestions", read only.
 6. **The engineer.** In the same window type an address into Engineer and press Save, or Cancel to leave it. If
    someone changed the asset since the window drew it, the save is refused ("changed by someone else since you read
    it; refresh") and **Refresh** beside the message redraws it; the ticket panel has its own.
@@ -136,8 +137,8 @@ derate on OAHE-INV-001 (10:00 to 10:45). The run is stamped 2026-06-01 13:00 UTC
    Adding a test is adding one file: `solarpunk test add <name> --clause <id>`.
 7. **The tests are the audit.** Every product line is mutation-tested nightly; each survivor is killed or explained in
    `docs/MUTATION.md`. Every decision has a number, a reason and the test that holds it (`theGhost.md`).
-8. **What is next, decided today.** Tests suggest a likely fault by their rules, and only an engineer assigns one, the
-   record saying which engineer and which operator entered it (SP-015); a Tests window at the root and each asset's
+8. **What is next, decided today.** Tests raise their faults themselves, by their rules, the record saying which test (SP-046; an
+   engineer still assigns one by hand, the record saying which engineer and which operator entered it, SP-015); a Tests window at the root and each asset's
    last 100 results, searchable and graphed, every result kept as evidence (SP-016); then the network's security, from
    plain TCP towards what the industry uses (Modbus TCP with SunSpec at the device, mutual TLS, IEC 62443 zones).
 

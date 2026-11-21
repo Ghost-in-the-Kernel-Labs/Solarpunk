@@ -224,6 +224,9 @@ class OnlyAnEngineerAssigns(Store):
         covering = project.assign_fault(conn, "OAHE-SIT-001", "SIT-001", at(2026, 6, 1, 12), INVERTER_EMAIL)
         other_site = project.assign_fault(conn, "BIGS-INV-001", "INV-001", at(2026, 6, 1, 12), SITE_EMAIL)
         self.assertEqual([project.is_cover(conn, f) for f in (own, site, covering, other_site)], [False, False, True, True])
+        tested = ledger.assign(conn, "BIGS-INV-002", "INV-002", at(2026, 6, 1, 12), "test:reachable")
+        pushed = ledger.assign(conn, "BIGS-INV-002", "INV-003", at(2026, 6, 1, 12), "device")
+        self.assertEqual([project.is_cover(conn, f) for f in (tested, pushed)], [False, False])  # SP-046: no one's cover
 
     def test_check_fault_refuses_as_assign_would_and_assigns_nothing(self) -> None:
         conn = self.oahe_day()

@@ -60,6 +60,7 @@ CATALOGUE: tuple[FaultCode, ...] = (
     FaultCode("SIT-001", AssetKind.SITE, Severity.OUTAGE, "Grid outage: the point of interconnection is de-energised"),
     FaultCode("SIT-002", AssetKind.SITE, Severity.DERATE, "Grid curtailment: output capped by the operator's instruction"),
     FaultCode("SIT-003", AssetKind.SITE, Severity.INFO, "Client-requested outage: planned, excluded from availability by contract"),
+    FaultCode("SIT-004", AssetKind.SITE, Severity.INFO, "Remote test failed: its cause is not yet known"),
     FaultCode("INV-001", AssetKind.INVERTER, Severity.OUTAGE, "Inverter offline: no AC output while irradiance is above the start threshold"),
     FaultCode("INV-002", AssetKind.INVERTER, Severity.DERATE, "Inverter over-temperature derate"),
     FaultCode("INV-003", AssetKind.INVERTER, Severity.OUTAGE, "DC ground fault: the inverter has isolated itself"),
@@ -71,6 +72,9 @@ CATALOGUE: tuple[FaultCode, ...] = (
     FaultCode("MTR-001", AssetKind.METER, Severity.INFO, "Revenue meter communication lost: energy yield estimated from inverters"),
     FaultCode("SEN-001", AssetKind.SENSOR, Severity.INFO, "Irradiance sensor out of range: performance ratio marked unreliable"),
 )
+
+# SP-046: the code a failing remote test raises where its rule table names none; it belongs to no one kind of asset.
+GENERIC_TEST_FAILURE = "SIT-004"
 
 BY_CODE: dict[str, FaultCode] = {fault.code: fault for fault in CATALOGUE}
 

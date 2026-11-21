@@ -49,11 +49,9 @@ from solarpunk.project.reports import (
     report_sites,
 )
 from solarpunk.project.suggest import (
-    accept_suggestion,
-    dismiss_suggestion,
+    fault_from_device,
+    faults_from_run,
     open_suggestions,
-    suggest_from_run,
-    suggest_pushed,
 )
 from solarpunk.project.run import (RunReport, add_remote_test, remote_tests, remote_tests_folder, scheduled_run,
                                    run_suite_now, survey_remote_tests)
@@ -77,6 +75,7 @@ from solarpunk.project.surface import (
 )
 from solarpunk.remote.registry import RemoteTest, Surveyed
 from solarpunk.remote.results import Recorded
+from solarpunk.leaf.faults import by_telemetry
 from solarpunk.remote.suggestions import Suggestion, SuggestionError
 from solarpunk.workorders.ledger import WorkOrder, WorkOrderError
 from solarpunk.project.runs import (
@@ -142,10 +141,8 @@ from solarpunk.project.access import (
     unaccounted_engineers,
 )
 from solarpunk.project.attribution import (
-    accept_suggestion_as,
     assign_fault_as,
     comment_on_ticket_as,
-    dismiss_suggestion_as,
     recorded_as,
     resolve_ticket_as,
     word_engineers,
@@ -162,10 +159,8 @@ __all__ = [
     "resolve_ticket_as",
     "recorded_as",
     "permit_ticket_work",
-    "dismiss_suggestion_as",
     "comment_on_ticket_as",
     "assign_fault_as",
-    "accept_suggestion_as",
     "ALL_SITES",
     "Account",
     "AccountError",
@@ -211,7 +206,6 @@ __all__ = [
     "WeakPassword",
     "WorkOrder",
     "WorkOrderError",
-    "accept_suggestion",
     "account_of",
     "accounts",
     "add_account_as",
@@ -238,7 +232,6 @@ __all__ = [
     "deactivate_account_as",
     "day_period",
     "demo_fleet",
-    "dismiss_suggestion",
     "drain_outbox",
     "faults_listing",
     "fleet_assets",
@@ -259,6 +252,9 @@ __all__ = [
     "open_outages",
     "open_preventive_work_order",
     "open_store",
+    "by_telemetry",
+    "fault_from_device",
+    "faults_from_run",
     "open_suggestions",
     "open_suggestions_for",
     "open_tickets",
@@ -292,8 +288,6 @@ __all__ = [
     "scheduled_run",
     "set_ticket_assignee",
     "store_name",
-    "suggest_from_run",
-    "suggest_pushed",
     "ticket_comments",
     "ticket_moves",
     "ticket_of",

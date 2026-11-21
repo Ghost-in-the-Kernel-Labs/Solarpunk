@@ -13,6 +13,7 @@ from solarpunk.project import StaleWrite, TicketStatus
 from solarpunk.ui import cells
 from test.solarpunk.test_attribution import ENGINEER, SITE, stored
 from test.solarpunk.test_ui_suggestions import HAS_TKINTER, display_available
+from test.solarpunk.old_store import old_suggestion
 
 if HAS_TKINTER:
     import tkinter
@@ -29,7 +30,7 @@ def example() -> sqlite3.Connection:
     """The store with accounts, OAHE-INV-002's outage (ticket 1) and SEN-001 suggested on OAHE-SEN-001."""
     conn = stored(project.open_store())
     project.assign_fault(conn, INVERTER, "INV-001", OPENED, SITE)
-    project.suggest_pushed(conn, SENSOR, "SEN-001", OPENED)
+    old_suggestion(conn, SENSOR, "SEN-001", OPENED)
     return conn
 
 
@@ -90,24 +91,11 @@ class StaleScreens(unittest.TestCase):
         window.save_button.invoke()
         self.assertEqual(project.asset_detail(self.conn, INVERTER).asset.engineer_email, "mine@oahe.example")
 
-    def test_a_stale_accept_opens_no_fault_and_refresh_shows_the_list_as_it_is(self) -> None:
+    def test_the_window_has_no_accept_or_dismiss_since_7_7(self) -> None:
         window = self.window(SENSOR)
-        (found,) = project.open_suggestions(self.conn)
-        project.dismiss_suggestion(self.conn, found.suggestion_id, SITE, "cleaned")  # another screen decides first
-        window.suggestion_tree.selection_set(str(found.suggestion_id))
-        window.accept_button.invoke()
-        self.assertEqual(window.message.cget("text"), f"Refused: suggestion {found.suggestion_id} {STALE}")
-        self.assertEqual(project.faults_listing(self.conn, False)[0].asset_id, INVERTER)  # the outage alone
-        window.refresh_button.invoke()
-        self.assertEqual((window.message.cget("text"), window.suggestion_tree.get_children()), ("", ()))
-
-    def test_a_dismiss_names_the_version_drawn(self) -> None:
-        window = self.window(SENSOR)
-        (found,) = project.open_suggestions(self.conn)
-        window.suggestion_tree.selection_set(str(found.suggestion_id))
-        window.reason_box.insert(0, "cleaned")
-        window.dismiss_button.invoke()
-        self.assertEqual((window.message.cget("text"), project.open_suggestions(self.conn)), ("", ()))
+        for gone in ("accept_button", "dismiss_button", "reason_box"):
+            self.assertFalse(hasattr(window, gone), gone)  # SP-046: nothing is accepted or dismissed
+        self.assertEqual(len(window.suggestion_tree.get_children()), 1)  # the old store's suggestion still reads
 
     def test_the_panel_refuses_a_stale_act_and_its_next_carries_the_new_version(self) -> None:
         panel = self.window(INVERTER).ticket_panel

@@ -47,19 +47,14 @@ CANCEL_TEXT = "Cancel"
 CHOOSE_CODE = "Choose a code to assign."
 CHOOSE_ENGINEER = "Choose the engineer who assigned it: only an engineer assigns a fault (SP-015)."
 CHOOSE_WORD = "Choose the engineer whose word it is: an operator enters a fault on an engineer's word (SP-015)."
-SUGGESTED_TITLE = "Suggested faults (the tests' and the devices', for an engineer to accept or dismiss)"
+SUGGESTED_TITLE = "Earlier suggestions (read only: a failing test or a device now raises its fault itself, SP-046)"
 SUGGESTION_COLUMNS = ("code", "meaning", "source", "reason", "raised")
 SUGGESTION_HEADINGS = ("Code", "Meaning", "From", "Why", "Raised")
 SUGGESTION_WIDTHS = (70, 190, 110, 255, 165)
-ACCEPT_TEXT = "Accept"
-DISMISS_TEXT = "Dismiss"
-REASON_TITLE = "Reason (to dismiss)"
-CHOOSE_SUGGESTION = "Choose a suggested fault first."
-GIVE_REASON = "Give the reason it is dismissed: a dismissal is a decision that says why (SP-015)."
 ASSIGNED_BY_TITLE = cells.ASSIGNED_BY
 ENTERED_BY_TITLE = "Entered by (operator, if called in)"
 REFUSALS = (project.LedgerError, project.RegistryError, project.UnknownAsset, project.UnknownEngineer,
-            project.SuggestionError, project.NotPermitted, ValueError)
+            project.NotPermitted, ValueError)
 
 
 def shown(value: object) -> str:
@@ -109,9 +104,11 @@ def colour_of(status: AssetStatus) -> str:
 
 def assigned_text(fault: project.Fault, cover: bool) -> str:
     """Who assigned a fault, as the window writes it (SP-015): "tech@oahe.example"; entered by an operator,
-    "tech@oahe.example, entered by ops@oahe.example"; with cover, " (cover)" after; a fault from before, "unrecorded"."""
+    "tech@oahe.example, entered by ops@oahe.example"; with cover, " (cover)" after, never on a fault telemetry raised
+    ("test:reachable", "device", SP-046); a fault from before, "unrecorded"."""
     entered = "" if fault.recorded_by is None else f", entered by {fault.recorded_by}"
-    return f"{fault.assigned_by}{entered}{' (cover)' if cover else ''}"
+    covering = " (cover)" if cover else ""
+    return f"{fault.assigned_by}{entered}{covering}"
 
 
 def fault_lines(detail: project.AssetDetail) -> tuple[tuple[str, str, str, str], ...]:

@@ -127,10 +127,10 @@ class TheReaders(unittest.TestCase):
         """Stores one result on the sensor at 10:05: record("on_grid", NOTHING) leaves it no data."""
         results.record(self.conn, name, SEN.asset_id, T1, result)
 
-    def test_no_data_alone_is_no_failure_and_suggests_nothing(self) -> None:
+    def test_no_data_alone_is_no_failure_and_raises_no_fault(self) -> None:
         self.record("on_grid", NOTHING)
         self.assertIs(project.asset_status(self.conn, SEN.asset_id), AssetStatus.GREEN)
-        self.assertEqual(project.suggest_from_run(self.conn, (SEN.asset_id,), T1), ())
+        self.assertEqual(project.faults_from_run(self.conn, (SEN.asset_id,), T1), ())
         self.assertIs(run.status_of(False, (NOTHING,)), AssetStatus.GREEN)
 
     def test_the_colour_and_the_cause_come_from_reachables_failure(self) -> None:
@@ -138,7 +138,8 @@ class TheReaders(unittest.TestCase):
         self.record("reachable", Result(False, "no records"))
         self.assertIs(project.asset_status(self.conn, SEN.asset_id), AssetStatus.YELLOW)
         self.assertEqual(cause_of(self.conn, SEN.asset_id, {}).test_name, "reachable")
-        self.assertEqual([s.code for s in project.suggest_from_run(self.conn, (SEN.asset_id,), T1)], ["SEN-001"])
+        self.assertEqual([(f.code, f.assigned_by) for f in project.faults_from_run(self.conn, (SEN.asset_id,), T1)],
+                         [("SEN-001", "test:reachable")])  # SP-046
         self.assertEqual([(d.test_name, d.state) for d in project.asset_detail(self.conn, SEN.asset_id).diagnostics],
                          [("reachable", "fail"), ("irradiance_in_range", "no data"), ("on_grid", "not run")])
         row = next(found for found in project.asset_rows(self.conn) if found.asset_id == SEN.asset_id)

@@ -75,8 +75,10 @@ class TheDemoStore(DemoFixture):
         demo.build_demo_store(self.path, self.port)
         conn = self.opened()
         faults = project.faults_listing(conn, False)
-        self.assertEqual([f.assigned_by for f in faults], [demo.SITE_ENGINEER, demo.INVERTER_ENGINEER, demo.INVERTER_ENGINEER])
-        (outage,) = project.faults_listing(conn, True)
+        self.assertEqual([f.assigned_by for f in faults], [demo.SITE_ENGINEER, demo.INVERTER_ENGINEER, demo.INVERTER_ENGINEER,
+                          "test:reachable"])  # SP-046: the sensor's SEN-001 was raised by its failing reachable
+        outage, sensor_fault = project.faults_listing(conn, True)  # SP-046: the sensor's SEN-001 is open too
+        self.assertEqual((sensor_fault.asset_id, sensor_fault.recorded_by), (demo.SENSOR, None))
         self.assertEqual((outage.asset_id, outage.recorded_by, project.is_cover(conn, outage)),
                          (demo.DOWN, demo.OPERATOR, True))
 
@@ -93,7 +95,7 @@ class TheDemoStore(DemoFixture):
         self.assertEqual(rows[SENSOR].failing, "reachable")
         # 9.2: each colour says why, from the same one call
         self.assertEqual([cells.cause_text(rows[a]) for a in (INV1, INV2, SENSOR)],
-                         ["—", "INV-001 since 2026-06-01 11:30 UTC", "suggested SEN-001"])
+                         ["—", "INV-001 since 2026-06-01 11:30 UTC", "reachable"])  # SP-046: no suggestion waits; the failing test is the cause
         self.assertEqual([r.asset_id for r in rows.values() if r.status is not AssetStatus.GREEN], [INV2, SENSOR])
         self.assertEqual({a: s for a, s in state.run_report.statuses.items()}, {a: r.status for a, r in rows.items()})
 
@@ -120,6 +122,7 @@ class TheDemoStore(DemoFixture):
             ("OAHE-SIT-001", "SIT-002", at(2026, 6, 1, 12), at(2026, 6, 1, 13)),
             (INV1, "INV-002", at(2026, 6, 1, 10, 5), at(2026, 6, 1, 10, 45)),
             (INV2, "INV-001", at(2026, 6, 1, 11, 30), None),
+            (demo.SENSOR, "SEN-001", RUN_AT, None),  # SP-046: raised by the run's failing reachable
         ])
         self.assertEqual(conn.execute("SELECT count(*) FROM samples").fetchone()[0], 576)
         inverters = tuple(a for a in demo.demo_assets(self.port) if a.kind is AssetKind.INVERTER)
@@ -158,7 +161,7 @@ class TheDemoStore(DemoFixture):
         again = demo.build_demo_store(self.path, self.port)
         self.assertIs(again.run_report.statuses[INV2], AssetStatus.RED)
         with closing(project.open_or_create(self.path)) as conn:
-            self.assertEqual(len(project.faults_listing(conn, False)), 3)
+            self.assertEqual(len(project.faults_listing(conn, False)), 4)  # SP-046: the sensor's SEN-001 too
             self.assertEqual(conn.execute("SELECT count(*) FROM samples").fetchone()[0], 576)
 
 

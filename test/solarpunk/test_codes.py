@@ -26,7 +26,7 @@ class TheCatalogue(unittest.TestCase):
 
     def test_lookup_returns_the_row_itself(self) -> None:
         row = codes.lookup("INV-001")
-        self.assertIs(row, CATALOGUE[3])
+        self.assertIs(row, codes.BY_CODE["INV-001"])
         self.assertIs(row.severity, Severity.OUTAGE)
         self.assertIs(row.kind, AssetKind.INVERTER)
 

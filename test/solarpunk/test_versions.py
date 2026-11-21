@@ -10,8 +10,9 @@ from solarpunk import project
 from solarpunk.leaf import versions
 from solarpunk.leaf.assets import Asset
 from solarpunk.leaf.clock import at
-from solarpunk.project import StaleWrite, SuggestionError, TicketStatus
+from solarpunk.project import StaleWrite, TicketStatus
 from test.solarpunk.test_accounts import OPENED, SITE, example_store, section
+from test.solarpunk.old_store import old_suggestion
 
 STALE = "changed by someone else since you read it; refresh"
 LATER = at(2026, 6, 1, 11, 50)
@@ -85,19 +86,6 @@ class EachRecord(Store):
         self.assertEqual(len(project.faults_listing(self.conn, True)), 1)
         self.assertEqual(project.close_fault(self.conn, fault.fault_id, LATER, read_at=1).version, 2)
 
-    def test_a_suggestion_refused_opens_no_fault(self) -> None:
-        (found,) = project.open_suggestions(self.conn)
-        self.assertEqual(found.version, 1)
-        with self.refused(f"suggestion {found.suggestion_id}"):
-            project.accept_suggestion(self.conn, found.suggestion_id, SITE, read_at=0)
-        self.assertEqual([f.code for f in project.faults_listing(self.conn, True)], ["INV-001"])
-        with self.refused(f"suggestion {found.suggestion_id}"):
-            project.dismiss_suggestion(self.conn, found.suggestion_id, SITE, "cleaned", read_at=0)
-        dismissed = project.dismiss_suggestion(self.conn, found.suggestion_id, SITE, "cleaned", read_at=1)
-        self.assertEqual((dismissed.state, dismissed.version), ("dismissed", 2))
-        with self.assertRaises(SuggestionError):  # decided: the next screen is told so, whatever it read
-            project.dismiss_suggestion(self.conn, found.suggestion_id, SITE, "again", read_at=2)
-
     def test_a_ticket_every_change_raises_it_and_a_comment_does_not(self) -> None:
         project.comment_on_ticket(self.conn, 1, SITE, LATER, "on my way")
         self.assertEqual(project.ticket_of(self.conn, 1).version, 1)
@@ -130,7 +118,7 @@ class TheRule(unittest.TestCase):
         conn = project.open_or_create(path)
         project.load_fleet(conn, project.demo_fleet())
         project.assign_fault(conn, INVERTER, "INV-001", OPENED, SITE.replace("site", "inverter"))
-        project.suggest_pushed(conn, "OAHE-SEN-001", "SEN-001", OPENED)
+        old_suggestion(conn, "OAHE-SEN-001", "SEN-001", OPENED)
         for table in TABLES:  # as a store made before 12.2 was
             conn.execute(f"ALTER TABLE {table} DROP COLUMN version")
         conn.commit()

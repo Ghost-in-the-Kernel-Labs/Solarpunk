@@ -1,6 +1,6 @@
 """A fault is one catalogue code carried by one asset over [opened, closed) (Invariant: SOL-04); an open fault has no
-closed instant yet. It names the engineer who assigned it and, when it was called in, the operator who entered it
-(SP-015); a fault stored before that rule reads assigned_by "unrecorded"."""
+closed instant yet. It names who assigned it: since SP-046 the test or device whose result raised it, before that an engineer and, when
+it was called in, the operator who entered it (SP-015); a fault stored before SP-015 reads assigned_by "unrecorded"."""
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 
@@ -9,6 +9,15 @@ from solarpunk.leaf.codes import FaultCode, lookup
 
 # What a fault stored before SP-015 says of who assigned it: never an engineer's address, so never taken for one.
 UNRECORDED = "unrecorded"
+# SP-046: telemetry assigns a fault, and the record says which: a remote test ("test:reachable") or a device ("device").
+TEST_ASSIGNER = "test:{name}"
+DEVICE_ASSIGNER = "device"
+
+
+def by_telemetry(assigned_by: str) -> bool:
+    """Whether a fault was raised by telemetry, not by an engineer: by_telemetry("test:reachable") and
+    by_telemetry("device") are True, by_telemetry("tech@oahe.example") is False."""
+    return assigned_by == DEVICE_ASSIGNER or assigned_by.startswith(TEST_ASSIGNER.format(name=""))
 
 
 @dataclass(frozen=True)

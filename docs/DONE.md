@@ -195,6 +195,10 @@ Done 2026-11-18 (J-054). Check: the asset window lists the asset's open suggesti
 
 Done 2026-11-18 (J-056). Check: `docs/when/tune-up.md` followed in full; the metrics table written; the navigation log's "Last review" set. ✓ cold gate 1.02 min, warm 1.02 min, fast loop 26.9 s (the first pass run on 7.2's frozen copy, with the window tests and ruff in it), 9 of 9 metrics, none regressed; five debriefs reviewed; two facts written into the product workpath (what one run stores per asset; the Tk rule and `conftest.py`).
 
+### 7.7 Faults from telemetry
+
+Done 2026-11-21 (J-121). Check: a failing remote test result raises a fault itself, with its rule table's code, or the catalogue's generic code (one new code in the leaf's catalogue: a remote test failed, its cause not yet known) where the table names none; a failure whose code's fault is still open on that asset joins it (the ledger holds one open fault of a code on an asset; the streak of runs, a pass ending it, is the ticket's, 7.9, J-121); a no-data result raises none; accepting and dismissing a suggestion are gone from the windows, the command line and `project`, and no code updates a fault's or a suggestion's state in place (a later fact is a new row); a store made before 7.7 reads its suggestions and faults as they were; the clause register rows that name the old behaviour, and their tests, are reworded with it; the fast loop green. ✓ `project.faults_from_run` and `project.fault_from_device`, assigned by `test:<name>` or `device` (`leaf/faults.py`, `by_telemetry`); the generic code SIT-004 (INFO); accept, dismiss and their SQL, commands and window controls removed; the suggestions table kept as read-only history; `is_cover` never calls telemetry cover; fast checks green.
+
 ## Phase 8: local tickets
 
 ### 8.1 The ticket contract

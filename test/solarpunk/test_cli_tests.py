@@ -75,7 +75,7 @@ class TestCommands(unittest.TestCase):
         """What test run prints for load's fleet at an instant: its first line is "run <run_at>: pinged 1, records 0,
         results N", N the inverter's tests and the failed ping's reachable beside them, from the registry (SP-017)."""
         results = len(remote_registry.tests_for(AssetKind.INVERTER)) + 1
-        return (f"run {run_at}: pinged 1, records 0, results {results}\nOAHE-INV-001  yellow\nOAHE-SIT-001  green\n"
+        return (f"run {run_at}: pinged 1, records 0, results {results}\nOAHE-INV-001  red\nOAHE-SIT-001  green\n"  # SP-046: the failing reachable raised INV-001, an outage
                 f"error OAHE-INV-001: {LOCAL}:{port} is unreachable\n")
 
 
@@ -141,7 +141,7 @@ class Run(TestCommands):
         self.run_cli(["test", "run", "--db", self.db, "--at", RUN_AT])
         code, out, err = self.run_cli(["--db", self.db, "fleet", "list"])
         self.assertEqual((code, err), (0, ""))
-        self.assertEqual(out.splitlines(), ["OAHE-INV-001  INV  Inverter 1  yellow", "OAHE-SIT-001  SIT  Oahe  green"])
+        self.assertEqual(out.splitlines(), ["OAHE-INV-001  INV  Inverter 1  red", "OAHE-SIT-001  SIT  Oahe  green"])
 
     def test_a_naive_instant_is_refused(self) -> None:
         self.load()
