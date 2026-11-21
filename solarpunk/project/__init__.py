@@ -4,7 +4,8 @@ The scheduled run is in run.py (2.7, SP-006); the reports' surface in reports.py
 3 windows call is in surface.py (SP-007). The errors a surface catches are re-exported here, so receiver and ui catch
 them exactly without importing a lane (MOD-06); so are the work order and the root-cause list (4.1). Who may act, and
 where, is in access.py (12.1, SOL-16): the account calls, the viewer's refusal and the site scope on every reading,
-and the admin's account management (12.5); who an act is recorded as, the signed-in account, in attribution.py (12.4)."""
+and the admin's account management (12.5); who an act is recorded as, the signed-in account, in attribution.py (12.4).
+Public field telemetry's load and its false-alarm baseline are in field.py (12.6, SP-036)."""
 from solarpunk.faults.ledger import LedgerError
 from solarpunk.feed.client import FeedError
 from solarpunk.fleet.registry import RegistryError
@@ -37,6 +38,7 @@ from solarpunk.project.orchestrator import (
     work_orders_for,
 )
 from solarpunk.project.engineers import UnknownEngineer, known_engineers
+from solarpunk.project.field import Baseline, DayResult, Loaded, Tally, field_baseline, load_field
 from solarpunk.project.reports import (
     OUTPUT_FIELDS,
     PowerReport,
@@ -144,6 +146,12 @@ from solarpunk.project.attribution import (
 )
 
 __all__ = [
+    "Baseline",
+    "DayResult",
+    "Loaded",
+    "Tally",
+    "field_baseline",
+    "load_field",
     "word_engineers",
     "resolve_ticket_as",
     "recorded_as",

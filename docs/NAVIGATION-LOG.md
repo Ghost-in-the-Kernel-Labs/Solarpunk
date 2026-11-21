@@ -17,3 +17,9 @@ Last review: f3a5d95 (2026-11-20, the mid-Phase 12 tune-up commit)
 
 An entry is `### <date> · <task> · <who>`, then four bullets: **Task**, **Opened** (files, in order), **Complaints**,
 **Suggestions**.
+
+### 2026-11-20 · 12.6 the false-alarm baseline · Claude (strong-grade agent, carried by the coordinator)
+- **Task**: 12.6 a false-alarm baseline on public field data.
+- **Opened**: `CLAUDE.md`, `theGhost.md` (SP-036), `docs/journal/J-000-099.md` (J-099), `docs/ROADMAP.md`, `solarpunk/leaf/telemetry.py`, `solarpunk/leaf/clock.py`, `solarpunk/leaf/assets.py`, `solarpunk/leaf/codes.py`, `solarpunk/leaf/asset_types.json`, `solarpunk/telemetry/generate.py`, `solarpunk/telemetry/samples.py`, `solarpunk/remote/registry.py`, `solarpunk/remote/run.py`, `solarpunk/remote/results.py`, `solarpunk/fleet/registry.py`, `solarpunk/project/surface.py`, `docs/modules.json`, `solarpunk/cli/main.py`, `solarpunk.cmd`, `docs/paths/product.md`.
+- **Complaints**: the brief's data-lake path, carried from J-099, was empty for these systems; the fast loop sits at its 30 s budget; irradiance on an inverter's sample forces a choice of station that neither the contract nor the brief makes.
+- **Suggestions**: reachable not counting gaps as records; the thresholds J-100 names.

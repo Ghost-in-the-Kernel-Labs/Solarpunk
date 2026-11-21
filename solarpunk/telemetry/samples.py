@@ -47,3 +47,10 @@ def in_period(connection: sqlite3.Connection, asset_id: str, period: Period) -> 
         (asset_id, period.start.isoformat(), period.end.isoformat()),
     ).fetchall()
     return tuple(Sample(r[0], datetime.fromisoformat(r[1]), r[2], r[3], bool(r[4])) for r in found)
+
+
+def asset_ids(connection: sqlite3.Connection) -> tuple[str, ...]:
+    """The ids of every asset with a stored sample, gaps included, in id order: after storing OAHE-INV-002's and
+    OAHE-INV-001's days, ("OAHE-INV-001", "OAHE-INV-002"); an empty table gives ()."""
+    found = connection.execute("SELECT DISTINCT asset_id FROM samples ORDER BY asset_id").fetchall()
+    return tuple(row[0] for row in found)

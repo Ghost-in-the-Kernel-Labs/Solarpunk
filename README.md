@@ -19,6 +19,8 @@ code, every product line is mutation-tested nightly, and `scripts/clauses.py` re
     python3 -m solarpunk.cli test list  # the remote tests, each with its asset kinds and clauses
     python3 -m solarpunk.cli test add tracker_moving --clause 55000-9.1   # scaffold a new remote test
     python3 -m solarpunk.cli report OAHE 2026-06-01T00:00:00+00:00 2026-06-02T00:00:00+00:00 --csv   # power output
+    python3 -m solarpunk.cli field load PATH --db field.db   # public PV telemetry from a local copy (docs/FIELD-DATA.md)
+    python3 -m solarpunk.cli field baseline --from 2023-02-01 --to 2023-04-30 --db field.db   # alarms a day at a time
     bash scripts/fast.sh                # the fast loop: every document check and unit test, nothing installed
     python3 -I scripts/clauses.py       # the clause report: each ISO 9001 and ISO 55000 clause and its test
 

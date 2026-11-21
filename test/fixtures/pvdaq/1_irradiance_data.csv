@@ -1,0 +1,6 @@
+measured_on,pyranometer_(class_a)_pad_1_poa_irradiance_(w/m2)_o_149723,pyranometer_(class_a)_pad_1_poa_irradiance_temp_compensated_(w/m2)_o_149724,pyranometer_(class_a)_pad_2_poa_irradiance_(w/m2)_o_149725
+2023-02-01 10:00:00,600.0,601.0,610.0
+2023-02-01 10:05:00,602.0,603.0,612.0
+2023-02-01 10:15:00,606.0,607.0,
+2023-02-01 10:20:00,-3.0,-3.0,1600.0
+2023-02-01 10:25:00,610.0,611.0,620.0

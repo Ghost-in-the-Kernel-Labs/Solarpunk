@@ -77,13 +77,6 @@ SP-023, so the Tickets window and the attention band's tickets land in the rewor
 Lanes (P-15): 12.1, then 12.2 (versions), then 12.3 and 12.5 in parallel, then 12.4, then 12.6 (a false-alarm baseline on field data), then 12.8 the pass; 12.7 waits (Phase W). Ghost's direction,
 SP-022; 12.1 split in two by SP-028 (accounts, then versions); 12.6 added on Ghost's word, 2026-11-20 (J-098).
 
-### 12.6 A false-alarm baseline on public field data
-
-The checks run over real field telemetry, so how often each one fires on working plant is known and every alarm is
-explained (SP-036; J-098, J-099).
-
-Check: real 5-minute telemetry from public PV systems (NREL PVDAQ, CC BY 4.0; the systems chosen and named) is loaded from a local copy outside the repository by `solarpunk field load PATH --db STORE`, and its source, licence, host, systems, window and column mapping are written in `docs/FIELD-DATA.md`; the loader is tested on a small hand-written sample in the dataset's format, so no file of the dataset enters the repository (C-033); every remote test that applies runs over each loaded asset one day at a time, without changing the scheduled run; and the baseline (per check and system: days run, days alarmed, and each alarm explained as a real event, a data artefact or a threshold) is written in the journal as numbers and names, never the data; the fast loop green.
-
 ### 12.8 Tune-up pass 12
 
 Check: `docs/when/tune-up.md` followed in full; the metrics table written; the navigation log's "Last review" set.

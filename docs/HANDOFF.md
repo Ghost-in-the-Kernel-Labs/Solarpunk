@@ -7,9 +7,10 @@ Read `CLAUDE.md` first, then this. `TODO.md` is the chain in order; `docs/DONE.m
 The last session closed Phase 9 again and landed 12.2 and 12.3; this one landed SP-033 and SP-034 (J-095), 12.5,
 account administration (J-096: `solarpunk account init|add|reset|deactivate|list`), and 12.4, attribution (J-097: every
 act as the signed-in account, the windows passing the version they read, a ticket's moves logged by SP-035). `main` is
-clean and pushed, every landing through the fast gate. Next: **12.6, a false-alarm baseline on public field data**
-(SP-036, J-099: every check run a day at a time over real PVDAQ telemetry, each alarm explained; no public dataset
-labels its failures, so 12.7, known failures caught, waits in Phase W), then 12.8 the pass.
+clean and pushed, every landing through the fast gate. 12.6, the false-alarm baseline on public
+field data, landed (J-101: the checks caught a failed reference cell, dead inverters and a logger replaying its last
+value; the false alarms are three thresholds and two data artefacts, each change named for Ghost), after the
+mid-Phase 12 tune-up commit (J-100). Next: **12.8, the pass**. 12.7, known failures, waits in Phase W.
 
 What that session landed, newest first (the journal has each):
 - 12.3 signing in (J-094, SP-032): a store with no active account asks nobody and says "no accounts yet: anyone at this
@@ -37,7 +38,7 @@ Mind, before adding:
 
 ## Where the project stands (2026-11-20, rewritten at the mid-Phase 12 tune-up commit)
 
-Phases 0 to 11 are closed; Phase 12 (accounts and authentication) has 12.6 parked for landing and 12.8, its pass, open;
+Phases 0 to 11 are closed; Phase 12 (accounts and authentication) has 12.8, its pass, open;
 12.7 waits in Phase W. What is done, item by item, is `docs/DONE.md`; why, the journal (`docs/journal/INDEX.md`). The
 order of what is next is `TODO.md`; Ghost's direction for the product is `docs/GOAL.md`; the phases ahead are 13 (the
 tests' record), 14 (the network's security) and 15 (a central server).

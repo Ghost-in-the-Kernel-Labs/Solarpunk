@@ -13,6 +13,7 @@ from typing import TextIO
 from solarpunk import project
 from solarpunk.cli import signin
 from solarpunk.cli.accounts import add_accounts
+from solarpunk.cli.field import add_field
 from solarpunk.cli.signin import acting, attributed
 from solarpunk.cli.tickets import add_tickets
 
@@ -67,10 +68,14 @@ The numbers
   clauses                                      each ISO 9001 and ISO 55000 clause and the test that holds it
   help                                         this list
 
+Public field data (docs/FIELD-DATA.md; the data stays outside the repository)
+  field load PATH [--site SITE]                load one PVDAQ system's export from a local folder
+  field baseline --from DAY --to DAY           each remote test over each loaded asset a day at a time: days alarmed
+
 Every command but test run reads solarpunk.db in this folder; for another store,
 python -m solarpunk.cli --db PATH <command>. In a store with accounts, a command that acts
 (load, assign, close, accept, dismiss, generate, ack, comment, resolve, account add, reset,
-deactivate) takes --as EMAIL and asks for its password, and acts as that account: an engineer as
+deactivate, field load) takes --as EMAIL and asks for its password, and acts as that account: an engineer as
 themself, an operator on an engineer's word with --for ENGINEER. test run acts as no person and asks
 nothing. A store with no accounts names who acts with --by (an operator's entry: --recorded-by).
 """
@@ -350,6 +355,7 @@ def build_parser() -> argparse.ArgumentParser:
     add_tests(commands)
     add_tickets(commands)  # 11.2
     add_accounts(commands)  # 12.5
+    add_field(commands)  # 12.6
     return parser
 
 
