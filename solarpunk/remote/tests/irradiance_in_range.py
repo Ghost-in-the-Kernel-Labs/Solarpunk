@@ -7,12 +7,13 @@ from solarpunk.leaf.asset_types import in_range
 from solarpunk.leaf.assets import Asset
 from solarpunk.leaf.codes import AssetKind
 from solarpunk.leaf.telemetry import Sample
+from solarpunk.remote.reactions import Fault
 from solarpunk.remote.results import Result, no_data, nothing_to_check
 
 KINDS = (AssetKind.INVERTER, AssetKind.SENSOR)
 CLAUSES = ("9001-9.1.3", "55000-7.5")
-# SP-015's rule table: a weather station reading out of range is SEN-001; an inverter's irradiance channel has no code.
-SUGGESTS = {AssetKind.INVERTER: None, AssetKind.SENSOR: "SEN-001"}
+# SP-020's reactions (SP-015's rule table): a weather station reading out of range is SEN-001; an inverter's irradiance channel has no code.
+REACTIONS = {AssetKind.SENSOR: (Fault("SEN-001"),)}
 FIELD = "irradiance_w_m2"
 
 

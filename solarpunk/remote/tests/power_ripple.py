@@ -12,9 +12,9 @@ from solarpunk.remote.results import Result, no_data
 
 KINDS = (AssetKind.INVERTER,)
 CLAUSES = ("9001-9.1.1",)
-# SP-015's rule table: a ripple has no code of its own in the catalogue (SP-047: no OUTAGE or DERATE for a test); the
-# generic SIT-004 follows. No suggestion.
-SUGGESTS = {AssetKind.INVERTER: None}
+# SP-020's reactions (SP-015's rule table): a ripple has no code of its own in the catalogue (SP-047: no OUTAGE or DERATE for a test); the
+# generic SIT-004 follows. No fault code of its own.
+REACTIONS = {}  # the generic SIT-004 fault alone
 # What the runner reads for this test: power, once a second, for a minute (Ghost's example, SP-020).
 ACQUIRE = Burst(field="power_kw", every_s=1, for_s=60)
 # Proposed, Ghost's to set: the lowest to highest power of the minute as a share of the rating. A healthy day moves at

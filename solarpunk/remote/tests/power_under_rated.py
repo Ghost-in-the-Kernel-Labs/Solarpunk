@@ -8,8 +8,8 @@ from solarpunk.remote.results import Result, no_data, nothing_to_check
 
 KINDS = (AssetKind.INVERTER,)
 CLAUSES = ("9001-9.1.1",)
-# SP-015's rule table: power over the rating is a bad reading or a bad rating, neither a catalogue fault: no code.
-SUGGESTS = {AssetKind.INVERTER: None}
+# SP-020's reactions (SP-015's rule table): power over the rating is a bad reading or a bad rating, neither a catalogue fault: no code.
+REACTIONS = {}  # the generic SIT-004 fault alone
 # J-101: 9069's rated inverters read 825.2 to 825.7 kW against 825 kW on 3 days, metering, not a fault; a power up to
 # this share over the rating is allowed (SP-039, call 3).
 OVER_RATING_SHARE = 0.01

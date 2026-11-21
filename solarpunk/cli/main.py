@@ -218,15 +218,15 @@ def show_help(args: argparse.Namespace, out: TextIO) -> None:
 
 
 def rules_text(test: project.RemoteTest) -> str:
-    """A test's rule table in words (SP-015): reachable's is "suggests MTR:MTR-001,SEN:SEN-001", a kind with
-    no code left out; a test that suggests nothing reads "suggests nothing"."""
-    pairs = [f"{kind.value}:{code}" for kind, code in test.suggests.items() if code is not None]
-    return "suggests " + (",".join(pairs) if pairs else "nothing")
+    """A test's reactions in words (13.4, SP-020), each kind its own: reachable's begins "INV: Fault(SIT-004); MTR:
+    Fault(MTR-001)", a kind that names none reacting with the generic fault alone."""
+    return "; ".join(f"{kind.value}: {', '.join(project.reaction_text(item) for item in test.reactions_for(kind))}"
+                     for kind in test.kinds)
 
 
 def test_list(args: argparse.Namespace, out: TextIO) -> None:
-    """test list: one line per remote test with its kinds, clauses and rule table,
-    "reachable  INV,MTR,SEN,TRK  55000-9.1  suggests MTR:MTR-001,SEN:SEN-001"."""
+    """test list: one line per remote test with its kinds, clauses and reactions,
+    "reachable  INV,MTR,SEN,TRK  55000-9.1  INV: Fault(SIT-004); MTR: Fault(MTR-001); ..."."""
     for test in project.remote_tests():
         kinds = ",".join(kind.value for kind in test.kinds)
         out.write(f"{test.name}  {kinds}  {','.join(test.clauses)}  {rules_text(test)}\n")

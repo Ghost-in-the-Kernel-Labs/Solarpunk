@@ -101,7 +101,7 @@ class TheRegistry(unittest.TestCase):
     def module(self, declared: dict) -> types.ModuleType:
         """A test module with the four fields and what is declared besides: self.module({"ACQUIRE": Burst(...)})."""
         module = types.ModuleType("solarpunk.remote.tests.fake")
-        module.KINDS, module.CLAUSES, module.SUGGESTS = (AssetKind.INVERTER,), ("9001-9.1.1",), {AssetKind.INVERTER: None}
+        module.KINDS, module.CLAUSES, module.REACTIONS = (AssetKind.INVERTER,), ("9001-9.1.1",), {}
         module.run = lambda asset, given: None
         for name, value in declared.items():
             setattr(module, name, value)

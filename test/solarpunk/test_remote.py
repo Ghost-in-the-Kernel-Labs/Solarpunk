@@ -121,10 +121,10 @@ class TheRegistry(unittest.TestCase):
 
     def test_a_module_missing_a_field_is_refused_by_name(self) -> None:
         cases = {
-            "CLAUSES = ()\nSUGGESTS = {}\ndef run(a, s): pass\n": "KINDS",
-            "KINDS = ()\nSUGGESTS = {}\ndef run(a, s): pass\n": "CLAUSES",
-            "KINDS = ()\nCLAUSES = ()\ndef run(a, s): pass\n": "SUGGESTS",
-            "KINDS = ()\nCLAUSES = ()\nSUGGESTS = {}\n": "run",
+            "CLAUSES = ()\nREACTIONS = {}\ndef run(a, s): pass\n": "KINDS",
+            "KINDS = ()\nREACTIONS = {}\ndef run(a, s): pass\n": "CLAUSES",
+            "KINDS = ()\nCLAUSES = ()\ndef run(a, s): pass\n": "REACTIONS",
+            "KINDS = ()\nCLAUSES = ()\nREACTIONS = {}\n": "run",
         }
         for body, field in cases.items():
             with self.subTest(field=field), self.assertRaises(BadRemoteTest) as caught:
@@ -133,7 +133,7 @@ class TheRegistry(unittest.TestCase):
 
     def test_kinds_must_be_a_tuple_of_asset_kinds(self) -> None:
         for kinds in ("['INV']", "('INV',)", "[]"):
-            body = (f"from solarpunk.leaf.codes import AssetKind\nKINDS = {kinds}\nCLAUSES = ()\nSUGGESTS = {{}}\n"
+            body = (f"from solarpunk.leaf.codes import AssetKind\nKINDS = {kinds}\nCLAUSES = ()\nREACTIONS = {{}}\n"
                     "def run(a, s): pass\n")
             with self.subTest(kinds=kinds), self.assertRaises(BadRemoteTest) as caught:
                 self.load_broken(body)
@@ -141,19 +141,21 @@ class TheRegistry(unittest.TestCase):
 
     def test_a_good_fixture_module_loads(self) -> None:
         found = self.load_broken("from solarpunk.leaf.codes import AssetKind\n"
-                                 "KINDS = (AssetKind.METER,)\nCLAUSES = ('x',)\nSUGGESTS = {AssetKind.METER: 'MTR-001'}\n"
+                                 "from solarpunk.remote.reactions import Fault\n"
+                                 "KINDS = (AssetKind.METER,)\nCLAUSES = ('x',)\nREACTIONS = {AssetKind.METER: (Fault('MTR-001'),)}\n"
                                  "def run(a, s): pass\n")
         self.assertEqual(list(found), ["broken"])
         self.assertEqual(found["broken"].kinds, (AssetKind.METER,))
-        self.assertEqual(found["broken"].suggestion(AssetKind.METER), "MTR-001")
+        self.assertEqual(found["broken"].fault_code(AssetKind.METER), "MTR-001")
 
-    def test_a_rule_table_is_held_to_the_kinds_and_the_catalogue(self) -> None:
-        """SP-015: a rule for every kind and no other, each code one of that kind's."""
+    def test_the_reactions_are_held_to_the_kinds_and_the_catalogue(self) -> None:
+        """SP-020: reactions only for the test's kinds, each Fault code one of that kind's or the generic SIT-004."""
         head = "from solarpunk.leaf.codes import AssetKind\nKINDS = (AssetKind.METER,)\nCLAUSES = ()\ndef run(a, s): pass\n"
         cases = {
-            "SUGGESTS = {}": "SUGGESTS must give one rule for each of its KINDS",
-            "SUGGESTS = {AssetKind.METER: None, AssetKind.SENSOR: None}": "SUGGESTS must give one rule for each of its KINDS",
-            "SUGGESTS = {AssetKind.METER: 'INV-001'}": "SUGGESTS names INV-001, which is no METER code",
+            "REACTIONS = []": "REACTIONS must be a dict keyed by kinds of its KINDS",
+            "REACTIONS = {AssetKind.SENSOR: ()}": "REACTIONS must be a dict keyed by kinds of its KINDS",
+            "from solarpunk.remote.reactions import Fault\nREACTIONS = {AssetKind.METER: (Fault('INV-001'),)}":
+                "REACTIONS names INV-001, which is no METER code",
         }
         for rules, said in cases.items():
             with self.subTest(rules=rules), self.assertRaises(BadRemoteTest) as caught:
