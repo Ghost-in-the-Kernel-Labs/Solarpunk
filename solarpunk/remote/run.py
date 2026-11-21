@@ -18,6 +18,7 @@ from solarpunk.leaf.codes import AssetStatus
 from solarpunk.leaf.telemetry import Sample
 from solarpunk.remote.registry import BadRemoteTest, discover, tests_for
 from solarpunk.remote.results import NO_DATA, NotStored, Result, record, stored_asset, stored_samples
+from solarpunk.remote.suite_registry import Suite
 
 NO_DATA_EXIT = 3
 
@@ -66,6 +67,29 @@ def run_suite(
         # An asset missing from open_outages carries no open OUTAGE fault.
         statuses[asset.asset_id] = status_of(open_outages.get(asset.asset_id) is True, tuple(results))
     return statuses
+
+
+def run_named(
+    conn: sqlite3.Connection,
+    suite: Suite,
+    assets: tuple[Asset, ...],
+    samples_by_asset: dict[str, tuple[Sample, ...]],
+    run_at: datetime,
+) -> int:
+    """One suite's tests against the assets in its reach, each result recorded at run_at carrying the suite's name
+    (13.2), and the count of results written: a suite of reachable over two inverters and a meter, its KINDS the
+    INVERTER, writes 2; an asset a test does not run on is passed over."""
+    found = discover()
+    written = 0
+    for asset in assets:
+        if not suite.reaches(asset):
+            continue
+        for name in suite.tests:
+            if asset.kind in found[name].kinds:
+                result = found[name].run(asset, samples_by_asset.get(asset.asset_id, ()))
+                record(conn, name, asset.asset_id, run_at, result, suite.name)
+                written += 1
+    return written
 
 
 def parser() -> argparse.ArgumentParser:

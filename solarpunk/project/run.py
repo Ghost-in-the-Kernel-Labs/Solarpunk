@@ -21,12 +21,15 @@ from solarpunk.mailer import transport
 from solarpunk.project.orchestrator import fleet_assets, open_outages
 from solarpunk.project.tracker import drain_outbox, local_tracker
 from solarpunk.project.suggest import suggest_from_run
+from solarpunk.project.suites import run_due_suites
 from solarpunk.remote import results as result_table
 from solarpunk.remote import run as remote
 from solarpunk.remote import scaffold
 from solarpunk.remote import suggestions as suggestion_table
 from solarpunk.remote import registry as test_registry
+from solarpunk.remote import suite_registry
 from solarpunk.remote.registry import RemoteTest, Surveyed, discover, tests_for
+from solarpunk.remote.suite_registry import Suite
 from solarpunk.telemetry import samples as sample_table
 
 REACHABLE = "reachable"
@@ -186,9 +189,11 @@ def scheduled_run(conn: sqlite3.Connection, run_at: datetime, settings_path: Pat
     statuses = fault_statuses(tuple(asset for asset in assets if asset not in fed), outages)
     statuses.update(stamped(remote.run_suite(conn, fed, samples, flags, run_at), pinged.unreachable))
     suggest_from_run(conn, tuple(asset.asset_id for asset in fed), run_at)
+    # Decision: SP-019 (the run runs each named suite due at its instant; the default suite is the run above)
+    named_written = run_due_suites(conn, fed, samples, run_at)
     statuses = suggested_yellow(conn, statuses)
     sent, mail_errors = (0, ()) if settings is None else mail_all(conn, assets, statuses, settings, run_at)
-    written = len(pinged.unreachable) + sum(len(tests_for(asset.kind)) for asset in fed)
+    written = len(pinged.unreachable) + sum(len(tests_for(asset.kind)) for asset in fed) + named_written
     # Decision: SP-027 (the run drains the ticket outbox into the tracker; a tracker down is an error line, not a stop)
     drained = drain_outbox(conn, local_tracker(conn), run_at)
     down = () if drained.stopped_by is None else (f"tracker: {drained.stopped_by}; {drained.waiting} changes wait",)
@@ -220,3 +225,15 @@ def survey_remote_tests(folder: Path | None = None) -> tuple[Surveyed, ...]:
     """Every script in the tests' folder (or the one given), each with its test or the reason it cannot load, in name
     order (9.8): one broken script is listed, never raised, so the window over the folder stands."""
     return test_registry.survey(folder or test_registry.folder())
+
+
+def run_suite_now(conn: sqlite3.Connection, name: str, run_at: datetime,
+                  where: Path | None = None) -> tuple[Suite, int]:
+    """Runs the suite by name at run_at over every asset with an endpoint and its stored samples of the day up to it, and
+    returns it with the results written: run_suite_now(conn, "all", at) writes every test's result; an unknown name
+    raises BadRemoteTest."""
+    suite = suite_registry.named(name, where)
+    fed = fed_only(fleet_assets(conn, None))
+    span = window(run_at)
+    samples = {asset.asset_id: sample_table.in_period(conn, asset.asset_id, span) for asset in fed}
+    return suite, remote.run_named(conn, suite, fed, samples, run_at)

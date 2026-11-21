@@ -21,12 +21,19 @@ SCHEMA = (
     " run_at TEXT NOT NULL,"
     " passed INTEGER NOT NULL,"
     " reason TEXT NOT NULL,"
-    " no_data INTEGER NOT NULL DEFAULT 0)",
+    " no_data INTEGER NOT NULL DEFAULT 0,"
+    " suite TEXT NOT NULL DEFAULT 'all')",
 )
+ALL = "all"  # the default suite (SP-019): a result stored before 13.2, or by the run of every test, carries it
+SUITE_COLUMN = "suite"
+ADD_SUITE = "ALTER TABLE results ADD COLUMN suite TEXT NOT NULL DEFAULT 'all'"
 NO_DATA_COLUMN = "no_data"
 ADD_NO_DATA = "ALTER TABLE results ADD COLUMN no_data INTEGER NOT NULL DEFAULT 0"
-INSERT = "INSERT INTO results (test_name, asset_id, run_at, passed, reason, no_data) VALUES (?, ?, ?, ?, ?, ?)"
-RESULT_COLUMNS = "test_name, asset_id, run_at, passed, reason, no_data"
+INSERT = (
+    "INSERT INTO results (test_name, asset_id, run_at, passed, reason, no_data, suite) VALUES (?, ?, ?, ?, ?, ?, ?)"
+)
+RESULT_COLUMNS = "test_name, asset_id, run_at, passed, reason, no_data, suite"
+LAST_OF_SUITE = "SELECT max(run_at) FROM results WHERE suite = ?"
 # Failures first, then no data, then passes (a no-data row stores passed 0), each by test name.
 LATEST = (
     f"SELECT {RESULT_COLUMNS} FROM results"
@@ -76,7 +83,8 @@ class Result:
 @dataclass(frozen=True)
 class Recorded:
     """One stored result: Recorded("reachable", "OAHE-INV-001", 2026-06-01T10:00Z, False, "no records"); a no-data
-    result has no_data True and passed False, and a row stored before 12.9 reads as the pass or fail it was."""
+    result has no_data True and passed False, and a row stored before 12.9 reads as the pass or fail it was; suite names
+    the suite that ran it (13.2), "all" for a row stored before suites."""
 
     test_name: str
     asset_id: str
@@ -84,6 +92,7 @@ class Recorded:
     passed: bool
     reason: str
     no_data: bool = False
+    suite: str = ALL
 
     @property
     def failed(self) -> bool:
@@ -112,25 +121,38 @@ def schema() -> tuple[str, ...]:
 
 def upgrade(conn: sqlite3.Connection) -> None:
     """Gives a results table made before 12.9 its no_data column, every row it holds 0, so each reads as the pass or
-    fail it was stored as (SP-039); a table that has it is left as it is."""
-    if NO_DATA_COLUMN not in {row[1] for row in conn.execute("PRAGMA table_info(results)")}:
+    fail it was stored as (SP-039), and one made before 13.2 its suite column, every row "all"; a table that has them is
+    left as it is."""
+    held = {row[1] for row in conn.execute("PRAGMA table_info(results)")}
+    if NO_DATA_COLUMN not in held:
         conn.execute(ADD_NO_DATA)
-        conn.commit()
+    if SUITE_COLUMN not in held:
+        conn.execute(ADD_SUITE)
+    conn.commit()
 
 
 def _recorded(row: sqlite3.Row | tuple) -> Recorded:
     """One results row as a Recorded."""
-    return Recorded(row[0], row[1], datetime.fromisoformat(row[2]), bool(row[3]), row[4], bool(row[5]))
+    return Recorded(row[0], row[1], datetime.fromisoformat(row[2]), bool(row[3]), row[4], bool(row[5]), row[6])
 
 
-def record(conn: sqlite3.Connection, test_name: str, asset_id: str, run_at: datetime, result: Result) -> None:
+def record(conn: sqlite3.Connection, test_name: str, asset_id: str, run_at: datetime, result: Result,
+           suite: str = ALL) -> None:
     """Stores one result and commits: record(c, "reachable", "OAHE-INV-001", 10:00 UTC, Result(True, "3 records"))
     leaves the row ("reachable", "OAHE-INV-001", "2026-06-01T10:00:00+00:00", 1, "3 records", 0); no data stores
-    passed 0 and no_data 1; a naive run_at raises NotUtc."""
+    passed 0 and no_data 1; a result carries the suite that ran it, "all" unless one is named (13.2); a naive run_at
+    raises NotUtc."""
     # Invariant: SOL-06 (UTC isoformat text of one shape sorts as its instants)
     conn.execute(INSERT, (test_name, asset_id, utc(run_at).isoformat(), int(result.passed), result.reason,
-                          int(result.no_data)))
+                          int(result.no_data), suite))
     conn.commit()
+
+
+def last_run_of(conn: sqlite3.Connection, suite: str) -> datetime | None:
+    """The instant of the suite's most recent stored result, or None before any: after the suite "hourly_check" ran at
+    10:00 UTC, 10:00; a suite never run gives None."""
+    latest = conn.execute(LAST_OF_SUITE, (suite,)).fetchone()[0]
+    return None if latest is None else datetime.fromisoformat(latest)
 
 
 def latest_for(conn: sqlite3.Connection, asset_id: str) -> tuple[Recorded, ...]:

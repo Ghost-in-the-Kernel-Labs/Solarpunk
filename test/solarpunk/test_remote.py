@@ -253,13 +253,14 @@ class TheResultsTable(unittest.TestCase):
             ("passed", "INTEGER", 1, None, 0),
             ("reason", "TEXT", 1, None, 0),
             ("no_data", "INTEGER", 1, "0", 0),
+            ("suite", "TEXT", 1, "'all'", 0),
         ])
 
     def test_record_stores_iso_utc_text(self) -> None:
         conn = fresh()
         results.record(conn, "reachable", INV1.asset_id, T1, Result(True, "3 records"))
         rows = [tuple(row) for row in conn.execute("SELECT * FROM results")]
-        self.assertEqual(rows, [(1, "reachable", INV1.asset_id, STAMP, 1, "3 records", 0)])
+        self.assertEqual(rows, [(1, "reachable", INV1.asset_id, STAMP, 1, "3 records", 0, "all")])
 
     def test_record_refuses_a_naive_instant(self) -> None:
         with self.assertRaises(NotUtc):
