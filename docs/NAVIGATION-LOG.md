@@ -65,3 +65,9 @@ An entry is `### <date> · <task> · <who>`, then four bullets: **Task**, **Open
 - **Opened**: `docs/when/tune-up.md`, `docs/when/long-run.md`, `docs/NAVIGATION-LOG.md`, `docs/AGENT.md`, `docs/HANDOFF.md`.
 - **Complaints**: the gate's interpreter (`python3`) has no tkinter, so its 137 skips hide the window tests, and the brief's `discover -s test -p` line fails with 19 import errors without `-t .` (`scripts/fast.sh` has it); the brief called `attribution.recorded_as`'s `deed` unused, but it is the refusal's wording.
 - **Suggestions**: `docs/when/tune-up.md` step 2 says the window tests run under `xvfb-run -a python3.12 -m unittest discover -s test -t . -p "test_ui*.py"`.
+
+### 2026-11-21 · 13.8 part 1 the names check · mid-grade worker
+- **Task**: `scripts/checks/names.py`, its planted break and its test, not yet over the tree (J-137).
+- **Opened**: `CLAUDE.md`, `scripts/checks/readability.py`, `scripts/checks/common.py`, an existing check with a planted break and its test.
+- **Complaints**: none.
+- **Suggestions**: part 5's tree-wide test calls `names.problems(ROOT)`.
