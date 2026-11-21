@@ -45,7 +45,7 @@ def rows(table: str) -> list[list[str]]:
     for line in table.splitlines():
         if not line.startswith("|"):
             continue
-        cells = [c.strip() for c in line.strip().strip("|").split("|")]
+        cells = [cell.strip() for cell in line.strip().strip("|").split("|")]
         if cells[0] in ("Date", "---") or cells[0].startswith("---"):
             continue
         found.append(cells)
@@ -84,8 +84,8 @@ def record_problems(text: str) -> list[str]:
 def baseline_problems(cells: list[str], where: str, held: bool) -> list[str]:
     """An "unreviewed baseline" row's own shape: Kind baseline, From, Verdict and Reputation "—", a journal entry, and a
     package with no row above it (an update of a held package is read, never baselined)."""
-    found = [f"row {where!r} is a baseline row but its {name} is {cells[i]!r}, not {want!r}"
-             for i, name, want in ((4, "Kind", "baseline"), (2, "From", NONE), (5, "Verdict", NONE), (6, "Reputation", NONE)) if cells[i] != want]
+    found = [f"row {where!r} is a baseline row but its {name} is {cells[column]!r}, not {want!r}"
+             for column, name, want in ((4, "Kind", "baseline"), (2, "From", NONE), (5, "Verdict", NONE), (6, "Reputation", NONE)) if cells[column] != want]
     if held:
         found.append(f"row {where!r} baselines a package that already has a row: an update is read, never baselined")
     if not re.fullmatch(r"J-\d{3}", cells[8]):
@@ -115,7 +115,7 @@ def file_pins(path: Path, rel: str) -> list[tuple[str, str]]:
     if name.startswith("Dockerfile"):
         return re.findall(r"^FROM\s+(?:--platform=\S+\s+)?(\S+?)@(sha256:[0-9a-f]{64})\b", text, re.MULTILINE | re.IGNORECASE)
     if rel.endswith("third_party/MANIFEST.md"):
-        cells = [[c.strip().strip("`") for c in line.strip().strip("|").split("|")] for line in text.splitlines() if line.startswith("|")]
+        cells = [[cell.strip().strip("`") for cell in line.strip().strip("|").split("|")] for line in text.splitlines() if line.startswith("|")]
         return [(row[0], row[-1]) for row in cells if len(row) > 1 and re.fullmatch(r"[0-9a-f]{64}", row[-1])]
     return []
 

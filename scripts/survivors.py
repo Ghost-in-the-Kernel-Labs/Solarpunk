@@ -17,5 +17,5 @@ def unexplained(names: list[str], mutation_doc: str) -> list[str]:
 if __name__ == "__main__":
     doc = Path(__file__).resolve().parent.parent / "docs" / "MUTATION.md"
     missing = unexplained(survivors(sys.stdin.read()), doc.read_text() if doc.is_file() else "")
-    print("\n".join(f"unexplained survivor: {m}" for m in missing) if missing else "survivors: every one explained")
+    print("\n".join(f"unexplained survivor: {mutant}" for mutant in missing) if missing else "survivors: every one explained")
     sys.exit(1 if missing else 0)

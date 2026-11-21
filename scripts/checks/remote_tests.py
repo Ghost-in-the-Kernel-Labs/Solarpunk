@@ -88,7 +88,7 @@ def threshold_problems(tree: ast.Module, comments: set[int]) -> list[str]:
     found = []
     for node in tree.body:
         if isinstance(node, ast.Assign) and number(node.value):
-            names = [t.id for t in node.targets if isinstance(t, ast.Name) and t.id.isupper()]
+            names = [target.id for target in node.targets if isinstance(target, ast.Name) and target.id.isupper()]
             if names and not ({node.lineno - 1, node.lineno} & comments):
                 found.append(f"line {node.lineno} {names[0]} has no comment saying why")
     return found
@@ -100,7 +100,7 @@ def bare_numbers(tree: ast.Module) -> list[str]:
     digits = {id(arg) for node in ast.walk(tree) if isinstance(node, ast.Call) and getattr(node.func, "id", "") == "round"
               for arg in node.args[1:]}
     found = []
-    for function in (n for n in tree.body if isinstance(n, ast.FunctionDef)):
+    for function in (node for node in tree.body if isinstance(node, ast.FunctionDef)):
         for node in ast.walk(function):
             if isinstance(node, ast.Constant) and number(node) and id(node) not in digits \
                     and node.value not in PLAIN_NUMBERS:
@@ -110,7 +110,7 @@ def bare_numbers(tree: ast.Module) -> list[str]:
 
 def declares_acquire(tree: ast.Module) -> bool:
     """Whether the module assigns ACQUIRE at its top: `ACQUIRE = Burst(...)` is True, a module without it False."""
-    return any(isinstance(node, ast.Assign) and any(isinstance(t, ast.Name) and t.id == ACQUIRE for t in node.targets)
+    return any(isinstance(node, ast.Assign) and any(isinstance(target, ast.Name) and target.id == ACQUIRE for target in node.targets)
                for node in tree.body)
 
 
@@ -118,17 +118,17 @@ def run_problems(tree: ast.Module) -> list[str]:
     """What `run` must be: a function of (asset, samples) whose docstring holds a passing and a failing case and that
     calls nothing_to_check; no `run` at all gives ["has no run(asset, samples)"]. A module that declares ACQUIRE
     judges (asset, reads) and calls nothing_read instead (SP-020)."""
-    runs = [n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name == "run"]
+    runs = [node for node in tree.body if isinstance(node, ast.FunctionDef) and node.name == "run"]
     acquires = declares_acquire(tree)
     arguments = ACQUIRED_ARGUMENTS if acquires else RUN_ARGUMENTS
     judge = ACQUIRED_JUDGE if acquires else JUDGE
-    if not runs or [a.arg for a in runs[0].args.args] != arguments:
+    if not runs or [argument.arg for argument in runs[0].args.args] != arguments:
         return [f"has no run({', '.join(arguments)})"]
     found = []
     doc = ast.get_docstring(runs[0]) or ""
     found += [f"run's docstring has no {word} case ({case}...)" for word, case in (("passing", PASS_CASE),
               ("failing", FAIL_CASE)) if case not in doc]
-    if not any(isinstance(n, ast.Name) and n.id == judge for n in ast.walk(runs[0])):
+    if not any(isinstance(node, ast.Name) and node.id == judge for node in ast.walk(runs[0])):
         found.append(f"run never calls {judge} (no records must be no data, never a pass)")
     return found
 
@@ -147,15 +147,15 @@ def loaded(path: Path) -> ModuleType | str:
 def field_problems(tree: ast.Module, module: ModuleType) -> list[str]:
     """The fields and their shapes: a module without REACTIONS gives "has no REACTIONS"; KINDS not a tuple of AssetKind,
     CLAUSES not a tuple of strings, REACTIONS not a dict keyed by kinds of KINDS each give one problem."""
-    named = {n.name for n in tree.body if isinstance(n, ast.FunctionDef)}
+    named = {node.name for node in tree.body if isinstance(node, ast.FunctionDef)}
     for node in tree.body:
         if isinstance(node, ast.Assign):
             named |= {target.id for target in node.targets if isinstance(target, ast.Name)}
     found = [f"has no {field}" for field in FIELDS if field not in named]
     kinds, clauses = getattr(module, "KINDS", None), getattr(module, "CLAUSES", None)
-    if not (isinstance(kinds, tuple) and kinds and all(isinstance(k, AssetKind) for k in kinds)):
+    if not (isinstance(kinds, tuple) and kinds and all(isinstance(kind, AssetKind) for kind in kinds)):
         found.append("KINDS is not a non-empty tuple of AssetKind")
-    if not (isinstance(clauses, tuple) and clauses and all(isinstance(c, str) for c in clauses)):
+    if not (isinstance(clauses, tuple) and clauses and all(isinstance(clause, str) for clause in clauses)):
         found.append("CLAUSES is not a non-empty tuple of strings")
     reactions = getattr(module, "REACTIONS", None)
     if "REACTIONS" in named and (not isinstance(reactions, dict) or not set(reactions) <= set(kinds or ())):
@@ -182,7 +182,7 @@ def module_problems(path: Path, document: dict[str, list[str]]) -> list[str]:
         return [f"{path.stem}: {text}" for text in found + [module]]
     found += field_problems(tree, module)
     kinds = module.KINDS if isinstance(getattr(module, "KINDS", None), tuple) else ()
-    found += list_problems(path.stem, tuple(k for k in kinds if isinstance(k, AssetKind)), document)
+    found += list_problems(path.stem, tuple(kind for kind in kinds if isinstance(kind, AssetKind)), document)
     return [f"{path.stem}: {text}" for text in found]
 
 

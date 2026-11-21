@@ -57,7 +57,7 @@ def python_imports(source: str) -> list[Import]:
         found += [(bare(name), ()) for name in match.group(1).split(",")]
     for match in PY_FROM.finditer(source):
         names = re.sub(r"\s+", " ", match.group(2).strip("()")).split(",")
-        found.append((match.group(1), tuple(bare(n) for n in names if bare(n) and bare(n) != "*")))
+        found.append((match.group(1), tuple(bare(name) for name in names if bare(name) and bare(name) != "*")))
     return found
 
 
@@ -135,7 +135,7 @@ def ours(target: str, package: str, spec: dict) -> str | None:
 def reached(target: str, names: tuple[str, ...], package: str) -> list[str]:
     """The dotted names an import reaches inside our package: ("pkg.leaf.sizes", ("A", "B")) gives ["leaf.sizes.A", "leaf.sizes.B"]."""
     inner = target.removeprefix(package.replace("/", ".")).lstrip(".")
-    return [f"{inner}.{n}" for n in names] if names else [inner]
+    return [f"{inner}.{name}" for name in names] if names else [inner]
 
 
 def joined(written: str, name: str) -> str:

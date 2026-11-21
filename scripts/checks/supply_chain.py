@@ -61,8 +61,8 @@ def ours(root: Path) -> list[Path]:
     found = []
     for folder, names, files in os.walk(root):
         skipped = SKIPPED_ANYWHERE | (ROOT_ONLY_DIRS if Path(folder) == root else frozenset())
-        names[:] = [n for n in names if n not in skipped]
-        found += [Path(folder) / f for f in files if not (Path(folder) / f).relative_to(root).is_relative_to(PLANTED)]
+        names[:] = [name for name in names if name not in skipped]
+        found += [Path(folder) / file for file in files if not (Path(folder) / file).relative_to(root).is_relative_to(PLANTED)]
     return sorted(found)
 
 
@@ -71,7 +71,7 @@ def planted_problems(root: Path) -> list[str]:
     folder = root / PLANTED
     if not folder.is_dir():
         return []
-    present = {str(p.relative_to(folder)) for p in folder.rglob("*") if p.is_file()}
+    present = {str(path.relative_to(folder)) for path in folder.rglob("*") if path.is_file()}
     return [f"{PLANTED}/{name} is not a listed planted break" for name in sorted(present - PLANTED_FILES)]
 
 
@@ -99,7 +99,7 @@ def hook_problems(root: Path) -> list[str]:
         found.append(".vscode/tasks.json runs a task on folder open")
     git = root / ".git"
     if git.is_dir():
-        found += [f".git/hooks/{p.name} is a git hook" for p in sorted((git / "hooks").glob("*")) if not p.name.endswith(".sample")]
+        found += [f".git/hooks/{hook.name} is a git hook" for hook in sorted((git / "hooks").glob("*")) if not hook.name.endswith(".sample")]
         if (git / "config").is_file() and "hookspath" in (git / "config").read_text().lower():
             found.append(".git/config sets core.hooksPath")
     return found
@@ -110,7 +110,7 @@ def triggers(workflow: str) -> list[str]:
     block = re.search(r"^on:\s*\n((?:[ \t]+.*\n?)+)", workflow, re.MULTILINE)
     if block is None:
         inline = re.search(r"^on:\s*\[?([\w, ]+)\]?\s*$", workflow, re.MULTILINE)
-        return [t.strip() for t in inline.group(1).split(",")] if inline else []
+        return [trigger.strip() for trigger in inline.group(1).split(",")] if inline else []
     return re.findall(r"^  (\w+):", block.group(1), re.MULTILINE)
 
 
@@ -121,7 +121,7 @@ def workflow_problems(root: Path) -> list[str]:
     for path in matching(tracked_files(root), root, ".github/workflows/*.y*ml"):
         text = path.read_text()
         where = path.relative_to(root)
-        found += [f"{where} runs on {t}, not by hand only" for t in triggers(text) if t != "workflow_dispatch"]
+        found += [f"{where} runs on {trigger}, not by hand only" for trigger in triggers(text) if trigger != "workflow_dispatch"]
         for uses in re.findall(r"uses:\s*([^\s#]+)", text):
             if not re.search(r"@[0-9a-f]{40}$", uses):
                 found.append(f"{where} uses {uses}, not pinned to a commit SHA")
@@ -137,14 +137,14 @@ def front_matter(text: str) -> list[str]:
     lines = text.splitlines()
     if not lines or lines[0].strip() != "---":
         return []
-    end = next((i for i, line in enumerate(lines[1:], start=1) if line.strip() == "---"), len(lines))
+    end = next((index for index, line in enumerate(lines[1:], start=1) if line.strip() == "---"), len(lines))
     return lines[1:end]
 
 
 def agent_files(root: Path) -> list[Path]:
     """Every file in .claude/agents/ on the disk, sorted (a worm's untracked file included)."""
     folder = root / AGENTS
-    return sorted(p for p in folder.iterdir() if p.is_file() or p.is_symlink()) if folder.is_dir() else []
+    return sorted(path for path in folder.iterdir() if path.is_file() or path.is_symlink()) if folder.is_dir() else []
 
 
 def table(root: Path, heading: str) -> dict[str, str]:
@@ -154,7 +154,7 @@ def table(root: Path, heading: str) -> dict[str, str]:
     section = text.split(heading, 1)[1].split("\n## ", 1)[0] if heading in text else ""
     found = {}
     for line in section.splitlines():
-        cells = [c.strip().strip("`") for c in line.strip().strip("|").split("|")]
+        cells = [cell.strip().strip("`") for cell in line.strip().strip("|").split("|")]
         if line.startswith("|") and len(cells) == 2 and cells[0] not in ("Path", "---"):
             found[cells[0]] = cells[1]
     return found
@@ -184,7 +184,7 @@ def agent_problems(root: Path) -> list[str]:
             found.append(f"{where} is not listed in {DOC.as_posix()}'s Agent files table")
         elif listed[where] != tools_line(path):
             found.append(f"{where} has tools line {tools_line(path)!r}, listed {listed[where]!r}")
-    present = {p.relative_to(root).as_posix() for p in files}
+    present = {path.relative_to(root).as_posix() for path in files}
     return found + [f"{where} is listed in {DOC.as_posix()} but missing" for where in sorted(set(listed) - present)]
 
 
@@ -219,7 +219,7 @@ def register(root: Path) -> str:
     """docs/SUPPLY-CHAIN.md with both tables rewritten from the tree as it stands; written, and returned."""
     doc = root / DOC
     text = doc.read_text()
-    agents = "".join(f"| `{p.relative_to(root).as_posix()}` | `{tools_line(p)}` |\n" for p in agent_files(root))
+    agents = "".join(f"| `{path.relative_to(root).as_posix()}` | `{tools_line(path)}` |\n" for path in agent_files(root))
     surface_rows = "".join(f"| `{where}` | {kind} |\n" for where, kind in surfaces(root).items())
     text = rewritten(rewritten(text, AGENTS_HEADING, AGENTS_HEAD, agents), SURFACES_HEADING, SURFACES_HEAD, surface_rows)
     doc.write_text(text)

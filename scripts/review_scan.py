@@ -128,7 +128,7 @@ def package_root(side: Path) -> Path:
 
 def files_of(root: Path) -> list[str]:
     """Every file under the root, relative, sorted: a package with lib/a.js and package.json gives both."""
-    return sorted(str(p.relative_to(root)) for p in root.rglob("*") if p.is_file())
+    return sorted(str(path.relative_to(root)) for path in root.rglob("*") if path.is_file())
 
 
 def unhashed(name: str) -> str:
@@ -165,7 +165,7 @@ def hooks_of(root: Path) -> dict[str, str]:
     manifest = root / "package.json"
     if manifest.is_file():
         scripts = json.loads(manifest.read_text(errors="replace")).get("scripts", {})
-        return {k: v for k, v in scripts.items() if k in HOOKS}
+        return {name: command for name, command in scripts.items() if name in HOOKS}
     return {"setup.py": "present"} if (root / "setup.py").is_file() else {}
 
 
@@ -216,16 +216,16 @@ def scan(folder: Path, flagged: list[str] | None = None) -> list[str]:
     old_files, new_files = files_of(old_root), files_of(new_root)
     renames = pairings(old_files, new_files)
     apply_pairings(old_root, renames)
-    apply_pairings(new_root, {v: k for k, v in renames.items()})
+    apply_pairings(new_root, {new: old for old, new in renames.items()})
     old_files, new_files = files_of(old_root), files_of(new_root)
     added = sorted(set(new_files) - set(old_files))
     removed = sorted(set(old_files) - set(new_files))
-    (folder / "files.diff").write_text(f"paired {len(renames)} renamed chunks\n" + "".join(f"+ {n}\n" for n in added) + "".join(f"- {n}\n" for n in removed))
+    (folder / "files.diff").write_text(f"paired {len(renames)} renamed chunks\n" + "".join(f"+ {name}\n" for name in added) + "".join(f"- {name}\n" for name in removed))
     diff = subprocess.run(["diff", "-ruN", str(old_root), str(new_root)], capture_output=True, text=True, errors="replace").stdout
     (folder / "package.diff").write_text(diff)
     old_hooks, new_hooks = hooks_of(old_root), hooks_of(new_root)
     (folder / "scripts.diff").write_text(f"old: {json.dumps(old_hooks, sort_keys=True)}\nnew: {json.dumps(new_hooks, sort_keys=True)}\n")
-    hits = [f"{k}: install hook {'changed' if k in old_hooks else 'added'}: {v} (the worm's door)" for k, v in new_hooks.items() if old_hooks.get(k) != v]
+    hits = [f"{name}: install hook {'changed' if name in old_hooks else 'added'}: {command} (the worm's door)" for name, command in new_hooks.items() if old_hooks.get(name) != command]
     hits += startup_files(old_root, new_root, new_files)
     hits += large_or_minified(new_root, added)
     hits += scan_lines(diff)

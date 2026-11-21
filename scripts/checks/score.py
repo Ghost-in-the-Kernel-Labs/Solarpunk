@@ -141,7 +141,7 @@ def routing_rows(text: str) -> list[tuple[str, list[str], list[str]]]:
 
 def workpaths(claude: str) -> list[str]:
     """The workpath files CLAUDE.md's rows start at, whose own rows are routing too: ["docs/paths/process.md"]."""
-    return list(dict.fromkeys(p for _, start, _ in routing_rows(claude) for p in start if re.fullmatch(r"docs/paths/[\w.-]+\.md", p)))
+    return list(dict.fromkeys(path for _, start, _ in routing_rows(claude) for path in start if re.fullmatch(r"docs/paths/[\w.-]+\.md", path)))
 
 
 def files_of(name: str, sizes: dict[str, int]) -> list[str]:
@@ -150,7 +150,7 @@ def files_of(name: str, sizes: dict[str, int]) -> list[str]:
     if name in sizes:
         return [name]
     folder = name.rstrip("/") + "/"
-    return sorted(k for k in sizes if k.startswith(folder) and "/" not in k[len(folder):]) if not WILDCARD.search(name) else []
+    return sorted(key for key in sizes if key.startswith(folder) and "/" not in key[len(folder):]) if not WILDCARD.search(name) else []
 
 
 def layer(path: str, folders: list[str]) -> str | None:
@@ -187,11 +187,11 @@ def facts(body: str, rows: list[tuple[str, list[str], list[str]]], sizes: dict[s
     """The facts of one item from its body (heading to the next heading), the routing rows, the files' sizes in
     characters, the module folders and the id prefixes."""
     named = paths(body)
-    matched = [(task, start) for task, start, every in rows if any(covers(n, p) for n in every for p in named)]
-    opened = [f for _, start in matched for name in start for f in files_of(name, sizes)] + [f for name in named for f in files_of(name, sizes)]
-    tokens = sum(sizes[f] for f in dict.fromkeys(opened)) // CHARS_PER_TOKEN
-    layers = tuple(dict.fromkeys(found for found in (layer(p, folders) for p in named) if found))
-    protected = tuple(p for p in named if any(covers(pin, p) or p.startswith(pin) for pin in PROTECTED))
+    matched = [(task, start) for task, start, every in rows if any(covers(pattern, path) for pattern in every for path in named)]
+    opened = [file for _, start in matched for name in start for file in files_of(name, sizes)] + [file for name in named for file in files_of(name, sizes)]
+    tokens = sum(sizes[file] for file in dict.fromkeys(opened)) // CHARS_PER_TOKEN
+    layers = tuple(dict.fromkeys(found for found in (layer(path, folders) for path in named) if found))
+    protected = tuple(path for path in named if any(covers(pin, path) or path.startswith(pin) for pin in PROTECTED))
     runnable = any(RUNNABLE.match(name) for name in check_names(body))
     return Facts(tuple(named), tuple(task for task, _ in matched), tokens, layers, contract_ids(body, prefixes), protected,
                  runnable, bool(WAITS.search(body)))
@@ -211,9 +211,9 @@ def placed(points: int, waits: bool, rules: GradeMap) -> tuple[Grade, str | None
     """The lowest grade whose most points holds the points (the last when it waits on Ghost), raised to the floor;
     with the grade it was raised from, or None when the floor did not move it."""
     grades = list(rules.ladder)
-    fits = [g for g in grades if not waits and g.most_points is not None and points <= g.most_points]
+    fits = [grade for grade in grades if not waits and grade.most_points is not None and points <= grade.most_points]
     grade = fits[0] if fits else grades[-1]
-    floor = next((g for g in grades if g.name == rules.floor), grades[0])
+    floor = next((grade for grade in grades if grade.name == rules.floor), grades[0])
     return (floor, grade.name) if grades.index(floor) > grades.index(grade) else (grade, None)
 
 

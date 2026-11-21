@@ -77,3 +77,9 @@ An entry is `### <date> · <task> · <who>`, then four bullets: **Task**, **Open
 - **Opened**: `CLAUDE.md`, `docs/when/handoff.md`, the coordinator's census, then each file it listed.
 - **Complaints**: a global `\.at\b` substitution rewrote SQL too; `Priority.PRIORITY_P1` repeats itself; the census missed a second hit on a comprehension's continuation line (`result_tickets.py`), found by reading.
 - **Suggestions**: the check's docstring says whether dataclass fields count as bindings (they do), since renaming one reaches every accessor.
+
+### 2026-11-21 · 13.8 part 3 names under scripts/ · mid-grade worker
+- **Task**: rename every binding of two characters or fewer under `scripts/` (J-142).
+- **Opened**: `CLAUDE.md`, `docs/paths/process.md`, the names check's list, then each file it named.
+- **Complaints**: none.
+- **Suggestions**: none.

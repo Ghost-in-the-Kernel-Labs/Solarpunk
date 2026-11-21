@@ -17,7 +17,7 @@ ROOT = Path(__file__).resolve().parent.parent
 
 def highest(text: str, prefix: str) -> int:
     """The largest number in a `### prefix-nnn` heading: highest("### C-003: a\\n### C-010: b", "C") gives 10; none gives 0."""
-    found = [int(n) for n in re.findall(rf"^### {prefix}-(\d+)", text, re.MULTILINE)]
+    found = [int(number) for number in re.findall(rf"^### {prefix}-(\d+)", text, re.MULTILINE)]
     return max(found) if found else 0
 
 
@@ -34,9 +34,9 @@ def main(argv: list[str]) -> int:
         return 0
     kind = argv[0] if argv else "decision"
     subprocess.run(["git", "-C", str(ROOT), "fetch", "-q", "origin", "main"], check=False)
-    paths = ["theGhost.md"] if kind == "decision" else sorted(str(p.relative_to(ROOT)) for p in (ROOT / "docs" / "journal").glob("J-*.md"))
-    text = "\n".join(subprocess.run(["git", "-C", str(ROOT), "show", f"origin/main:{p}"], capture_output=True, text=True).stdout for p in paths)
-    text += "\n".join((ROOT / p).read_text() for p in paths)
+    paths = ["theGhost.md"] if kind == "decision" else sorted(str(path.relative_to(ROOT)) for path in (ROOT / "docs" / "journal").glob("J-*.md"))
+    text = "\n".join(subprocess.run(["git", "-C", str(ROOT), "show", f"origin/main:{path}"], capture_output=True, text=True).stdout for path in paths)
+    text += "\n".join((ROOT / path).read_text() for path in paths)
     print(next_id(kind, text))
     return 0
 
