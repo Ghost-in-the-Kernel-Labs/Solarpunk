@@ -87,13 +87,6 @@ Three thresholds and the field loader's irradiance station set from 12.6's basel
 
 Check: the irradiance minimum -5 W/m2 for the inverter and the weather station in `solarpunk/leaf/asset_types.json` and `docs/ASSET-MAINTENANCE-LIST.md`; `on_grid` holds an inverter's power to a minimum of -2% of its rating, 0 with no rating; `power_under_rated` allows 1% over the rating; each threshold a named constant whose comment cites J-101; the field loader gives inverter N the irradiance of the station named for pad N, the site's first station otherwise, tested on `test/fixtures/pvdaq/`; the fixed offset kept and its daylight-saving artefact named in `docs/FIELD-DATA.md`; the baseline re-run over J-101's window and its new alarm counts in the journal, or, where the session cannot fetch the data, a line under HANDOFF's "For Ghost" saying so; the fast loop green.
 
-### 12.11 Four loose ends of accounts and tickets
-
-Deactivating twice, the password asked too soon, a closed ticket's history, and who entered a dismissal (SP-039, calls
-7 to 10).
-
-Check: deactivating an account already deactivated is refused ("already deactivated"); `account add` and `account reset` refuse before asking a password what needs none (no admin signed in, a blank name or email, a role other than admin with no `--site`, an email already held, an unknown email to reset), in one project call as `init` does with `permit_first_admin`; `solarpunk ticket show ID` prints the ticket's line and one line per move, any status, within the account's sites; `fault dismiss` prints " entered by <operator>" when an operator entered it, as a fault's line does; `docs/CONTRACT.md` SOL-16 says so; the fast loop green.
-
 ### 12.12 Tune-up commit 12
 
 Check: `docs/when/tune-up.md` steps 1, 2, 5 and 6 (a reopened phase of three items or fewer); the metrics table written; the navigation log's "Last review" set.

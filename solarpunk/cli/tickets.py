@@ -1,5 +1,5 @@
 """The ticket commands (11.2, SOL-14): `ticket list` (the open tickets, the nearest target first, a breach marked),
-`ticket ack ID`, `ticket comment ID WORDS…` and `ticket resolve ID --cause CODE --done WORDS…`, each one project call
+`ticket show ID` (its line and its moves), `ticket ack ID`, `ticket comment ID WORDS…` and `ticket resolve ID --cause CODE --done WORDS…`, each one project call
 (MOD-02) at the instant --at names, now when it names none, as the account signed in (12.4; a store with no accounts
 names a comment's author with --by). main.py adds them to its parser."""
 import argparse
@@ -14,6 +14,8 @@ BREACH = "  PAST TARGET"
 LINE = "{wo_id}  {asset}  {priority}  {status}  acknowledge {ack}  respond {respond}{breach}"
 NONE_OPEN = "no open ticket"
 NO_TARGET = "—"
+MOVE = "  {at}  {status}  {who}"
+NOBODY = "nobody signed in"
 
 
 def moment_of(args: argparse.Namespace) -> datetime:
@@ -30,18 +32,38 @@ def state_text(state: project.TargetState | None, due: datetime | None) -> str:
     return f"{state.value} (due {due.isoformat()})"
 
 
+def view_line(view: project.TicketView) -> str:
+    """One ticket's line, as `ticket list` writes it: "1  OAHE-INV-002  P1  open  acknowledge overdue (due …)  respond
+    pending (due …)  PAST TARGET"."""
+    found = view.ticket
+    return LINE.format(wo_id=found.wo_id, asset=found.asset_id,
+                       priority=NO_TARGET if found.priority is None else found.priority.value,
+                       status=found.status.value, ack=state_text(view.acknowledge, view.acknowledge_due),
+                       respond=state_text(view.respond, view.respond_due), breach=BREACH if view.breached else "")
+
+
+def move_line(found: project.Move) -> str:
+    """One move of a ticket's history: "  2026-06-01T11:40:00+00:00  acknowledged  ops@oahe.example"; a move made where
+    nobody was signed in names "nobody signed in" (SP-035)."""
+    return MOVE.format(at=found.at.isoformat(), status=found.status.value, who=found.actor or NOBODY)
+
+
+def ticket_show(conn: sqlite3.Connection, args: argparse.Namespace, out: TextIO) -> None:
+    """ticket show 1 [--as EMAIL] [--at INSTANT]: the ticket's line, then one line per move, oldest first, whatever its
+    status, when the account sees its site (SP-039); a ticket never moved has no move line."""
+    found, moves = project.moves_for(conn, args.account, args.wo_id)
+    out.write(view_line(project.view_of(found, moment_of(args))) + "\n")
+    for made in moves:
+        out.write(move_line(made) + "\n")
+
+
 def ticket_list(conn: sqlite3.Connection, args: argparse.Namespace, out: TextIO) -> None:
     """ticket list [--at INSTANT]: one line per open ticket, the nearest target first; the demo's at 13:00 is
     "1  OAHE-INV-002  P1  open  acknowledge overdue (due 2026-06-01T12:30:00+00:00)  respond pending (due …)  PAST
     TARGET"; none open prints "no open ticket"."""
     views = project.tickets_by_target(conn, moment_of(args))
     for view in views:
-        found = view.ticket
-        out.write(LINE.format(wo_id=found.wo_id, asset=found.asset_id,
-                              priority=NO_TARGET if found.priority is None else found.priority.value,
-                              status=found.status.value, ack=state_text(view.acknowledge, view.acknowledge_due),
-                              respond=state_text(view.respond, view.respond_due),
-                              breach=BREACH if view.breached else "") + "\n")
+        out.write(view_line(view) + "\n")
     if not views:
         out.write(NONE_OPEN + "\n")
 
@@ -71,6 +93,9 @@ def add_tickets(commands: argparse._SubParsersAction) -> None:
     ticket = commands.add_parser("ticket").add_subparsers(required=True)
     listing = ticket.add_parser("list")
     listing.set_defaults(handler=ticket_list)
+    show = acting(ticket.add_parser("show"))
+    show.add_argument("wo_id", type=int)
+    show.set_defaults(handler=ticket_show)
     ack = acting(ticket.add_parser("ack"))
     ack.add_argument("wo_id", type=int)
     ack.set_defaults(handler=ticket_ack)
@@ -84,5 +109,5 @@ def add_tickets(commands: argparse._SubParsersAction) -> None:
     resolve.add_argument("--cause", required=True)
     resolve.add_argument("--done", nargs="+", required=True)
     resolve.set_defaults(handler=ticket_resolve)
-    for parser in (listing, ack, comment, resolve):
+    for parser in (listing, show, ack, comment, resolve):
         parser.add_argument("--at")

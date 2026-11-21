@@ -50,12 +50,7 @@ def add(conn: sqlite3.Connection, email: str, name: str, role: Role, password: s
     """Makes an active account: add(conn, "site@oahe.example", "Site engineer", ENGINEER, <a password>, ("OAHE",),
     10:00 UTC); an admin's sites are all whatever is given. A second account of one email, a blank email or name, no
     site, or a weak password (WeakPassword) raises and stores nothing."""
-    email, name = email.strip(), name.strip()
-    if not email or not name:
-        raise AccountError("an account needs an email and a name")
-    scope = (ALL_SITES,) if role is Role.ADMIN else tuple(site.strip() for site in sites if site.strip())
-    if not scope:
-        raise AccountError(f"{email} needs a site, or {ALL_SITES} for all")
+    email, name, scope = check_new(conn, email, name, role, sites)
     secret = passwords.stored_line(password)
     try:
         conn.execute(f"INSERT INTO accounts ({COLUMNS}, secret) VALUES (?, ?, ?, 1, ?, ?, ?)",
@@ -64,6 +59,21 @@ def add(conn: sqlite3.Connection, email: str, name: str, role: Role, password: s
         raise AccountError(f"{email} already has an account") from None
     conn.commit()
     return get(conn, email)
+
+
+def check_new(conn: sqlite3.Connection, email: str, name: str, role: Role,
+              sites: tuple[str, ...]) -> tuple[str, str, tuple[str, ...]]:
+    """What `add` checks before it asks anything of a password: (email, name, scope) trimmed, or AccountError for a blank
+    email or name, a role but an admin's with no site, or an email that already has an account; nothing is stored."""
+    email, name = email.strip(), name.strip()
+    if not email or not name:
+        raise AccountError("an account needs an email and a name")
+    scope = (ALL_SITES,) if role is Role.ADMIN else tuple(site.strip() for site in sites if site.strip())
+    if not scope:
+        raise AccountError(f"{email} needs a site, or {ALL_SITES} for all")
+    if conn.execute("SELECT 1 FROM accounts WHERE email = ?", (email,)).fetchone() is not None:
+        raise AccountError(f"{email} already has an account")
+    return email, name, scope
 
 
 def get(conn: sqlite3.Connection, email: str) -> Account:
@@ -120,8 +130,11 @@ def set_password(conn: sqlite3.Connection, email: str, password: str) -> Account
 
 def deactivate(conn: sqlite3.Connection, email: str) -> Account:
     """Stops an account: its active flag false, its row and email kept, so every record that names it keeps the name
-    (SP-022); an email with no account raises AccountError."""
+    (SP-022); an email with no account raises AccountError, one already stopped AccountError("<email> is already
+    deactivated"), as a suggestion already decided is refused."""
     found = get(conn, email)
+    if not found.active:
+        raise AccountError(f"{found.email} is already deactivated")
     conn.execute("UPDATE accounts SET active = 0 WHERE email = ?", (found.email,))
     conn.commit()
     return get(conn, found.email)

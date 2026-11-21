@@ -149,6 +149,28 @@ class WithAccounts(unittest.TestCase):
         self.assertEqual([(found.decided_by, found.recorded_by) for found in (accepted, dismissed)],
                          [(SITE, OPS), (SITE, None)])
 
+    def test_a_ticket_is_read_within_the_accounts_sites_by_any_role(self) -> None:
+        project.assign_fault(self.conn, ASSET, "INV-001", OPENED, SITE)
+        wo_id = project.open_tickets(self.conn)[0].wo_id
+        project.move_ticket_as(self.conn, ENGINEER, wo_id, TicketStatus.ACKNOWLEDGED, OPENED)
+        for viewer in (held(AUDITOR, Role.VIEWER, (ALL_SITES,)), ENGINEER):
+            found, moves = project.moves_for(self.conn, viewer, wo_id)
+            self.assertEqual((found.wo_id, [made.actor for made in moves]), (wo_id, [SITE]))
+        with self.assertRaisesRegex(NotPermitted, "crew@bigs.example may not see site OAHE"):
+            project.moves_for(self.conn, held(CREW, Role.ENGINEER, ("BIGS",)), wo_id)
+
+    def test_a_dismissal_by_an_operator_prints_who_entered_it(self) -> None:
+        from argparse import Namespace
+        from solarpunk.cli.main import fault_dismiss
+        lines = []
+        for account, engineer in ((OPERATOR, SITE), (ENGINEER, None)):
+            found = project.suggest_pushed(self.conn, ASSET, "INV-001", OPENED)
+            out = io.StringIO()
+            fault_dismiss(self.conn, Namespace(account=account, suggestion_id=found.suggestion_id, reason="why", by=None,
+                                               for_engineer=engineer), out)
+            lines.append(out.getvalue().split(" ", 2)[2])
+        self.assertEqual(lines, [f"by {SITE} entered by {OPS}: why\n", f"by {SITE}: why\n"])
+
     def test_a_fleet_address_with_no_engineer_account_decides_nothing(self) -> None:
         found = project.suggest_pushed(self.conn, ASSET, "INV-001", OPENED)
         inverter, operator = (f"{who} is not an active engineer of site OAHE" for who in (INVERTER, OPS))

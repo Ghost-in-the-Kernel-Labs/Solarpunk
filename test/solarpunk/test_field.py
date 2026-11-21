@@ -2,6 +2,7 @@
 column names, invented values, so no file of the dataset enters the repository, C-033): the loader's mapping, its gaps
 (a missing row, an empty cell, a word, a sentinel; never a zero, SOL-06), its skipped stamps (off the grid, a second
 row for one stamp), the load into the store, the day-at-a-time baseline that records nothing, and the two commands."""
+import gc
 import io
 import json
 import shutil
@@ -175,7 +176,9 @@ class TheDays(unittest.TestCase):
 
 class TheCommands(unittest.TestCase):
     def setUp(self) -> None:
-        """A path for a new store, field.db, in a folder removed after the test."""
+        """A path for a new store, field.db, in a folder removed after the test. Garbage is collected first, as in
+        test_cli_tests: a store an earlier test file left unclosed warns when collected, into the CLI's captured stderr."""
+        gc.collect()
         folder = tempfile.TemporaryDirectory()
         self.addCleanup(folder.cleanup)
         self.db = str(Path(folder.name) / "field.db")

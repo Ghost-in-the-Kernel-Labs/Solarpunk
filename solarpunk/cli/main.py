@@ -50,6 +50,7 @@ The fleet and its faults
 
 The tickets (each takes --at INSTANT, now by default)
   ticket list                                  the open tickets, the nearest target first, a breach marked
+  ticket show ID                               a ticket's line and its moves, any status, within your sites
   ticket ack ID                                acknowledge a ticket
   ticket comment ID WORDS                      add a comment, kept as written, by the account signed in
   ticket resolve ID --cause CODE --done WORDS  resolve and close a ticket and its fault with a root cause
@@ -157,10 +158,12 @@ def fault_accept(conn: sqlite3.Connection, args: argparse.Namespace, out: TextIO
 
 def fault_dismiss(conn: sqlite3.Connection, args: argparse.Namespace, out: TextIO) -> None:
     """fault dismiss 1 --as site@oahe.example --reason "fibre repaired" prints "dismissed 1 by site@oahe.example:
-    fibre repaired" (12.4: an operator adds --for ENGINEER; with no accounts, --by ENGINEER)."""
+    fibre repaired" (12.4: an operator adds --for ENGINEER; with no accounts, --by ENGINEER); entered by an operator it
+    reads "by site@oahe.example entered by ops@oahe.example: …", as a fault's line does (SP-039)."""
     found = project.dismiss_suggestion_as(conn, args.account, args.suggestion_id, args.reason, args.by,
                                           args.for_engineer)
-    out.write(f"dismissed {found.suggestion_id} by {found.decided_by}: {found.dismissal}\n")
+    entered = "" if found.recorded_by is None else f" entered by {found.recorded_by}"
+    out.write(f"dismissed {found.suggestion_id} by {found.decided_by}{entered}: {found.dismissal}\n")
 
 
 def telemetry_generate(conn: sqlite3.Connection, args: argparse.Namespace, out: TextIO) -> None:

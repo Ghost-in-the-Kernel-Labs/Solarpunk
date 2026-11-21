@@ -16,10 +16,10 @@ from solarpunk.leaf.tickets import TicketStatus
 from solarpunk.project.engineers import known_engineers
 from solarpunk.project.orchestrator import faults_listing, fleet_assets
 from solarpunk.project.surface import AssetRow, asset_rows
-from solarpunk.project.tickets import move_ticket, open_tickets, ticket_of
+from solarpunk.project.tickets import move_ticket, open_tickets, ticket_moves, ticket_of
 from solarpunk.remote import suggestions as suggestion_table
 from solarpunk.remote.suggestions import Suggestion
-from solarpunk.workorders.tickets import Ticket
+from solarpunk.workorders.tickets import Move, Ticket
 
 
 NO_ADMIN_YET = "this store has no active account: make the first admin with solarpunk account init"
@@ -151,6 +151,17 @@ def open_suggestions_for(conn: sqlite3.Connection, account: Account) -> tuple[Su
     return tuple(found for found in suggestion_table.open_suggestions(conn) if account.sees(site_of(found.asset_id)))
 
 
+def moves_for(conn: sqlite3.Connection, account: Account | None, wo_id: int) -> tuple[Ticket, tuple[Move, ...]]:
+    """A ticket and its moves, oldest first, to an account that sees its site, whatever the ticket's status and the
+    account's role (a viewer reads): a ticket of another site raises NotPermitted; None (no accounts) reads any."""
+    # Decision: SP-039 (any ticket's history is read within the account's sites)
+    found = ticket_of(conn, wo_id)
+    site = site_of(found.asset_id)
+    if account is not None and not account.sees(site):
+        raise NotPermitted(f"{account.email} may not see site {site}")
+    return found, ticket_moves(conn, wo_id)
+
+
 def open_tickets_for(conn: sqlite3.Connection, account: Account) -> tuple[Ticket, ...]:
     """The open tickets whose asset is in the account's sites: OAHE-INV-002's ticket is listed to site@oahe.example and
     not to crew@bigs.example."""
@@ -200,6 +211,23 @@ def permit_first_admin(conn: sqlite3.Connection) -> None:
     # Decision: SP-032 (no accounts, no sign-in; the first admin made on the machine, once, 12.5)
     if account_table.any_admin(conn):
         raise account_table.AccountError(ADMIN_EXISTS)
+
+
+def permit_new_account(conn: sqlite3.Connection, admin: Account | None, email: str, name: str, role: Role,
+                       sites: tuple[str, ...]) -> None:
+    """Refuses, before a password is asked, an account that `add` would refuse: NotPermitted unless admin is an active
+    admin; AccountError for a blank name or email, a role but an admin's with no site, an email already held."""
+    # Decision: SP-039 (a refusal that needs no password comes before it, as permit_first_admin's)
+    permit_admin(admin)
+    account_table.check_new(conn, email, name, role, sites)
+
+
+def permit_password_reset(conn: sqlite3.Connection, admin: Account | None, email: str) -> None:
+    """Refuses, before a password is asked, a reset `reset_password_as` would refuse: NotPermitted unless admin is an
+    active admin, AccountError for an email with no account."""
+    # Decision: SP-039
+    permit_admin(admin)
+    account_table.get(conn, email)
 
 
 def permit_admin(account: Account | None) -> Account:

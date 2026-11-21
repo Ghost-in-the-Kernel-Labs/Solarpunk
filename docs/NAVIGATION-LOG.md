@@ -29,3 +29,9 @@ An entry is `### <date> · <task> · <who>`, then four bullets: **Task**, **Open
 - **Opened**: CLAUDE.md, TODO.md, docs/ROADMAP.md, theGhost.md, docs/journal/J-100-199.md, solarpunk/remote/results.py, the seven tests, registry.py, run.py, scaffold.py, solarpunk/project/orchestrator.py, runs.py, suggest.py, run.py, field.py, surface.py, solarpunk/ui/asset_text.py, runs_text.py, timeline.py, runs_window.py, asset_window.py, solarpunk/cli/main.py, docs/paths/product.md, docs/CONTRACT.md, docs/ASSET-MAINTENANCE-LIST.md, DEMO.md, five test files, docs/when/handoff.md, docs/when/hand-out-a-task.md.
 - **Complaints**: the fast loop measured 29.99 s once, then 23 to 24 s: noisy at its limit. The unclosed-connection ResourceWarnings can fail `test_output` at random. The brief's "propose the schema only if the obvious reading fails" against its stop limit "never pick a schema" took a moment to reconcile.
 - **Suggestions**: close the connections `test_remote`'s `fresh()` helper opens; `test_runs_contract` reads raw rows, so a shared row reader would keep a new column from touching it.
+
+### 2026-11-21 · 12.11 four loose ends · mid-grade agent
+- **Task**: 12.11.
+- **Opened**: CLAUDE.md, TODO.md, docs/ROADMAP.md, theGhost.md, the journal, solarpunk/accounts/table.py, solarpunk/project/access.py, solarpunk/cli/accounts.py, solarpunk/project/tickets.py, solarpunk/cli/tickets.py, solarpunk/cli/main.py, docs/CONTRACT.md, docs/modules.json, the three test files.
+- **Complaints**: a first draft put a new test after `if __name__ == "__main__"`, caught by ruff. The random ResourceWarning failure in a test outside the working set blocked the gate.
+- **Suggestions**: close the stores the earlier test files leave open (J-033), so a test that captures stderr does not depend on when garbage is collected.

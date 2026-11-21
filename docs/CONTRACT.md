@@ -417,6 +417,11 @@ password (the old one then fails), `account deactivate` stops one. A store with 
 "this store has no active account: make the first admin with solarpunk account init", so no account is made where
 nobody signed in; any other role is refused by name ("site@oahe.example is an engineer and does not manage accounts").
 An account is never deleted: deactivating keeps its row and its email, so every record that names it keeps the name,
-and it fails sign-in after. The last active admin is not deactivated, so the store is never locked out. A new password
+and it fails sign-in after. The last active admin is not deactivated, so the store is never locked out. Deactivating an account already deactivated is refused ("site@oahe.example is already deactivated"). `account add` and
+`account reset` refuse, in one project call before any password is asked (`permit_new_account`, `permit_password_reset`,
+as `account init` does with `permit_first_admin`), what needs none: no admin signed in, a blank name or email, a role
+but an admin's with no `--site`, an email already held, an unknown email to reset. A new password
 is asked twice and the two must match. `account list` reads: email, name, role, active, sites and created, never the
-stored line.
+stored line. `solarpunk ticket show ID` prints a ticket's line and one line per
+move, oldest first, whatever its status, to an account that sees its site (a viewer reads; `moves_for`); `fault dismiss`
+prints " entered by <operator>" when an operator entered the dismissal, as a fault's line does (SP-039).

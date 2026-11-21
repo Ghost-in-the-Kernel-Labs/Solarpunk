@@ -50,16 +50,16 @@ def account_init(conn: sqlite3.Connection, args: argparse.Namespace, out: TextIO
 def account_add(conn: sqlite3.Connection, args: argparse.Namespace, out: TextIO) -> None:
     """account add site@oahe.example --name "Site engineer" --role engineer --site OAHE: asks its password twice and
     prints its account_line."""
-    project.permit_admin(args.account)
+    role, sites = project.Role(args.role), tuple(args.site)
+    project.permit_new_account(conn, args.account, args.email, args.name, role, sites)
     password = new_password(args.email)
-    made = project.add_account_as(conn, args.account, args.email, args.name, project.Role(args.role), password,
-                                  tuple(args.site), now())
+    made = project.add_account_as(conn, args.account, args.email, args.name, role, password, sites, now())
     out.write(account_line(made) + "\n")
 
 
 def account_reset(conn: sqlite3.Connection, args: argparse.Namespace, out: TextIO) -> None:
     """account reset site@oahe.example: asks the new password twice; prints "password reset for site@oahe.example"."""
-    project.permit_admin(args.account)
+    project.permit_password_reset(conn, args.account, args.email)
     found = project.reset_password_as(conn, args.account, args.email, new_password(args.email))
     out.write(f"password reset for {found.email}\n")
 

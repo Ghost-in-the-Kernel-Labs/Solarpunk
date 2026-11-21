@@ -77,6 +77,18 @@ class TheCommands(unittest.TestCase):
         for line in ("ticket list", "ticket ack ID", "ticket comment ID WORDS", "ticket resolve ID --cause CODE"):
             self.assertIn(line, out)
 
+    def test_show_prints_the_line_and_each_move_of_any_status(self) -> None:
+        self.run_cli(["ticket", "ack", "2", "--at", "2026-06-01T12:40:00+00:00"])
+        code, out, err = self.run_cli(["ticket", "show", "2", "--at", "2026-06-01T12:45:00+00:00"])
+        line, first, *rest = out.splitlines()
+        self.assertEqual((code, err, rest), (0, "", []))
+        self.assertTrue(line.startswith("2  OAHE-INV-001  P1  acknowledged"))
+        self.assertEqual(first, "  2026-06-01T12:40:00+00:00  acknowledged  nobody signed in")
+        self.run_cli(["ticket", "resolve", "2", "--cause", "RC-COMPONENT", "--done", "x", "--at", "2026-06-01T14:00:00+00:00"])
+        closed = self.run_cli(["ticket", "show", "2"])[1].splitlines()
+        self.assertEqual((closed[0].split("  ")[3], len(closed)), ("closed", 5))
+        self.assertEqual(self.run_cli(["ticket", "show", "9"])[0], 2)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -167,3 +167,20 @@ class TheCommandLine(unittest.TestCase):
         self.assertEqual([line.split("  ")[3] for line in listed.splitlines()], ["active", "deactivated"])
         self.assertNotIn("scrypt", listed)
         self.assertNotIn(passphrase(), listed)
+
+    def test_deactivating_twice_is_refused_and_a_refusal_comes_before_a_password(self) -> None:
+        self.init()
+        add = ["account", "add", SITE, "--name", "Site engineer", "--role", "engineer", "--site", "OAHE", "--as", ADMIN]
+        self.run_cli(add, secrets=(passphrase(), other_passphrase(), other_passphrase()))
+        self.run_cli(["account", "deactivate", SITE, "--as", ADMIN], secrets=(passphrase(),))
+        twice = self.run_cli(["account", "deactivate", SITE, "--as", ADMIN], secrets=(passphrase(),))
+        self.assertEqual(twice, (2, "", f"error: {SITE} is already deactivated\n"))
+        self.prompts.clear()
+        for words in (["add", ADMIN, "--name", "Again", "--role", "admin"], ["add", "x@oahe.example", "--name", "X",
+                      "--role", "viewer"], ["add", "y@oahe.example", "--name", " ", "--role", "admin"],
+                      ["reset", "nobody@oahe.example"]):
+            code, out, err = self.run_cli(["account", *words, "--as", ADMIN], secrets=(passphrase(),))
+            self.assertEqual((code, out, err.startswith("error: ")), (2, "", True))
+            self.assertEqual(self.prompts, [f"password for {ADMIN}: "])
+            self.prompts.clear()
+
