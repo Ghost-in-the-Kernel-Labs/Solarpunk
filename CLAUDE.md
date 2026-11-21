@@ -35,7 +35,7 @@ Each line is the situation, then the file to read then and not before.
 
 - Your brief does not settle a choice, a check is still red after your first attempt at a change, or
   you are the grade an agent below you asked for help (`docs/when/grades.md`): `docs/when/escalation.md`.
-- You coordinate other agents rather than build: `docs/when/coordinate.md`.
+- You are the coordinator (Ghost started you, no brief did), before your first task: `docs/when/coordinate.md`.
 - Another agent's work breaks yours, contradicts your task, or keeps changing what you just changed:
   stop, and read `docs/when/conflict.md`. Whatever happens, never stop a process, rewrite a commit,
   or reset a tree you did not start.

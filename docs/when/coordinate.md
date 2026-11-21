@@ -5,15 +5,37 @@ Read this when you coordinate other agents rather than build. The coordinator is
 not read (Ghost, 2026-11-05). Its own long session, re-reading itself every turn, is the cost this
 file exists to keep small.
 
-## Placing the work
+## Assigning agents (C-036): read before the first item
 
-- Score every item before choosing a grade or a model: the score places it, from facts, at the
-  lowest grade whose points it is within, raised to the project's floor (`docs/when/grades.md`).
-  `python3 -I scripts/score.py` prints one line per open item, its grade and the facts that placed it;
-  an item it calls `unplaced` names no file, and a mid-grade worker places it and writes the facts it
-  used. Put the item's line in its brief.
-- Hand each item out as `docs/when/hand-out-a-task.md` says: a fresh worker of its grade, a one-page
-  brief, a one-page report.
+The coordinator is the strong grade; its workers are not, unless a reason below says so. This
+project's floor is mid, so **the default worker is mid**, and a strong worker is the exception
+that names its reason.
+
+1. Score first. `python3 -I scripts/score.py` prints one line per open item, its grade and the facts
+   that placed it, at the lowest grade whose points it is within, raised to the floor
+   (`docs/when/grades.md`). An item it calls `unplaced` names no file: a mid worker places it and
+   writes the facts it used. The item's line goes in its brief and in its Cost line; a Cost line
+   reads `score —` only where the script printed nothing for the item.
+2. Hand it to the grade the score gave. The duties of each grade (the first table of
+   `docs/when/grades.md`): small, mechanical work inside one routing row with a mechanical pass line;
+   mid, a feature over a few files, small's escalations, gate-fix loops, placing unplaced items, and a
+   read-only question that needs many files; strong, the coordinator, design, Ghost's questions,
+   security, failures whose cause is unknown, mid's escalations, and any item waiting on Ghost.
+3. Raise an item above its score only for one of strong's duties, and write which one in the brief
+   and in the Cost line ("strong: security"). Size alone is not a reason: an item too large for mid
+   is split, or placed too low and escalated by its report (C-036).
+4. Every Agent call sets `model` to the grade's model, as `docs/when/grades.md` spells it. Never
+   leave it out: an Agent call with no `model` runs on the coordinator's model, the strong grade, and
+   that is how a mid item quietly costs a strong worker.
+5. Hand each item out as `docs/when/hand-out-a-task.md` says: a fresh worker of its grade, a
+   one-page brief, a one-page report. A mid worker that meets a hard failure escalates one grade up
+   (`docs/when/escalation.md`); the coordinator does not take the item back by default.
+
+Why this heads the file: by 2026-11-21 the journal's Cost lines named the strong grade for 28 workers
+and mid for 1, almost every score `—` (Ghost, 2026-11-21: "we are not using [mid] agents as often as
+we ought to be"). The rules were here; the coordinator met them only when it went looking.
+
+## Placing the work
 - Workers do the reading. A question that needs many files goes to a worker that answers in a
   paragraph; the coordinator re-reads nothing a worker read, and works from the report and the diff.
 - Mechanical gate-fix loops (a check that names its fix, a regenerated file, a reworded line) go to
