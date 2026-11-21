@@ -56,7 +56,7 @@ class TheExamples(unittest.TestCase):
     def test_the_power_series(self) -> None:
         series = project.asset_power(self.conn, INV1, DAY)
         self.assertEqual((len(series.samples), series.records, series.gaps), (288, 279, 9))
-        self.assertEqual(next(s.at for s in series.samples if s.gap), at(2026, 6, 1, 4, 25))
+        self.assertEqual(next(s.moment for s in series.samples if s.gap), at(2026, 6, 1, 4, 25))
         self.assertEqual(project.asset_power(self.conn, "OAHE-TRK-001", DAY).samples, ())
 
     def test_the_search(self) -> None:

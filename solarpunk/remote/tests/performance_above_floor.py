@@ -32,8 +32,8 @@ def run(asset: Asset, samples: tuple[Sample, ...]) -> Result:
     missing = nothing_to_check(samples)
     if missing is not None:
         return no_data(missing)  # Decision: SP-039 (nothing to check is not a pass)
-    day = [s for s in samples if s.irradiance_w_m2 is not None and s.power_kw is not None
-           and s.irradiance_w_m2 >= DAYLIGHT_W_M2]
+    day = [sample for sample in samples if sample.irradiance_w_m2 is not None and sample.power_kw is not None
+           and sample.irradiance_w_m2 >= DAYLIGHT_W_M2]
     if not day:
         return Result(True, "no daylight records")
     produced = sum(sample.power_kw for sample in day)

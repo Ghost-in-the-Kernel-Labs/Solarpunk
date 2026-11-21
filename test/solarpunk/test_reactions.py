@@ -167,7 +167,7 @@ class TheMailReaction(Store):
             self.assertEqual(self.carry(held((Mail(),)), later, SETTINGS), 0)
         self.assertEqual(sent.call_count, 1)
         mail = sent.call_args.args[0]
-        self.assertEqual(mail.to, ("site@oahe.example",))
+        self.assertEqual(mail.recipients, ("site@oahe.example",))
         self.assertIn("reachable", mail.subject)
         self.assertIn("no records", mail.body)
         self.assertEqual(len(mailer.sent_for(self.conn, INVERTER.asset_id)), 1)
@@ -243,7 +243,7 @@ class TheTable(Store):
         self.failing()
         self.carry(held((Fault("INV-001"),)))
         row = reactions.of_result(self.conn, 1)[0]
-        self.assertEqual((row.result_id, row.action, row.at), (1, "Fault", RUN_AT.isoformat()))
+        self.assertEqual((row.result_id, row.action, row.stamp), (1, "Fault", RUN_AT.isoformat()))
         self.assertEqual(reactions.all_rows(self.conn), (row,))
         self.assertIn(("reactions", reactions.schema()), orchestrator.LATER_TABLES)
 

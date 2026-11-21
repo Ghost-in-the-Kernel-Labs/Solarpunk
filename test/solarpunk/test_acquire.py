@@ -42,7 +42,7 @@ def stepping(start: datetime = START) -> Callable[[float], datetime]:
 
 
 def simulated_day(seed: int = 7) -> tuple[Sample, ...]:
-    """The generator's 288 samples of OAHE-INV-001 on 2026-06-01 for the seed: simulated_day(7)[0].at is midnight."""
+    """The generator's 288 samples of OAHE-INV-001 on 2026-06-01 for the seed: simulated_day(7)[0].moment is midnight."""
     return generator.generate((simulate.inverter(INVERTER.asset_id, 100.0, 1),), simulate.day_of(DAY), seed)
 
 
@@ -84,7 +84,7 @@ class TheBurst(unittest.TestCase):
 
     def test_take_keeps_each_reads_instant_and_never_waits(self) -> None:
         taken = acquire.take(INVERTER, Burst("power_kw", 2, 6), lambda asset, field, at: float(at.second), stepping())
-        self.assertEqual([read.at.second for read in taken], [0, 2, 4])
+        self.assertEqual([read.moment.second for read in taken], [0, 2, 4])
         self.assertEqual([read.value for read in taken], [0.0, 2.0, 4.0])
 
     def test_a_read_that_fails_is_a_read_with_no_value(self) -> None:
@@ -135,8 +135,8 @@ class TheFeedsLiveRead(unittest.TestCase):
         with Serving(day) as asset:
             on_grid = client.read_now(asset, "power_kw", START)
             between = client.read_now(asset, "power_kw", START + timedelta(seconds=150))
-        low = next(s for s in day if s.at == START).power_kw
-        high = next(s for s in day if s.at == START + timedelta(minutes=5)).power_kw
+        low = next(s for s in day if s.moment == START).power_kw
+        high = next(s for s in day if s.moment == START + timedelta(minutes=5)).power_kw
         self.assertEqual(on_grid, low)
         self.assertAlmostEqual(between, (low + high) / 2)
 
@@ -230,7 +230,7 @@ class TheRunner(unittest.TestCase):
 
     def test_a_test_with_acquire_judges_the_reads_through_the_feed_and_the_rest_the_stored_samples(self) -> None:
         day = simulated_day()
-        stored = tuple(s for s in day if s.at < START)
+        stored = tuple(s for s in day if s.moment < START)
         conn = self.conn()
         with Serving(day) as asset:
             taker = project_run.feed_acquirer(stepping(), shorten_to_s=10)

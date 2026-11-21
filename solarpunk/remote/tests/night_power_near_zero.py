@@ -29,9 +29,9 @@ def run(asset: Asset, samples: tuple[Sample, ...]) -> Result:
     if missing is not None:
         return no_data(missing)  # Decision: SP-039 (nothing to check is not a pass)
     limit = asset.rated_kw * NIGHT_SHARE
-    night = [s for s in samples if s.irradiance_w_m2 is not None and s.power_kw is not None
-             and s.irradiance_w_m2 <= NIGHT_W_M2]
+    night = [sample for sample in samples if sample.irradiance_w_m2 is not None and sample.power_kw is not None
+             and sample.irradiance_w_m2 <= NIGHT_W_M2]
     for sample in night:
         if sample.power_kw > limit:
-            return Result(False, f"{sample.at.isoformat()}: {sample.power_kw} kW at night, over {limit} kW")
+            return Result(False, f"{sample.moment.isoformat()}: {sample.power_kw} kW at night, over {limit} kW")
     return Result(True, f"{len(night)} night records near zero")

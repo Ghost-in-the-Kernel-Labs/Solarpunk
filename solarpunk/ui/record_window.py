@@ -34,7 +34,7 @@ class RecordWindow(tk.Toplevel):
         self.log = self.tree(record_text.LOG_COLUMNS, LOG_WIDTHS, height=10, stretch=3)
         self.empty_label = ttk.Label(self, foreground=GREY_TEXT)
         self.empty_label.pack(anchor="w", padx=8, pady=(0, 6))
-        self.overview.bind("<<TreeviewSelect>>", lambda _e: self.show_log())
+        self.overview.bind("<<TreeviewSelect>>", lambda _event: self.show_log())
         self.fill()
 
     def tree(self, columns: tuple[str, ...], widths: tuple[int, ...], height: int, stretch: int) -> ttk.Treeview:

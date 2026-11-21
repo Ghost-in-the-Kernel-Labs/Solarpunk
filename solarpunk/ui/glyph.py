@@ -37,10 +37,10 @@ def darker(colour: str) -> str:
     return "#" + "".join(f"{channel:02x}" for channel in channels)
 
 
-def face_points(x: int, y: int) -> tuple[int, ...]:
+def face_points(left: int, top: int) -> tuple[int, ...]:
     """The panel face's outline as a smoothed polygon's points, its corners rounded by 3 px: face_points(0, 0) starts
-    (3, 0, 21, 0, 24, 0, 24, 3) and ends (0, 3, 0, 0); the face spans x..x+24 and y..y+12."""
-    left, top, right, bottom = x, y, x + WIDTH, y + FACE_HEIGHT
+    (3, 0, 21, 0, 24, 0, 24, 3) and ends (0, 3, 0, 0); the face spans left..left+24 and top..top+12."""
+    right, bottom = left + WIDTH, top + FACE_HEIGHT
     return (
         left + CORNER, top, right - CORNER, top, right, top, right, top + CORNER,
         right, bottom - CORNER, right, bottom, right - CORNER, bottom, left + CORNER, bottom,
@@ -48,22 +48,22 @@ def face_points(x: int, y: int) -> tuple[int, ...]:
     )
 
 
-def cell_lines(x: int, y: int) -> tuple[tuple[int, int, int, int], ...]:
+def cell_lines(left: int, top: int) -> tuple[tuple[int, int, int, int], ...]:
     """The lines that split the face into a 2×3 grid of cells, two upright then one across: cell_lines(0, 0) is
     ((8, 0, 8, 12), (16, 0, 16, 12), (0, 6, 24, 6))."""
-    uprights = tuple((x + step, y, x + step, y + FACE_HEIGHT) for step in (CELL_WIDTH, 2 * CELL_WIDTH))
-    return uprights + ((x, y + CELL_HEIGHT, x + WIDTH, y + CELL_HEIGHT),)
+    uprights = tuple((left + step, top, left + step, top + FACE_HEIGHT) for step in (CELL_WIDTH, 2 * CELL_WIDTH))
+    return uprights + ((left, top + CELL_HEIGHT, left + WIDTH, top + CELL_HEIGHT),)
 
 
-def stand_box(x: int, y: int) -> tuple[int, int, int, int]:
+def stand_box(left: int, top: int) -> tuple[int, int, int, int]:
     """The short stand below the face, as a rectangle's corners: stand_box(0, 0) is (10, 12, 14, 16)."""
-    return (x + STAND_LEFT, y + FACE_HEIGHT, x + STAND_RIGHT, y + HEIGHT)
+    return (left + STAND_LEFT, top + FACE_HEIGHT, left + STAND_RIGHT, top + HEIGHT)
 
 
-def draw_panel(canvas: "tkinter.Canvas", x: int, y: int, colour: str, tag: str) -> None:
-    """Draws the glyph with its top-left corner at (x, y): the face, filled in the colour, carries the tag alone, so
+def draw_panel(canvas: "tkinter.Canvas", left: int, top: int, colour: str, tag: str) -> None:
+    """Draws the glyph with its top-left corner at (left, top): the face, filled in the colour, carries the tag alone, so
     canvas.find_withtag("glyph:OAHE-INV-001") is that one item; the cell lines and the stand carry tag + ":part"."""
-    canvas.create_polygon(face_points(x, y), smooth=True, fill=colour, outline=darker(colour), tags=(tag,))
-    for line in cell_lines(x, y):
+    canvas.create_polygon(face_points(left, top), smooth=True, fill=colour, outline=darker(colour), tags=(tag,))
+    for line in cell_lines(left, top):
         canvas.create_line(line, fill=darker(colour), tags=(tag + PART_SUFFIX,))
-    canvas.create_rectangle(stand_box(x, y), fill=STAND_COLOUR, outline=STAND_COLOUR, tags=(tag + PART_SUFFIX,))
+    canvas.create_rectangle(stand_box(left, top), fill=STAND_COLOUR, outline=STAND_COLOUR, tags=(tag + PART_SUFFIX,))

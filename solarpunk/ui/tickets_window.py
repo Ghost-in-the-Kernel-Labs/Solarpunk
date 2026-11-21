@@ -46,8 +46,8 @@ class TicketsWindow(tk.Toplevel):
             self.tree.column(column, width=width, stretch=column == ticket_text.COLUMNS[-1])
         self.tree.tag_configure(BREACHED_TAG, foreground=RED_TEXT)
         self.tree.pack(fill="both", expand=True, padx=8, pady=4)
-        self.tree.bind("<Double-1>", lambda _e: self.open_chosen())
-        self.tree.bind("<<TreeviewSelect>>", lambda _e: self.show_results())
+        self.tree.bind("<Double-1>", lambda _event: self.open_chosen())
+        self.tree.bind("<<TreeviewSelect>>", lambda _event: self.show_results())
         ttk.Label(self, text=ticket_text.RESULTS_TITLE).pack(fill="x", padx=8)
         self.result_tree = ttk.Treeview(self, columns=ticket_text.RESULT_COLUMNS, show="headings", height=5)
         for column, heading, width in zip(ticket_text.RESULT_COLUMNS, ticket_text.RESULT_HEADINGS, RESULT_WIDTHS):

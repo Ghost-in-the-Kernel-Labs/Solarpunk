@@ -115,8 +115,8 @@ def backfill_priorities(conn: sqlite3.Connection) -> None:
 def priority_for(conn: sqlite3.Connection, order: WorkOrder) -> Priority:
     """A work order's priority (SOL-14): a corrective order's from its fault's severity (an INV-001 outage is P1), a
     preventive order's P3 (Claude's proposal, Ghost's to set)."""
-    fault = next((f for f in ledger.by_asset(conn, order.asset_id) if f.fault_id == order.fault_id), None)
-    return Priority.P3 if fault is None else priority_of(lookup(fault.code).severity)
+    fault = next((fault_row for fault_row in ledger.by_asset(conn, order.asset_id) if fault_row.fault_id == order.fault_id), None)
+    return Priority.PRIORITY_P3 if fault is None else priority_of(lookup(fault.code).severity)
 
 
 def demo_fleet() -> tuple[Asset, ...]:
@@ -222,7 +222,7 @@ def open_preventive_work_order(conn: sqlite3.Connection, asset_id: str, opened: 
     10:10 UTC, "grease").kind is "preventive"; "OAHE-INV-009" raises UnknownAsset, stores nothing."""
     # Invariant: SOL-05 (no record on an asset the fleet lacks)
     known(conn, asset_id)
-    return work_ledger.open_preventive(conn, asset_id, opened, note, Priority.P3)
+    return work_ledger.open_preventive(conn, asset_id, opened, note, Priority.PRIORITY_P3)
 
 
 def close_work_order(conn: sqlite3.Connection, wo_id: int, closed: datetime, read_at: int | None = None,
@@ -235,7 +235,7 @@ def close_work_order(conn: sqlite3.Connection, wo_id: int, closed: datetime, rea
     # Decision: SP-046 (a ticket on a fault closes only once the fault's root cause is written)
     require_cause(conn, work_ledger.get(conn, wo_id))
     order = work_ledger.close(conn, wo_id, closed, read_at, actor)
-    if order.fault_id is not None and any(f.fault_id == order.fault_id for f in ledger.open_faults(conn)):
+    if order.fault_id is not None and any(open_fault.fault_id == order.fault_id for open_fault in ledger.open_faults(conn)):
         ledger.close(conn, order.fault_id, closed)
     return order
 
@@ -347,7 +347,7 @@ def availability_of(conn: sqlite3.Connection, site: str, period: Period, faults:
     # Invariant: SOL-07 (the inverter's faults plus the site's)
     found = {}
     for inverter in inverters_of(registry.by_site(conn, site)):
-        carried = tuple(f for f in faults if f.asset_id in (inverter.asset_id, site_id(site)))
+        carried = tuple(fault for fault in faults if fault.asset_id in (inverter.asset_id, site_id(site)))
         stored = sample_table.in_period(conn, inverter.asset_id, period)
         found[inverter.asset_id] = kpi.availability(period, carried, stored)
     return found
@@ -378,13 +378,13 @@ def kpis_for(conn: sqlite3.Connection, site: str, period: Period, meter_kwh: flo
     known(conn, site_id(site))
     assets = registry.by_site(conn, site)
     ids = {asset.asset_id for asset in assets}
-    faults = tuple(f for f in ledger.in_period(conn, period) if f.asset_id in ids)
+    faults = tuple(fault for fault in ledger.in_period(conn, period) if fault.asset_id in ids)
     samples = site_samples(conn, inverters_of(assets), period)
     return SiteKpis(
         availability=availability_of(conn, site, period, faults),
         performance_ratio=kpi.performance_ratio(inverters_of(assets), samples, faults),
         energy_yield=kpi.energy_yield(site, meter_kwh, samples, faults),
         reliability=reliability_of(assets, period, faults),
-        faults_open=len([f for f in ledger.open_faults(conn) if f.asset_id in ids]),
+        faults_open=len([fault for fault in ledger.open_faults(conn) if fault.asset_id in ids]),
         status={asset.asset_id: asset_status(conn, asset.asset_id) for asset in assets},
     )

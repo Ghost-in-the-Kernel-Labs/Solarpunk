@@ -25,10 +25,10 @@ NO_DATA_COLOUR = "#808080"
 
 @dataclass(frozen=True)
 class Mark:
-    """One run of one test on the timeline: Mark(x=401.0, row=0, passed=False) is a red mark on the first test's row;
+    """One run of one test on the timeline: Mark(centre_x=401.0, row=0, passed=False) is a red mark on the first test's row;
     Mark(401.0, 0, False, no_data=True) a grey one (SP-039)."""
 
-    x: float
+    centre_x: float
     row: int
     passed: bool
     no_data: bool = False
@@ -92,10 +92,10 @@ def marks(runs: tuple[Run, ...], width: int = WIDTH, left: int = LABEL_WIDTH) ->
         for result in run.results:
             failed[result.test_name] = failed.get(result.test_name, False) or result.failed
             empty[result.test_name] = empty.get(result.test_name, False) or result.no_data
-        x = x_of(run.run_at, start, end, width, left)
+        centre_x = x_of(run.run_at, start, end, width, left)
         for name in sorted(failed):
             no_data = empty[name] and not failed[name]
-            found.append(Mark(x, rows[name], not failed[name] and not no_data, no_data))
+            found.append(Mark(centre_x, rows[name], not failed[name] and not no_data, no_data))
     return tuple(found)
 
 
@@ -103,7 +103,7 @@ def ticks(start: datetime, end: datetime) -> tuple[datetime, ...]:
     """The axis's ticks on whole hours, at most eight, the step the smallest of 1, 2, 3, 6, 12, 24, 48 and 168 hours
     that fits: 13:00 to 14:00 gives (13:00, 14:00); a day gives every third hour."""
     hours = (end - start) / timedelta(hours=1)
-    step = next((s for s in STEPS_H if hours / s <= MAX_TICKS), STEPS_H[-1])
+    step = next((candidate for candidate in STEPS_H if hours / candidate <= MAX_TICKS), STEPS_H[-1])
     found, moment = [], start
     while moment <= end:
         found.append(moment)

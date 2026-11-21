@@ -30,7 +30,7 @@ RESPOND = "respond"
 
 @dataclass(frozen=True)
 class Ticket:
-    """A work order seen as a ticket: Ticket(1, "OAHE-INV-002", "corrective", TicketStatus.OPEN, Priority.P1, None,
+    """A work order seen as a ticket: Ticket(1, "OAHE-INV-002", "corrective", TicketStatus.OPEN, Priority.PRIORITY_P1, None,
     11:30 UTC, None, None, None, None, None) is an outage's ticket nobody has taken yet."""
 
     wo_id: int
@@ -55,7 +55,7 @@ class Comment:
     comment_id: int
     wo_id: int
     author: str
-    at: datetime
+    moment: datetime
     body: str
 
 
@@ -67,7 +67,7 @@ class Move:
     move_id: int
     wo_id: int
     status: TicketStatus
-    at: datetime
+    moment: datetime
     actor: str | None
 
 
@@ -188,8 +188,8 @@ def set_assignee(conn: sqlite3.Connection, wo_id: int, assignee: str | None, mom
     check_read(conn, wo_id, read_at)
     name = None if assignee is None or not assignee.strip() else assignee.strip()
     conn.execute(f"UPDATE work_orders SET assignee = ?, {BUMP} WHERE wo_id = ?", (name, wo_id))
-    at = utc(moment).isoformat() if moment is not None else datetime.now(timezone.utc).isoformat()
-    outbox_add(conn, wo_id, UPDATE, at, ASSIGNEE.format(name=name or NOBODY))
+    stamp = utc(moment).isoformat() if moment is not None else datetime.now(timezone.utc).isoformat()
+    outbox_add(conn, wo_id, UPDATE, stamp, ASSIGNEE.format(name=name or NOBODY))
     conn.commit()
     return ticket(conn, wo_id)
 
@@ -206,21 +206,21 @@ def comment(conn: sqlite3.Connection, wo_id: int, author: str, moment: datetime,
     cursor = conn.execute(INSERT_COMMENT, (wo_id, author.strip(), utc(moment).isoformat(), body.strip()))
     outbox_add(conn, wo_id, COMMENT, utc(moment).isoformat(), f"{author.strip()}: {body.strip()}")
     conn.commit()
-    return next(c for c in comments(conn, wo_id) if c.comment_id == cursor.lastrowid)
+    return next(found for found in comments(conn, wo_id) if found.comment_id == cursor.lastrowid)
 
 
 def comments(conn: sqlite3.Connection, wo_id: int) -> tuple[Comment, ...]:
     """A ticket's comments, oldest first."""
-    return tuple(Comment(cid, wid, author, datetime.fromisoformat(at), body)
-                 for cid, wid, author, at, body in conn.execute(SELECT_COMMENTS, (wo_id,)))
+    return tuple(Comment(cid, wid, author, datetime.fromisoformat(stamp), body)
+                 for cid, wid, author, stamp, body in conn.execute(SELECT_COMMENTS, (wo_id,)))
 
 
 def moves(conn: sqlite3.Connection, wo_id: int) -> tuple[Move, ...]:
     """A ticket's moves, oldest first (SP-035): after ops@oahe.example acknowledges ticket 1 at 11:40, moves(conn, 1) is
     (Move(1, 1, ACKNOWLEDGED, 11:40 UTC, "ops@oahe.example"),); a ticket nobody has moved, or moved before the store
     gained the table, has ()."""
-    return tuple(Move(mid, wid, TicketStatus(status), datetime.fromisoformat(at), actor)
-                 for mid, wid, status, at, actor in conn.execute(SELECT_MOVES, (wo_id,)))
+    return tuple(Move(mid, wid, TicketStatus(status), datetime.fromisoformat(stamp), actor)
+                 for mid, wid, status, stamp, actor in conn.execute(SELECT_MOVES, (wo_id,)))
 
 
 def breaches(found: Ticket, moment: datetime) -> tuple[Breach, ...]:

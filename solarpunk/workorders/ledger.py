@@ -117,17 +117,17 @@ def get(conn: sqlite3.Connection, wo_id: int | None) -> WorkOrder:
     return found[0]
 
 
-def outbox_add(conn: sqlite3.Connection, wo_id: int, kind: str, at: str, detail: str) -> None:
+def outbox_add(conn: sqlite3.Connection, wo_id: int, kind: str, stamp: str, detail: str) -> None:
     """Writes one ticket change's event to the outbox without committing: the caller commits it with the change, so the
     two are stored together or not at all (SP-027)."""
-    conn.execute("INSERT INTO ticket_outbox (wo_id, kind, at, detail) VALUES (?, ?, ?, ?)", (wo_id, kind, at, detail))
+    conn.execute("INSERT INTO ticket_outbox (wo_id, kind, at, detail) VALUES (?, ?, ?, ?)", (wo_id, kind, stamp, detail))
 
 
-def record_move(conn: sqlite3.Connection, wo_id: int, status: str, at: str, actor: str | None) -> None:
+def record_move(conn: sqlite3.Connection, wo_id: int, status: str, stamp: str, actor: str | None) -> None:
     """Appends one move to the ticket's history without committing: the caller commits it with the status change, so a
     refused or stale move writes no row. actor is the account's email, or None where nobody is signed in."""
     # Decision: SP-035 (a ticket's every move is logged with who made it; rows are only ever added)
-    conn.execute(INSERT_MOVE, (wo_id, status, at, actor))
+    conn.execute(INSERT_MOVE, (wo_id, status, stamp, actor))
 
 
 def _insert(conn: sqlite3.Connection, asset_id: str, fault_id: int | None, kind: str, opened: str, note: str,

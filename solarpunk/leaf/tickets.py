@@ -21,11 +21,11 @@ class TicketStatus(Enum):
 
 
 class Priority(Enum):
-    """How soon a ticket's work is wanted, from its fault's severity: Priority.P1 for an OUTAGE."""
+    """How soon a ticket's work is wanted, from its fault's severity: Priority.PRIORITY_P1 for an OUTAGE."""
 
-    P1 = "P1"
-    P2 = "P2"
-    P3 = "P3"
+    PRIORITY_P1 = "P1"
+    PRIORITY_P2 = "P2"
+    PRIORITY_P3 = "P3"
 
 
 class TargetState(Enum):
@@ -58,14 +58,14 @@ MOVES: frozenset[tuple[TicketStatus, TicketStatus]] = frozenset({
     (TicketStatus.RESOLVED, TicketStatus.IN_PROGRESS),
     (TicketStatus.RESOLVED, TicketStatus.CLOSED),
 })
-PRIORITY_OF: dict[Severity, Priority] = {Severity.OUTAGE: Priority.P1, Severity.DERATE: Priority.P2,
-                                         Severity.INFO: Priority.P3}
+PRIORITY_OF: dict[Severity, Priority] = {Severity.OUTAGE: Priority.PRIORITY_P1, Severity.DERATE: Priority.PRIORITY_P2,
+                                         Severity.INFO: Priority.PRIORITY_P3}
 # Claude's proposal, in force until Ghost sets his own (SOL-14): an outage acknowledged within the hour and worked on
 # within four; a derate within a working half-day and the next day; information within a day and three.
 TARGETS: dict[Priority, Targets] = {
-    Priority.P1: Targets(timedelta(hours=1), timedelta(hours=4)),
-    Priority.P2: Targets(timedelta(hours=4), timedelta(hours=24)),
-    Priority.P3: Targets(timedelta(hours=24), timedelta(hours=72)),
+    Priority.PRIORITY_P1: Targets(timedelta(hours=1), timedelta(hours=4)),
+    Priority.PRIORITY_P2: Targets(timedelta(hours=4), timedelta(hours=24)),
+    Priority.PRIORITY_P3: Targets(timedelta(hours=24), timedelta(hours=72)),
 }
 # Who owns each field once a remote tracker is joined (SOL-14): Solarpunk keeps what the KPIs and the register read.
 SOLARPUNK = "Solarpunk"
@@ -87,11 +87,11 @@ def check_move(source: TicketStatus, target: TicketStatus) -> TicketStatus:
 
 
 def priority_of(severity: Severity) -> Priority:
-    """A ticket's priority from its fault's severity: priority_of(Severity.OUTAGE) is Priority.P1."""
+    """A ticket's priority from its fault's severity: priority_of(Severity.OUTAGE) is Priority.PRIORITY_P1."""
     return PRIORITY_OF[severity]
 
 
-def target_state(opened: datetime, target: timedelta, happened: datetime | None, at: datetime) -> TargetState:
+def target_state(opened: datetime, target: timedelta, happened: datetime | None, moment: datetime) -> TargetState:
     """One target's state at an instant (SOL-14): opened 10:00 with a 1 h target, acknowledged 10:40, is MET; responded
     14:30 against 4 h is LATE; not yet responded at 13:00 is PENDING, at 14:15 OVERDUE. Instants are UTC (NotUtc
     otherwise); the due instant itself counts as in time."""
@@ -99,7 +99,7 @@ def target_state(opened: datetime, target: timedelta, happened: datetime | None,
     due = utc(opened) + target
     if happened is not None:
         return TargetState.MET if utc(happened) <= due else TargetState.LATE
-    return TargetState.PENDING if utc(at) <= due else TargetState.OVERDUE
+    return TargetState.PENDING if utc(moment) <= due else TargetState.OVERDUE
 
 
 # The outbox's four kinds of event (11.1, SP-027), one per sink method: a ticket opened, a field of it changed (its
@@ -122,7 +122,7 @@ class OutboxEvent:
     event_id: int
     wo_id: int
     kind: str
-    at: datetime
+    moment: datetime
     asset_id: str
     detail: str
 
@@ -136,6 +136,6 @@ class RemoteChange:
     ref: str
     wo_id: int
     kind: str
-    at: datetime
+    moment: datetime
     author: str
     detail: str

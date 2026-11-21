@@ -226,10 +226,10 @@ class TheMails(RunFixture):
         self.assertEqual(len(server.data), 2)
         self.assertEqual(count(self.conn, "mails"), 2)
         red = mailer.sent_for(self.conn, INV3)
-        self.assertEqual([(m.to, m.subject) for m in red], [((SITE_EMAIL,), "Solarpunk: OAHE-INV-003 INV-001")])
+        self.assertEqual([(m.recipients, m.subject) for m in red], [((SITE_EMAIL,), "Solarpunk: OAHE-INV-003 INV-001")])
         self.assertIn("Cause: fault INV-001, Inverter offline", red[0].body)
         yellow = mailer.sent_for(self.conn, INV2)
-        self.assertEqual([(m.to, m.subject) for m in yellow], [((SITE_EMAIL,), "Solarpunk: OAHE-INV-002 reachable")])
+        self.assertEqual([(m.recipients, m.subject) for m in yellow], [((SITE_EMAIL,), "Solarpunk: OAHE-INV-002 reachable")])
         self.assertIn("Cause: remote test reachable failed: ", yellow[0].body)  # SP-047: a lost link is no outage, the test is the cause
         self.assertIn("Instant: 2026-06-01T12:00:00+00:00", yellow[0].body)
         self.assertIn("Subject: Solarpunk: OAHE-INV-002 reachable", server.data[0])

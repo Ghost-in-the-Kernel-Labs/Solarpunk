@@ -18,7 +18,7 @@ TITLE = "Ticket"
 ACKNOWLEDGE = "Acknowledge"
 COMMENT = "Comment"
 RESOLVE = "Resolve"
-BY = "By"
+BY_LABEL = "By"
 DONE = "What was done"
 RED_TEXT = "#c0392b"
 NO_TICKET_TO_ACT_ON = "this asset has no open ticket"
@@ -49,7 +49,7 @@ class TicketPanel(ttk.Frame):
         self.ack_button.pack(side="left")
         self.by_box: ttk.Combobox | None = None
         if account is None:  # 12.4: signed in, the comment is the account's own
-            ttk.Label(first, text=BY).pack(side="left", padx=(12, 4))
+            ttk.Label(first, text=BY_LABEL).pack(side="left", padx=(12, 4))
             self.by_box = ttk.Combobox(first, values=project.known_engineers(conn), width=26)
             self.by_box.pack(side="left")
         self.comment_box = ttk.Entry(first, width=34)
@@ -76,7 +76,7 @@ class TicketPanel(ttk.Frame):
 
     def refresh(self) -> None:
         """Rereads the asset's open ticket and writes its line and its history (none with no open ticket)."""
-        views = [v for v in project.tickets_by_target(self.conn, self.now()) if v.ticket.asset_id == self.asset_id]
+        views = [view for view in project.tickets_by_target(self.conn, self.now()) if view.ticket.asset_id == self.asset_id]
         self.view = views[0] if views else None
         self.line.configure(text=ticket_text.panel_line(self.view))
         moves = () if self.view is None else project.ticket_moves(self.conn, self.view.ticket.wo_id)
@@ -118,8 +118,8 @@ class TicketPanel(ttk.Frame):
     def comment(self, wo_id: int) -> object:
         """Comment: the words, by the account signed in (or the address in By, with no accounts), now; kept as
         written, the box then emptied."""
-        by = None if self.by_box is None else self.by_box.get()
-        found = project.comment_on_ticket_as(self.conn, self.account, wo_id, self.now(), self.comment_box.get(), by)
+        actor = None if self.by_box is None else self.by_box.get()
+        found = project.comment_on_ticket_as(self.conn, self.account, wo_id, self.now(), self.comment_box.get(), actor)
         self.comment_box.delete(0, "end")
         return found
 

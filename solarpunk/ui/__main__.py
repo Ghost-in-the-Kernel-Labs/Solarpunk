@@ -93,7 +93,7 @@ def open_fleet(root: tkinter.Tk, conn: sqlite3.Connection, account: project.Acco
     window.errors_button = ttk.Button(bar, text=ERRORS, command=lambda: ErrorsWindow(root, conn, window.on_open_runs))
     window.errors_button.pack(side=tkinter.LEFT)  # 10.7
     window.tickets_button = ttk.Button(bar, text=TICKETS,
-                                       command=lambda: TicketsWindow(root, conn, lambda a: window.on_open_asset(a)))
+                                       command=lambda: TicketsWindow(root, conn, lambda asset_id: window.on_open_asset(asset_id)))
     window.tickets_button.pack(side=tkinter.LEFT)  # 11.2
     return window
 

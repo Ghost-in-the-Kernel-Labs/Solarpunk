@@ -68,20 +68,20 @@ class TheGenerator(unittest.TestCase):
         made = gen.generate((inverter("OAHE-INV-002"), sensor, inverter("OAHE-INV-001")), DAY, 7)
         self.assertEqual(len(made), 2 * 288)
         self.assertEqual([s.asset_id for s in made], ["OAHE-INV-001"] * 288 + ["OAHE-INV-002"] * 288)
-        self.assertEqual([s.at for s in made], DAY.instants() * 2)
+        self.assertEqual([s.moment for s in made], DAY.instants() * 2)
 
     def test_gaps_are_gap_samples_at_about_two_percent(self) -> None:
         fleet = tuple(inverter(f"OAHE-INV-{n:03d}") for n in range(1, 21))
         made = gen.generate(fleet, DAY, 7)
         gaps = [s for s in made if s.gap]
-        self.assertTrue(all(s == gap(s.asset_id, s.at) for s in gaps))
+        self.assertTrue(all(s == gap(s.asset_id, s.moment) for s in gaps))
         self.assertGreater(len(gaps) / len(made), 0.01)
         self.assertLess(len(gaps) / len(made), 0.03)
 
     def test_readings_follow_the_bell_with_jitter_within_three_percent(self) -> None:
         made = [s for s in gen.generate((inverter("OAHE-INV-001"),), DAY, 7) if not s.gap]
         for sample in made:
-            self.assertEqual(sample.irradiance_w_m2, gen.irradiance(sample.at))
+            self.assertEqual(sample.irradiance_w_m2, gen.irradiance(sample.moment))
             plain = 100.0 * (sample.irradiance_w_m2 or 0.0) / 1000 * 0.92
             self.assertLessEqual(abs((sample.power_kw or 0.0) - plain), plain * 0.03 + 0.005, sample)
         self.assertGreater(len({s.power_kw for s in made if s.irradiance_w_m2 == 707.1}), 1)
@@ -144,7 +144,7 @@ class TheTable(unittest.TestCase):
         made = gen.generate((inverter("OAHE-INV-001"),), DAY, 7)
         samples.store(connection, tuple(reversed(made)))
         hour = samples.in_period(connection, "OAHE-INV-001", Period(at(2026, 6, 1, 10), at(2026, 6, 1, 11)))
-        self.assertEqual([s.at for s in hour], [at(2026, 6, 1, 10, 5 * n) for n in range(12)])
+        self.assertEqual([s.moment for s in hour], [at(2026, 6, 1, 10, 5 * n) for n in range(12)])
         self.assertEqual(hour, made[120:132])
 
     def test_a_gap_comes_back_as_a_gap(self) -> None:

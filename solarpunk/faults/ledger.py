@@ -171,7 +171,7 @@ def repeated(conn: sqlite3.Connection, period: Period, at_least: int) -> tuple[t
     """(asset_id, code, count) for each pair assigned at least `at_least` times with opened inside the period, most
     repeated first, then by asset_id and code: three INV-001 faults on OAHE-INV-003 in June give
     repeated(conn, june, 2) == (("OAHE-INV-003", "INV-001", 3),). The preventive-action signal."""
-    counts = Counter((f.asset_id, f.code) for f in _select(conn, "", ()) if period.start <= f.opened < period.end)
+    counts = Counter((fault.asset_id, fault.code) for fault in _select(conn, "", ()) if period.start <= fault.opened < period.end)
     pairs = [(asset_id, code, count) for (asset_id, code), count in counts.items() if count >= at_least]
     return tuple(sorted(pairs, key=lambda pair: (-pair[2], pair[0], pair[1])))
 
@@ -203,8 +203,8 @@ def causes_of(conn: sqlite3.Connection, fault_id: int) -> tuple[FaultCause, ...]
     """Every writing of a fault's root cause, oldest first: after "worn fuse" and then "worn fuse holder",
     causes_of(conn, 1) holds both; a fault never written gives (). An unknown fault id raises LedgerError."""
     _get(conn, fault_id)
-    return tuple(FaultCause(found, text, by, datetime.fromisoformat(stamp), recorded)
-                 for found, text, by, stamp, recorded in conn.execute(SELECT_CAUSES, (fault_id,)))
+    return tuple(FaultCause(found, text, written_by, datetime.fromisoformat(stamp), recorded)
+                 for found, text, written_by, stamp, recorded in conn.execute(SELECT_CAUSES, (fault_id,)))
 
 
 def cause_of(conn: sqlite3.Connection, fault_id: int) -> FaultCause | None:

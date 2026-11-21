@@ -133,13 +133,13 @@ def fault_lines(detail: project.AssetDetail) -> tuple[tuple[str, str, str, str, 
                  for (fault, meaning), cover, written in zip(detail.open_faults, detail.cover, causes))
 
 
-def duration_words(ms: int | None) -> str:
+def duration_words(milliseconds: int | None) -> str:
     """A test's duration in the window's words (13.6): "<n> ms" below 1000 ms, "<x.x> s" at or above, "—" for None:
     duration_words(42) is "42 ms", duration_words(999) "999 ms", duration_words(1000) "1.0 s", duration_words(2350) "2.4 s",
     duration_words(None) "—"."""
-    if ms is None:
+    if milliseconds is None:
         return UNRECORDED_WORD
-    return f"{ms} ms" if ms < 1000 else f"{ms / 1000:.1f} s"
+    return f"{milliseconds} ms" if milliseconds < 1000 else f"{milliseconds / 1000:.1f} s"
 
 
 def result_lines(detail: project.AssetDetail) -> tuple[tuple[str, str, str, str, str], ...]:

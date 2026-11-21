@@ -64,7 +64,7 @@ def form(key: str, text: str) -> dict[str, str]:
 
 
 def reading(minutes: int) -> Sample:
-    """A reading of OAHE-INV-009 some minutes after noon: reading(5).at is 12:05 UTC."""
+    """A reading of OAHE-INV-009 some minutes after noon: reading(5).moment is 12:05 UTC."""
     return Sample("OAHE-INV-009", NOON + timedelta(minutes=minutes), 812.0, 78.4, False)
 
 

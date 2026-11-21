@@ -28,7 +28,7 @@ class BarRow:
     no length and reads "0 faults", the suggestion bar runs the full length and reads "1 suggestion"."""
 
     label: str
-    y: float
+    centre_y: float
     fault: Box
     suggestion: Box
     fault_text: str
@@ -59,24 +59,24 @@ def bar_rows(counts: tuple[tuple[str, int, int], ...], width: int = WIDTH,
     largest = max((max(faults, suggestions) for _, faults, suggestions in counts), default=0) or 1
     found = []
     for index, (label, faults, suggestions) in enumerate(counts):
-        y = TOP + index * ROW_HEIGHT + ROW_HEIGHT / 2
-        fault = (left, y - BAR_HEIGHT - BAR_GAP, left + faults / largest * room, y - BAR_GAP)
-        suggestion = (left, y + BAR_GAP, left + suggestions / largest * room, y + BAR_HEIGHT + BAR_GAP)
-        found.append(BarRow(label, y, fault, suggestion, counted(faults, "fault"), counted(suggestions, "suggestion")))
+        centre_y = TOP + index * ROW_HEIGHT + ROW_HEIGHT / 2
+        fault = (left, centre_y - BAR_HEIGHT - BAR_GAP, left + faults / largest * room, centre_y - BAR_GAP)
+        suggestion = (left, centre_y + BAR_GAP, left + suggestions / largest * room, centre_y + BAR_HEIGHT + BAR_GAP)
+        found.append(BarRow(label, centre_y, fault, suggestion, counted(faults, "fault"), counted(suggestions, "suggestion")))
     return tuple(found)
 
 
 def draw_bars(canvas: "tkinter.Canvas", rows: tuple[BarRow, ...], tag: str = "bar") -> None:
     """Draws the legend, then each row's label, its two bars (a bar of no length not drawn) and their words, every item
     of a row tagged "<tag>:<label>" as well as tag, so a click can tell which row it was."""
-    x = WIDTH - 220
+    legend_x = WIDTH - 220
     for word, colour in LEGEND:
-        canvas.create_rectangle(x, 8, x + 12, 18, fill=colour, outline="")
-        canvas.create_text(x + 16, 13, text=word, anchor="w")
-        x += 100
+        canvas.create_rectangle(legend_x, 8, legend_x + 12, 18, fill=colour, outline="")
+        canvas.create_text(legend_x + 16, 13, text=word, anchor="w")
+        legend_x += 100
     for row in rows:
         tags = (tag, f"{tag}:{row.label}")
-        canvas.create_text(8, row.y, text=row.label, anchor="w", tags=tags)
+        canvas.create_text(8, row.centre_y, text=row.label, anchor="w", tags=tags)
         for box, words, colour in ((row.fault, row.fault_text, FAULT_COLOUR),
                                    (row.suggestion, row.suggestion_text, SUGGESTION_COLOUR)):
             if box[2] > box[0]:

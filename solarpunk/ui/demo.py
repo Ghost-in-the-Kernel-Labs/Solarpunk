@@ -100,7 +100,7 @@ def add_faults(conn: sqlite3.Connection) -> None:
     is that one outage and open_tickets(conn) its one ticket."""
     for asset_id, code, opened_h, opened_m, closed_h, closed_m, engineer, cause, done in CLOSED_FAULTS:
         project.assign_fault(conn, asset_id, code, at(2026, 6, 1, opened_h, opened_m), engineer)
-        (order,) = [o for o in project.work_orders_for(conn, asset_id) if o.closed is None]
+        (order,) = [work_order for work_order in project.work_orders_for(conn, asset_id) if work_order.closed is None]
         closed = at(2026, 6, 1, closed_h, closed_m)
         project.move_ticket(conn, order.wo_id, project.TicketStatus.IN_PROGRESS, closed)
         project.move_ticket(conn, order.wo_id, project.TicketStatus.RESOLVED, closed, done)

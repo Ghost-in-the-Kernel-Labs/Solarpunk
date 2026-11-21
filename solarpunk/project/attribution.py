@@ -32,16 +32,16 @@ WRITES = "writes no root cause"
 OPENS = "opens no ticket"
 
 
-def no_account_acts(conn: sqlite3.Connection, by: str | None, missing: str, for_engineer: str | None = None) -> None:
-    """Lets nobody signed in act only where the store holds no active account (SP-032), naming who acts with by: with
-    an account, NotPermitted(SIGN_IN_FIRST); by not given, NotPermitted(missing); --for given where there are no
+def no_account_acts(conn: sqlite3.Connection, actor: str | None, missing: str, for_engineer: str | None = None) -> None:
+    """Lets nobody signed in act only where the store holds no active account (SP-032), naming who acts with actor: with
+    an account, NotPermitted(SIGN_IN_FIRST); actor not given, NotPermitted(missing); --for given where there are no
     accounts, NotPermitted(FOR_NEEDS_ACCOUNTS), as only a signed-in operator acts on an engineer's word."""
     # Decision: SP-032 (no accounts, no sign-in: anyone at the machine acts, as before)
     if needs_sign_in(conn):
         raise NotPermitted(SIGN_IN_FIRST)
     if for_engineer:
         raise NotPermitted(FOR_NEEDS_ACCOUNTS)
-    if by is None:
+    if actor is None:
         raise NotPermitted(missing)
 
 
@@ -55,19 +55,19 @@ def word_engineer(conn: sqlite3.Connection, email: str, site: str) -> str:
     return found
 
 
-def recorded_as(conn: sqlite3.Connection, account: Account | None, asset_id: str, by: str | None = None,
+def recorded_as(conn: sqlite3.Connection, account: Account | None, asset_id: str, actor: str | None = None,
                 recorded_by: str | None = None, for_engineer: str | None = None,
                 deed: str = ASSIGNS) -> tuple[str, str | None]:
-    """Who a fault or a decision on an asset is recorded as, (engineer, operator): with no account, (by, recorded_by)
+    """Who a fault or a decision on an asset is recorded as, (engineer, operator): with no account, (actor, recorded_by)
     as given; an engineer signed in, (their email, None); an operator, (the engineer named by for_engineer, their own
     email). Refused by name (NotPermitted): --by or --recorded-by given with an account, an engineer giving
     for_engineer, an operator naming none or one word_engineer refuses, an admin ("admin@oahe.example is an admin and
     assigns no fault"), a viewer, a stopped account and one outside the asset's site (permit_asset)."""
     # Decision: SP-015 (only an engineer assigns, and the record says which; an operator's entry recorded as theirs)
     if account is None:
-        no_account_acts(conn, by, NAME_ENGINEER, for_engineer)
-        return str(by), recorded_by
-    if by is not None or recorded_by is not None:
+        no_account_acts(conn, actor, NAME_ENGINEER, for_engineer)
+        return str(actor), recorded_by
+    if actor is not None or recorded_by is not None:
         raise NotPermitted(ACCOUNT_ACTS)
     permit_asset(account, asset_id)
     if account.role is Role.ENGINEER:
@@ -90,28 +90,28 @@ def word_engineers(conn: sqlite3.Connection, asset_id: str) -> tuple[str, ...]:
 
 
 def assign_fault_as(conn: sqlite3.Connection, account: Account | None, asset_id: str, code: str, opened: datetime,
-                    by: str | None = None, recorded_by: str | None = None, for_engineer: str | None = None) -> Fault:
+                    actor: str | None = None, recorded_by: str | None = None, for_engineer: str | None = None) -> Fault:
     """Opens a fault as assign_fault does, recorded as recorded_as says: site@oahe.example signed in assigns INV-001 on
     OAHE-INV-002 as itself; ops@oahe.example, an operator, for site@oahe.example gives assigned_by site@oahe.example,
     recorded_by ops@oahe.example. A refusal opens no fault and no ticket."""
     # Decision: SP-015
-    engineer, operator = recorded_as(conn, account, asset_id, by, recorded_by, for_engineer)
+    engineer, operator = recorded_as(conn, account, asset_id, actor, recorded_by, for_engineer)
     return assign_fault(conn, asset_id, code, opened, engineer, operator)
 
 
 def write_cause_as(conn: sqlite3.Connection, account: Account | None, fault_id: int, cause: str, moment: datetime,
-                   by: str | None = None, recorded_by: str | None = None, for_engineer: str | None = None) -> FaultCause:
+                   actor: str | None = None, recorded_by: str | None = None, for_engineer: str | None = None) -> FaultCause:
     """Writes a fault's root cause as write_fault_cause does, recorded as recorded_as says, as an assignment is: an
     engineer signed in writes as themself, an operator on the word of the engineer named by for_engineer; an admin,
     a viewer or an account outside the fault's site is refused ("admin@oahe.example is an admin and writes no root
     cause") and nothing is written."""
     # Decision: SP-046 (an engineer writes the root cause); SP-015 (the record says whose word it is)
-    engineer, operator = recorded_as(conn, account, ledger.get(conn, fault_id).asset_id, by, recorded_by, for_engineer, WRITES)
+    engineer, operator = recorded_as(conn, account, ledger.get(conn, fault_id).asset_id, actor, recorded_by, for_engineer, WRITES)
     return write_fault_cause(conn, fault_id, cause, engineer, moment, operator)
 
 
 def open_ticket_from_result_as(conn: sqlite3.Connection, account: Account | None, result_id: int, opened: datetime,
-                               by: str | None = None, recorded_by: str | None = None,
+                               actor: str | None = None, recorded_by: str | None = None,
                                for_engineer: str | None = None) -> ResultTicket:
     """Opens the ticket for a failed result as open_ticket_from_result does, recorded as recorded_as says, as an
     assignment is: an engineer signed in opens it as themself, an operator on the word of for_engineer; an admin, a
@@ -121,20 +121,20 @@ def open_ticket_from_result_as(conn: sqlite3.Connection, account: Account | None
     found = result_table.get(conn, result_id)
     if found is None:
         raise ResultTicketError(f"result {result_id} is not stored")
-    engineer, operator = recorded_as(conn, account, found.asset_id, by, recorded_by, for_engineer, OPENS)
+    engineer, operator = recorded_as(conn, account, found.asset_id, actor, recorded_by, for_engineer, OPENS)
     return open_ticket_from_result(conn, result_id, opened, engineer, operator)
 
 
 def comment_on_ticket_as(conn: sqlite3.Connection, account: Account | None, wo_id: int, moment: datetime, body: str,
-                         by: str | None = None) -> Comment:
+                         actor: str | None = None) -> Comment:
     """Adds a comment as comment_on_ticket does, its author the account signed in (an engineer or an operator, as
-    their own); with no account, the author given by (none given, NAME_AUTHOR). --by given with an account is refused
+    their own); with no account, the author given by actor (none given, NAME_AUTHOR). --by given with an account is refused
     (ACCOUNT_ACTS)."""
     # Decision: SP-022 (every act carries the signed-in account)
     if account is None:
-        no_account_acts(conn, by, NAME_AUTHOR)
-        return comment_on_ticket(conn, wo_id, str(by), moment, body)
-    if by is not None:
+        no_account_acts(conn, actor, NAME_AUTHOR)
+        return comment_on_ticket(conn, wo_id, str(actor), moment, body)
+    if actor is not None:
         raise NotPermitted(ACCOUNT_ACTS)
     permit_ticket_work(conn, account, wo_id)
     return comment_on_ticket(conn, wo_id, account.email, moment, body)

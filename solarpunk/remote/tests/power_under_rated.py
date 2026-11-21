@@ -32,5 +32,5 @@ def run(asset: Asset, samples: tuple[Sample, ...]) -> Result:
     for sample in samples:
         # A gap carries no power (Invariant: SOL-06), so it is skipped with any record that has none.
         if sample.power_kw is not None and sample.power_kw > ceiling:
-            return Result(False, f"{sample.at.isoformat()}: power {sample.power_kw} kW over {allowed}")
+            return Result(False, f"{sample.moment.isoformat()}: power {sample.power_kw} kW over {allowed}")
     return Result(True, f"{len(samples)} records at or under {allowed}")

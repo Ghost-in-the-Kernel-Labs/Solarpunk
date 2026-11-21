@@ -28,7 +28,7 @@ class TheBars(unittest.TestCase):
         self.assertEqual(rows[0].suggestion[2], rows[0].suggestion[0])  # a count of 0 has no length
         self.assertEqual(rows[1].suggestion[2] - rows[1].suggestion[0], room)
         self.assertLess(rows[0].fault[3], rows[0].suggestion[1])  # the fault bar above the suggestion bar
-        self.assertEqual(rows[1].y - rows[0].y, bars.ROW_HEIGHT)
+        self.assertEqual(rows[1].centre_y - rows[0].centre_y, bars.ROW_HEIGHT)
 
     def test_the_words_the_left_edge_and_the_height(self) -> None:
         self.assertEqual([bars.counted(n, "fault") for n in (0, 1, 2)], ["0 faults", "1 fault", "2 faults"])

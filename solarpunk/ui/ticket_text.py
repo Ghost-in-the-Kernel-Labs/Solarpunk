@@ -54,7 +54,7 @@ def panel_line(view: TicketView | None) -> str:
 def move_line(found: Move) -> str:
     """One move of a ticket's history: "2026-06-01 11:40 UTC · acknowledged · ops@oahe.example"; a move made where
     nobody was signed in names "nobody signed in" (SP-035)."""
-    return MOVE_LINE.format(at=instant_text(found.at), status=found.status.value, who=found.actor or NOBODY_SIGNED_IN)
+    return MOVE_LINE.format(at=instant_text(found.moment), status=found.status.value, who=found.actor or NOBODY_SIGNED_IN)
 
 
 def history_text(moves: tuple[Move, ...]) -> str:

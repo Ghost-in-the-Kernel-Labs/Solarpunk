@@ -22,7 +22,7 @@ def run(asset: Asset, samples: tuple[Sample, ...]) -> Result:
     missing = nothing_to_check(samples)
     if missing is not None:
         return no_data(missing)  # Decision: SP-039 (nothing to check is not a pass)
-    read = sorted((s for s in samples if s.power_kw is not None), key=lambda sample: sample.at)
+    read = sorted((sample for sample in samples if sample.power_kw is not None), key=lambda sample: sample.moment)
     run_start = 0
     for index in range(1, len(read) + 1):
         if index < len(read) and read[index].power_kw == read[run_start].power_kw:
@@ -30,6 +30,6 @@ def run(asset: Asset, samples: tuple[Sample, ...]) -> Result:
         if index - run_start >= FROZEN_RUN and read[run_start].power_kw != 0:
             first = read[run_start]
             return Result(False, f"power {first.power_kw} kW unchanged on {index - run_start} records from "
-                                 f"{first.at.isoformat()}")
+                                 f"{first.moment.isoformat()}")
         run_start = index
     return Result(True, f"{len(read)} power records, none frozen")

@@ -89,7 +89,7 @@ judged (SP-039).
 ## The reason's shape
 
 - A failure names the first offending record with its instant: `"2026-06-01T10:05:00+00:00: power 101.5 kW over rated
-  100.0 kW + 1%"`, the instant as `sample.at.isoformat()`, then what was read and what it was held to.
+  100.0 kW + 1%"`, the instant as `sample.moment.isoformat()`, then what was read and what it was held to.
 - A pass gives a count: `"2 records at or under rated 100.0 kW + 1%"`.
 - No data gives the words of `nothing_to_check`.
 

@@ -52,7 +52,7 @@ class Period:
 
     def instants(self) -> list[datetime]:
         """Every expected instant in order: Period(10:00, 10:15).instants() is [10:00, 10:05, 10:10]."""
-        return [self.start + SAMPLE_INTERVAL * i for i in range(self.expected())]
+        return [self.start + SAMPLE_INTERVAL * step for step in range(self.expected())]
 
     def hours(self) -> float:
         """The period's length in hours: Period(10:00, 11:00).hours() is 1.0."""

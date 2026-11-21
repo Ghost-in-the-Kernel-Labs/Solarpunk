@@ -91,11 +91,11 @@ class WithAccounts(unittest.TestCase):
         self.assertEqual(project.word_engineers(self.conn, ASSET), (SITE,))
 
     def test_an_address_chosen_is_not_taken_with_accounts(self) -> None:
-        self.refused(lambda: project.assign_fault_as(self.conn, ENGINEER, ASSET, "INV-001", OPENED, by=INVERTER),
+        self.refused(lambda: project.assign_fault_as(self.conn, ENGINEER, ASSET, "INV-001", OPENED, actor=INVERTER),
                      attribution.ACCOUNT_ACTS)
         self.refused(lambda: project.assign_fault_as(self.conn, ENGINEER, ASSET, "INV-001", OPENED, for_engineer=SITE),
                      "site@oahe.example is an engineer and acts as themself; --for is an operator's")
-        self.refused(lambda: project.assign_fault_as(self.conn, None, ASSET, "INV-001", OPENED, by=SITE),
+        self.refused(lambda: project.assign_fault_as(self.conn, None, ASSET, "INV-001", OPENED, actor=SITE),
                      access.SIGN_IN_FIRST)
 
     def test_an_admin_a_viewer_and_another_sites_engineer_assign_nothing(self) -> None:
@@ -121,7 +121,7 @@ class WithAccounts(unittest.TestCase):
                          TicketStatus.ACKNOWLEDGED)
         self.assertEqual(project.comment_on_ticket_as(self.conn, OPERATOR, wo_id, OPENED, "on my way").author, OPS)
         with self.assertRaises(NotPermitted):
-            project.comment_on_ticket_as(self.conn, ENGINEER, wo_id, OPENED, "x", by=INVERTER)
+            project.comment_on_ticket_as(self.conn, ENGINEER, wo_id, OPENED, "x", actor=INVERTER)
         with self.assertRaises(NotPermitted):
             project.move_ticket_as(self.conn, None, wo_id, TicketStatus.IN_PROGRESS, OPENED)
         project.write_cause_as(self.conn, ENGINEER, 1, "worn fuse holder", OPENED)
@@ -174,10 +174,10 @@ class WithNoAccount(unittest.TestCase):
         project.load_fleet(self.conn, project.demo_fleet())
 
     def test_the_addresses_given_are_taken_as_before(self) -> None:
-        fault = project.assign_fault_as(self.conn, None, ASSET, "INV-001", OPENED, by=INVERTER, recorded_by=OPS)
+        fault = project.assign_fault_as(self.conn, None, ASSET, "INV-001", OPENED, actor=INVERTER, recorded_by=OPS)
         self.assertEqual((fault.assigned_by, fault.recorded_by), (INVERTER, OPS))
         wo_id = project.open_tickets(self.conn)[0].wo_id
-        self.assertEqual(project.comment_on_ticket_as(self.conn, None, wo_id, OPENED, "x", by=SITE).author, SITE)
+        self.assertEqual(project.comment_on_ticket_as(self.conn, None, wo_id, OPENED, "x", actor=SITE).author, SITE)
         for act, words in ((lambda: project.assign_fault_as(self.conn, None, ASSET, "INV-002", OPENED),
                             attribution.NAME_ENGINEER),
                            (lambda: project.assign_fault_as(self.conn, None, ASSET, "INV-002", OPENED, for_engineer=SITE),

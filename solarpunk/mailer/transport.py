@@ -88,7 +88,7 @@ def message(mail: Mail, sender: str) -> EmailMessage:
     content is "b\\n"."""
     built = EmailMessage()
     built[HEADER_FROM] = sender
-    built[HEADER_TO] = RECIPIENT_SEPARATOR.join(mail.to)
+    built[HEADER_TO] = RECIPIENT_SEPARATOR.join(mail.recipients)
     built[HEADER_SUBJECT] = mail.subject
     built.set_content(mail.body)
     return built
@@ -115,6 +115,6 @@ def send(mail: Mail, settings: Settings) -> None:
             if settings.starttls:
                 client.starttls()
             _login(client, settings)
-            client.sendmail(settings.sender, list(mail.to), message(mail, settings.sender).as_string())
+            client.sendmail(settings.sender, list(mail.recipients), message(mail, settings.sender).as_string())
     except (smtplib.SMTPException, OSError):
         raise MailError(SEND_FAILED.format(host=settings.host, port=settings.port)) from None

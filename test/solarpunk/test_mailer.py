@@ -115,7 +115,7 @@ def settings_for(server: FakeSmtpServer, password_variable: str | None, username
 
 
 def a_mail() -> Mail:
-    """The degradation mail for the inverter's outage: a_mail().to is ENGINEERS."""
+    """The degradation mail for the inverter's outage: a_mail().recipients is ENGINEERS."""
     return mailer.compose_degradation(INVERTER, OUTAGE, ENGINEERS, NOW)
 
 
@@ -146,7 +146,7 @@ class WithFakeServer(unittest.TestCase):
 class Composing(unittest.TestCase):
     def test_a_fault_mail_names_asset_location_code_meaning_opening_instant_and_chain(self) -> None:
         mail = a_mail()
-        self.assertEqual(mail.to, ENGINEERS)
+        self.assertEqual(mail.recipients, ENGINEERS)
         self.assertEqual(mail.subject, "Solarpunk: OAHE-INV-003 INV-001")
         self.assertEqual(mail.body.split("\n"), [
             "Asset: OAHE-INV-003 (Inverter 3)",
@@ -159,7 +159,7 @@ class Composing(unittest.TestCase):
 
     def test_a_remote_failure_mail_names_the_test_and_its_reason(self) -> None:
         mail = mailer.compose_degradation(INVERTER, RemoteFailure("reachable", "no answer in 5 s"), ENGINEERS[:1], NOW)
-        self.assertEqual(mail.to, ("ana@example.org",))
+        self.assertEqual(mail.recipients, ("ana@example.org",))
         self.assertEqual(mail.subject, "Solarpunk: OAHE-INV-003 reachable")
         self.assertEqual(mail.body.split("\n")[2], "Cause: remote test reachable failed: no answer in 5 s")
         self.assertEqual(mail.body.split("\n")[4], "Engineers: ana@example.org")

@@ -55,8 +55,8 @@ def fault_of(conn: sqlite3.Connection, found: Recorded) -> Fault | None:
     """The fault telemetry raised for a failed result: the fault of its code on its asset whose [opened, closed) covers
     the run instant, or None for a result stored before 7.7."""
     code = fault_code(known(conn, found.asset_id).kind, found.test_name)
-    return next((f for f in ledger.by_asset(conn, found.asset_id) if f.code == code and f.opened <= found.run_at
-                 and (f.closed is None or found.run_at < f.closed)), None)
+    return next((fault for fault in ledger.by_asset(conn, found.asset_id) if fault.code == code and fault.opened <= found.run_at
+                 and (fault.closed is None or found.run_at < fault.closed)), None)
 
 
 def open_ticket_of(conn: sqlite3.Connection, result_id: int) -> int | None:
@@ -82,7 +82,7 @@ def results_of_ticket(conn: sqlite3.Connection, wo_id: int) -> tuple[Recorded, .
     """The failed results a ticket holds, oldest first: the ticket opened on the demo's failed reachable holds it; a
     ticket opened from a fault has ()."""
     held = (result_table.get(conn, result_id) for result_id in ticket_results.results_of(conn, wo_id))
-    return tuple(sorted((found for found in held if found is not None), key=lambda r: (r.run_at, r.result_id)))
+    return tuple(sorted((found for found in held if found is not None), key=lambda result: (result.run_at, result.result_id)))
 
 
 def ticket_of_result(conn: sqlite3.Connection, result_id: int) -> Ticket | None:

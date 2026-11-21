@@ -62,7 +62,7 @@ class LocalTracker:
     def create(self, event: OutboxEvent) -> str:
         """Opens an issue for the work order, or gives back the one opened before (a repeated delivery)."""
         self.conn.execute("INSERT OR IGNORE INTO local_issues (wo_id, asset_id, title, status, updated) VALUES"
-                          " (?, ?, ?, ?, ?)", (event.wo_id, event.asset_id, event.detail, OPENED, utc(event.at).isoformat()))
+                          " (?, ?, ?, ?, ?)", (event.wo_id, event.asset_id, event.detail, OPENED, utc(event.moment).isoformat()))
         self.conn.commit()
         return self.ref_of(event.wo_id)
 
@@ -76,7 +76,7 @@ class LocalTracker:
         """Adds the event's comment, "<author>: <words>", as written."""
         self.ref_of(event.wo_id)
         self.conn.execute("INSERT INTO local_comments (wo_id, at, words) VALUES (?, ?, ?)",
-                          (event.wo_id, utc(event.at).isoformat(), event.detail))
+                          (event.wo_id, utc(event.moment).isoformat(), event.detail))
         self.conn.commit()
 
     def transition(self, event: OutboxEvent) -> None:
@@ -89,7 +89,7 @@ class LocalTracker:
         if column not in ("assignee", "status"):
             raise ValueError(f"the local tracker has no column {column!r} to set")
         self.conn.execute(f"UPDATE local_issues SET {column} = ?, updated = ? WHERE wo_id = ?",
-                          (value, utc(event.at).isoformat(), event.wo_id))
+                          (value, utc(event.moment).isoformat(), event.wo_id))
         self.conn.commit()
 
     def edit(self, wo_id: int, kind: str, author: str, detail: str, moment: datetime) -> RemoteChange:
@@ -105,6 +105,6 @@ class LocalTracker:
         """People's changes after cursor, oldest first, and the cursor after the last; none gives ((), cursor)."""
         rows = self.conn.execute("SELECT change_id, wo_id, kind, at, author, detail FROM local_changes"
                                  " WHERE change_id > ? ORDER BY change_id", (cursor,)).fetchall()
-        changes = tuple(RemoteChange(self.ref_of(w), w, kind, datetime.fromisoformat(at), author, detail)
-                        for _, w, kind, at, author, detail in rows)
+        changes = tuple(RemoteChange(self.ref_of(wo_id), wo_id, kind, datetime.fromisoformat(stamp), author, detail)
+                        for _, wo_id, kind, stamp, author, detail in rows)
         return changes, (rows[-1][0] if rows else cursor)

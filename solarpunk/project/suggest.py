@@ -53,7 +53,7 @@ def fault_from_device(conn: sqlite3.Connection, asset_id: str, code: str, now: d
     raised = raise_fault(conn, asset_id, code, DEVICE_ASSIGNER, now)
     if raised is not None:
         return raised
-    return next(f for f in ledger.by_asset(conn, asset_id) if f.code == code and f.closed is None)
+    return next(fault for fault in ledger.by_asset(conn, asset_id) if fault.code == code and fault.closed is None)
 
 
 def open_suggestions(conn: sqlite3.Connection, asset_id: str | None = None) -> tuple[Suggestion, ...]:
