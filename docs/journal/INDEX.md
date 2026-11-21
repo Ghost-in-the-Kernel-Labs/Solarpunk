@@ -127,3 +127,4 @@ Written from `docs/journal/` by `scripts/journal_index.py`; do not edit by hand.
 | J-121 | 7.7: faults from telemetry | feature | `J-100-199.md` |
 | J-122 | 7.8: the root cause, written by an engineer | feature | `J-100-199.md` |
 | J-123 | 7.9: a ticket from a failed test | feature | `J-100-199.md` |
+| J-124 | Tune-up commit 7: Phase 7 closed again | measurement | `J-100-199.md` |

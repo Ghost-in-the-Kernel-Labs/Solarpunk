@@ -46,13 +46,9 @@ Lanes (P-15): 7.1 (done, J-050), then 7.2 and 7.3 (SP-017, put ahead by Ghost), 
 
 ## Phase 7: faults suggested by tests, assigned by engineers
 
-Lanes (P-15): 7.7, then 7.8, then 7.9, then 7.10 the tune-up commit. Reopened by SP-046 on Ghost's word, after running
+Lanes (P-15): 7.7 (done, J-121), then 7.8 (done, J-122), then 7.9 (done, J-123), then 7.10 the tune-up commit (done, J-124). Reopened by SP-046 on Ghost's word, after running
 the demo: telemetry assigns a fault, nothing is accepted or dismissed, an engineer writes the root cause as free text,
 and a ticket opens from a failed test result, one ticket to many failed results.
-
-### 7.10 Tune-up commit 7
-
-Check: `docs/when/tune-up.md` steps 1, 2, 5 and 6 (a reopened phase of three items or fewer); the metrics table written; the navigation log's "Last review" set.
 
 ## Phase 8: local tickets
 

@@ -167,8 +167,17 @@ email on the asset, a mailer to those engineers on degradation, and the Save/Can
    (J-117). Reported, never edited (CLAUDE.md, `docs/when/coordinate.md`). Answered by Ghost's word of 2026-11-21
    (J-118): every worker in its own clone, so the coordinator's tree stays clean. Change the hook itself only if you
    want it to.
+20. From Phase 7's reopening (J-121 to J-124), each a decision or a roadmap line:
+    (a) a failed `reachable` on an inverter raises INV-001, an OUTAGE, so it counts against availability with no one
+    between; the coordinator recommends the generic SIT-004 (INFO) for an unreachable asset, since a lost link is not a
+    dead inverter; (b) no data ends a ticket's streak, so a short comms gap splits one problem into two tickets; the
+    other reading skips no-data results; (c) no command lists result ids for `ticket open --result ID` (proposed:
+    `solarpunk test results --asset ID [--failed]`); (d) code left unused by 7.7: `cells.drawn` and its test,
+    `access.permit_suggestion`, `access.open_suggestions_for`, the "Awaiting an engineer" band cell (reads 0 on new
+    stores); (e) named suites raise no faults and join no streaks; (f) the gate skips the window tests where `python3`
+    has no tkinter; running them under `xvfb-run python3.12` is a gate change; (g) the fast loop at 27.9 s of 30.
 
-## Advisories under the gate's threshold (Tune-up pass 12; unchanged since pass 0)
+## Advisories under the gate's threshold (Tune-up commit 7, 2026-11-21; unchanged since pass 0)
 
 The Python stack's gate runs no audit step (`pip-audit` is not in the lock; `stacks/python/README.md` names it for a
 dependency review, not the gate), so none were reported; the 20 pins are tools alone (pytest, ruff, mutmut and theirs).

@@ -207,6 +207,10 @@ Done 2026-11-21 (J-122). Check: a fault carries a root cause, blank until an eng
 
 Done 2026-11-21 (J-123). Check: an "Open a ticket" control sits on a failed test result (its asset, test and run) in the asset window and the Runs window, and `solarpunk ticket open --result ID`, not on the asset; one ticket maps to many failed results: a failure in the run right after a failure of the same test on the same asset joins that failure's ticket, a pass ending the streak, and opening a ticket on a failed result already in a ticket's streak shows that ticket instead of opening a second; the ticket window lists its failed results; the fast loop green. ✓ the append-only `ticket_results` link (`solarpunk/workorders/ticket_results.py`, a result in at most one ticket); `project.open_ticket_from_result` and the streak (`solarpunk/project/result_tickets.py`), joined as the run records a failure; a closed ticket ends a streak and a fault's open ticket is shown, never a second (both set at landing); the control in the asset and Runs windows, the Tickets window's failed results, `ticket open --result ID` and `ticket show`; fast checks green, the window tests under xvfb.
 
+### 7.10 Tune-up commit 7
+
+Done 2026-11-21 (J-124). Check: `docs/when/tune-up.md` steps 1, 2, 5 and 6 (a reopened phase of three items or fewer); the metrics table written; the navigation log's "Last review" set. ✓ cold gate 1.68 min, warm 1.70 min, fast loop 27.9 s (target under 30), 9 of 9 metrics, none regressed; the window tests 187 OK under xvfb with python3.12 (the gate's interpreter skips them, no tkinter); "Last review" 805522c; no advisories (the stack runs no audit).
+
 ## Phase 8: local tickets
 
 ### 8.1 The ticket contract
