@@ -15,6 +15,7 @@ CLAUSES = ("55000-9.1",)
 # SP-015's rule table: the catalogue has no inverter code for output under the floor (soiling, a string down, an MPPT
 # input lost); STR-002 is a string's, on a string asset. A gap for Ghost: until a code exists, no suggestion.
 SUGGESTS = {AssetKind.INVERTER: None}
+# Below 200 W/m² the ratio swings on small numbers (dawn, dusk, heavy cloud), so those records do not decide it.
 DAYLIGHT_W_M2 = 200.0
 # A healthy plant runs 0.75 to 0.90; under 0.75 in good sun is a loss worth a look, not noise.
 FLOOR = 0.75

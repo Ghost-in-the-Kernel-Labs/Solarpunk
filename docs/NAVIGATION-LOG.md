@@ -29,3 +29,9 @@ An entry is `### <date> · <task> · <who>`, then four bullets: **Task**, **Open
 - **Opened**: theGhost.md (SP-019, SP-020), `TODO.md`, `solarpunk/remote/registry.py`, `solarpunk/remote/run.py`, `solarpunk/remote/results.py`, `solarpunk/remote/scaffold.py`, `solarpunk/project/run.py`, `solarpunk/cli/main.py`, `solarpunk/cli/tickets.py`, `docs/modules.json`.
 - **Complaints**: the fast checks stop at `test_metrics` on a worker's tree (the copy-aside works); a writer that imports a folder function by name escapes a test's patch and writes into the real folder.
 - **Suggestions**: a routing row "A suite" in `docs/paths/product.md`; a line on the suites folder in `docs/`.
+
+### 2026-11-21 · 13.1 what a test looks like · mid-grade worker
+- **Task**: TODO 13.1, SP-019: the remote test's contract and its check.
+- **Opened**: `docs/paths/process.md`, `docs/paths/product.md`, `solarpunk/remote/results.py`, `solarpunk/remote/scaffold.py`, the seven modules of `solarpunk/remote/tests/`, `scripts/checks/asset_types.py`, `scripts/checks/common.py`, `scripts/checks/readability.py`, `test/test_asset_types.py`, `test/support.py`, theGhost.md (SP-019, SP-020), `TODO.md`.
+- **Complaints**: the readability check reads fixtures under `test/` too, so a planted Python break needs docstrings and short comprehensions, which no row says; the fast checks stop at `test_metrics` on a worker's tree.
+- **Suggestions**: a reverse check (every `Tests:` name has a module) once `tracker_moving` and `energy_monotonic` exist; 13.3 and 13.4 change this check's fields.

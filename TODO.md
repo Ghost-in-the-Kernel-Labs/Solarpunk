@@ -81,13 +81,6 @@ SP-022; 12.1 split in two by SP-028 (accounts, then versions); 12.6 added on Gho
 
 Lanes (P-15): 13.1 and 13.2 first (SP-019: what a test is, and the suites), then 13.3 (a test's own reads) and 13.4 (reactions, which need suites; SP-020), then 13.5 (the surface every window reads), then 13.6 and 13.7 in parallel, then the human maintainability pass (SP-042): 13.8, then 13.9, 13.10 and 13.11 in parallel, then 13.12 the pass; the asset's history went to Phase 10 (SP-024). Moved after tickets and accounts by SP-022, after the fleet window and the ticket windows by SP-023, and after runs per asset (Phase 10) by SP-024. Moved after Phase 8 by SP-018. Ghost's direction, SP-016.
 
-### 13.1 What a test looks like
-
-A remote test's contract written down and held by a check (SP-019), so a test is written to a page, not copied from
-its neighbour.
-
-Check: `docs/REMOTE-TESTS.md` states a remote test's contract: its module's fields (`KINDS`, `CLAUSES`, `SUGGESTS`, `run`) and what each must hold; that `run(asset, samples)` reads only what it is given (no store, no network, no clock) and returns a `Result`; the reason's shape (the first offending record with its instant, or a count when it passes); every threshold a named module constant with a comment saying why; a docstring with at least one passing and one failing case; its name in the asset maintenance list's `Tests:` line for each of its kinds; `scripts/checks/remote_tests.py` holds every module in `solarpunk/remote/tests/` to what a check can see (the fields, the docstring's cases, the maintenance-list lines, no import of a store, network or clock module), with a planted break under `test/fixtures/broken/remote_tests/`; `solarpunk test add`'s scaffold meets it but for `run`; the fast loop green.
-
 ### 13.3 A test's own reads
 
 A test that needs readings the stored samples cannot give (power once a second for a minute) declares them, and the

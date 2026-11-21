@@ -119,3 +119,4 @@ Written from `docs/journal/` by `scripts/journal_index.py`; do not edit by hand.
 | J-113 | SP-043: the readability check runs in the fast checks | decision | `J-100-199.md` |
 | J-114 | The coordinator reads its assignment rules on entry; the default worker is mid | direction | `J-100-199.md` |
 | J-115 | 13.2: the suites folder | feature | `J-100-199.md` |
+| J-116 | 13.1: what a test looks like | feature | `J-100-199.md` |
