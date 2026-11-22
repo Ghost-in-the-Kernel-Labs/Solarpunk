@@ -69,7 +69,7 @@ class TheWindows(unittest.TestCase):
         self.addCleanup(server.shutdown)
         folder = tempfile.TemporaryDirectory()
         self.addCleanup(folder.cleanup)
-        demo.build_demo_store(Path(folder.name) / demo.DB_NAME, port)
+        self.dead = demo.build_demo_store(Path(folder.name) / demo.DB_NAME, port).dead_port
         self.conn = project.open_or_create(Path(folder.name) / demo.DB_NAME)
         self.addCleanup(self.conn.close)
         self.root = tkinter.Tk()
@@ -113,7 +113,7 @@ class TheWindows(unittest.TestCase):
         self.assertEqual(window.run_tree.item(item, "tags"), (runs_window.FAILED_TAG,))
         results = window.result_tree.get_children()
         self.assertEqual(len(results), 9)
-        self.assertEqual(window.result_tree.item(results[0], "values"), ("reachable", "FAIL", UNREACHABLE))
+        self.assertEqual(window.result_tree.item(results[0], "values"), ("reachable", "FAIL", f"127.0.0.1:{self.dead} is unreachable"))
         self.assertEqual(window.result_tree.item(results[0], "tags"), (runs_window.FAILED_TAG,))
         self.assertEqual(window.result_tree.item(results[1], "tags"), ("nodata",))  # power_ripple: INV-002's feed is dead, so its reads hold no value
         self.assertEqual(window.result_tree.item(results[2], "tags"), "")

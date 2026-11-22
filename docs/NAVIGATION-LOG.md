@@ -95,3 +95,9 @@ An entry is `### <date> · <task> · <who>`, then four bullets: **Task**, **Open
 - **Opened**: `CLAUDE.md`, `docs/paths/product.md`, `docs/modules.json`, `solarpunk/cli/tickets.py`, `solarpunk/project/tickets.py`, `solarpunk/project/surface.py`, `solarpunk/workorders/tickets.py`, `solarpunk/remote/results.py`, `solarpunk/ui/tickets_window.py`, `solarpunk/ui/record_window.py`, `solarpunk/ui/record_text.py`.
 - **Complaints**: the CLI's help lines live in `solarpunk/cli/main.py`, away from the command they describe, so a change to a command's output leaves its help line stale.
 - **Suggestions**: DEMO.md (13.18) names the Show closed box, the trail pane and the Clauses column.
+
+### 2026-11-22 · 13.16 a dead feed brought back · mid-grade worker
+- **Task**: a dead port per run, a demo-only control that revives a feed and re-runs its tests, every test visible (J-146).
+- **Opened**: `CLAUDE.md`, `docs/paths/product.md`, `docs/modules.json`, `solarpunk/ui/demo.py`, `solarpunk/ui/__main__.py`, `solarpunk/ui/asset_window.py`, `solarpunk/project/orchestrator.py`, `solarpunk/feed/simulate.py`, `test/solarpunk/test_demo.py`, `test/solarpunk/test_ui_asset.py`.
+- **Complaints**: three tests outside the brief pinned the literal dead port; Tk objects collected on a non-main thread abort the interpreter.
+- **Suggestions**: none.

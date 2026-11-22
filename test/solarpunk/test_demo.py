@@ -3,6 +3,7 @@ three colours, OAHE-INV-001 GREEN with a last run, OAHE-INV-002 RED, OAHE-SEN-00
 trackers and the meter GREEN and untested, and the store rebuilt on a second call. The window half (__main__.py's
 run_demo and open_fleet) under a display (xvfb-run -a .venv/bin/pytest test/solarpunk/test_demo.py), skipping with
 "no tkinter" or "no display" as test_ui.py does."""
+import gc
 import importlib.util
 import io
 import os
@@ -57,6 +58,7 @@ class DemoFixture(unittest.TestCase):
     def setUp(self) -> None:
         """Starts the simulator on the demo's day and makes the folder: self.path is <folder>/demo.db, not yet made."""
         self.server, self.port = demo.start_simulator(demo.simulator_samples())
+        self.dead = demo.reserve_port()
         self.addCleanup(self.server.server_close)
         self.addCleanup(self.server.shutdown)
         folder = tempfile.TemporaryDirectory()
@@ -73,7 +75,7 @@ class DemoFixture(unittest.TestCase):
 
 class TheDemoStore(DemoFixture):
     def test_every_fault_names_its_engineer_and_the_outage_shows_cover_and_the_operator(self) -> None:
-        demo.build_demo_store(self.path, self.port)
+        demo.build_demo_store(self.path, self.port, self.dead)
         conn = self.opened()
         faults = project.faults_listing(conn, False)
         self.assertEqual([f.assigned_by for f in faults], [demo.SITE_ENGINEER, demo.INVERTER_ENGINEER, demo.INVERTER_ENGINEER,
@@ -84,7 +86,7 @@ class TheDemoStore(DemoFixture):
                          (demo.DOWN, demo.OPERATOR, True))
 
     def test_the_three_colours_and_who_wears_them(self) -> None:
-        state = demo.build_demo_store(self.path, self.port)
+        state = demo.build_demo_store(self.path, self.port, self.dead)
         self.assertEqual((state.db_path, state.simulator_port), (self.path, self.port))
         rows = {row.asset_id: row for row in project.asset_rows(self.opened())}
         self.assertEqual(len(rows), 11)
@@ -101,22 +103,22 @@ class TheDemoStore(DemoFixture):
         self.assertEqual({a: s for a, s in state.run_report.statuses.items()}, {a: r.status for a, r in rows.items()})
 
     def test_the_trackers_and_the_meter_are_green_and_untested(self) -> None:
-        demo.build_demo_store(self.path, self.port)
+        demo.build_demo_store(self.path, self.port, self.dead)
         conn = self.opened()
         for asset_id in UNTESTED:
             self.assertIs(project.asset_status(conn, asset_id), AssetStatus.GREEN)
             self.assertEqual(results.latest_for(conn, asset_id), ())
 
     def test_the_run_report(self) -> None:
-        report = demo.build_demo_store(self.path, self.port).run_report
+        report = demo.build_demo_store(self.path, self.port, self.dead).run_report
         # Every test of each pinged asset's kind, and a failed ping's reachable beside them for the two dead feeds (SP-017).
         per_run = (2 * len(remote_registry.tests_for(AssetKind.INVERTER)) + len(remote_registry.tests_for(AssetKind.SENSOR))
                    + 2)
         self.assertEqual((report.pinged, report.records, report.results, report.mails), (3, 0, per_run, 0))
-        self.assertEqual(report.errors, tuple(f"{a}: 127.0.0.1:9 is unreachable" for a in (INV2, SENSOR)))
+        self.assertEqual(report.errors, tuple(f"{a}: 127.0.0.1:{self.dead} is unreachable" for a in (INV2, SENSOR)))
 
     def test_the_ledger_and_the_telemetry(self) -> None:
-        demo.build_demo_store(self.path, self.port)
+        demo.build_demo_store(self.path, self.port, self.dead)
         conn = self.opened()
         faults = project.faults_listing(conn, False)
         self.assertEqual([(f.asset_id, f.code, f.opened, f.closed) for f in faults], [
@@ -127,7 +129,7 @@ class TheDemoStore(DemoFixture):
             (demo.SENSOR, "SEN-001", RUN_AT, None),  # SP-046: raised by the run's failing reachable
         ])
         self.assertEqual(conn.execute("SELECT count(*) FROM samples").fetchone()[0], 576)
-        inverters = tuple(a for a in demo.demo_assets(self.port) if a.kind is AssetKind.INVERTER)
+        inverters = tuple(a for a in demo.demo_assets(self.port, self.dead) if a.kind is AssetKind.INVERTER)
         seeded = generator.generate(inverters, project.day_period(demo.DAY), 7)
         stored = tuple(s for a in inverters for s in sample_table.in_period(conn, a.asset_id, project.day_period(demo.DAY)))
         self.assertEqual(stored, seeded)
@@ -143,10 +145,10 @@ class TheDemoStore(DemoFixture):
         self.assertEqual(server.server_address, ("127.0.0.1", port))
 
     def test_the_endpoints(self) -> None:
-        assets = {asset.asset_id: asset for asset in demo.demo_assets(self.port)}
+        assets = {asset.asset_id: asset for asset in demo.demo_assets(self.port, self.dead)}
         self.assertEqual(len(assets), 11)
         self.assertEqual((assets[INV1].host, assets[INV1].port), ("127.0.0.1", self.port))
-        self.assertEqual({(assets[a].host, assets[a].port) for a in (INV2, SENSOR)}, {("127.0.0.1", 9)})
+        self.assertEqual({(assets[a].host, assets[a].port) for a in (INV2, SENSOR)}, {("127.0.0.1", self.dead)})
         self.assertEqual({(assets[a].host, assets[a].port) for a in UNTESTED}, {(None, None)})
         self.assertEqual(assets["OAHE-STR-001"], next(a for a in project.demo_fleet() if a.asset_id == "OAHE-STR-001"))
         self.assertIs(assets["OAHE-MTR-001"].kind, AssetKind.METER)
@@ -155,16 +157,47 @@ class TheDemoStore(DemoFixture):
         samples = demo.simulator_samples()
         self.assertEqual((len(samples), {s.asset_id for s in samples}), (288, {INV1}))
         self.assertEqual(samples, demo.simulator_samples())
-        demo.build_demo_store(self.path, self.port)
+        demo.build_demo_store(self.path, self.port, self.dead)
         self.assertEqual(project.ping_asset(self.opened(), INV1), samples)
 
     def test_a_second_build_rebuilds_the_store(self) -> None:
-        demo.build_demo_store(self.path, self.port)
-        again = demo.build_demo_store(self.path, self.port)
+        demo.build_demo_store(self.path, self.port, self.dead)
+        again = demo.build_demo_store(self.path, self.port, self.dead)
         self.assertIs(again.run_report.statuses[INV2], AssetStatus.RED)
         with closing(project.open_or_create(self.path)) as conn:
             self.assertEqual(len(project.faults_listing(conn, False)), 5)  # SP-046, SP-047: the sensor's SEN-001 and the inverter's SIT-004 too
             self.assertEqual(conn.execute("SELECT count(*) FROM samples").fetchone()[0], 576)
+
+
+class TheDeadPort(DemoFixture):
+    """13.16: the dead assets' port is reserved per run, and the demo's one control brings OAHE-INV-002's feed back."""
+
+    def test_the_port_is_free_and_never_a_fixed_one(self) -> None:
+        self.assertNotIn(self.dead, (0, 9, self.port))
+        self.assertNotEqual(demo.reserve_port(), 9)
+        assets = {asset.asset_id: asset for asset in demo.demo_assets(self.port, self.dead)}
+        self.assertEqual((assets[INV2].port, assets[SENSOR].port), (self.dead, self.dead))
+
+    def test_the_revival_offers_a_dead_inverter_only(self) -> None:
+        assets = {asset.asset_id: asset for asset in demo.demo_assets(self.port, self.dead)}
+        revival = demo.Revival(self.dead)
+        self.assertEqual([revival.offers(assets[a]) for a in (INV1, INV2, SENSOR)], [False, True, False])
+
+    def test_bringing_the_feed_back_turns_reachable_to_a_pass_and_a_second_press_starts_no_second_server(self) -> None:
+        demo.build_demo_store(self.path, self.port, self.dead)
+        conn = self.opened()
+        revival = demo.Revival(self.dead)
+        self.addCleanup(revival.close)
+        before = {d.test_name: d.state for d in project.asset_detail(conn, INV2).diagnostics}
+        self.assertEqual(before["reachable"], "fail")
+        revival.bring_back(conn, INV2)
+        first = revival.server
+        after = {d.test_name: d.state for d in project.asset_detail(conn, INV2).diagnostics}
+        self.assertEqual(after["reachable"], "pass")
+        revival.bring_back(conn, INV2)
+        self.assertIs(revival.server, first)
+        revival.close()
+        self.assertIsNone(revival.server)
 
 
 @unittest.skipUnless(HAS_TKINTER, "no tkinter")
@@ -200,9 +233,11 @@ class TheDemoWindow(DemoFixture):
         self.assertEqual(seen, [("Solarpunk fleet — demo (OAHE, 2026-06-01)", "11 assets: 9 green, 1 yellow, 1 red")])
         lines = out.getvalue().splitlines()
         self.assertRegex(lines[0], r"^demo: simulator on 127\.0\.0\.1:\d+$")
-        self.assertRegex(lines[1], r"^demo: store .*solarpunk-demo-.*demo\.db rebuilt$")
-        self.assertEqual(lines[2:], ["demo: run - 9 green, 1 yellow, 1 red"])
-        store = Path(lines[1].removeprefix("demo: store ").removesuffix(" rebuilt"))
+        self.assertRegex(lines[1], r"^demo: dead feeds on 127\.0\.0\.1:\d+$")
+        self.assertNotEqual(lines[1], "demo: dead feeds on 127.0.0.1:9")  # 13.16: no fixed port
+        self.assertRegex(lines[2], r"^demo: store .*solarpunk-demo-.*demo\.db rebuilt$")
+        self.assertEqual(lines[3:], ["demo: run - 9 green, 1 yellow, 1 red"])
+        store = Path(lines[2].removeprefix("demo: store ").removesuffix(" rebuilt"))
         self.assertTrue(store.is_absolute())
         self.assertNotIn(Path.cwd().resolve(), store.resolve().parents)  # outside the working directory
         self.assertFalse(store.parent.exists())  # the folder is gone after exit
@@ -217,7 +252,7 @@ class TheDemoWindow(DemoFixture):
 
         with self.assertRaises(RuntimeError):
             entry.main(["--demo"], out, fail)
-        store = Path(out.getvalue().splitlines()[1].removeprefix("demo: store ").removesuffix(" rebuilt"))
+        store = Path(out.getvalue().splitlines()[2].removeprefix("demo: store ").removesuffix(" rebuilt"))
         self.assertFalse(store.parent.exists())
 
     def test_a_click_opens_the_asset_window_and_add_asset_the_add_window(self) -> None:
@@ -241,3 +276,50 @@ class TheDemoWindow(DemoFixture):
         root.update()
         added = [w for w in top.winfo_children() if isinstance(w, AddAssetWindow)]
         self.assertEqual(len(added), 1)
+
+
+@unittest.skipUnless(display_available(), "no display")
+class TheRevivalButton(DemoFixture):
+    """13.16 in the window: the button is on the demo's dead inverter alone, and pressing it redraws the window."""
+
+    def setUp(self) -> None:
+        """The demo built, a root open, and the store's connection."""
+        super().setUp()
+        self.addCleanup(gc.collect)  # Tk objects are freed here, on the main thread, not by a collection in the feed's
+        self.root = tkinter.Tk()
+        self.addCleanup(self.root.destroy)
+        demo.build_demo_store(self.path, self.port, self.dead)
+        self.conn = self.opened()
+        self.revival = demo.Revival(self.dead)
+        self.addCleanup(self.revival.close)
+
+    def test_it_is_there_on_the_demo_for_the_inverter_and_for_nothing_else(self) -> None:
+        def button(asset_id: str, revival: "demo.Revival | None") -> object:
+            """The asset window's revival button, or None."""
+            window = AssetWindow(self.root, self.conn, asset_id, revival=revival)
+            self.addCleanup(window.destroy)
+            return window.revive_button
+
+        self.assertEqual(button(INV2, self.revival).cget("text"), "Bring the feed back (demo)")
+        self.assertIsNone(button(SENSOR, self.revival))
+        self.assertIsNone(button(INV1, self.revival))
+        self.assertIsNone(button(INV2, None))  # a store that is not the demo's
+
+    def test_pressing_it_passes_reachable_refreshes_the_row_and_shows_all_eight_tests(self) -> None:
+        changes: list[int] = []
+        window = AssetWindow(self.root, self.conn, INV2, lambda: changes.append(1), revival=self.revival)
+        self.addCleanup(window.destroy)
+        self.root.update()
+
+        def rows() -> dict[str, str]:
+            """The diagnostics tree as {test: result}."""
+            tree = window.result_tree
+            return {tree.set(row, "test"): tree.set(row, "result") for row in tree.get_children()}
+
+        self.assertEqual(rows()["reachable"].lower(), "fail")
+        window.revive_button.invoke()
+        self.root.update()
+        self.assertEqual(rows()["reachable"].lower(), "pass")
+        self.assertEqual(len(rows()), 8)
+        self.assertEqual(int(window.result_tree.cget("height")), 8)
+        self.assertEqual(changes, [1])

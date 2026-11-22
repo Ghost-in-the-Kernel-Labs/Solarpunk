@@ -5,6 +5,7 @@ OAHE-INV-002, carrying an open INV-001 with its port dead (RED wins over YELLOW,
 port is dead so its reachable test fails; the trackers, the meter, the strings and the site have no endpoint, so the
 suite does not test them and they stay GREEN (J-023). No tkinter here: the window half is in __main__.py, so the store
 is built and tested headless (SP-010: this module imports project and the leaf alone)."""
+import socket
 import socketserver
 import sqlite3
 import threading
@@ -17,7 +18,7 @@ from pathlib import Path
 from solarpunk import project
 from solarpunk.leaf.assets import Asset
 from solarpunk.leaf.clock import at
-from solarpunk.leaf.codes import AssetKind
+from solarpunk.leaf.codes import AssetKind, AssetStatus
 from solarpunk.leaf.telemetry import Sample
 from solarpunk.project.orchestrator import feed_server, simulated_day
 
@@ -27,8 +28,6 @@ FED = "OAHE-INV-001"
 DOWN = "OAHE-INV-002"
 SENSOR = "OAHE-SEN-001"
 LOOPBACK = "127.0.0.1"
-# A port nobody listens on (the discard service, never run on a demo machine): a ping to it is refused at once.
-DEAD_PORT = 9
 DAY = date(2026, 6, 1)
 SEED = 7
 RUN_AT = at(2026, 6, 1, 13)
@@ -53,27 +52,37 @@ NO_FEED_KINDS = (AssetKind.TRACKER, AssetKind.METER)
 
 @dataclass(frozen=True)
 class DemoState:
-    """What building the demo made: DemoState(Path("demo.db"), 50123, <the run's report>), the report's statuses
+    """What building the demo made: DemoState(Path("demo.db"), 50123, 50124, <the run's report>), the report's statuses
     holding OAHE-INV-001 GREEN, OAHE-SEN-001 YELLOW and OAHE-INV-002 RED."""
 
     db_path: Path
     simulator_port: int
+    dead_port: int
     run_report: project.RunReport
 
 
-def demo_assets(port: int) -> tuple[Asset, ...]:
+def reserve_port() -> int:
+    """A free loopback port for this run to keep dead (13.16): bound to port 0, read, released, so nothing listens on
+    it and a ping is refused at once; reserve_port() is 50124, and a second run's is another, never a fixed number."""
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as probe:
+        probe.bind((LOOPBACK, 0))
+        return probe.getsockname()[1]
+
+
+def demo_assets(port: int, dead_port: int) -> tuple[Asset, ...]:
     """The OAHE fixture with the demo's endpoints: OAHE-INV-001 at 127.0.0.1:<port>, OAHE-INV-002 and OAHE-SEN-001 at
-    127.0.0.1:9, the trackers and the meter with no endpoint; demo_assets(5020)[1].port is 5020, eleven assets."""
-    return tuple(demo_asset(asset, port) for asset in project.demo_fleet())
+    127.0.0.1:<dead_port>, the trackers and the meter with no endpoint; demo_assets(5020, 5021)[1].port is 5020,
+    eleven assets."""
+    return tuple(demo_asset(asset, port, dead_port) for asset in project.demo_fleet())
 
 
-def demo_asset(asset: Asset, port: int) -> Asset:
+def demo_asset(asset: Asset, port: int, dead_port: int) -> Asset:
     """One fixture asset with its demo endpoint: OAHE-INV-001 gets 127.0.0.1:<port>; OAHE-INV-002 and OAHE-SEN-001
-    127.0.0.1:9; a tracker or the meter no host and no port; the site and the strings are as they were."""
+    127.0.0.1:<dead_port>; a tracker or the meter no host and no port; the site and the strings are as they were."""
     if asset.asset_id == FED:
         return replace(asset, host=LOOPBACK, port=port)
     if asset.asset_id in (DOWN, SENSOR):
-        return replace(asset, host=LOOPBACK, port=DEAD_PORT)
+        return replace(asset, host=LOOPBACK, port=dead_port)
     if asset.kind in NO_FEED_KINDS:
         return replace(asset, host=None, port=None)
     return asset
@@ -122,15 +131,56 @@ def instant_clock(start: datetime = RUN_AT) -> Callable[[float], datetime]:
     return clock
 
 
-def build_demo_store(path: Path, port: int) -> DemoState:
-    """Removes the file at path if present and builds the demo there against a simulator on port, then runs the suite
-    once at 2026-06-01T13:00Z with no mail, its bursts shortened to 5 reads (13.13), so OAHE-INV-001's power_ripple passes: build_demo_store(Path("demo.db"), 50123).run_report.statuses["OAHE-INV-002"]
+def build_demo_store(path: Path, port: int, dead_port: int | None = None) -> DemoState:
+    """Removes the file at path if present and builds the demo there against a simulator on port, the dead assets on
+    dead_port (a port nothing serves, 13.16; one reserved for the call when None), then runs the suite
+    once at 2026-06-01T13:00Z with no mail, its bursts shortened to 5 reads (13.13), so OAHE-INV-001's power_ripple passes: build_demo_store(Path("demo.db"), 50123, 50124).run_report.statuses["OAHE-INV-002"]
     is RED; a second call rebuilds the same store rather than raising on a duplicate key."""
+    dead_port = reserve_port() if dead_port is None else dead_port
     path.unlink(missing_ok=True)
     with closing(project.open_or_create(path)) as conn:
-        project.load_fleet(conn, demo_assets(port))
+        project.load_fleet(conn, demo_assets(port, dead_port))
         project.generate_and_store(conn, SITE, project.day_period(DAY), SEED)
         add_faults(conn)
         report = project.scheduled_run(conn, RUN_AT, acquirer=project.feed_acquirer(instant_clock(), BURST_READS_S))
         conn.commit()
-    return DemoState(path, port, report)
+    return DemoState(path, port, dead_port, report)
+
+
+class Revival:
+    """The demo's one control (13.16, SP-053), handed to the windows by run_demo and by nothing else: Revival(5021) offers
+    its button for OAHE-INV-002 and not for OAHE-SEN-001, which the simulator cannot serve, and bring_back starts the
+    inverter's feed on 5021 once and runs its tests again."""
+
+    def __init__(self, dead_port: int) -> None:
+        """A revival of the feed on dead_port, none started yet: Revival(5021).server is None."""
+        self.dead_port = dead_port
+        self.server: socketserver.TCPServer | None = None
+        self.runs = 0
+
+    def offers(self, asset: Asset) -> bool:
+        """Whether the asset is a dead inverter of the demo: offers(OAHE-INV-002 at 127.0.0.1:5021) is True, offers of
+        OAHE-SEN-001 at the same port False (a sensor), and of OAHE-INV-001 on its own port False."""
+        return asset.kind is AssetKind.INVERTER and asset.host == LOOPBACK and asset.port == self.dead_port
+
+    def bring_back(self, conn: sqlite3.Connection, asset_id: str) -> AssetStatus:
+        """Serves the asset's day on its port (the first press only) and runs its tests once, five minutes after the last
+        press's run: the first press of OAHE-INV-002 records reachable as a pass at 13:05 and returns its status."""
+        asset = project.asset_detail(conn, asset_id).asset
+        if self.server is None:
+            samples = simulated_day(asset, project.day_period(DAY), SEED)
+            self.server = project.feed_server_on(samples, LOOPBACK, self.dead_port)
+            threading.Thread(target=self.server.serve_forever, kwargs={"poll_interval": POLL_INTERVAL_S}, daemon=True).start()
+        self.runs += 1
+        run_at = RUN_AT + timedelta(minutes=5 * self.runs)
+        acquirer = project.feed_acquirer(instant_clock(run_at), BURST_READS_S)
+        status = project.run_asset_tests(conn, asset_id, run_at, acquirer)
+        conn.commit()
+        return status
+
+    def close(self) -> None:
+        """Stops the feed if one was started: after close(), the port answers nothing; a second close does nothing."""
+        server, self.server = self.server, None
+        if server is not None:
+            server.shutdown()
+            server.server_close()

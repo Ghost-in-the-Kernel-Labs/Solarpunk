@@ -322,7 +322,8 @@ class TheDemosDiagnostics(unittest.TestCase):
         self.addCleanup(server.shutdown)
         folder = tempfile.TemporaryDirectory()
         self.addCleanup(folder.cleanup)
-        demo.build_demo_store(Path(folder.name) / demo.DB_NAME, port)
+        self.dead = demo.reserve_port()
+        demo.build_demo_store(Path(folder.name) / demo.DB_NAME, port, self.dead)
         self.conn = project.open_or_create(Path(folder.name) / demo.DB_NAME)
         self.addCleanup(self.conn.close)
 
@@ -347,7 +348,7 @@ class TheDemosDiagnostics(unittest.TestCase):
         the diagnostics show the failure, first (J-050)."""
         found = project.asset_detail(self.conn, demo.DOWN).diagnostics
         self.assertEqual((found[0].test_name, found[0].state), ("reachable", "fail"))
-        self.assertEqual(found[0].reason, "127.0.0.1:9 is unreachable")
+        self.assertEqual(found[0].reason, f"127.0.0.1:{self.dead} is unreachable")
 
     def test_a_tracker_with_no_feed_shows_its_tests_never_run_and_a_string_shows_none(self) -> None:
         found = project.asset_detail(self.conn, "OAHE-TRK-001").diagnostics

@@ -53,7 +53,7 @@ class TheExamples(unittest.TestCase):
         cls.addClassCleanup(server.shutdown)
         folder = tempfile.TemporaryDirectory()
         cls.addClassCleanup(folder.cleanup)
-        demo.build_demo_store(Path(folder.name) / demo.DB_NAME, port)
+        cls.dead = demo.build_demo_store(Path(folder.name) / demo.DB_NAME, port).dead_port
         cls.conn = project.open_or_create(Path(folder.name) / demo.DB_NAME)
         cls.addClassCleanup(cls.conn.close)
         cls.text = " ".join(section().split())
@@ -65,7 +65,7 @@ class TheExamples(unittest.TestCase):
     def test_the_down_inverters_run(self) -> None:
         run = run_of(self.conn, demo.DOWN, RUN_AT)
         self.assertEqual(len(run), 9)
-        self.assertEqual(run[0], ("reachable", False, "127.0.0.1:9 is unreachable"))
+        self.assertEqual(run[0], ("reachable", False, f"127.0.0.1:{self.dead} is unreachable"))
         self.assertIn(("reachable", True, "156 records"), run)
         self.assertEqual(sum(passed is True for _, passed, _ in run), 7)
         self.has("OAHE-INV-002's run at 13:00 8 results, failed: reachable failed (\"127.0.0.1:9 is unreachable\"")
@@ -75,7 +75,7 @@ class TheExamples(unittest.TestCase):
         self.assertEqual([(name, passed) for name, passed, _ in run],
                          [("reachable", False), ("reachable", False), ("irradiance_in_range", None), ("on_grid", None)])
         self.assertEqual({reason for name, passed, reason in run if passed is False},
-                         {"127.0.0.1:9 is unreachable", "no records"})
+                         {f"127.0.0.1:{self.dead} is unreachable", "no records"})
         self.assertEqual({reason for name, passed, reason in run if passed is None}, {"no records"})
         self.has("OAHE-SEN-001's run at 13:00 4 results, failed: two reachable failed")
         self.has("irradiance_in_range and on_grid no data (\"no records\"), never a pass")

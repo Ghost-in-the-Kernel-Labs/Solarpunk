@@ -28,7 +28,7 @@ class TheExamples(unittest.TestCase):
         cls.addClassCleanup(server.shutdown)
         folder = tempfile.TemporaryDirectory()
         cls.addClassCleanup(folder.cleanup)
-        demo.build_demo_store(Path(folder.name) / demo.DB_NAME, port)
+        cls.dead = demo.build_demo_store(Path(folder.name) / demo.DB_NAME, port).dead_port
         cls.conn = project.open_or_create(Path(folder.name) / demo.DB_NAME)
         cls.addClassCleanup(cls.conn.close)
 
@@ -36,7 +36,7 @@ class TheExamples(unittest.TestCase):
         (run,) = project.asset_runs(self.conn, INV2)
         self.assertEqual((run.run_at, len(run.results), run.failed), (at(2026, 6, 1, 13), 9, True))
         first = run.results[0]
-        self.assertEqual((first.test_name, first.passed, first.reason), ("reachable", False, "127.0.0.1:9 is unreachable"))
+        self.assertEqual((first.test_name, first.passed, first.reason), ("reachable", False, f"127.0.0.1:{self.dead} is unreachable"))
         self.assertIn(("reachable", True, "156 records"), [(r.test_name, r.passed, r.reason) for r in run.results])
         self.assertEqual([r.passed for r in run.results], [False, False] + [True] * 7)  # power_ripple, with no live reads taken, says no data (13.3)
 

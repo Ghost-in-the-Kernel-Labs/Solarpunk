@@ -126,16 +126,6 @@ on the demo's day (2026-06-01), not the wall clock; OAHE-INV-002's stored power 
 a ticket opened from a failed result has its SOL-14 targets counted from that result's instant, `docs/CONTRACT.md`'s
 SOL-14 saying so with a hand-checked example; the fast loop, the window tests and the demo tests under xvfb green.
 
-### 13.16 A dead feed brought back, and the tests re-run
-
-A presenter can bring the dead inverter's feed back and re-run its tests from the window, and see every test's last
-result (SP-053, J-141 a2 and a4).
-
-Check: the demo reserves its own dead port per run (no fixed port 9; `solarpunk/ui/demo.py`'s `DEAD_PORT` gone) and
-prints it; a demo-only control in the asset window (absent on any other store) starts an in-process feed for that
-asset on its port and runs its tests once, the window refreshed; the asset window's diagnostics show every test of an
-inverter (8 today) without hiding one; the fast loop, the window tests and the demo tests under xvfb green.
-
 ### 13.18 The ISO walk, scripted and dry-run
 
 DEMO.md walks one ISO requirement to its evidence and its corrective action on `--demo`, and a fresh dry run follows
