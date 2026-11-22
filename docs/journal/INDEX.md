@@ -147,3 +147,4 @@ Written from `docs/journal/` by `scripts/journal_index.py`; do not edit by hand.
 | J-141 | The demo's ISO walk, dry-run: what is missing | measurement | `J-100-199.md` |
 | J-142 | 13.8 part 3: names under scripts/ say what they hold | feature | `J-100-199.md` |
 | J-143 | SP-053: the demo's ISO walk placed as 13.14 to 13.18 | decision | `J-100-199.md` |
+| J-144 | 13.14: the demo on a throwaway store | feature | `J-100-199.md` |

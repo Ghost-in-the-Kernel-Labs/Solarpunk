@@ -30,7 +30,7 @@ HELP = """Solarpunk: the commands. On Windows type them after "solarpunk"; anywh
 
 The window
   solarpunk                                    open the fleet window on solarpunk.db in this folder, made if missing
-  solarpunk --demo                             rebuild demo.db and open the demo
+  solarpunk --demo                             open the demo, on a store it prints the path of
   solarpunk --db PATH                          open the window on another store
   solarpunk --shortcut                         put a Solarpunk shortcut, with its icon, on the desktop
   solarpunk --help                             this list

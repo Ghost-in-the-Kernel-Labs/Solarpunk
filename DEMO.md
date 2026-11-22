@@ -25,14 +25,14 @@ The folder holds `solarpunk.cmd`, so in the `Solarpunk` folder (the one that hol
     solarpunk                                     the window on solarpunk.db in this folder, made if missing
     solarpunk --help                              every command, one line each
     solarpunk test list                           the remote tests, each with its asset kinds and clauses
-    solarpunk test run --db demo.db               every remote test over every asset of that store, once, now
+    solarpunk test run --db <the demo's store path>   every remote test over every asset of that store, once, now
     solarpunk test add tracker_moving --clause 55000-9.1
 
 `test add` writes `solarpunk\remote\tests\tracker_moving.py`, taking the test's asset kinds from the asset maintenance
 list (`--kind TRACKER` names them by hand); the new test fails on every run until its `run` function is written, so
 its assets turn yellow until then. To type `solarpunk` from any folder, add the `Solarpunk` folder to PATH (Settings,
 "Edit environment variables for your account", Path, New); the store stays in the folder you typed it in. After the
-demo window is closed its simulator is gone, so `solarpunk test run --db demo.db` shows OAHE-INV-001's feed as
+demo window is closed its simulator is gone, so `solarpunk test run --db` on the demo's store shows OAHE-INV-001's feed as
 unreachable: the feeds must be answering for a green run.
 
 ## What appears
@@ -40,10 +40,10 @@ unreachable: the feeds must be answering for a green run.
 The terminal prints one line per step:
 
     demo: simulator on 127.0.0.1:<a free port>
-    demo: store demo.db rebuilt
+    demo: store <the full path of the store> rebuilt
     demo: run - 9 green, 1 yellow, 1 red
 
-`demo.db` is made in the folder you ran from, removed and rebuilt every run. The window, titled "Solarpunk fleet —
+The store is made in a new temporary folder, rebuilt every run and removed when the window closes; the line above is its full path, which a second terminal passes to `--db`. The window, titled "Solarpunk fleet —
 demo (OAHE, 2026-06-01)", lists the eleven assets of the Oahe site near Pierre:
 
 - **OAHE-INV-001 green**: a feed simulator inside the demo serves its day of telemetry; every remote test passed, `power_ripple` among them, judged on five quick reads the run took from the simulator.
@@ -153,6 +153,6 @@ derate on OAHE-INV-001 (10:00 to 10:45). The run is stamped 2026-06-01 13:00 UTC
   cloned inside a folder already named `Solarpunk` and then moved up. Clone again straight onto the Desktop.
 - **"No module named tkinter"**: reinstall CPython 3.12 from python.org with "tcl/tk and IDLE" ticked.
 - **A port is busy**: run it again; the simulator picks a free port each time.
-- **"demo.db" cannot be removed**: a demo window from an earlier run is still open; close it and run again.
+- **"could not be removed and was left"**: the demo could not delete its temporary folder (another program holds the file); delete the folder the line names.
 - **The window is blank**: click Refresh.
 - **The run takes a few seconds**: Windows waits a moment on each refused connection (two feeds do not answer).

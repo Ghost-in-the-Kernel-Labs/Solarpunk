@@ -114,17 +114,6 @@ Each decision is mapped to the functions that hold it, and each function holding
 
 Check: `scripts/decision_map.py` writes `docs/DECISION-MAP.md`, for each decision in `theGhost.md` the functions (file and name) whose `# Decision:` or `# Invariant:` line cites it, "no function" otherwise; the fast loop fails when the file is stale; `scripts/checks/decision_map.py` fails when an in-force decision whose `Held by` names a file under `solarpunk/` or `scripts/` is cited by no function, or a citation names a decision or invariant that does not exist, with a planted break under `test/fixtures/broken/decision_map/`; the missing citations added to the functions that hold each decision; the fast loop green.
 
-### 13.14 The demo on a throwaway store
-
-`--demo` builds its store in a fresh temporary folder outside the repository, prints its full path, and deletes the
-folder on exit; `demo.db` leaves git (SP-052, J-141 a1).
-
-Check: `run_demo` (`solarpunk/ui/__main__.py`) builds the store under a `tempfile` folder, the store line prints the
-store's full path so a second terminal can pass it to `--db`, and `main` removes the folder after the store closes;
-`demo.db` is removed from the index (it stays in `.gitignore`); `test/solarpunk/test_demo.py` holds that the store is
-outside the working directory and gone after exit; README, DEMO.md and `solarpunk/cli/main.py`'s help name no
-`demo.db` in the repository's folder; the fast loop, the window tests and the demo tests under xvfb green.
-
 ### 13.15 The demo's people, day and outage
 
 In the demo every act names a person, carries the demo's day, and the store agrees with its faults; a result's ticket

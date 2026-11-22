@@ -83,3 +83,9 @@ An entry is `### <date> · <task> · <who>`, then four bullets: **Task**, **Open
 - **Opened**: `CLAUDE.md`, `docs/paths/process.md`, the names check's list, then each file it named.
 - **Complaints**: none.
 - **Suggestions**: none.
+
+### 2026-11-22 · 13.14 the demo on a throwaway store · mid-grade worker
+- **Task**: `--demo` on a temporary store outside the repository, removed on exit; `demo.db` out of git (J-144).
+- **Opened**: `CLAUDE.md`, `solarpunk/ui/__main__.py`, `solarpunk/ui/demo.py`, `test/solarpunk/test_demo.py`, `solarpunk/cli/main.py`, `README.md`, `DEMO.md`, `.gitignore`.
+- **Complaints**: the demo tests print a ResourceWarning for an unclosed store, not traced (J-033).
+- **Suggestions**: none.

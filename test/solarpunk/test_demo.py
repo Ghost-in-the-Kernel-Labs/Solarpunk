@@ -6,6 +6,7 @@ run_demo and open_fleet) under a display (xvfb-run -a .venv/bin/pytest test/sola
 import importlib.util
 import io
 import os
+import shutil
 import sqlite3
 import tempfile
 import threading
@@ -199,13 +200,31 @@ class TheDemoWindow(DemoFixture):
         self.assertEqual(seen, [("Solarpunk fleet — demo (OAHE, 2026-06-01)", "11 assets: 9 green, 1 yellow, 1 red")])
         lines = out.getvalue().splitlines()
         self.assertRegex(lines[0], r"^demo: simulator on 127\.0\.0\.1:\d+$")
-        self.assertEqual(lines[1:], ["demo: store demo.db rebuilt", "demo: run - 9 green, 1 yellow, 1 red"])
-        self.assertTrue((self.folder / demo.DB_NAME).is_file())
+        self.assertRegex(lines[1], r"^demo: store .*solarpunk-demo-.*demo\.db rebuilt$")
+        self.assertEqual(lines[2:], ["demo: run - 9 green, 1 yellow, 1 red"])
+        store = Path(lines[1].removeprefix("demo: store ").removesuffix(" rebuilt"))
+        self.assertTrue(store.is_absolute())
+        self.assertNotIn(Path.cwd().resolve(), store.resolve().parents)  # outside the working directory
+        self.assertFalse(store.parent.exists())  # the folder is gone after exit
+        self.assertFalse((self.folder / demo.DB_NAME).exists())
+
+    def test_the_folder_is_removed_when_the_window_run_raises(self) -> None:
+        out = io.StringIO()
+
+        def fail(root: "tkinter.Tk") -> None:
+            """Stands for a crashed window: fail(root) raises RuntimeError("window crashed")."""
+            raise RuntimeError("window crashed")
+
+        with self.assertRaises(RuntimeError):
+            entry.main(["--demo"], out, fail)
+        store = Path(out.getvalue().splitlines()[1].removeprefix("demo: store ").removesuffix(" rebuilt"))
+        self.assertFalse(store.parent.exists())
 
     def test_a_click_opens_the_asset_window_and_add_asset_the_add_window(self) -> None:
         root = tkinter.Tk()
         self.addCleanup(root.destroy)
         conn = entry.run_demo(root, io.StringIO())
+        self.addCleanup(shutil.rmtree, entry.demo_folder(conn), True)
         self.addCleanup(conn.close)
         top = tkinter.Toplevel(root)
         fleet = entry.open_fleet(top, conn)
