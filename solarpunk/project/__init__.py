@@ -57,6 +57,7 @@ from solarpunk.project.suggest import (
 )
 from solarpunk.project.run import (RunReport, add_remote_test, feed_acquirer, live_acquirer, remote_tests, remote_tests_folder, scheduled_run,
                                    run_suite_now, survey_remote_tests)
+from solarpunk.project.revival import feed_server_on, run_asset_tests
 from solarpunk.project.suites import add_suite, test_suites
 from solarpunk.remote.suite_registry import Suite
 from solarpunk.project.surface import (
@@ -305,6 +306,8 @@ __all__ = [
     "reset_password_as",
     "resolve_ticket",
     "scheduled_run",
+    "feed_server_on",
+    "run_asset_tests",
     "set_ticket_assignee",
     "store_name",
     "ticket_comments",

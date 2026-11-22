@@ -16,6 +16,7 @@ from collections.abc import Callable
 from datetime import datetime, timezone
 from tkinter import ttk
 
+from solarpunk.leaf.assets import Asset
 from solarpunk.ui import cells, ticket_text
 from solarpunk.ui.open_ticket import OpenTicketButton
 from solarpunk.ui.asset_text import (ASSIGN_TEXT, ASSIGN_TITLE, CANCEL_TEXT, CAUSE_TITLE, CAUSE_WRITE_TEXT, CHOOSE_CODE,
@@ -28,16 +29,20 @@ from solarpunk.ui.asset_text import (ASSIGN_TEXT, ASSIGN_TITLE, CANCEL_TEXT, CAU
 from solarpunk.ui.ticket_panel import TicketPanel
 
 from solarpunk import project
+from solarpunk.ui.demo import Revival
+
+REVIVE_TEXT = "Bring the feed back (demo)"
 
 
 class AssetWindow(tk.Toplevel):
     """One asset's window: AssetWindow(root, conn, "OAHE-INV-001") titled "OAHE-INV-001 — Inverter 1"; on_change is
     called after a fault is assigned or the engineer saved, so the fleet window can reread the store; account is the
-    one signed in (None in a store with none), which every act is recorded as (12.4)."""
+    one signed in (None in a store with none), which every act is recorded as (12.4). The demo passes a revival (13.16):
+    for a dead inverter of its own the window shows "Bring the feed back (demo)"; with none the control does not exist."""
 
     def __init__(
         self, parent: tk.Misc, conn: sqlite3.Connection, asset_id: str, on_change: Callable[[], None] = lambda: None,
-        account: project.Account | None = None,
+        account: project.Account | None = None, revival: Revival | None = None,
     ) -> None:
         """Reads the asset once for its kind's codes, lays out the window and fills it: an id the fleet lacks raises
         UnknownAsset before any window is drawn."""
@@ -47,6 +52,7 @@ class AssetWindow(tk.Toplevel):
         self.asset_id = asset_id
         self.on_change = on_change
         self.account = account
+        self.revival = revival
         self.codes = project.codes_for_kind(detail.asset.kind)
         self.title(window_title(detail.asset))
         self.fields = ttk.Frame(self)
@@ -56,12 +62,13 @@ class AssetWindow(tk.Toplevel):
         self.fault_tree = self.tree(OPEN_FAULTS_TITLE, FAULT_COLUMNS, FAULT_HEADINGS)
         for column, width in zip(FAULT_COLUMNS, FAULT_WIDTHS):
             self.fault_tree.column(column, width=width, stretch=column == FAULT_COLUMNS[-1])
-        self.result_tree = self.tree(DIAGNOSTICS_TITLE, RESULT_COLUMNS, RESULT_HEADINGS, height=7)
+        self.result_tree = self.tree(DIAGNOSTICS_TITLE, RESULT_COLUMNS, RESULT_HEADINGS, height=len(detail.diagnostics) or 1)
         self.result_tree.tag_configure(FAILING_TAG, foreground=RED_TEXT)
         self.result_tree.tag_configure(NOT_RUN_TAG, foreground=GREY_TEXT)
         for column, width in zip(RESULT_COLUMNS, RESULT_WIDTHS):
             self.result_tree.column(column, width=width, stretch=column == RESULT_COLUMNS[-1])
         self.build_open_ticket()
+        self.build_revival(detail.asset)
         self.suggestion_tree = self.tree(SUGGESTED_TITLE, SUGGESTION_COLUMNS, SUGGESTION_HEADINGS, height=3)
         for column, width in zip(SUGGESTION_COLUMNS, SUGGESTION_WIDTHS):
             self.suggestion_tree.column(column, width=width, stretch=column == "reason")
@@ -106,11 +113,27 @@ class AssetWindow(tk.Toplevel):
     def build_open_ticket(self) -> None:
         """The "Open a ticket" control under the diagnostics (7.9, SP-046): it acts on the failed result selected there,
         recorded as the engineer the "Assigned by" or "On the word of" picker names, and shows the ticket it opens."""
-        row = ttk.Frame(self)
+        row = self.ticket_row = ttk.Frame(self)
         row.pack(fill="x", padx=8, pady=2)
         self.open_ticket_button = OpenTicketButton(row, self.conn, self.account, self.chosen_result, self.named,
                                                    lambda words: self.message.configure(text=words, foreground=RED_TEXT), self.ticket_opened)
         self.open_ticket_button.pack(side="left")
+
+    def build_revival(self, asset: Asset) -> None:
+        """The demo's "Bring the feed back (demo)" button under the diagnostics (13.16): made only when the revival handed
+        in offers this asset, so on any other store, and for OAHE-SEN-001, there is no such widget."""
+        self.revive_button: ttk.Button | None = None
+        if self.revival is None or not self.revival.offers(asset):
+            return
+        self.revive_button = ttk.Button(self.ticket_row, text=REVIVE_TEXT,
+                                        command=self.bring_back)
+        self.revive_button.pack(side="left", padx=8)
+
+    def bring_back(self) -> None:
+        """Starts the asset's feed and runs its tests once, then redraws this window and has the fleet window reread."""
+        self.revival.bring_back(self.conn, self.asset_id)
+        self.fill(project.asset_detail(self.conn, self.asset_id))
+        self.on_change()
 
     def chosen_result(self) -> int | None:
         """The id of the failed result selected in the diagnostics, or None when none is selected or it is not a failure."""
@@ -188,6 +211,7 @@ class AssetWindow(tk.Toplevel):
             self.fault_tree.insert("", "end", iid=str(found.fault_id), values=fault_row)
         kept = self.result_tree.selection()  # the chosen result stays chosen across a reread
         self.result_tree.delete(*self.result_tree.get_children())
+        self.result_tree.configure(height=len(detail.diagnostics) or 1)  # every test of the kind, none hidden (13.16)
         for index, result_row in enumerate(result_lines(detail)):
             self.result_tree.insert("", "end", iid=str(index), values=result_row, tags=row_tags(result_row))
         self.result_tree.selection_set(*(item for item in kept if self.result_tree.exists(item)))
