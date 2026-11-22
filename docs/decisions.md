@@ -96,3 +96,4 @@ Written by `scripts/decisions_index.py` from `theGhost.md`; do not edit here. Se
 | SP-050 | The tests' record counts the run of every test; its edges read empty | in force | test record |
 | SP-051 | The windows show the record as measured and stored | in force | test record |
 | SP-052 | The demo works on a throwaway copy of its store, outside the repository | in force | demo |
+| SP-053 | The demo's ISO walk: the loop on OAHE-INV-002, people in the store, the demo's day, the trail read back | in force | demo |

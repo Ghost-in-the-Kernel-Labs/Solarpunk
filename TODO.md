@@ -85,7 +85,7 @@ SP-022; 12.1 split in two by SP-028 (accounts, then versions); 12.6 added on Gho
 
 ## Phase 13: the tests' record, at the root and per asset
 
-Lanes (P-15): 13.1 and 13.2 first (SP-019: what a test is, and the suites), then 13.3 (a test's own reads) and 13.4 (reactions, which need suites; SP-020), then 13.5 (the surface every window reads), then 13.6 and 13.7 in parallel, then the human maintainability pass (SP-042): 13.8, then 13.9, 13.10 and 13.11 in parallel, then 13.14 the pass; 13.12 (Phase 7's loose ends, SP-047) beside 13.3, in its own clone; 13.13 (bursts in the demo, SP-049) after 13.4; the asset's history went to Phase 10 (SP-024). Moved after tickets and accounts by SP-022, after the fleet window and the ticket windows by SP-023, and after runs per asset (Phase 10) by SP-024. Moved after Phase 8 by SP-018. Ghost's direction, SP-016.
+Lanes (P-15): 13.1 and 13.2 first (SP-019: what a test is, and the suites), then 13.3 (a test's own reads) and 13.4 (reactions, which need suites; SP-020), then 13.5 (the surface every window reads), then 13.6 and 13.7 in parallel, then the human maintainability pass (SP-042): 13.8, then 13.9, 13.10 and 13.11 in parallel, then 13.19 the pass; the demo's ISO walk first, on Ghost's word (SP-053): 13.14, then 13.15, 13.16 and 13.17, then 13.18, ahead of 13.8's parts 4 and 5; 13.12 (Phase 7's loose ends, SP-047) beside 13.3, in its own clone; 13.13 (bursts in the demo, SP-049) after 13.4; the asset's history went to Phase 10 (SP-024). Moved after tickets and accounts by SP-022, after the fleet window and the ticket windows by SP-023, and after runs per asset (Phase 10) by SP-024. Moved after Phase 8 by SP-018. Ghost's direction, SP-016.
 
 ### 13.8 Names of three characters or more
 
@@ -114,7 +114,62 @@ Each decision is mapped to the functions that hold it, and each function holding
 
 Check: `scripts/decision_map.py` writes `docs/DECISION-MAP.md`, for each decision in `theGhost.md` the functions (file and name) whose `# Decision:` or `# Invariant:` line cites it, "no function" otherwise; the fast loop fails when the file is stale; `scripts/checks/decision_map.py` fails when an in-force decision whose `Held by` names a file under `solarpunk/` or `scripts/` is cited by no function, or a citation names a decision or invariant that does not exist, with a planted break under `test/fixtures/broken/decision_map/`; the missing citations added to the functions that hold each decision; the fast loop green.
 
-### 13.14 Tune-up pass 13
+### 13.14 The demo on a throwaway store
+
+`--demo` builds its store in a fresh temporary folder outside the repository, prints its full path, and deletes the
+folder on exit; `demo.db` leaves git (SP-052, J-141 a1).
+
+Check: `run_demo` (`solarpunk/ui/__main__.py`) builds the store under a `tempfile` folder, the store line prints the
+store's full path so a second terminal can pass it to `--db`, and `main` removes the folder after the store closes;
+`demo.db` is removed from the index (it stays in `.gitignore`); `test/solarpunk/test_demo.py` holds that the store is
+outside the working directory and gone after exit; README, DEMO.md and `solarpunk/cli/main.py`'s help name no
+`demo.db` in the repository's folder; the fast loop, the window tests and the demo tests under xvfb green.
+
+### 13.15 The demo's people, day and outage
+
+In the demo every act names a person, carries the demo's day, and the store agrees with its faults; a result's ticket
+clock starts at the failure (SP-053, J-141).
+
+Check: the demo store holds accounts (an engineer and an operator, each with a password DEMO.md prints) and the demo
+window signs in as the engineer, so every ticket move, comment and cause in the demo names its actor; `solarpunk
+ticket ack` and `ticket resolve` take `--by` as `ticket comment` does; the window's acts on the demo store are stamped
+on the demo's day (2026-06-01), not the wall clock; OAHE-INV-002's stored power is 0 from its INV-001 outage's start;
+a ticket opened from a failed result has its SOL-14 targets counted from that result's instant, `docs/CONTRACT.md`'s
+SOL-14 saying so with a hand-checked example; the fast loop, the window tests and the demo tests under xvfb green.
+
+### 13.16 A dead feed brought back, and the tests re-run
+
+A presenter can bring the dead inverter's feed back and re-run its tests from the window, and see every test's last
+result (SP-053, J-141 a2 and a4).
+
+Check: the demo reserves its own dead port per run (no fixed port 9; `solarpunk/ui/demo.py`'s `DEAD_PORT` gone) and
+prints it; a demo-only control in the asset window (absent on any other store) starts an in-process feed for that
+asset on its port and runs its tests once, the window refreshed; the asset window's diagnostics show every test of an
+inverter (8 today) without hiding one; the fast loop, the window tests and the demo tests under xvfb green.
+
+### 13.17 The closed trail read back
+
+A closed ticket reads back whole: its fault, its cause, its comments, its closeout, the failed results with their
+clauses, and the next result of each failed test (SP-053, J-141 a3).
+
+Check: `project` gives one call that returns a ticket's trail (fault code and assigner, each cause with its author and
+instant, comments, moves with actors, the closeout words, each failed result's test, instant and clauses, and the next
+result of that test on that asset); `solarpunk ticket show` prints it; the Tickets window can list closed tickets and
+shows the same trail; the Tests window shows each test's clauses; the fast loop, the window tests and the demo tests
+under xvfb green.
+
+### 13.18 The ISO walk, scripted and dry-run
+
+DEMO.md walks one ISO requirement to its evidence and its corrective action on `--demo`, and a fresh dry run follows
+it with nothing missing (SP-052, SP-053).
+
+Check: DEMO.md's walk takes 55000-9.1 through `reachable` on OAHE-INV-002: the clause, the failed result, the fault, a
+ticket opened from the result, acknowledge, comment, resolve refused without a root cause (9001-10.2.1), the cause,
+resolve, the feed brought back, the re-run passing, the closed trail read back; DEMO.md's six stale places (J-141 b)
+corrected; the register's 55000-9.1 sentence covers every control its row names (`docs/CLAUSE-REGISTER.md`, its check
+green); a fresh ruling-grade dry run of DEMO.md's walk, read-only, reports no blocker; the fast loop green.
+
+### 13.19 Tune-up pass 13
 
 Check: `docs/when/tune-up.md` followed in full; the metrics table written; the navigation log's "Last review" set.
 

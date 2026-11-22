@@ -967,3 +967,13 @@ The core decisions above are inherited (Core C-001 to C-040); this project's beg
 - **Status:** in force
 - **See also:** C-033, SP-016
 - **subject:** demo
+
+### SP-053: The demo's ISO walk: the loop on OAHE-INV-002, people in the store, the demo's day, the trail read back
+- **Decision:** The demo walks 55000-9.1 through `reachable` on OAHE-INV-002, its feed brought back live. The demo store holds accounts so every act names a person, and `ticket ack` and `resolve` take `--by`. Acts on the demo store carry the demo's day. OAHE-INV-002's stored power is zero during its outage. The register's 55000-9.1 sentence is reworded now; the other rows wait for 14.1. The SOL-14 hours stay Claude's proposal, but a ticket opened from a failed result counts its targets from the failure. Built as 13.14 to 13.18, placed ahead of 13.8's parts 4 and 5.
+- **Why:** Ghost, 2026-11-22, of the coordinator's six recommendations after the dry run (J-141): "go with your recommendations, demo first". An inverter outage is the stronger story and its feed must be revivable either way; an auditor asks who acted and when, and measures response from detection; a store whose telemetry contradicts its fault would not convince.
+- **Supersedes:** none; SOL-14's clock start is amended for tickets from results.
+- **Held by:** `TODO.md` and `docs/ROADMAP.md` 13.14 to 13.18; their code once built.
+- **Source:** Ghost, in chat, 2026-11-22.
+- **Status:** in force
+- **See also:** SP-052, SP-046, SP-016
+- **subject:** demo

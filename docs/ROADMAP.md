@@ -490,7 +490,17 @@ result kept. It adds to `docs/GOAL.md`'s SCADA analytics (2) and quality managem
   --result`; the code 7.7 left unused removed.
 - **13.13 Bursts in the demo and on request (SP-049).** The demo takes shortened bursts, so `power_ripple` shows a
   verdict; the command line takes them with `--acquire`; the 5 % threshold Ghost's.
-- **13.14 Tune-up pass 13.** (The asset's history, 13.8 before SP-024, is Phase 10.)
+- **13.14 The demo on a throwaway store (SP-052).** `--demo` builds its store in a temporary folder outside the
+  repository, prints its path, deletes it on exit; `demo.db` leaves git.
+- **13.15 The demo's people, day and outage (SP-053).** Accounts in the demo store, so every act names a person; acts
+  stamped on the demo's day; OAHE-INV-002 at zero output during its outage; a result's ticket clock from the failure.
+- **13.16 A dead feed brought back, and the tests re-run (SP-053).** A dead port per run, a demo-only control that
+  revives an asset's feed and re-runs its tests, every test visible in the asset window.
+- **13.17 The closed trail read back (SP-053).** One project call for a ticket's whole trail, shown by `ticket show`
+  and the Tickets window; closed tickets listed; the Tests window shows clauses.
+- **13.18 The ISO walk, scripted and dry-run (SP-052, SP-053).** DEMO.md walks 55000-9.1 from requirement to evidence
+  to corrective action, the register's sentence fixed, and a fresh dry run finds nothing missing.
+- **13.19 Tune-up pass 13.** (The asset's history, 13.8 before SP-024, is Phase 10.)
 
 ### Phase 14: the traceability matrix
 
