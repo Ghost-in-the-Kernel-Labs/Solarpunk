@@ -14,7 +14,7 @@ code, every product line is mutation-tested nightly, and `scripts/clauses.py` re
 
 ## Commands
 
-    python3 -m solarpunk.ui --demo      # the demo: rebuilds demo.db and opens the fleet window (DEMO.md)
+    python3 -m solarpunk.ui --demo      # the demo: rebuilds its store in a temporary folder and opens the fleet window (DEMO.md)
     python3 -m solarpunk.cli test run   # every remote test over every asset of solarpunk.db, once (--db for another)
     python3 -m solarpunk.cli test list  # the remote tests, each with its asset kinds and clauses
     python3 -m solarpunk.cli test add tracker_moving --clause 55000-9.1   # scaffold a new remote test
@@ -25,7 +25,7 @@ code, every product line is mutation-tested nightly, and `scripts/clauses.py` re
     python3 -I scripts/clauses.py       # the clause report: each ISO 9001 and ISO 55000 clause and its test
 
 On Windows the repository's `solarpunk.cmd` makes it one word, typed in the `Solarpunk` folder (or anywhere, with that
-folder on PATH): `solarpunk` opens the window, `solarpunk --demo` the demo, `solarpunk test run --db demo.db` runs the
+folder on PATH): `solarpunk` opens the window, `solarpunk --demo` the demo, `solarpunk test run --db <the path the demo printed>` runs the
 remote tests, `solarpunk test list` and `solarpunk test add <name> --clause <id>` as above, `solarpunk report <site>
 <start> <end>` the power-output report; the clause report is `solarpunk clauses`, and `solarpunk --help` lists every
 command. `solarpunk --shortcut`, typed in the folder that holds your store, puts a Solarpunk shortcut wearing her icon on
