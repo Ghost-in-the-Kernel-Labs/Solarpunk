@@ -70,6 +70,25 @@ class TheWindows(unittest.TestCase):
         window.open_chosen()
         self.assertEqual(opened, [demo.FED])
 
+    def test_show_closed_adds_closed_tickets_and_the_chosen_ticket_shows_its_trail(self) -> None:
+        project.write_fault_cause(self.conn, 3, "the AC breaker tripped", demo.INVERTER_ENGINEER, at(2026, 6, 1, 12))
+        project.resolve_ticket(self.conn, 3, "AC breaker reset", at(2026, 6, 1, 12, 30))
+        window = tickets_window.TicketsWindow(self.root, self.conn, lambda asset_id: None, now=lambda: ONE)
+        self.root.update()
+        open_rows = window.tree.get_children()
+        window.closed_check.invoke()
+        row = next(item for item in window.tree.get_children() if window.views[int(item)].ticket.wo_id == 3)
+        self.assertEqual(window.tree.item(row, "values")[3], "closed")
+        window.tree.selection_set(row)
+        self.root.update()
+        shown = window.trail.get("1.0", "end").strip()
+        self.assertEqual(shown, project.trail_text(project.ticket_trail(self.conn, 3)))
+        self.assertIn("the AC breaker tripped  (stands)", shown)
+        self.assertIn("closed 2026-06-01T12:30:00+00:00  AC breaker reset", shown)
+        self.assertEqual(str(window.trail.cget("state")), "disabled")
+        window.closed_check.invoke()
+        self.assertEqual(window.tree.get_children(), open_rows)
+
     def test_the_panel_acknowledges_comments_and_resolves(self) -> None:
         changes: list[int] = []
         window = asset_window.AssetWindow(self.root, self.conn, demo.DOWN, lambda: changes.append(1))

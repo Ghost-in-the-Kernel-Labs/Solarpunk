@@ -1,5 +1,5 @@
 """The Tests window (13.7, SP-016, SP-050): every remote test's record over the fleet (name, kinds, assets, last run,
-duration, passes, failures, no data) and, for the selected test, its last 100 runs, newest first, a failure red. Every
+duration, passes, failures, no data, clauses) and, for the selected test, its last 100 runs, newest first, a failure red. Every
 string comes from record_text.py over project.tests_overview and project.test_log; the class only lays them out (SP-010:
 it imports project and the leaf alone). tests_window.py is the Manage tests window (9.8), a different thing."""
 import sqlite3
@@ -14,7 +14,7 @@ GREY_TEXT = "#808080"
 FAILED_TAG = "failed"
 NO_DATA_TAG = "nodata"
 LIMIT = 100
-OVERVIEW_WIDTHS = (190, 230, 60, 170, 80, 60, 70, 70)
+OVERVIEW_WIDTHS = (190, 200, 60, 170, 80, 60, 70, 70, 160)
 LOG_WIDTHS = (110, 170, 70, 330, 80)
 
 

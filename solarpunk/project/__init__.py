@@ -94,8 +94,10 @@ from solarpunk.project.runs import (
     code_counts_by_asset,
 )
 from solarpunk.project.tracker import Drained, drain_outbox, local_tracker, tickets_waiting
+from solarpunk.project.trail import TicketTrail, TrailCause, TrailFault, TrailResult, ticket_trail, trail_lines, trail_text
 from solarpunk.project.tickets import (
     TicketView,
+    all_ticket_views,
     comment_on_ticket,
     move_ticket,
     open_tickets,
@@ -154,6 +156,14 @@ from solarpunk.project.attribution import (
 )
 
 __all__ = [
+    "TicketTrail",
+    "TrailCause",
+    "TrailFault",
+    "TrailResult",
+    "ticket_trail",
+    "trail_lines",
+    "trail_text",
+    "all_ticket_views",
     "Baseline",
     "DayResult",
     "Loaded",

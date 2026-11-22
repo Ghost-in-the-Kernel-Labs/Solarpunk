@@ -1,5 +1,5 @@
 """The ticket commands (11.2, SOL-14): `ticket list` (the open tickets, the nearest target first, a breach marked),
-`ticket show ID` (its line, its moves and the failed results it holds), `ticket open --result ID` (a ticket opens from a
+`ticket show ID` (its line and its whole trail: fault, causes, comments, moves, closeout, failed results with their clauses and next results, 13.17), `ticket open --result ID` (a ticket opens from a
 failed test result, 7.9, SP-046), `ticket ack ID`, `ticket comment ID WORDS…` and `ticket resolve ID --done WORDS…`, each one project call
 (MOD-02) at the instant --at names, now when it names none, as the account signed in (12.4; a store with no accounts
 names a comment's author with --by). main.py adds them to its parser."""
@@ -17,7 +17,6 @@ NONE_OPEN = "no open ticket"
 NO_TARGET = "—"
 MOVE = "  {at}  {status}  {who}"
 NOBODY = "nobody signed in"
-RESULT = "  result {result_id}  {test}  {at}  {reason}"
 
 
 def moment_of(args: argparse.Namespace) -> datetime:
@@ -51,15 +50,13 @@ def move_line(found: project.Move) -> str:
 
 
 def ticket_show(conn: sqlite3.Connection, args: argparse.Namespace, out: TextIO) -> None:
-    """ticket show 1 [--as EMAIL] [--at INSTANT]: the ticket's line, then one line per move, oldest first, whatever its
-    status, when the account sees its site (SP-039); a ticket never moved has no move line."""
-    found, moves = project.moves_for(conn, args.account, args.wo_id)
+    """ticket show 1 [--as EMAIL] [--at INSTANT]: the ticket's line, then its whole trail (13.17) under the headings
+    Fault, Causes, Comments, Moves, Closeout and Results, whatever its status, when the account sees its site (SP-039):
+    each move one line, oldest first; each failed result with its clauses and the next result of that test; an empty
+    part says "  none"."""
+    found, _ = project.moves_for(conn, args.account, args.wo_id)
     out.write(view_line(project.view_of(found, moment_of(args))) + "\n")
-    for made in moves:
-        out.write(move_line(made) + "\n")
-    for result in project.results_of_ticket(conn, args.wo_id):
-        out.write(RESULT.format(result_id=result.result_id, test=result.test_name, at=result.run_at.isoformat(),
-                                reason=result.reason) + "\n")
+    out.write(project.trail_text(project.ticket_trail(conn, args.wo_id)) + "\n")
 
 
 def ticket_list(conn: sqlite3.Connection, args: argparse.Namespace, out: TextIO) -> None:

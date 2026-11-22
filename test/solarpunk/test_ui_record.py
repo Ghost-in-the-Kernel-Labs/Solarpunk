@@ -39,11 +39,12 @@ class TheWords(unittest.TestCase):
 
     def test_a_test_row_and_one_never_run(self) -> None:
         record = project.TestRecord("reachable", (AssetKind.INVERTER, AssetKind.SENSOR),
-                                    ("A-1", "A-2", "A-3"), at(2026, 6, 1, 11), 12, 40, 3, 1)
+                                    ("A-1", "A-2", "A-3"), at(2026, 6, 1, 11), 12, 40, 3, 1, ("55000-9.1", "9001-7.1"))
         self.assertEqual(record_text.overview_row(record),
-                         ("reachable", "inverter, sensor", "3", "2026-06-01 11:00 UTC", "12 ms", "40", "3", "1"))
+                         ("reachable", "inverter, sensor", "3", "2026-06-01 11:00 UTC", "12 ms", "40", "3", "1",
+                          "55000-9.1, 9001-7.1"))
         never = project.TestRecord("idle", (), (), None, None, 0, 0, 0)
-        self.assertEqual(record_text.overview_row(never), ("idle", "", "0", "never", "—", "0", "0", "0"))
+        self.assertEqual(record_text.overview_row(never), ("idle", "", "0", "never", "—", "0", "0", "0", ""))
 
     def test_a_logged_run(self) -> None:
         run = project.LoggedRun("reachable", "OAHE-INV-002", at(2026, 6, 1, 13), "fail", UNREACHABLE, "all", 3, 17)
@@ -114,7 +115,7 @@ class TheWindow(unittest.TestCase):
         self.addCleanup(empty.close)
         window = record_window.RecordWindow(self.root, empty)
         never = window.records[0].name
-        self.assertEqual(window.overview.item("0", "values")[3:], ("never", "\u2014", "0", "0", "0"))
+        self.assertEqual(window.overview.item("0", "values")[3:8], ("never", "\u2014", "0", "0", "0"))
         self.select(window, never)
         self.assertEqual(window.log.get_children(), ())
         self.assertEqual(window.empty_label.cget("text"), f"{never} has not run yet")

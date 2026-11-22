@@ -8,7 +8,7 @@ from solarpunk.ui.asset_text import NEVER_WORD as NEVER, duration_words  # one r
 from solarpunk.ui.cells import instant_text
 
 TITLE = "Tests — record"
-OVERVIEW_COLUMNS = ("Test", "Kinds", "Assets", "Last run", "Duration", "Passes", "Failures", "No data")
+OVERVIEW_COLUMNS = ("Test", "Kinds", "Assets", "Last run", "Duration", "Passes", "Failures", "No data", "Clauses")
 LOG_COLUMNS = ("Asset", "Instant", "Result", "Reason", "Duration")
 PASS = "pass"
 FAIL = "FAIL"
@@ -18,13 +18,14 @@ NO_LOG = "{name} has not run yet"
 LOG_HEADING = "Last {limit} runs of {name}"
 
 
-def overview_row(record: project.TestRecord) -> tuple[str, str, str, str, str, str, str, str]:
+def overview_row(record: project.TestRecord) -> tuple[str, str, str, str, str, str, str, str, str]:
     """A test's row: reachable run on three assets last at 11:00 UTC in 12 ms with 40 passes, 3 failures and 1 no data
-    gives ("reachable", "inverter", "3", "2026-06-01 11:00 UTC", "12 ms", "40", "3", "1"); a test never run gives
-    "0" assets, "never", "—" and zeros."""
+    and the clause 55000-9.1 gives ("reachable", "inverter", "3", "2026-06-01 11:00 UTC", "12 ms", "40", "3", "1",
+    "55000-9.1"); a test never run gives "0" assets, "never", "—" and zeros."""
     last = NEVER if record.last_run is None else instant_text(record.last_run)
     return (record.name, ", ".join(kind.name.lower() for kind in record.kinds), str(len(record.assets)), last,
-            duration_words(record.last_duration_ms), str(record.passes), str(record.failures), str(record.no_data))
+            duration_words(record.last_duration_ms), str(record.passes), str(record.failures), str(record.no_data),
+            ", ".join(record.clauses))
 
 
 def verdict_word(verdict: str) -> str:

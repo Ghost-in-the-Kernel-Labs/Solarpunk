@@ -41,6 +41,9 @@ WITH_ID = RESULT_COLUMNS + ", result_id"  # 7.9: a result's id, which a ticket i
 # The result just before another of the same test on the same asset, in (run_at, result_id) order (7.9, SP-046).
 PREVIOUS = (f"SELECT {WITH_ID} FROM results WHERE asset_id = ? AND test_name = ?"
             " AND (run_at < ? OR (run_at = ? AND result_id < ?)) ORDER BY run_at DESC, result_id DESC LIMIT 1")
+# The first result of a test on an asset in one suite strictly after an instant (13.17): the next result read back.
+NEXT_AFTER = (f"SELECT {WITH_ID} FROM results WHERE asset_id = ? AND test_name = ? AND suite = ? AND run_at > ?"
+              " ORDER BY run_at, result_id LIMIT 1")
 BY_ID = f"SELECT {WITH_ID} FROM results WHERE result_id = ?"
 LAST_OF_SUITE = "SELECT max(run_at) FROM results WHERE suite = ?"
 # Failures first, then no data, then passes (a no-data row stores passed 0), each by test name.
@@ -218,6 +221,13 @@ def previous_of(conn: sqlite3.Connection, found: Recorded) -> Recorded | None:
     and a failure at 11:00, the failure's previous is the pass."""
     row = conn.execute(PREVIOUS, (found.asset_id, found.test_name, utc(found.run_at).isoformat(),
                                   utc(found.run_at).isoformat(), found.result_id)).fetchone()
+    return None if row is None else _recorded(row)
+
+
+def next_after(conn: sqlite3.Connection, found: Recorded, suite: str = ALL) -> Recorded | None:
+    """The first stored result of the same test on the same asset in the suite, strictly after this one's run instant,
+    or None: after a failure at 11:00 and a pass at 12:00, the failure's next is the pass; the newest result has none."""
+    row = conn.execute(NEXT_AFTER, (found.asset_id, found.test_name, suite, utc(found.run_at).isoformat())).fetchone()
     return None if row is None else _recorded(row)
 
 

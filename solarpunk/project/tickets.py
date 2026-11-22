@@ -109,6 +109,13 @@ def tickets_by_target(conn: sqlite3.Connection, moment: datetime) -> tuple[Ticke
     return tuple(sorted(views, key=lambda view: (view.next_due or far, view.ticket.wo_id)))
 
 
+def all_ticket_views(conn: sqlite3.Connection, moment: datetime) -> tuple[TicketView, ...]:
+    """Every ticket, closed too, at an instant (13.17's Show closed): the open ones in tickets_by_target's order, then
+    the closed ones by work order; after one of two tickets closes, the open one then the closed one."""
+    closed = tuple(view_of(found, moment) for found in ticket_ledger.all_tickets(conn) if found.status is TicketStatus.CLOSED)
+    return tickets_by_target(conn, moment) + closed
+
+
 def resolve_ticket(conn: sqlite3.Connection, wo_id: int, done: str, moment: datetime,
                    read_at: int | None = None, actor: str | None = None) -> Ticket:
     """Resolves a ticket with what was done and closes it, in one act at an instant (11.2's Resolve): a ticket not yet
