@@ -122,6 +122,11 @@ def open_tickets(conn: sqlite3.Connection) -> tuple[Ticket, ...]:
     return tuple(_ticket(row) for row in conn.execute(SELECT_TICKET + " WHERE status != 'closed' ORDER BY wo_id"))
 
 
+def all_tickets(conn: sqlite3.Connection) -> tuple[Ticket, ...]:
+    """Every ticket, closed ones too, in wo_id order: after one of two is closed, both."""
+    return tuple(_ticket(row) for row in conn.execute(SELECT_TICKET + " ORDER BY wo_id"))
+
+
 def _checked(conn: sqlite3.Connection, wo_id: int, target: TicketStatus, moment: datetime,
              read_at: int | None) -> Ticket:
     """The ticket, once it was read at its current version (12.2), the move to target is one SOL-14 allows by this call

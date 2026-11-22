@@ -89,3 +89,9 @@ An entry is `### <date> · <task> · <who>`, then four bullets: **Task**, **Open
 - **Opened**: `CLAUDE.md`, `solarpunk/ui/__main__.py`, `solarpunk/ui/demo.py`, `test/solarpunk/test_demo.py`, `solarpunk/cli/main.py`, `README.md`, `DEMO.md`, `.gitignore`.
 - **Complaints**: the demo tests print a ResourceWarning for an unclosed store, not traced (J-033).
 - **Suggestions**: none.
+
+### 2026-11-22 · 13.17 the closed trail read back · mid-grade worker
+- **Task**: one project call for a ticket's whole trail, shown by `ticket show` and the Tickets window; clauses in the Tests window (J-145).
+- **Opened**: `CLAUDE.md`, `docs/paths/product.md`, `docs/modules.json`, `solarpunk/cli/tickets.py`, `solarpunk/project/tickets.py`, `solarpunk/project/surface.py`, `solarpunk/workorders/tickets.py`, `solarpunk/remote/results.py`, `solarpunk/ui/tickets_window.py`, `solarpunk/ui/record_window.py`, `solarpunk/ui/record_text.py`.
+- **Complaints**: the CLI's help lines live in `solarpunk/cli/main.py`, away from the command they describe, so a change to a command's output leaves its help line stale.
+- **Suggestions**: DEMO.md (13.18) names the Show closed box, the trail pane and the Clauses column.

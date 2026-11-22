@@ -136,17 +136,6 @@ prints it; a demo-only control in the asset window (absent on any other store) s
 asset on its port and runs its tests once, the window refreshed; the asset window's diagnostics show every test of an
 inverter (8 today) without hiding one; the fast loop, the window tests and the demo tests under xvfb green.
 
-### 13.17 The closed trail read back
-
-A closed ticket reads back whole: its fault, its cause, its comments, its closeout, the failed results with their
-clauses, and the next result of each failed test (SP-053, J-141 a3).
-
-Check: `project` gives one call that returns a ticket's trail (fault code and assigner, each cause with its author and
-instant, comments, moves with actors, the closeout words, each failed result's test, instant and clauses, and the next
-result of that test on that asset); `solarpunk ticket show` prints it; the Tickets window can list closed tickets and
-shows the same trail; the Tests window shows each test's clauses; the fast loop, the window tests and the demo tests
-under xvfb green.
-
 ### 13.18 The ISO walk, scripted and dry-run
 
 DEMO.md walks one ISO requirement to its evidence and its corrective action on `--demo`, and a fresh dry run follows

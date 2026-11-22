@@ -15,7 +15,7 @@ from solarpunk.remote.registry import discover
 @dataclass(frozen=True)
 class TestRecord:
     """One test's row in the overview (13.5): TestRecord("reachable", (INVERTER, ...), ("OAHE-INV-001", ...), 11:00 UTC,
-    12, 40, 3, 1); a test never run has no assets, last_run None, last_duration_ms None and counts of 0, and a duration
+    12, 40, 3, 1, ("55000-9.1",)); a test never run has no assets, last_run None, last_duration_ms None and counts of 0, and a duration
     never timed is None, never 0."""
 
     __test__ = False  # not a unittest case, though it begins "Test"
@@ -28,6 +28,7 @@ class TestRecord:
     passes: int
     failures: int
     no_data: int
+    clauses: tuple[str, ...] = ()  # 13.17: the register clauses the test evidences, from the registry
 
 
 @dataclass(frozen=True)
@@ -55,7 +56,8 @@ def tests_overview(conn: sqlite3.Connection) -> tuple[TestRecord, ...]:
     found = discover()
     tallies = {tally.test_name: tally for tally in result_table.tally(conn)}
     return tuple(
-        TestRecord(name, found[name].kinds if name in found else (), *_counted(tallies.get(name)))
+        TestRecord(name, found[name].kinds if name in found else (), *_counted(tallies.get(name)),
+                   found[name].clauses if name in found else ())
         for name in sorted(set(found) | set(tallies)))
 
 

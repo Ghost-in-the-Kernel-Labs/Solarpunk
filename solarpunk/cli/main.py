@@ -55,7 +55,7 @@ The fleet and its faults
 
 The tickets (each takes --at INSTANT, now by default)
   ticket list                                  the open tickets, the nearest target first, a breach marked
-  ticket show ID                               a ticket's line, its moves and its failed results, within your sites
+  ticket show ID                               a ticket's whole trail: fault, causes, comments, moves, closeout, results and clauses
   ticket open --result ID [--for ENGINEER]     open the ticket for a failed test result, or show the one it is in (ids: test results --asset ID)
   ticket ack ID                                acknowledge a ticket
   ticket comment ID WORDS                      add a comment, kept as written, by the account signed in

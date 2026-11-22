@@ -64,7 +64,8 @@ class TheCommands(unittest.TestCase):
     def test_refusals_are_exit_2_and_change_nothing(self) -> None:
         code, _, err = self.run_cli(["ticket", "resolve", "1", "--done", "x"])
         self.assertEqual((code, err), (2, "error: fault 1 has no root cause written: an engineer writes it before its ticket closes\n"))
-        self.assertEqual(self.run_cli(["ticket", "show", "1"])[1].count("\n"), 1)  # no move was logged
+        shown = self.run_cli(["ticket", "show", "1"])[1].splitlines()
+        self.assertEqual(shown[shown.index("Moves") + 1], "  none")  # no move was logged
         code, _, err = self.run_cli(["ticket", "comment", "1", "--by", " ", "x"])
         self.assertEqual(code, 2)
         self.run_cli(["ticket", "ack", "1", "--at", "2026-06-01T12:00:00+00:00"])
@@ -88,14 +89,17 @@ class TheCommands(unittest.TestCase):
     def test_show_prints_the_line_and_each_move_of_any_status(self) -> None:
         self.run_cli(["ticket", "ack", "2", "--at", "2026-06-01T12:40:00+00:00"])
         code, out, err = self.run_cli(["ticket", "show", "2", "--at", "2026-06-01T12:45:00+00:00"])
-        line, first, *rest = out.splitlines()
-        self.assertEqual((code, err, rest), (0, "", []))
+        line, *rest = out.splitlines()
+        self.assertEqual((code, err), (0, ""))
         self.assertTrue(line.startswith("2  OAHE-INV-001  P1  acknowledged"))
-        self.assertEqual(first, "  2026-06-01T12:40:00+00:00  acknowledged  nobody signed in")
+        self.assertIn("  2026-06-01T12:40:00+00:00  acknowledged  nobody signed in", rest)  # under Moves, 13.17
+        self.assertEqual(rest[rest.index("Moves") + 1], "  2026-06-01T12:40:00+00:00  acknowledged  nobody signed in")
         self.cause("2", "worn fuse holder")
         self.run_cli(["ticket", "resolve", "2", "--done", "x", "--at", "2026-06-01T14:00:00+00:00"])
         closed = self.run_cli(["ticket", "show", "2"])[1].splitlines()
-        self.assertEqual((closed[0].split("  ")[3], len(closed)), ("closed", 5))
+        self.assertEqual(closed[0].split("  ")[3], "closed")
+        self.assertIn("  closed 2026-06-01T14:00:00+00:00  x", closed)  # the closeout words, 13.17
+        self.assertIn("  2026-06-01T12:10:00+00:00  site@oahe.example  worn fuse holder  (stands)", closed)
         self.assertEqual(self.run_cli(["ticket", "show", "9"])[0], 2)
 
 
