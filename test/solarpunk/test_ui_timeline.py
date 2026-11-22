@@ -90,7 +90,7 @@ class TheTab(unittest.TestCase):
         items = canvas.find_withtag(runs_window.MARK_TAG)
         self.assertEqual(len(items), 2 * 8)  # two runs, eight tests each
         fills = [canvas.itemcget(i, "fill") for i in items]
-        self.assertEqual(fills.count(timeline.FAIL_COLOUR), 2)  # reachable failed in both runs
+        self.assertEqual(fills.count(timeline.FAIL_COLOUR), 4)  # reachable and (13.15, zero output) performance_above_floor failed in both runs
         texts = {canvas.itemcget(i, "text") for i in canvas.find_all() if canvas.type(i) == "text"}
         self.assertTrue({"reachable", "on_grid", "13:00", "15:00", "UTC"} <= texts)
         labels = [i for i in canvas.find_all() if canvas.type(i) == "text" and canvas.itemcget(i, "anchor") == "w"]

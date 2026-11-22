@@ -17,6 +17,7 @@ NONE_OPEN = "no open ticket"
 NO_TARGET = "—"
 MOVE = "  {at}  {status}  {who}"
 NOBODY = "nobody signed in"
+ACCOUNT_ACTS = "this store has accounts: the signed-in account is used, so --by and --recorded-by are not taken"
 
 
 def moment_of(args: argparse.Namespace) -> datetime:
@@ -55,7 +56,7 @@ def ticket_show(conn: sqlite3.Connection, args: argparse.Namespace, out: TextIO)
     each move one line, oldest first; each failed result with its clauses and the next result of that test; an empty
     part says "  none"."""
     found, _ = project.moves_for(conn, args.account, args.wo_id)
-    out.write(view_line(project.view_of(found, moment_of(args))) + "\n")
+    out.write(view_line(project.view_of(conn, found, moment_of(args))) + "\n")
     out.write(project.trail_text(project.ticket_trail(conn, args.wo_id)) + "\n")
 
 
@@ -82,9 +83,24 @@ def ticket_open(conn: sqlite3.Connection, args: argparse.Namespace, out: TextIO)
     out.write(f"{found.ticket.wo_id} {state} on result {args.result} ({len(found.results)} failed results: {held})\n")
 
 
+def actor_of(args: argparse.Namespace) -> str | None:
+    """Who a ticket act is logged as, by the rules `ticket comment` has (SP-022, 13.15): the account signed in, its email;
+    with no accounts, --by as written, or nobody when none is given; --by with an account is refused, "this store has
+    accounts: the signed-in account is used, so --by and --recorded-by are not taken"."""
+    # Decision: SP-022 (every ticket act carries the signed-in account); SP-035 (each move logged with who made it)
+    if args.account is None:
+        return args.by
+    if args.by is not None:
+        raise project.NotPermitted(ACCOUNT_ACTS)
+    return args.account.email
+
+
 def ticket_ack(conn: sqlite3.Connection, args: argparse.Namespace, out: TextIO) -> None:
-    """ticket ack 1 [--at INSTANT]: acknowledges the ticket; prints "1 acknowledged"."""
-    found = project.move_ticket_as(conn, args.account, args.wo_id, project.TicketStatus.ACKNOWLEDGED, moment_of(args))
+    """ticket ack 1 [--by EMAIL] [--at INSTANT]: acknowledges the ticket as the account signed in (a store with no
+    accounts names the actor with --by, or logs nobody); prints "1 acknowledged"."""
+    actor = actor_of(args)
+    project.permit_ticket_work(conn, args.account, args.wo_id)
+    found = project.move_ticket(conn, args.wo_id, project.TicketStatus.ACKNOWLEDGED, moment_of(args), actor=actor)
     out.write(f"{found.wo_id} {found.status.value}\n")
 
 
@@ -96,9 +112,12 @@ def ticket_comment(conn: sqlite3.Connection, args: argparse.Namespace, out: Text
 
 
 def ticket_resolve(conn: sqlite3.Connection, args: argparse.Namespace, out: TextIO) -> None:
-    """ticket resolve 1 --done fuse swapped: resolves and closes the ticket and its fault once the fault's root cause is
-    written (`fault cause`, SP-046); prints "1 closed"; without it, "error: fault 1 has no root cause written: …"."""
-    found = project.resolve_ticket_as(conn, args.account, args.wo_id, " ".join(args.done), moment_of(args))
+    """ticket resolve 1 --done fuse swapped [--by EMAIL]: resolves and closes the ticket and its fault once the fault's
+    root cause is written (`fault cause`, SP-046), as ack acts; prints "1 closed"; without it, "error: fault 1 has no
+    root cause written: …"."""
+    actor = actor_of(args)
+    project.permit_ticket_work(conn, args.account, args.wo_id)
+    found = project.resolve_ticket(conn, args.wo_id, " ".join(args.done), moment_of(args), actor=actor)
     out.write(f"{found.wo_id} {found.status.value}\n")
 
 
@@ -116,6 +135,7 @@ def add_tickets(commands: argparse._SubParsersAction) -> None:
     opening.set_defaults(handler=ticket_open)
     ack = acting(ticket.add_parser("ack"))
     ack.add_argument("wo_id", type=int)
+    ack.add_argument("--by")
     ack.set_defaults(handler=ticket_ack)
     comment = acting(ticket.add_parser("comment"))
     comment.add_argument("wo_id", type=int)
@@ -124,6 +144,7 @@ def add_tickets(commands: argparse._SubParsersAction) -> None:
     comment.set_defaults(handler=ticket_comment)
     resolve = acting(ticket.add_parser("resolve"))
     resolve.add_argument("wo_id", type=int)
+    resolve.add_argument("--by")
     resolve.add_argument("--done", nargs="+", required=True)
     resolve.set_defaults(handler=ticket_resolve)
     for parser in (listing, show, opening, ack, comment, resolve):

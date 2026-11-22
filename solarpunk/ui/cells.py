@@ -1,7 +1,7 @@
 """The fleet list's words that need no tkinter (9.2), so the fast loop's Python, which has none, tests them: an instant
 as the windows write it, and a row's cause: why a red or yellow row is that colour. The fleet window (app.py) places
 them; test_demo.py holds the demo's causes as goldens."""
-from datetime import datetime
+from datetime import datetime, timezone
 
 from solarpunk.leaf.accounts import Account, Role
 from solarpunk.leaf.codes import AssetStatus
@@ -24,6 +24,12 @@ NEVER_RUN = "never run"
 NO_FEED = "no feed"
 OUTAGE_CAUSE = "{code} since {instant}"
 SUGGESTED_CAUSE = "suggested {code}"
+
+
+def wall_now() -> datetime:
+    """The wall clock in UTC, which every window stamps its acts with unless the demo hands it a day (13.15):
+    wall_now().tzinfo is timezone.utc."""
+    return datetime.now(timezone.utc)
 
 
 def instant_text(moment: datetime) -> str:

@@ -57,9 +57,9 @@ The tickets (each takes --at INSTANT, now by default)
   ticket list                                  the open tickets, the nearest target first, a breach marked
   ticket show ID                               a ticket's whole trail: fault, causes, comments, moves, closeout, results and clauses
   ticket open --result ID [--for ENGINEER]     open the ticket for a failed test result, or show the one it is in (ids: test results --asset ID)
-  ticket ack ID                                acknowledge a ticket
+  ticket ack ID [--by EMAIL]                   acknowledge a ticket, as the account signed in (no accounts: --by names who)
   ticket comment ID WORDS                      add a comment, kept as written, by the account signed in
-  ticket resolve ID --done WORDS               resolve and close a ticket and its fault, once the fault's root cause is written
+  ticket resolve ID --done WORDS [--by EMAIL]  resolve and close a ticket and its fault, once the fault's root cause is written
 
 The accounts (a password is asked twice, never shown)
   account init                                 make the first admin, on this machine, once: asks name, email, password

@@ -13,11 +13,13 @@ import tempfile
 import threading
 import unittest
 from contextlib import closing
+from dataclasses import replace
 from pathlib import Path
 
 from solarpunk import project
 from solarpunk.leaf.clock import at
 from solarpunk.leaf.codes import AssetKind, AssetStatus
+from solarpunk.leaf.telemetry import Sample
 from solarpunk.remote import registry as remote_registry
 from solarpunk.remote import results
 from solarpunk.telemetry import generate as generator
@@ -39,6 +41,13 @@ INV2 = "OAHE-INV-002"
 SENSOR = "OAHE-SEN-001"
 UNTESTED = ("OAHE-TRK-001", "OAHE-TRK-002", "OAHE-MTR-001")
 RUN_AT = at(2026, 6, 1, 13)
+
+
+def zeroed(sample: "Sample") -> "Sample":
+    """What the demo stores for a generated sample (13.15): OAHE-INV-002's power 0 from 11:30 on, a gap staying a gap."""
+    if sample.asset_id != INV2 or sample.gap or sample.moment < at(2026, 6, 1, 11, 30):
+        return sample
+    return replace(sample, power_kw=0.0)
 
 
 def display_available() -> bool:
@@ -79,7 +88,7 @@ class TheDemoStore(DemoFixture):
         conn = self.opened()
         faults = project.faults_listing(conn, False)
         self.assertEqual([f.assigned_by for f in faults], [demo.SITE_ENGINEER, demo.INVERTER_ENGINEER, demo.INVERTER_ENGINEER,
-                          "test:reachable", "test:reachable"])  # SP-046, SP-047: the inverter's SIT-004 and the sensor's SEN-001 were raised by their failing reachable
+                          "test:performance_above_floor", "test:reachable"])  # SP-046, SP-047: the inverter's SIT-004 (13.15: its zero output fails performance_above_floor first) and the sensor's SEN-001
         outage, _lost_link, sensor_fault = project.faults_listing(conn, True)  # SP-047: the inverter's SIT-004 and the sensor's SEN-001 are open too
         self.assertEqual((sensor_fault.asset_id, sensor_fault.recorded_by), (demo.SENSOR, None))
         self.assertEqual((outage.asset_id, outage.recorded_by, project.is_cover(conn, outage)),
@@ -130,7 +139,7 @@ class TheDemoStore(DemoFixture):
         ])
         self.assertEqual(conn.execute("SELECT count(*) FROM samples").fetchone()[0], 576)
         inverters = tuple(a for a in demo.demo_assets(self.port, self.dead) if a.kind is AssetKind.INVERTER)
-        seeded = generator.generate(inverters, project.day_period(demo.DAY), 7)
+        seeded = tuple(zeroed(sample) for sample in generator.generate(inverters, project.day_period(demo.DAY), 7))
         stored = tuple(s for a in inverters for s in sample_table.in_period(conn, a.asset_id, project.day_period(demo.DAY)))
         self.assertEqual(stored, seeded)
 
@@ -236,12 +245,34 @@ class TheDemoWindow(DemoFixture):
         self.assertRegex(lines[1], r"^demo: dead feeds on 127\.0\.0\.1:\d+$")
         self.assertNotEqual(lines[1], "demo: dead feeds on 127.0.0.1:9")  # 13.16: no fixed port
         self.assertRegex(lines[2], r"^demo: store .*solarpunk-demo-.*demo\.db rebuilt$")
-        self.assertEqual(lines[3:], ["demo: run - 9 green, 1 yellow, 1 red"])
+        self.assertEqual(lines[3:], ["demo: run - 9 green, 1 yellow, 1 red",
+                                     "demo: account engineer@oahe.example password oahe-demo-engineer",
+                                     "demo: account operator@oahe.example password oahe-demo-operator"])  # 13.15
         store = Path(lines[2].removeprefix("demo: store ").removesuffix(" rebuilt"))
         self.assertTrue(store.is_absolute())
         self.assertNotIn(Path.cwd().resolve(), store.resolve().parents)  # outside the working directory
         self.assertFalse(store.parent.exists())  # the folder is gone after exit
         self.assertFalse((self.folder / demo.DB_NAME).exists())
+
+    def test_the_window_signs_in_as_the_engineer_and_stamps_its_acts_on_the_demos_day(self) -> None:
+        seen: list[object] = []
+
+        def act(root: "tkinter.Tk") -> None:
+            """Reads the status bar's account, then acknowledges OAHE-INV-002's ticket in its asset window."""
+            root.update()
+            frame = root.demo_fleet
+            seen.append(frame.account_label.cget("text"))
+            window = frame.on_open_asset(INV2)
+            root.update()
+            window.ticket_panel.ack_button.invoke()
+            seen.append(project.ticket_moves(frame.conn, 3))
+            window.destroy()
+            root.destroy()
+
+        entry.main(["--demo"], io.StringIO(), act)
+        self.assertEqual(seen[0], "signed in as engineer@oahe.example (engineer)")
+        (move,) = seen[1]
+        self.assertEqual((move.actor, move.moment.date().isoformat()), ("engineer@oahe.example", "2026-06-01"))
 
     def test_the_folder_is_removed_when_the_window_run_raises(self) -> None:
         out = io.StringIO()
@@ -268,7 +299,7 @@ class TheDemoWindow(DemoFixture):
         root.update()
         opened = [w for w in top.winfo_children() if isinstance(w, AssetWindow)]
         self.assertEqual([w.asset_id for w in opened], [INV2])
-        project.assign_fault(conn, INV1, "INV-001", at(2026, 6, 1, 14), ENGINEER)
+        project.assign_fault(conn, INV1, "INV-001", at(2026, 6, 1, 14), demo.ENGINEER)  # 13.15: the store holds accounts
         opened[0].on_change()
         self.assertEqual(fleet.status_line.cget("text"), "11 assets: 8 green, 1 yellow, 2 red")
         self.assertEqual(fleet.add_button.cget("text"), "Add asset")

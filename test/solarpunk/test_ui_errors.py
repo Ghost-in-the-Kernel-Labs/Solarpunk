@@ -87,7 +87,7 @@ class TheTab(unittest.TestCase):
         self.assertEqual(self.texts(self.window(demo.FED)), ["INV-002", "1 fault", "0 suggestions"])
 
     def test_two_days_count_a_second_code_and_a_bad_or_empty_choice_says_so(self) -> None:
-        project.assign_fault(self.conn, demo.DOWN, "INV-002", at(2026, 6, 2, 9), demo.INVERTER_ENGINEER)
+        project.assign_fault(self.conn, demo.DOWN, "INV-002", at(2026, 6, 2, 9), demo.ENGINEER)  # 13.15: the store holds accounts
         window = self.window(demo.DOWN)
         lost_link = ["SIT-004", "1 fault", "0 suggestions"]  # SP-047: the dead feed's failing reachable, beside the outage
         self.assertEqual(self.texts(window), ["INV-001", "1 fault", "0 suggestions"] + lost_link)

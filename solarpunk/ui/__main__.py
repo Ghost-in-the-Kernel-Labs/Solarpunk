@@ -14,6 +14,7 @@ import tempfile
 import tkinter
 from collections.abc import Callable
 from contextlib import closing
+from datetime import datetime
 from pathlib import Path
 from tkinter import ttk
 from typing import TextIO
@@ -45,6 +46,7 @@ STORE_LINE = "demo: store {path} rebuilt\n"
 LEFT_LINE = "demo: folder {path} could not be removed and was left\n"
 SIMULATOR_LINE = "demo: simulator on 127.0.0.1:{port}\n"
 DEAD_LINE = "demo: dead feeds on 127.0.0.1:{port}\n"
+ACCOUNT_LINE = "demo: account {email} password {password}\n"
 RUN_LINE = "demo: run - {green} green, {yellow} yellow, {red} red\n"
 
 
@@ -72,20 +74,21 @@ def run_line(report: project.RunReport) -> str:
 
 
 def open_fleet(root: tkinter.Tk, conn: sqlite3.Connection, account: project.Account | None = None,
-               revival: demo.Revival | None = None) -> FleetWindow:
+               revival: demo.Revival | None = None, now: Callable[[], datetime] = cells.wall_now) -> FleetWindow:
     """The fleet window wired to the others: a click opens AssetWindow(root, conn, id, on_change=refresh), the "Add asset"
     button in the window's toolbar opens AddAssetWindow(root, conn, on_saved) which refreshes after a save, "Manage tests"
     beside it the ManageTestsWindow over the remote tests' folder (9.8), and "Reports" after it opens ReportsWindow(root, conn) (6.3), "Tests" after that the RecordWindow(root, conn) (13.7), then "Errors" the fleet's ErrorsWindow, whose rows open a Runs window
     (10.7), then "Tickets" the TicketsWindow, a double click opening the ticket's asset window (11.2); Refresh stands
     at the toolbar's right (9.5). The account signed in (None in a store with none) is kept on the window and named in
     its status bar (12.3), and every asset window acts as it (12.4). The demo hands a revival (13.16), so its asset window
-    offers "Bring the feed back (demo)" for a dead inverter; with none (any other store) the control does not exist."""
+    offers "Bring the feed back (demo)" for a dead inverter; with none (any other store) the control does not exist. now is the
+    instant every window stamps its acts at: the wall clock, or the demo's day (13.15)."""
     window = FleetWindow(root, conn)
     window.account = account
     window.account_label = ttk.Label(window.status_bar, text=cells.who_text(account))
     window.account_label.pack(side=tkinter.LEFT, padx=12)
-    window.on_open_asset = lambda asset_id: AssetWindow(root, conn, asset_id, window.refresh, account, revival)  # 12.4, 13.16
-    window.on_open_runs = lambda asset_id: RunsWindow(root, conn, asset_id, account)  # 10.3, 7.9
+    window.on_open_asset = lambda asset_id: AssetWindow(root, conn, asset_id, window.refresh, account, revival, now)  # 12.4, 13.16
+    window.on_open_runs = lambda asset_id: RunsWindow(root, conn, asset_id, account, now)  # 10.3, 7.9
     bar = window.toolbar  # Refresh stands at its right since 9.5
     window.add_button = ttk.Button(bar, text=ADD_ASSET,
                                    command=lambda: AddAssetWindow(root, conn, lambda asset_id: window.refresh()))
@@ -99,7 +102,7 @@ def open_fleet(root: tkinter.Tk, conn: sqlite3.Connection, account: project.Acco
     window.errors_button = ttk.Button(bar, text=ERRORS, command=lambda: ErrorsWindow(root, conn, window.on_open_runs))
     window.errors_button.pack(side=tkinter.LEFT)  # 10.7
     window.tickets_button = ttk.Button(bar, text=TICKETS,
-                                       command=lambda: TicketsWindow(root, conn, lambda asset_id: window.on_open_asset(asset_id)))
+                                       command=lambda: TicketsWindow(root, conn, lambda asset_id: window.on_open_asset(asset_id), now))
     window.tickets_button.pack(side=tkinter.LEFT)  # 11.2
     return window
 
@@ -108,23 +111,28 @@ def run_demo(root: tkinter.Tk, out: TextIO) -> sqlite3.Connection:
     """Starts the simulator, rebuilds demo.db in a new folder of the system's temporary files, opens the fleet window on it
     titled "Solarpunk fleet — demo (OAHE, 2026-06-01)" and returns the open store; writes "demo: simulator on
     127.0.0.1:<port>", "demo: dead feeds on 127.0.0.1:<port>" (a port reserved for this run, 13.16), "demo: store /tmp/solarpunk-demo-k2j9/demo.db rebuilt" (the full path, to pass to --db from a
-    second terminal) and "demo: run - 8 green, 1 yellow, 1 red", one line each, as it goes. The folder is removed by
+    second terminal), "demo: run - 8 green, 1 yellow, 1 red" and one "demo: account engineer@oahe.example password oahe-demo-engineer"
+    line for each of the demo's two accounts (13.15), one line each, as it goes; the window is signed in as the engineer and
+    stamps its acts on the demo's day (demo.demo_clock). The folder is removed by
     remove_demo_folder; a build that fails removes it here."""
     _server, port = demo.start_simulator(demo.simulator_samples())
     out.write(SIMULATOR_LINE.format(port=port))
     dead_port = demo.reserve_port()
     out.write(DEAD_LINE.format(port=dead_port))
-    revival = demo.Revival(dead_port)
+    now = demo.demo_clock()
+    revival = demo.Revival(dead_port, now)
     root.demo_revival = revival  # run_demo_window closes it with the window
     folder = Path(tempfile.mkdtemp(prefix="solarpunk-demo-"))
     try:
         state = demo.build_demo_store(folder / demo.DB_NAME, port, dead_port)
         out.write(STORE_LINE.format(path=state.db_path))
         out.write(run_line(state.run_report))
+        for email, _name, _role, password in demo.ACCOUNTS:
+            out.write(ACCOUNT_LINE.format(email=email, password=password))
         out.flush()
         conn = project.open_or_create(state.db_path)
         root.title(DEMO_TITLE)
-        open_fleet(root, conn, None, revival)
+        root.demo_fleet = open_fleet(root, conn, project.account_of(conn, demo.ENGINEER), revival, now)  # signed in, no prompt (13.15)
     except BaseException:
         revival.close()
         shutil.rmtree(folder, ignore_errors=True)
@@ -167,7 +175,7 @@ def wear_icon(root: tkinter.Tk) -> None:
 
 def main(argv: list[str], out: TextIO, run: Callable[[tkinter.Tk], None] = loop) -> int:
     """Opens the fleet window on the store (after a sign-in when the store holds an account, 12.3), or on the rebuilt
-    demo store with --demo (which holds none), hands it to run, then exits 0:
+    demo store with --demo (signed in as its engineer without asking, 13.15), hands it to run, then exits 0:
     main(["--db", "f.db"], sys.stdout) shows f.db's assets; main(["--demo"], sys.stdout) shows demo.db's eleven, the store in a folder gone on exit."""
     args = parse(argv)
     if args.shortcut:

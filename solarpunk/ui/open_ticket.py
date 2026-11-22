@@ -7,7 +7,7 @@ only lay them out (SP-010)."""
 import sqlite3
 import tkinter as tk
 from collections.abc import Callable
-from datetime import datetime, timezone
+from datetime import datetime
 from tkinter import ttk
 
 from solarpunk import project
@@ -58,10 +58,12 @@ class OpenTicketButton(ttk.Button):
 
     def __init__(self, parent: tk.Misc, conn: sqlite3.Connection, account: project.Account | None,
                  chosen: Callable[[], int | None], named: Callable[[], NamedBy | None], say: Callable[[str], None],
-                 opened: Callable[[project.ResultTicket], None]) -> None:
-        """Makes the button, labelled "Open a ticket"."""
+                 opened: Callable[[project.ResultTicket], None],
+                 now: Callable[[], datetime] = cells.wall_now) -> None:
+        """Makes the button, labelled "Open a ticket"; the ticket opens at now() (the demo's day, 13.15)."""
         super().__init__(parent, text=ticket_text.OPEN_TICKET, command=self.press)
         self.conn, self.account, self.chosen, self.named, self.say, self.opened = conn, account, chosen, named, say, opened
+        self.now = now
 
     def press(self) -> None:
         """Opens the ticket for the chosen failed result as who is named, or shows the one it is in; no failed result
@@ -74,7 +76,7 @@ class OpenTicketButton(ttk.Button):
         if names is None:
             return
         try:
-            found = project.open_ticket_from_result_as(self.conn, self.account, result_id, datetime.now(timezone.utc), *names)
+            found = project.open_ticket_from_result_as(self.conn, self.account, result_id, self.now(), *names)
         except (ValueError, project.NotPermitted, project.UnknownEngineer) as refusal:
             self.say(f"Refused: {refusal}")
             return

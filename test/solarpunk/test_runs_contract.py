@@ -65,10 +65,11 @@ class TheExamples(unittest.TestCase):
     def test_the_down_inverters_run(self) -> None:
         run = run_of(self.conn, demo.DOWN, RUN_AT)
         self.assertEqual(len(run), 9)
-        self.assertEqual(run[0], ("reachable", False, f"127.0.0.1:{self.dead} is unreachable"))
+        self.assertEqual(run[0], ("performance_above_floor", False, "ratio 0.6148 under the floor 0.75 over 71 daylight records"))
+        self.assertEqual(run[1], ("reachable", False, f"127.0.0.1:{self.dead} is unreachable"))
         self.assertIn(("reachable", True, "156 records"), run)
-        self.assertEqual(sum(passed is True for _, passed, _ in run), 7)
-        self.has("OAHE-INV-002's run at 13:00 8 results, failed: reachable failed (\"127.0.0.1:9 is unreachable\"")
+        self.assertEqual(sum(passed is True for _, passed, _ in run), 6)  # 13.15: zero output fails performance_above_floor
+        self.has("OAHE-INV-002's run at 13:00 9 results, failed: performance_above_floor failed (\"ratio 0.6148 under the floor")
 
     def test_the_sensors_run(self) -> None:
         run = run_of(self.conn, demo.SENSOR, RUN_AT)
@@ -107,7 +108,7 @@ class TheExamples(unittest.TestCase):
 
     def test_a_planted_break_is_caught(self) -> None:
         with self.assertRaises(AssertionError):
-            self.has("OAHE-INV-002's run at 13:00 9 results, failed")
+            self.has("OAHE-INV-002's run at 13:00 8 results, failed")
         with self.assertRaises(AssertionError):
             self.has("power, OAHE-INV-001, the day 288 samples: records 288, gaps 0")
 

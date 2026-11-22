@@ -108,6 +108,7 @@ from solarpunk.project.tickets import (
     ticket_moves,
     ticket_of,
     tickets_by_target,
+    target_start,
     view_of,
     tickets_past_target,
 )
@@ -324,6 +325,7 @@ __all__ = [
     "ticket_moves",
     "ticket_of",
     "tickets_by_target",
+    "target_start",
     "view_of",
     "tickets_past_target",
     "tickets_waiting",

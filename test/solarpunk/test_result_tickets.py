@@ -14,7 +14,7 @@ from solarpunk import project
 from solarpunk.cli.main import main
 from solarpunk.leaf.clock import at
 from solarpunk.leaf.codes import lookup
-from solarpunk.leaf.tickets import priority_of
+from solarpunk.leaf.tickets import TARGETS, priority_of
 from solarpunk.remote import results
 from solarpunk.workorders import ledger as work_ledger
 from solarpunk.workorders import ticket_results
@@ -177,6 +177,44 @@ class Streaks(unittest.TestCase):
         first = self.run_at(T[0], False)
         failing = [d for d in project.asset_detail(self.conn, SEN).diagnostics if d.state == "fail"]
         self.assertEqual([d.result_id for d in failing], [first])
+
+
+class TargetClock(unittest.TestCase):
+    """13.15, SOL-14: a ticket opened from a failed result counts its targets from that result's instant."""
+
+    run_at, open = Streaks.run_at, Streaks.open
+
+    def setUp(self) -> None:
+        """The OAHE fleet in memory, no result yet."""
+        self.conn = store()
+        self.addCleanup(self.conn.close)
+
+    def test_the_targets_count_from_the_failure_and_the_opened_instant_stays(self) -> None:
+        first = self.run_at(T[0], False)
+        found = self.open(first).ticket
+        view = project.view_of(self.conn, found, OPENED)
+        priority = priority_of(lookup("SEN-001").severity)
+        targets = TARGETS[priority]
+        self.assertEqual(found.opened, OPENED)
+        self.assertEqual((view.acknowledge_due, view.respond_due), (T[0] + targets.acknowledge, T[0] + targets.respond))
+        self.assertEqual(project.target_start(self.conn, found), T[0])
+
+    def test_a_ticket_opened_with_its_fault_starts_at_its_opened_instant_whatever_joins_it(self) -> None:
+        project.assign_fault(self.conn, SEN, "SEN-001", T[0], ENGINEER)
+        found = project.open_tickets(self.conn)[0]
+        later = self.run_at(T[2], False)
+        self.open(later)
+        self.assertEqual(project.target_start(self.conn, found), T[0])
+        self.assertEqual(project.tickets_by_target(self.conn, T[3])[0].acknowledge_due,
+                         T[0] + TARGETS[found.priority].acknowledge)
+
+    def test_the_breach_query_counts_from_the_failure_too(self) -> None:
+        first = self.run_at(T[0], False)
+        found = self.open(first).ticket
+        acknowledge = TARGETS[found.priority].acknowledge
+        self.assertEqual(project.tickets_past_target(self.conn, T[0] + acknowledge - acknowledge / 100), ())
+        (breach,) = [b for b in project.tickets_past_target(self.conn, T[0] + acknowledge * 2) if b.target == "acknowledge"]
+        self.assertEqual(breach.ticket.wo_id, found.wo_id)
 
 
 class TheCommand(unittest.TestCase):

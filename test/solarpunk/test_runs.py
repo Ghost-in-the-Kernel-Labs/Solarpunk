@@ -35,10 +35,12 @@ class TheExamples(unittest.TestCase):
     def test_the_down_inverters_run(self) -> None:
         (run,) = project.asset_runs(self.conn, INV2)
         self.assertEqual((run.run_at, len(run.results), run.failed), (at(2026, 6, 1, 13), 9, True))
-        first = run.results[0]
-        self.assertEqual((first.test_name, first.passed, first.reason), ("reachable", False, f"127.0.0.1:{self.dead} is unreachable"))
+        first, second = run.results[:2]
+        self.assertEqual((first.test_name, first.passed, first.reason),
+                         ("performance_above_floor", False, "ratio 0.6148 under the floor 0.75 over 71 daylight records"))  # 13.15: zero output
+        self.assertEqual((second.test_name, second.passed, second.reason), ("reachable", False, f"127.0.0.1:{self.dead} is unreachable"))
         self.assertIn(("reachable", True, "156 records"), [(r.test_name, r.passed, r.reason) for r in run.results])
-        self.assertEqual([r.passed for r in run.results], [False, False] + [True] * 7)  # power_ripple, with no live reads taken, says no data (13.3)
+        self.assertEqual([r.passed for r in run.results], [False, False, False] + [True] * 6)  # power_ripple, with no live reads taken, says no data (13.3)
 
     def test_the_sensors_run(self) -> None:
         (run,) = project.asset_runs(self.conn, SEN)

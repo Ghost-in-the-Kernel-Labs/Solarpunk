@@ -56,7 +56,7 @@ class TheWindows(unittest.TestCase):
         self.addCleanup(self.conn.close)
 
     def test_the_tickets_window_lists_the_nearest_target_first_a_breach_red(self) -> None:
-        project.assign_fault(self.conn, demo.FED, "INV-001", at(2026, 6, 1, 12, 50), demo.INVERTER_ENGINEER)
+        project.assign_fault(self.conn, demo.FED, "INV-001", at(2026, 6, 1, 12, 50), demo.ENGINEER)  # 13.15: the store holds accounts
         opened: list[str] = []
         window = tickets_window.TicketsWindow(self.root, self.conn, opened.append, now=lambda: ONE)
         self.root.update()
@@ -71,7 +71,7 @@ class TheWindows(unittest.TestCase):
         self.assertEqual(opened, [demo.FED])
 
     def test_show_closed_adds_closed_tickets_and_the_chosen_ticket_shows_its_trail(self) -> None:
-        project.write_fault_cause(self.conn, 3, "the AC breaker tripped", demo.INVERTER_ENGINEER, at(2026, 6, 1, 12))
+        project.write_fault_cause(self.conn, 3, "the AC breaker tripped", demo.ENGINEER, at(2026, 6, 1, 12))
         project.resolve_ticket(self.conn, 3, "AC breaker reset", at(2026, 6, 1, 12, 30))
         window = tickets_window.TicketsWindow(self.root, self.conn, lambda asset_id: None, now=lambda: ONE)
         self.root.update()
@@ -91,7 +91,8 @@ class TheWindows(unittest.TestCase):
 
     def test_the_panel_acknowledges_comments_and_resolves(self) -> None:
         changes: list[int] = []
-        window = asset_window.AssetWindow(self.root, self.conn, demo.DOWN, lambda: changes.append(1))
+        window = asset_window.AssetWindow(self.root, self.conn, demo.DOWN, lambda: changes.append(1),
+                                          project.account_of(self.conn, demo.ENGINEER))  # 13.15: the engineer acts, no By box
         panel = window.ticket_panel
         panel.now = lambda: ONE
         panel.refresh()
@@ -99,18 +100,18 @@ class TheWindows(unittest.TestCase):
         panel.ack_button.invoke()
         self.assertEqual(project.ticket_of(self.conn, 3).acknowledged, ONE)
         self.assertIn("acknowledge late", panel.line.cget("text"))
+        self.assertEqual([m.actor for m in project.ticket_moves(self.conn, 3)], [demo.ENGINEER])
+        panel.comment_button.invoke()
+        self.assertEqual(panel.message.cget("text"), "a comment on work order 3 needs an author and words")  # no words yet
         panel.comment_box.insert(0, "on my way")
         panel.comment_button.invoke()
-        self.assertEqual(panel.message.cget("text"), "a comment on work order 3 needs an author and words")
-        panel.by_box.set(demo.INVERTER_ENGINEER)
-        panel.comment_button.invoke()
-        self.assertEqual([c.body for c in project.ticket_comments(self.conn, 3)], ["on my way"])
+        self.assertEqual([(c.body, c.author) for c in project.ticket_comments(self.conn, 3)], [("on my way", demo.ENGINEER)])
         panel.done_box.insert(0, "AC breaker reset")
         panel.resolve_button.invoke()
         self.assertEqual(panel.message.cget("text"),
                          "fault 3 has no root cause written: an engineer writes it before its ticket closes")
         window.fault_tree.selection_set("3")  # SP-047: the lost link's SIT-004 is open beside the outage, so the fault is chosen
-        window.assigned_by_box.set(demo.INVERTER_ENGINEER)  # the cause is written in the asset window, as free text (SP-046)
+        # the cause is written in the asset window, as free text, by the engineer signed in (SP-046)
         window.cause_box.insert(0, "the AC breaker tripped on a grid surge")
         window.cause_button.invoke()
         self.assertEqual(window.message.cget("text"), "")

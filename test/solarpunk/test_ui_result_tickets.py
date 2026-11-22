@@ -45,10 +45,11 @@ class TheWindows(unittest.TestCase):
         demo.build_demo_store(Path(folder.name) / demo.DB_NAME, port)
         self.conn = project.open_or_create(Path(folder.name) / demo.DB_NAME)
         self.addCleanup(self.conn.close)
+        self.account = project.account_of(self.conn, demo.ENGINEER)  # 13.15: the demo store holds accounts; the engineer acts
 
     def open_in_asset_window(self) -> "asset_window.AssetWindow":
         """The weather station's asset window, drawn: its diagnostics hold the failed reachable."""
-        window = asset_window.AssetWindow(self.root, self.conn, demo.SENSOR)
+        window = asset_window.AssetWindow(self.root, self.conn, demo.SENSOR, account=self.account)
         self.root.update()
         return window
 
@@ -58,7 +59,6 @@ class TheWindows(unittest.TestCase):
 
     def test_the_asset_window_opens_a_ticket_on_the_selected_failed_result_then_shows_it(self) -> None:
         window = self.open_in_asset_window()
-        window.assigned_by_box.set(demo.SITE_ENGINEER)
         window.result_tree.selection_set(self.failing_row(window))
         window.open_ticket_button.invoke()
         (order,) = [o for o in project.work_orders_for(self.conn, demo.SENSOR) if o.closed is None]
@@ -71,7 +71,6 @@ class TheWindows(unittest.TestCase):
 
     def test_a_pass_or_nothing_selected_opens_no_ticket(self) -> None:
         window = self.open_in_asset_window()
-        window.assigned_by_box.set(demo.SITE_ENGINEER)
         window.open_ticket_button.invoke()
         self.assertEqual(window.message.cget("text"), ticket_text.CHOOSE_FAILED)
         passing = next((str(i) for i, d in enumerate(window.detail.diagnostics) if d.state == "pass"), None)
@@ -82,9 +81,8 @@ class TheWindows(unittest.TestCase):
         self.assertEqual(project.work_orders_for(self.conn, demo.SENSOR), ())
 
     def test_the_runs_window_opens_it_on_a_runs_failed_result(self) -> None:
-        window = runs_window.RunsWindow(self.root, self.conn, demo.SENSOR)
+        window = runs_window.RunsWindow(self.root, self.conn, demo.SENSOR, self.account)
         self.root.update()
-        window.who.chosen.set(demo.SITE_ENGINEER)
         failed = next(str(i) for i, r in enumerate(window.runs[0].results) if r.failed)
         window.result_tree.selection_set(failed)
         window.open_ticket_button.invoke()
@@ -93,7 +91,6 @@ class TheWindows(unittest.TestCase):
 
     def test_the_tickets_window_lists_the_chosen_tickets_failed_results(self) -> None:
         window = self.open_in_asset_window()
-        window.assigned_by_box.set(demo.SITE_ENGINEER)
         window.result_tree.selection_set(self.failing_row(window))
         window.open_ticket_button.invoke()
         tickets = tickets_window.TicketsWindow(self.root, self.conn, lambda asset_id: None, lambda: at(2026, 6, 1, 14))

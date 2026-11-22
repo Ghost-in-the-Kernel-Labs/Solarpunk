@@ -109,14 +109,15 @@ class TheWindows(unittest.TestCase):
         window = self.runs_of(demo.DOWN)
         self.assertEqual(window.title(), "Runs — OAHE-INV-002 Inverter 2")
         (item,) = window.run_tree.get_children()
-        self.assertEqual(window.run_tree.item(item, "values"), ("2026-06-01 13:00 UTC", "9 results", "1 failed"))
+        self.assertEqual(window.run_tree.item(item, "values"), ("2026-06-01 13:00 UTC", "9 results", "2 failed"))  # 13.15: zero output fails performance_above_floor too
         self.assertEqual(window.run_tree.item(item, "tags"), (runs_window.FAILED_TAG,))
         results = window.result_tree.get_children()
         self.assertEqual(len(results), 9)
-        self.assertEqual(window.result_tree.item(results[0], "values"), ("reachable", "FAIL", f"127.0.0.1:{self.dead} is unreachable"))
-        self.assertEqual(window.result_tree.item(results[0], "tags"), (runs_window.FAILED_TAG,))
-        self.assertEqual(window.result_tree.item(results[1], "tags"), ("nodata",))  # power_ripple: INV-002's feed is dead, so its reads hold no value
-        self.assertEqual(window.result_tree.item(results[2], "tags"), "")
+        self.assertEqual(window.result_tree.item(results[0], "values")[:2], ("performance_above_floor", "FAIL"))  # 13.15: its stored power is 0 from 11:30
+        self.assertEqual(window.result_tree.item(results[1], "values"), ("reachable", "FAIL", f"127.0.0.1:{self.dead} is unreachable"))
+        self.assertEqual(window.result_tree.item(results[1], "tags"), (runs_window.FAILED_TAG,))
+        self.assertEqual(window.result_tree.item(results[2], "tags"), ("nodata",))  # power_ripple: INV-002's feed is dead, so its reads hold no value
+        self.assertEqual(window.result_tree.item(results[3], "tags"), "")
 
     def test_the_search_narrows_and_says_when_it_finds_none(self) -> None:
         window = self.runs_of(demo.DOWN)

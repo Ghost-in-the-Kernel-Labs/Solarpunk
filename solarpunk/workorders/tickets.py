@@ -5,6 +5,7 @@ their author and instant and are never edited or deleted; a query reports the ti
 ledger's `close` (4.1; the fault's root cause is written first, SP-046). It imports the leaf and its own module's ledger alone (MOD-05): project sets
 a ticket's priority from its fault and opens it with the fault, and hands each move its actor as a plain email."""
 import sqlite3
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime, timezone
 
@@ -228,18 +229,23 @@ def moves(conn: sqlite3.Connection, wo_id: int) -> tuple[Move, ...]:
                  for mid, wid, status, stamp, actor in conn.execute(SELECT_MOVES, (wo_id,)))
 
 
-def breaches(found: Ticket, moment: datetime) -> tuple[Breach, ...]:
-    """A ticket's targets that are late or overdue at an instant (SOL-14); none for a ticket with no priority: the
-    worked example's P1 at 15:00 gives (Breach(t, "respond", LATE),)."""
+def breaches(found: Ticket, moment: datetime, start: datetime | None = None) -> tuple[Breach, ...]:
+    """A ticket's targets that are late or overdue at an instant (SOL-14), counted from start (the ticket's opened
+    instant when not given; project gives a result's instant for a ticket opened from a failed result, 13.15); none for
+    a ticket with no priority: the worked example's P1 at 15:00 gives (Breach(t, "respond", LATE),)."""
     if found.priority is None:
         return ()
     targets = TARGETS[found.priority]
-    states = ((ACKNOWLEDGE, target_state(found.opened, targets.acknowledge, found.acknowledged, moment)),
-              (RESPOND, target_state(found.opened, targets.respond, found.responded, moment)))
+    start = found.opened if start is None else start
+    states = ((ACKNOWLEDGE, target_state(start, targets.acknowledge, found.acknowledged, moment)),
+              (RESPOND, target_state(start, targets.respond, found.responded, moment)))
     return tuple(Breach(found, name, state) for name, state in states if state in LATE)
 
 
-def past_target(conn: sqlite3.Connection, moment: datetime) -> tuple[Breach, ...]:
+def past_target(conn: sqlite3.Connection, moment: datetime,
+                start_of: Callable[[Ticket], datetime] | None = None) -> tuple[Breach, ...]:
     """Every open ticket's late or overdue targets at an instant, in wo_id order, acknowledgement before response: a
-    query, not a stored flag, so it is true at whatever instant it is asked (SOL-14)."""
-    return tuple(breach for found in open_tickets(conn) for breach in breaches(found, utc(moment)))
+    query, not a stored flag, so it is true at whatever instant it is asked (SOL-14). start_of gives the instant a
+    ticket's targets are counted from (its opened instant when not given)."""
+    return tuple(breach for found in open_tickets(conn)
+                 for breach in breaches(found, utc(moment), None if start_of is None else start_of(found)))
