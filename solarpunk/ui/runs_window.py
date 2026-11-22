@@ -5,11 +5,13 @@ test, one mark per run, green, red or grey for no data (SP-039), in UTC. Every s
 over project.asset_runs (SOL-15); the class only lays them out (SP-010: it imports project and the leaf alone)."""
 import sqlite3
 import tkinter as tk
+from collections.abc import Callable
+from datetime import datetime
 from tkinter import font as tkfont
 from tkinter import ttk
 
 from solarpunk import project
-from solarpunk.ui import bars, runs_text, ticket_text, timeline
+from solarpunk.ui import bars, cells, runs_text, ticket_text, timeline
 from solarpunk.ui.open_ticket import OpenTicketButton, Who
 from solarpunk.ui.chart import CANVAS_HEIGHT, CANVAS_WIDTH
 from solarpunk.ui.reports import draw_power
@@ -50,14 +52,15 @@ class RunsWindow(tk.Toplevel):
     holding the demo's one run; an id the fleet lacks raises UnknownAsset before any window is drawn."""
 
     def __init__(self, parent: tk.Misc, conn: sqlite3.Connection, asset_id: str,
-                 account: project.Account | None = None) -> None:
+                 account: project.Account | None = None, now: Callable[[], datetime] = cells.wall_now) -> None:
         """Reads the asset once for its name and endpoint, lays the window out and fills the list; account is the one
-        signed in (None in a store with none), which a ticket opened from a result is recorded as (7.9, 12.4)."""
+        signed in (None in a store with none), which a ticket opened from a result is recorded as (7.9, 12.4), at now() (13.15)."""
         asset = project.asset_detail(conn, asset_id).asset
         super().__init__(parent)
         self.conn = conn
         self.asset_id = asset_id
         self.account = account
+        self.now = now
         self.has_feed = asset.host is not None and asset.port is not None
         self.runs: tuple[project.Run, ...] = ()
         self.title(runs_text.title(asset_id, asset.name))
@@ -97,7 +100,7 @@ class RunsWindow(tk.Toplevel):
         row.pack(fill="x", padx=8, pady=2)
         self.ticket_line = tk.Label(row, anchor="w")
         self.open_ticket_button = OpenTicketButton(row, self.conn, self.account, self.chosen_result,
-                                                   lambda: self.who.named(self.say), self.say, self.ticket_opened)
+                                                   lambda: self.who.named(self.say), self.say, self.ticket_opened, self.now)
         self.open_ticket_button.pack(side="left")
         self.ticket_line.pack(side="left", padx=8)
 

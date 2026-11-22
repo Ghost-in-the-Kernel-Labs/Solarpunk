@@ -101,3 +101,9 @@ An entry is `### <date> · <task> · <who>`, then four bullets: **Task**, **Open
 - **Opened**: `CLAUDE.md`, `docs/paths/product.md`, `docs/modules.json`, `solarpunk/ui/demo.py`, `solarpunk/ui/__main__.py`, `solarpunk/ui/asset_window.py`, `solarpunk/project/orchestrator.py`, `solarpunk/feed/simulate.py`, `test/solarpunk/test_demo.py`, `test/solarpunk/test_ui_asset.py`.
 - **Complaints**: three tests outside the brief pinned the literal dead port; Tk objects collected on a non-main thread abort the interpreter.
 - **Suggestions**: none.
+
+### 2026-11-22 · 13.15 the demo's people, day and outage · mid-grade worker
+- **Task**: accounts in the demo store, the demo's day, zero output in the outage, a result's ticket clock from the failure (J-147).
+- **Opened**: `CLAUDE.md`, `docs/paths/product.md`, `docs/modules.json`, `docs/CONTRACT.md`, `solarpunk/ui/demo.py`, `solarpunk/ui/__main__.py`, `solarpunk/ui/ticket_panel.py`, `solarpunk/cli/tickets.py`, `solarpunk/project/tickets.py`, `solarpunk/workorders/tickets.py`, then the windows that stamp acts.
+- **Complaints**: no project function writes samples after `generate_and_store`, so the zeros are an SQL update in `demo.py`; `check_engineer` refuses a non-account engineer once accounts exist, which moved several window tests to the demo's engineer.
+- **Suggestions**: ack and resolve as one project call each, which means touching `access.py` and `attribution.py`.

@@ -114,18 +114,6 @@ Each decision is mapped to the functions that hold it, and each function holding
 
 Check: `scripts/decision_map.py` writes `docs/DECISION-MAP.md`, for each decision in `theGhost.md` the functions (file and name) whose `# Decision:` or `# Invariant:` line cites it, "no function" otherwise; the fast loop fails when the file is stale; `scripts/checks/decision_map.py` fails when an in-force decision whose `Held by` names a file under `solarpunk/` or `scripts/` is cited by no function, or a citation names a decision or invariant that does not exist, with a planted break under `test/fixtures/broken/decision_map/`; the missing citations added to the functions that hold each decision; the fast loop green.
 
-### 13.15 The demo's people, day and outage
-
-In the demo every act names a person, carries the demo's day, and the store agrees with its faults; a result's ticket
-clock starts at the failure (SP-053, J-141).
-
-Check: the demo store holds accounts (an engineer and an operator, each with a password DEMO.md prints) and the demo
-window signs in as the engineer, so every ticket move, comment and cause in the demo names its actor; `solarpunk
-ticket ack` and `ticket resolve` take `--by` as `ticket comment` does; the window's acts on the demo store are stamped
-on the demo's day (2026-06-01), not the wall clock; OAHE-INV-002's stored power is 0 from its INV-001 outage's start;
-a ticket opened from a failed result has its SOL-14 targets counted from that result's instant, `docs/CONTRACT.md`'s
-SOL-14 saying so with a hand-checked example; the fast loop, the window tests and the demo tests under xvfb green.
-
 ### 13.18 The ISO walk, scripted and dry-run
 
 DEMO.md walks one ISO requirement to its evidence and its corrective action on `--demo`, and a fresh dry run follows

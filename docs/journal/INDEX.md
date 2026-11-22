@@ -150,3 +150,4 @@ Written from `docs/journal/` by `scripts/journal_index.py`; do not edit by hand.
 | J-144 | 13.14: the demo on a throwaway store | feature | `J-100-199.md` |
 | J-145 | 13.17: the closed trail read back | feature | `J-100-199.md` |
 | J-146 | 13.16: a dead feed brought back, and the tests re-run | feature | `J-100-199.md` |
+| J-147 | 13.15: the demo's people, day and outage | feature | `J-100-199.md` |

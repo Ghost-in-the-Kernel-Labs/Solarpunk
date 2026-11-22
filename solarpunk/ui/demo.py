@@ -9,6 +9,7 @@ import socket
 import socketserver
 import sqlite3
 import threading
+import time
 from contextlib import closing
 from collections.abc import Callable
 from dataclasses import dataclass, replace
@@ -48,6 +49,17 @@ CLOSED_FAULTS = (
 )
 OPEN_OUTAGE = (DOWN, "INV-001", 11, 30, INVERTER_ENGINEER, OPERATOR)
 NO_FEED_KINDS = (AssetKind.TRACKER, AssetKind.METER)
+# The demo's people (13.15, SP-053): two accounts of the OAHE site with fixed, plainly demo-only passwords, printed by the
+# demo for the presenter's second terminal; the window signs in as the engineer without asking.
+ENGINEER = "engineer@oahe.example"
+ENGINEER_PASSWORD = "oahe-demo-engineer"
+OPERATOR_PASSWORD = "oahe-demo-operator"
+ACCOUNTS = (
+    (ENGINEER, "Demo engineer", project.Role.ENGINEER, ENGINEER_PASSWORD),
+    (OPERATOR, "Demo operator", project.Role.OPERATOR, OPERATOR_PASSWORD),
+)
+# 13.15: the dead inverter's stored output is zero from its outage's start to the end of the day (SQL at module level).
+ZERO_OUTPUT = "UPDATE samples SET power_kw = 0 WHERE asset_id = ? AND at >= ? AND at < ? AND gap = 0"
 
 
 @dataclass(frozen=True)
@@ -119,6 +131,33 @@ def add_faults(conn: sqlite3.Connection) -> None:
     project.assign_fault(conn, asset_id, code, at(2026, 6, 1, opened_h, opened_m), engineer, operator)
 
 
+def add_accounts(conn: sqlite3.Connection) -> None:
+    """The demo's two accounts, engineer@oahe.example (an engineer) and operator@oahe.example (an operator), both of the
+    OAHE site, made at the run's instant: afterwards project.accounts(conn) holds both and the store asks for a sign-in."""
+    for email, name, role, password in ACCOUNTS:
+        project.create_account(conn, email, name, role, password, (SITE,), RUN_AT)
+
+
+def zero_output(conn: sqlite3.Connection) -> None:
+    """OAHE-INV-002's stored power is 0 from its INV-001 outage's start (11:30) to the end of the day, its gaps staying
+    gaps: afterwards its 11:30 sample reads 0.0 kW where the generator gave about 90."""
+    # Decision: SP-053 (an inverter with an open outage delivers nothing, so the store agrees with its fault)
+    _, _, opened_h, opened_m, _, _ = OPEN_OUTAGE
+    start = at(2026, 6, 1, opened_h, opened_m)
+    conn.execute(ZERO_OUTPUT, (DOWN, start.isoformat(), project.day_period(DAY).end.isoformat()))
+
+
+def demo_clock(wall: Callable[[], float] = time.monotonic) -> Callable[[], datetime]:
+    """The demo's day (13.15): a callable giving the run's instant, 2026-06-01T13:00:00Z, plus the whole seconds of wall
+    time elapsed since this call; with a wall clock that says 0 then 90, demo_clock(wall)() is 13:00:00 and then 13:01:30."""
+    started = wall()
+
+    def now() -> datetime:
+        """The demo's instant: RUN_AT plus the wall seconds since the demo started."""
+        return RUN_AT + timedelta(seconds=int(wall() - started))
+    return now
+
+
 def instant_clock(start: datetime = RUN_AT) -> Callable[[float], datetime]:
     """A clock that never waits: each call moves the instant on by the wait it is asked for and says it; from the run's
     instant, instant_clock()(0) is 13:00:00 and the next call with 1 is 13:00:01."""
@@ -141,8 +180,10 @@ def build_demo_store(path: Path, port: int, dead_port: int | None = None) -> Dem
     with closing(project.open_or_create(path)) as conn:
         project.load_fleet(conn, demo_assets(port, dead_port))
         project.generate_and_store(conn, SITE, project.day_period(DAY), SEED)
+        zero_output(conn)
         add_faults(conn)
         report = project.scheduled_run(conn, RUN_AT, acquirer=project.feed_acquirer(instant_clock(), BURST_READS_S))
+        add_accounts(conn)  # last: the build's own acts name their engineers before accounts exist
         conn.commit()
     return DemoState(path, port, dead_port, report)
 
@@ -152,9 +193,13 @@ class Revival:
     its button for OAHE-INV-002 and not for OAHE-SEN-001, which the simulator cannot serve, and bring_back starts the
     inverter's feed on 5021 once and runs its tests again."""
 
-    def __init__(self, dead_port: int) -> None:
-        """A revival of the feed on dead_port, none started yet: Revival(5021).server is None."""
+    def __init__(self, dead_port: int, now: Callable[[], datetime] | None = None) -> None:
+        """A revival of the feed on dead_port, none started yet: Revival(5021).server is None; now is the demo's clock
+        (demo_clock, 13.15), which stamps each run so none precedes an act the window stamped; with none, a run is five
+        minutes after the last press's."""
         self.dead_port = dead_port
+        self.now = now
+        self.last_run = RUN_AT
         self.server: socketserver.TCPServer | None = None
         self.runs = 0
 
@@ -172,11 +217,22 @@ class Revival:
             self.server = project.feed_server_on(samples, LOOPBACK, self.dead_port)
             threading.Thread(target=self.server.serve_forever, kwargs={"poll_interval": POLL_INTERVAL_S}, daemon=True).start()
         self.runs += 1
-        run_at = RUN_AT + timedelta(minutes=5 * self.runs)
+        run_at = self.run_instant()
         acquirer = project.feed_acquirer(instant_clock(run_at), BURST_READS_S)
         status = project.run_asset_tests(conn, asset_id, run_at, acquirer)
         conn.commit()
         return status
+
+    def run_instant(self) -> datetime:
+        """The instant of this press's run: the demo's clock, never at or before the last press's run (the scheduled run's, 13:00, before the first); with no clock,
+        RUN_AT plus five minutes per press (the first press gives 13:05)."""
+        if self.now is None:
+            return RUN_AT + timedelta(minutes=5 * self.runs)
+        found = self.now()
+        if found <= self.last_run:
+            found = self.last_run + timedelta(seconds=1)
+        self.last_run = found
+        return found
 
     def close(self) -> None:
         """Stops the feed if one was started: after close(), the port answers nothing; a second close does nothing."""

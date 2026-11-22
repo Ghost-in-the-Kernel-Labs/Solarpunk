@@ -65,7 +65,7 @@ class TheCounts(DemoStore):
         self.assertEqual(cells.band_assets(found, "orders"), {demo.DOWN})
 
     def test_a_derate_is_not_counted_as_an_outage(self) -> None:
-        project.assign_fault(self.conn, demo.FED, "INV-002", demo.at(2026, 6, 1, 14), demo.INVERTER_ENGINEER)
+        project.assign_fault(self.conn, demo.FED, "INV-002", demo.at(2026, 6, 1, 14), demo.ENGINEER)  # 13.15: the store holds accounts
         found = project.attention(self.conn)
         self.assertEqual(len(found.outages), 1)
         self.assertEqual(len(found.orders), 2)  # the derate's ticket is open work all the same

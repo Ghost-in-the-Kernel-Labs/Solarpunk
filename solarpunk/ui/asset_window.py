@@ -13,7 +13,7 @@ class only lays them out (SP-010: it imports project and the leaf alone)."""
 import sqlite3
 import tkinter as tk
 from collections.abc import Callable
-from datetime import datetime, timezone
+from datetime import datetime
 from tkinter import ttk
 
 from solarpunk.leaf.assets import Asset
@@ -38,11 +38,12 @@ class AssetWindow(tk.Toplevel):
     """One asset's window: AssetWindow(root, conn, "OAHE-INV-001") titled "OAHE-INV-001 — Inverter 1"; on_change is
     called after a fault is assigned or the engineer saved, so the fleet window can reread the store; account is the
     one signed in (None in a store with none), which every act is recorded as (12.4). The demo passes a revival (13.16):
-    for a dead inverter of its own the window shows "Bring the feed back (demo)"; with none the control does not exist."""
+    for a dead inverter of its own the window shows "Bring the feed back (demo)"; with none the control does not exist. now
+    gives the instant its acts are stamped (the wall clock; the demo's day in the demo, 13.15)."""
 
     def __init__(
         self, parent: tk.Misc, conn: sqlite3.Connection, asset_id: str, on_change: Callable[[], None] = lambda: None,
-        account: project.Account | None = None, revival: Revival | None = None,
+        account: project.Account | None = None, revival: Revival | None = None, now: Callable[[], datetime] = cells.wall_now,
     ) -> None:
         """Reads the asset once for its kind's codes, lays out the window and fills it: an id the fleet lacks raises
         UnknownAsset before any window is drawn."""
@@ -52,7 +53,7 @@ class AssetWindow(tk.Toplevel):
         self.asset_id = asset_id
         self.on_change = on_change
         self.account = account
-        self.revival = revival
+        self.revival, self.now = revival, now
         self.codes = project.codes_for_kind(detail.asset.kind)
         self.title(window_title(detail.asset))
         self.fields = ttk.Frame(self)
@@ -75,7 +76,7 @@ class AssetWindow(tk.Toplevel):
         self.build_assign()
         self.build_cause()
         self.build_engineer()
-        self.ticket_panel = TicketPanel(self, conn, asset_id, self.ticket_changed, account=account)  # 11.2, 12.4
+        self.ticket_panel = TicketPanel(self, conn, asset_id, self.ticket_changed, now, account)  # 11.2, 12.4
         self.ticket_panel.pack(fill="x", padx=8, pady=4)
         self.build_message_line()
         self.fill(detail)
@@ -116,7 +117,7 @@ class AssetWindow(tk.Toplevel):
         row = self.ticket_row = ttk.Frame(self)
         row.pack(fill="x", padx=8, pady=2)
         self.open_ticket_button = OpenTicketButton(row, self.conn, self.account, self.chosen_result, self.named,
-                                                   lambda words: self.message.configure(text=words, foreground=RED_TEXT), self.ticket_opened)
+                                                   lambda words: self.message.configure(text=words, foreground=RED_TEXT), self.ticket_opened, self.now)
         self.open_ticket_button.pack(side="left")
 
     def build_revival(self, asset: Asset) -> None:
@@ -242,7 +243,7 @@ class AssetWindow(tk.Toplevel):
         if names is None:
             return
         try:
-            project.assign_fault_as(self.conn, self.account, self.asset_id, code, datetime.now(timezone.utc), *names)
+            project.assign_fault_as(self.conn, self.account, self.asset_id, code, self.now(), *names)
         except REFUSALS as refusal:
             self.message.configure(text=refusal_text(refusal))
             return
@@ -265,7 +266,7 @@ class AssetWindow(tk.Toplevel):
             return
         try:
             project.write_cause_as(self.conn, self.account, int(chosen[0]), self.cause_box.get(),
-                                   datetime.now(timezone.utc), *names)
+                                   self.now(), *names)
         except REFUSALS as refusal:
             self.message.configure(text=refusal_text(refusal))
             return

@@ -215,11 +215,20 @@ force for the code until he sets his own.**
 
 Each target, at an instant, is in one of four states:
 
-    due        = opened + target
+    due        = start + target
     met        when it happened at or before due
     late       when it happened after due
     pending    when it has not happened and the instant is at or before due
     overdue    when it has not happened and the instant is after due
+
+`start` is the ticket's opened instant, except for a ticket opened from a failed test result (7.9): its targets are counted
+from the instant that result ran, the earliest failed result linked to it that ran at or before the ticket opened, since
+the failure is when the clock began, not when someone clicked (13.15, SP-053). Both instants are kept (the ticket's
+recorded opened instant is not moved, nothing back-filled); a ticket opened with its fault starts at its opened instant,
+results that join it later changing nothing. Hand-checked: a P3 ticket opened at 13:05 on a result failed at 13:00 has
+`start` 13:00, so its acknowledgement is due 13:00 + 24 h, 13:00 the next day (not 13:05), and its response 13:00 + 72 h;
+`ticket show` and the Tickets window say those instants, and its opened instant stays 13:05. Held by
+`solarpunk/project/tickets.py` (`target_start`) and `test/solarpunk/test_result_tickets.py`.
 
 Worked example: an INV-001 outage (P1) is assigned and its ticket opened at 10:00 UTC; it is acknowledged at 10:40 and
 put in progress at 14:30. Acknowledgement is due at 11:00 and happened at 10:40: `met`. Response is due at 14:00 and
@@ -298,8 +307,10 @@ curve). `records` counts the samples carrying a power, `gaps` the gap samples, a
 
 Worked examples, over the demo store (`python3 -m solarpunk.ui --demo`, one run at 2026-06-01 13:00 UTC):
 
-    OAHE-INV-002's run at 13:00     8 results, failed: reachable failed ("127.0.0.1:9 is unreachable", the ping),
-                                    reachable passed ("156 records"), and its six other tests passed
+    OAHE-INV-002's run at 13:00     9 results, failed: performance_above_floor failed ("ratio 0.6148 under the floor
+                                    0.75 over 71 daylight records": its stored power is 0 from its outage's start,
+                                    11:30) and reachable failed ("127.0.0.1:9 is unreachable", the ping); power_ripple
+                                    no data; reachable passed ("156 records"), and its five other tests passed
     OAHE-SEN-001's run at 13:00     4 results, failed: two reachable failed ("127.0.0.1:9 is unreachable",
                                     "no records"), irradiance_in_range and on_grid no data ("no records"), never a pass
     errors, OAHE-SEN-001, the day   faults: SEN-001 1 (open since 13:00); suggestions: none

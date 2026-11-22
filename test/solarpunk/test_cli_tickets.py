@@ -5,6 +5,7 @@ import io
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 from solarpunk import project
 from solarpunk.cli.main import main
@@ -60,6 +61,32 @@ class TheCommands(unittest.TestCase):
         self.assertEqual(list(project.open_outages(conn)), ["OAHE-INV-002"])
         self.assertEqual(project.ticket_of(conn, 2).evidence, "fuse swapped")
         self.assertEqual([c.body for c in project.ticket_comments(conn, 2)], ["on my way"])
+
+    def test_ack_and_resolve_take_by_where_there_are_no_accounts(self) -> None:
+        self.assertEqual(self.run_cli(["ticket", "ack", "2", "--by", ENGINEER, "--at", "2026-06-01T12:40:00+00:00"])[:2],
+                         (0, "2 acknowledged\n"))
+        self.cause("2", "worn fuse holder")
+        self.assertEqual(self.run_cli(["ticket", "resolve", "2", "--done", "fuse", "swapped", "--by", "crew@oahe.example",
+                                      "--at", "2026-06-01T14:00:00+00:00"])[:2], (0, "2 closed\n"))
+        conn = project.open_or_create(self.db)
+        self.addCleanup(conn.close)
+        self.assertEqual([(move.status.value, move.actor) for move in project.ticket_moves(conn, 2)],
+                         [("acknowledged", ENGINEER), ("in progress", "crew@oahe.example"),
+                          ("resolved", "crew@oahe.example"), ("closed", "crew@oahe.example")])
+
+    def test_with_accounts_ack_and_resolve_are_the_signed_in_account_and_refuse_by(self) -> None:
+        conn = project.open_or_create(self.db)
+        self.addCleanup(conn.close)
+        project.create_account(conn, "engineer@oahe.example", "Engineer", project.Role.ENGINEER, "oahe-demo-engineer",
+                               ("OAHE",), at(2026, 6, 1, 9))
+        with mock.patch("getpass.getpass", return_value="oahe-demo-engineer"):
+            code, _, err = self.run_cli(["ticket", "ack", "2", "--as", "engineer@oahe.example", "--by", ENGINEER])
+            self.assertEqual((code, err.startswith("error: this store has accounts")), (2, True))
+            self.assertEqual(self.run_cli(["ticket", "ack", "2", "--as", "engineer@oahe.example",
+                                           "--at", "2026-06-01T12:40:00+00:00"])[:2], (0, "2 acknowledged\n"))
+            code, _, err = self.run_cli(["ticket", "resolve", "2", "--done", "x", "--as", "engineer@oahe.example", "--by", ENGINEER])
+            self.assertEqual((code, err.startswith("error: this store has accounts")), (2, True))
+        self.assertEqual([move.actor for move in project.ticket_moves(conn, 2)], ["engineer@oahe.example"])
 
     def test_refusals_are_exit_2_and_change_nothing(self) -> None:
         code, _, err = self.run_cli(["ticket", "resolve", "1", "--done", "x"])

@@ -10,6 +10,7 @@ from datetime import datetime, timezone
 from solarpunk.leaf.tickets import TARGETS, TargetState, TicketStatus, target_state
 from solarpunk.project.causes import require_cause
 from solarpunk.project.orchestrator import close_work_order
+from solarpunk.project.result_tickets import results_of_ticket
 from solarpunk.workorders import ledger as work_ledger
 from solarpunk.workorders.ledger import WorkOrderError
 from solarpunk.workorders import tickets as ticket_ledger
@@ -62,7 +63,7 @@ def ticket_comments(conn: sqlite3.Connection, wo_id: int) -> tuple[Comment, ...]
 def tickets_past_target(conn: sqlite3.Connection, moment: datetime) -> tuple[Breach, ...]:
     """The open tickets' late or overdue targets at an instant: the demo's outage, opened 11:30 and not acknowledged,
     is overdue on acknowledgement at 13:00 (P1, due 12:30)."""
-    return ticket_ledger.past_target(conn, moment)
+    return ticket_ledger.past_target(conn, moment, lambda found: target_start(conn, found))
 
 
 @dataclass(frozen=True)
@@ -91,20 +92,30 @@ class TicketView:
         return min(open_targets, default=None)
 
 
-def view_of(found: Ticket, moment: datetime) -> TicketView:
-    """One ticket's view at an instant; a ticket with no priority has no targets."""
+def target_start(conn: sqlite3.Connection, found: Ticket) -> datetime:
+    """The instant a ticket's two SOL-14 targets are counted from (13.15): the earliest failed result linked to it that
+    ran at or before the ticket opened (a ticket opened from a failed result, 7.9), else its opened instant (a ticket
+    opened with its fault, however many results later join it): a P3 opened at 13:05 on a result failed at 13:00 starts
+    at 13:00; its recorded opened instant stays 13:05."""
+    # Decision: SP-053 (a ticket opened from a failed result counts its targets from the failure, not from the click)
+    ran = [result.run_at for result in results_of_ticket(conn, found.wo_id) if result.run_at <= found.opened]
+    return min(ran, default=found.opened)
+
+
+def view_of(conn: sqlite3.Connection, found: Ticket, moment: datetime) -> TicketView:
+    """One ticket's view at an instant, its targets counted from target_start; a ticket with no priority has no
+    targets."""
     if found.priority is None:
         return TicketView(found, None, None, None, None)
-    targets = TARGETS[found.priority]
-    ack_due, respond_due = found.opened + targets.acknowledge, found.opened + targets.respond
-    return TicketView(found, target_state(found.opened, targets.acknowledge, found.acknowledged, moment), ack_due,
-                      target_state(found.opened, targets.respond, found.responded, moment), respond_due)
+    targets, start = TARGETS[found.priority], target_start(conn, found)
+    return TicketView(found, target_state(start, targets.acknowledge, found.acknowledged, moment), start + targets.acknowledge,
+                      target_state(start, targets.respond, found.responded, moment), start + targets.respond)
 
 
 def tickets_by_target(conn: sqlite3.Connection, moment: datetime) -> tuple[TicketView, ...]:
     """The open tickets at an instant, the nearest target first (an overdue one before a pending one, as its due is
     earlier), those with no target waiting last, ties by work order: SOL-14's order for the Tickets window (11.2)."""
-    views = [view_of(found, moment) for found in ticket_ledger.open_tickets(conn)]
+    views = [view_of(conn, found, moment) for found in ticket_ledger.open_tickets(conn)]
     far = datetime.max.replace(tzinfo=timezone.utc)
     return tuple(sorted(views, key=lambda view: (view.next_due or far, view.ticket.wo_id)))
 
@@ -112,7 +123,7 @@ def tickets_by_target(conn: sqlite3.Connection, moment: datetime) -> tuple[Ticke
 def all_ticket_views(conn: sqlite3.Connection, moment: datetime) -> tuple[TicketView, ...]:
     """Every ticket, closed too, at an instant (13.17's Show closed): the open ones in tickets_by_target's order, then
     the closed ones by work order; after one of two tickets closes, the open one then the closed one."""
-    closed = tuple(view_of(found, moment) for found in ticket_ledger.all_tickets(conn) if found.status is TicketStatus.CLOSED)
+    closed = tuple(view_of(conn, found, moment) for found in ticket_ledger.all_tickets(conn) if found.status is TicketStatus.CLOSED)
     return tickets_by_target(conn, moment) + closed
 
 
