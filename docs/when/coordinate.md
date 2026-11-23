@@ -75,8 +75,9 @@ ln -s <main checkout>/.venv <clone>/.venv              # the venv is shared, nev
 
 The brief names the clone as its repository, and the worker checks its directory first
 (`docs/when/hand-out-a-task.md`). The worker saves on its branch (`scripts/save.sh`); the coordinator lands from the
-main checkout (`git fetch origin agent/<item>`, `git merge --squash origin/agent/<item>`), then deletes the clone once
-its `git status` is clean. A read-only worker that changes nothing may read the main checkout.
+main checkout (`git fetch origin agent/<item>`, then `git merge --squash <the branch's hash>` from
+`git rev-parse origin/agent/<item>`, never `FETCH_HEAD`: `scripts/next_id.py` fetches `main` and rewrites it, J-140; run it
+before your own fetch), then deletes the clone once its `git status` is clean. A read-only worker that changes nothing may read the main checkout.
 
 ## Parallel workers
 

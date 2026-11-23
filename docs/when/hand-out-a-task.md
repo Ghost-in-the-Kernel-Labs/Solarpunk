@@ -43,6 +43,10 @@ task: `docs/when/handoff.md`.
   its own clone beside the main checkout (`docs/when/coordinate.md`, "Every worker in its own clone"), never in the
   coordinator's checkout and never in a worktree under `.claude/worktrees/`, whose copy of the planted supply-chain
   fixtures the disk-reading scan reports as worm artefacts. The brief names the clone's path as its repository.
+- Clones share one machine (J-141, J-146, J-134, J-135): the brief says never bind a fixed port (ask the system for a free
+  one), and names a scratch file per worker, never a shared one in the scratchpad (one worker's screenshot script replaced another's).
+  The window tests' full line is `xvfb-run -a python3.12 -m unittest discover -s test -t . -p "test_ui*.py"` (the `-t .`
+  is needed or 19 modules fail to import; `scripts/fast.sh` has it).
 - The working set is the Start-here files of the routing row the item matches, plus the files the
   item names; nothing else. Say explicitly what the agent may and may not do: agents read silence
   literally.
