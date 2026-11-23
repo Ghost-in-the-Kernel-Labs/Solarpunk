@@ -498,9 +498,13 @@ result kept. It adds to `docs/GOAL.md`'s SCADA analytics (2) and quality managem
   revives an asset's feed and re-runs its tests, every test visible in the asset window.
 - **13.17 The closed trail read back (SP-053).** One project call for a ticket's whole trail, shown by `ticket show`
   and the Tickets window; closed tickets listed; the Tests window shows clauses.
-- **13.18 The ISO walk, scripted and dry-run (SP-052, SP-053).** DEMO.md walks 55000-9.1 from requirement to evidence
+- **13.18 Output under the floor, its own fault (SP-054).** INV-005, an inverter derate, for a performance ratio under
+  the floor, so a lost link keeps SIT-004.
+- **13.19 Cheaper password hashing in the tests (SP-054).** A low scrypt cost in the tests alone, the product's held by
+  a test, so the fast loop is under 30 s with every test in it.
+- **13.20 The ISO walk, scripted and dry-run (SP-052, SP-053).** DEMO.md walks 55000-9.1 from requirement to evidence
   to corrective action, the register's sentence fixed, and a fresh dry run finds nothing missing.
-- **13.19 Tune-up pass 13.** (The asset's history, 13.8 before SP-024, is Phase 10.)
+- **13.21 Tune-up pass 13.** (The asset's history, 13.8 before SP-024, is Phase 10.)
 
 ### Phase 14: the traceability matrix
 

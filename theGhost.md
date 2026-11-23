@@ -977,3 +977,13 @@ The core decisions above are inherited (Core C-001 to C-040); this project's beg
 - **Status:** in force
 - **See also:** SP-052, SP-046, SP-016
 - **subject:** demo
+
+### SP-054: Output under the floor is its own inverter fault; the tests hash passwords cheaply
+- **Decision:** The catalogue gains INV-005, an inverter DERATE, "Output under the performance floor", raised by a failed `performance_above_floor`; a failed `reachable` keeps the generic SIT-004 for a lost link. The tests hash passwords at a low scrypt cost by a test-side setting, the product's parameters unchanged and held by a test, so every test stays in the fast loop and the loop comes back under 30 s. Built as 13.18 and 13.19; the walk moves to 13.20 and the pass to 13.21.
+- **Why:** Ghost, 2026-11-23, choosing the coordinator's recommendations after 13.15 (J-147): zero output during OAHE-INV-002's outage made `performance_above_floor` fail and, with no code of its own, take SIT-004 from `reachable`, so the demo's lost link and its lost output read as one fault; two faults an auditor can follow make the argument. The fast loop stood at 31.3 s idle, 97 % of `test_accounts` in scrypt; moving security tests out of the fast loop would surface a regression only at a tune-up.
+- **Supersedes:** none; answers part of HANDOFF For Ghost 6 (the missing code for output under the floor).
+- **Held by:** `TODO.md` and `docs/ROADMAP.md` 13.18 and 13.19; their code once built.
+- **Source:** Ghost, in chat, 2026-11-23.
+- **Status:** in force
+- **See also:** SP-053, SP-025, SOL-08
+- **subject:** demo

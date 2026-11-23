@@ -85,7 +85,7 @@ SP-022; 12.1 split in two by SP-028 (accounts, then versions); 12.6 added on Gho
 
 ## Phase 13: the tests' record, at the root and per asset
 
-Lanes (P-15): 13.1 and 13.2 first (SP-019: what a test is, and the suites), then 13.3 (a test's own reads) and 13.4 (reactions, which need suites; SP-020), then 13.5 (the surface every window reads), then 13.6 and 13.7 in parallel, then the human maintainability pass (SP-042): 13.8, then 13.9, 13.10 and 13.11 in parallel, then 13.19 the pass; the demo's ISO walk first, on Ghost's word (SP-053): 13.14, then 13.15, 13.16 and 13.17, then 13.18, ahead of 13.8's parts 4 and 5; 13.12 (Phase 7's loose ends, SP-047) beside 13.3, in its own clone; 13.13 (bursts in the demo, SP-049) after 13.4; the asset's history went to Phase 10 (SP-024). Moved after tickets and accounts by SP-022, after the fleet window and the ticket windows by SP-023, and after runs per asset (Phase 10) by SP-024. Moved after Phase 8 by SP-018. Ghost's direction, SP-016.
+Lanes (P-15): 13.1 and 13.2 first (SP-019: what a test is, and the suites), then 13.3 (a test's own reads) and 13.4 (reactions, which need suites; SP-020), then 13.5 (the surface every window reads), then 13.6 and 13.7 in parallel, then the human maintainability pass (SP-042): 13.8, then 13.9, 13.10 and 13.11 in parallel, then 13.21 the pass; the demo's ISO walk first, on Ghost's word (SP-053): 13.14, then 13.15, 13.16 and 13.17, then 13.18 and 13.19 in parallel (SP-054), then 13.20, ahead of 13.8's parts 4 and 5; 13.12 (Phase 7's loose ends, SP-047) beside 13.3, in its own clone; 13.13 (bursts in the demo, SP-049) after 13.4; the asset's history went to Phase 10 (SP-024). Moved after tickets and accounts by SP-022, after the fleet window and the ticket windows by SP-023, and after runs per asset (Phase 10) by SP-024. Moved after Phase 8 by SP-018. Ghost's direction, SP-016.
 
 ### 13.8 Names of three characters or more
 
@@ -114,7 +114,30 @@ Each decision is mapped to the functions that hold it, and each function holding
 
 Check: `scripts/decision_map.py` writes `docs/DECISION-MAP.md`, for each decision in `theGhost.md` the functions (file and name) whose `# Decision:` or `# Invariant:` line cites it, "no function" otherwise; the fast loop fails when the file is stale; `scripts/checks/decision_map.py` fails when an in-force decision whose `Held by` names a file under `solarpunk/` or `scripts/` is cited by no function, or a citation names a decision or invariant that does not exist, with a planted break under `test/fixtures/broken/decision_map/`; the missing citations added to the functions that hold each decision; the fast loop green.
 
-### 13.18 The ISO walk, scripted and dry-run
+### 13.18 Output under the floor, its own fault
+
+An inverter whose performance ratio falls under the floor raises its own derate code, so a lost link keeps SIT-004 and
+the demo's two faults on OAHE-INV-002 each say what they are (SP-054, J-147).
+
+Check: the catalogue (`solarpunk/leaf/codes.py`) gains INV-005, an inverter DERATE, "Output under the performance
+floor"; a failed `performance_above_floor` on an inverter raises INV-005 assigned by `test:performance_above_floor`,
+and a failed `reachable` raises SIT-004 assigned by `test:reachable`, both open on OAHE-INV-002 after the demo's run;
+after the revival `reachable` passes and SIT-004 can be closed by its ticket while INV-005 stays open; INV-005 counts
+nothing against availability (a derate, SOL-08); `docs/CONTRACT.md` and every list of the catalogue name it; the fast
+loop, the window tests and the demo tests under xvfb green.
+
+### 13.19 Cheaper password hashing in the tests
+
+The tests hash passwords at a low scrypt cost while the product keeps its full strength, so the fast loop comes back
+under its 30 s target with every test still in it (SP-054, J-147).
+
+Check: the product's scrypt parameters in `solarpunk/accounts/passwords.py` are unchanged (cost 16384), held by a test
+that reads them; every other test, the demo store's build in tests included, hashes at a low cost by a test-side
+setting the product never reads from the environment; a line stored at either cost still verifies (its parameters are
+in the line); no test removed or moved out of the fast loop; the fast loop under 30 s on an idle machine (31.3 s
+before), measured twice.
+
+### 13.20 The ISO walk, scripted and dry-run
 
 DEMO.md walks one ISO requirement to its evidence and its corrective action on `--demo`, and a fresh dry run follows
 it with nothing missing (SP-052, SP-053).
@@ -125,7 +148,7 @@ resolve, the feed brought back, the re-run passing, the closed trail read back; 
 corrected; the register's 55000-9.1 sentence covers every control its row names (`docs/CLAUSE-REGISTER.md`, its check
 green); a fresh ruling-grade dry run of DEMO.md's walk, read-only, reports no blocker; the fast loop green.
 
-### 13.19 Tune-up pass 13
+### 13.21 Tune-up pass 13
 
 Check: `docs/when/tune-up.md` followed in full; the metrics table written; the navigation log's "Last review" set.
 
