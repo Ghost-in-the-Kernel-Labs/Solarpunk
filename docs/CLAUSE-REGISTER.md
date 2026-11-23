@@ -25,4 +25,4 @@ refuses a held row with no tagged test and a tagged test with no row.
 | 55000-6.2.1 | The conditions a KPI excludes or distrusts are catalogue codes, fixed in one place | test/solarpunk/iso/test_iso55000.py::test_the_kpi_numbers_name_catalogue_codes | held |
 | 55000-6.2.2 | An asset can name the engineer who services it, and a malformed address is refused | test/solarpunk/iso/test_iso55000.py::test_an_asset_names_its_engineer | held |
 | 55000-7.5 | A reading that never arrived is stored as a gap carrying no values, never dropped or filled | test/solarpunk/iso/test_iso55000.py::test_a_missing_reading_is_stored_as_a_gap | held |
-| 55000-9.1 | Only a fault that stops output counts against availability; a derate does not | test/solarpunk/iso/test_iso55000.py::test_only_an_outage_counts_against_availability | held |
+| 55000-9.1 | An asset is watched while it runs: a feed that stops answering and output under its daylight floor are each recorded as a failed result, and availability counts against an asset only a fault that stops output, never a derate | test/solarpunk/iso/test_iso55000.py::test_only_an_outage_counts_against_availability | held |
