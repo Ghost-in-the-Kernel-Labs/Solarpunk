@@ -7,12 +7,19 @@ from datetime import datetime
 from solarpunk.faults import ledger
 from solarpunk.faults.ledger import FaultCause
 from solarpunk.project.engineers import check_engineer
+from solarpunk.remote import results as result_table
+from solarpunk.workorders import ticket_results
 from solarpunk.workorders.ledger import WorkOrder, WorkOrderError
 
 
 class NoRootCause(WorkOrderError):
     """Raised for a ticket closed on a fault whose root cause is not yet written: NoRootCause("fault 4 has no root cause
     written: an engineer writes it before its ticket closes")."""
+
+
+class NoPassSince(WorkOrderError):
+    """Raised for a ticket opened from a failed result that has not passed since: NoPassSince("ticket 4 waits for a pass:
+    reachable on OAHE-INV-002 has not passed since its failure at 2026-06-01T13:00:00+00:00")."""
 
 
 def write_fault_cause(conn: sqlite3.Connection, fault_id: int, cause: str, written_by: str, written_at: datetime,
@@ -34,3 +41,23 @@ def require_cause(conn: sqlite3.Connection, order: WorkOrder) -> None:
     # Decision: SP-046 (a ticket on a fault closes only once the fault's root cause is written)
     if order.fault_id is not None and ledger.cause_of(conn, order.fault_id) is None:
         raise NoRootCause(f"fault {order.fault_id} has no root cause written: an engineer writes it before its ticket closes")
+
+
+def require_pass(conn: sqlite3.Connection, order: WorkOrder) -> None:
+    """Refuses a close of a ticket until each failed result it holds has a passing result of the same test on the same
+    asset after it (any suite `all` result, the ping's included): ticket 4 on a reachable failed at 13:00 with no pass
+    gives NoPassSince naming the test and the asset; a pass at 13:25 lets a close at 13:30 through; a ticket holding no
+    result (an engineer's fault, a preventive order) passes."""
+    # Decision: SP-055 (the proof follows the action: a ticket from a failed result closes after a later pass)
+    for result_id in ticket_results.results_of(conn, order.wo_id):
+        failed = result_table.get(conn, result_id)
+        if failed is not None and result_table.pass_after(conn, failed) is None:
+            raise NoPassSince(f"ticket {order.wo_id} waits for a pass: {failed.test_name} on {failed.asset_id} has not "
+                              f"passed since its failure at {failed.run_at.isoformat()}")
+
+
+def require_proof(conn: sqlite3.Connection, order: WorkOrder) -> None:
+    """Both close rules in their order: the root cause first (NoRootCause), then the pass (NoPassSince)."""
+    # Decision: SP-046 (the cause first); SP-055 (then the proof)
+    require_cause(conn, order)
+    require_pass(conn, order)

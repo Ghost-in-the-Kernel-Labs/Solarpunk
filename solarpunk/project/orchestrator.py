@@ -23,7 +23,7 @@ from solarpunk.leaf.codes import AssetKind, AssetStatus, Severity, lookup
 from solarpunk.leaf.faults import UNRECORDED, Fault, by_telemetry
 from solarpunk.leaf.telemetry import Sample
 from solarpunk.mailer import mail as mail_table
-from solarpunk.project.causes import require_cause
+from solarpunk.project.causes import require_proof
 from solarpunk.project.engineers import check_engineer
 from solarpunk.remote import reactions as reaction_table
 from solarpunk.remote import results as result_table
@@ -233,7 +233,7 @@ def close_work_order(conn: sqlite3.Connection, wo_id: int, closed: datetime, rea
     StaleWrite (12.2); each closes neither. The close is logged in the ticket's moves as actor's (SP-035)."""
     # Decision: SP-011 (closing a corrective order closes its fault, in project, in one call)
     # Decision: SP-046 (a ticket on a fault closes only once the fault's root cause is written)
-    require_cause(conn, work_ledger.get(conn, wo_id))
+    require_proof(conn, work_ledger.get(conn, wo_id))
     order = work_ledger.close(conn, wo_id, closed, read_at, actor)
     if order.fault_id is not None and any(open_fault.fault_id == order.fault_id for open_fault in ledger.open_faults(conn)):
         ledger.close(conn, order.fault_id, closed)

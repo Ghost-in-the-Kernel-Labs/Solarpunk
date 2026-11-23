@@ -217,19 +217,22 @@ class Revival:
             self.server = project.feed_server_on(samples, LOOPBACK, self.dead_port)
             threading.Thread(target=self.server.serve_forever, kwargs={"poll_interval": POLL_INTERVAL_S}, daemon=True).start()
         self.runs += 1
-        run_at = self.run_instant()
+        run_at = self.run_instant(project.last_ticket_act(conn, asset_id))
         acquirer = project.feed_acquirer(instant_clock(run_at), BURST_READS_S)
         status = project.run_asset_tests(conn, asset_id, run_at, acquirer)
         conn.commit()
         return status
 
-    def run_instant(self) -> datetime:
-        """The instant of this press's run: the demo's clock, never at or before the last press's run (the scheduled run's, 13:00, before the first); with no clock,
-        RUN_AT plus five minutes per press (the first press gives 13:05)."""
-        if self.now is None:
-            return RUN_AT + timedelta(minutes=5 * self.runs)
-        found = self.now()
-        if found <= self.last_run:
+    def run_instant(self, last_act: datetime | None = None) -> datetime:
+        """The instant of this press's run: the demo's clock, never at or before the last press's run (the scheduled run's,
+        13:00, before the first) and, once last_act is given, never less than a minute after it (SP-055: the proof follows
+        the action); with no clock, RUN_AT plus five minutes per press (the first press gives 13:05): with the last act at
+        13:55 the run is stamped 13:56 at the earliest."""
+        # Decision: SP-055 (the revival is never stamped before the asset's last ticket act)
+        found = RUN_AT + timedelta(minutes=5 * self.runs) if self.now is None else self.now()
+        if last_act is not None:
+            found = max(found, last_act + project.AFTER_THE_LAST_ACT)
+        if self.now is not None and found <= self.last_run:
             found = self.last_run + timedelta(seconds=1)
         self.last_run = found
         return found

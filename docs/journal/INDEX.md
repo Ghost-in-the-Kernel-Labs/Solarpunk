@@ -159,3 +159,4 @@ Written from `docs/journal/` by `scripts/journal_index.py`; do not edit by hand.
 | J-153 | 13.22: the walk clicked end to end | feature | `J-100-199.md` |
 | J-154 | 13.23's dry run: two blockers in the proof; SP-055 | measurement | `J-100-199.md` |
 | J-155 | 13.20: a ping that answers records its pass | feature | `J-100-199.md` |
+| J-156 | 13.21: the proof follows the action, and closing waits for it | feature | `J-100-199.md` |

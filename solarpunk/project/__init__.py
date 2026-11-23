@@ -10,7 +10,7 @@ from solarpunk.faults.ledger import FaultCause, LedgerError
 from solarpunk.feed.client import FeedError
 from solarpunk.fleet.registry import RegistryError
 from solarpunk.kpi import PowerOutput
-from solarpunk.project.causes import NoRootCause, write_fault_cause
+from solarpunk.project.causes import NoPassSince, NoRootCause, write_fault_cause
 from solarpunk.project.orchestrator import (
     Fault,
     SiteKpis,
@@ -57,7 +57,7 @@ from solarpunk.project.suggest import (
 )
 from solarpunk.project.run import (RunReport, add_remote_test, feed_acquirer, live_acquirer, remote_tests, remote_tests_folder, scheduled_run,
                                    run_suite_now, survey_remote_tests)
-from solarpunk.project.revival import feed_server_on, run_asset_tests
+from solarpunk.project.revival import AFTER_THE_LAST_ACT, feed_server_on, last_ticket_act, run_asset_tests
 from solarpunk.project.suites import add_suite, test_suites
 from solarpunk.remote.suite_registry import Suite
 from solarpunk.project.surface import (
@@ -197,6 +197,7 @@ __all__ = [
     "LedgerError",
     "Move",
     "NoRootCause",
+    "NoPassSince",
     "write_fault_cause",
     "write_cause_as",
     "NotPermitted",
@@ -318,6 +319,8 @@ __all__ = [
     "resolve_ticket",
     "scheduled_run",
     "feed_server_on",
+    "AFTER_THE_LAST_ACT",
+    "last_ticket_act",
     "run_asset_tests",
     "set_ticket_assignee",
     "store_name",

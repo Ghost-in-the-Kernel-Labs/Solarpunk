@@ -114,20 +114,6 @@ Each decision is mapped to the functions that hold it, and each function holding
 
 Check: `scripts/decision_map.py` writes `docs/DECISION-MAP.md`, for each decision in `theGhost.md` the functions (file and name) whose `# Decision:` or `# Invariant:` line cites it, "no function" otherwise; the fast loop fails when the file is stale; `scripts/checks/decision_map.py` fails when an in-force decision whose `Held by` names a file under `solarpunk/` or `scripts/` is cited by no function, or a citation names a decision or invariant that does not exist, with a planted break under `test/fixtures/broken/decision_map/`; the missing citations added to the functions that hold each decision; the fast loop green.
 
-### 13.21 The proof follows the action, and closing waits for it
-
-A ticket opened from a failed result closes only after a later pass of the same test on the same asset, and the demo's
-revival is never stamped before the asset's last ticket act (SP-055, J-154).
-
-Check: resolving a ticket opened from a failed result is refused until a passing result of that test on that asset
-exists after the failure, the refusal naming the test and the asset, as the root-cause refusal does, from the window
-and the command line alike; `docs/CONTRACT.md` says so beside SOL-14 with a hand-checked example; the demo's revival
-run is stamped no earlier than one minute after the latest act stored on that asset's tickets; DEMO.md's walk becomes
-cause, the refused resolve without a pass, the feed brought back, then resolve, its scripted comment and cause
-reworded to fit the stored telemetry (the feed not answering at the 13:00 run, not "down since 11:30"); the demo walk
-test follows that order and holds the trail's next result after the last act; the fast loop, the window tests and the
-demo tests under xvfb green.
-
 ### 13.23 The ISO walk, scripted and dry-run
 
 DEMO.md walks one ISO requirement to its evidence and its corrective action on `--demo`, and a fresh dry run follows

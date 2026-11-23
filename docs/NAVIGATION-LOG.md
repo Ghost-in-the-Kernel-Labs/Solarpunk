@@ -47,3 +47,9 @@ An entry is `### <date> · <task> · <who>`, then four bullets: **Task**, **Open
 - **Opened**: `CLAUDE.md`, `docs/paths/product.md`, `docs/CONTRACT.md`, `solarpunk/project/run.py`, `solarpunk/remote/results.py`, `solarpunk/remote/tests/reachable.py`, `solarpunk/project/revival.py`.
 - **Complaints**: `save.sh` refused the push: the branch name was taken by an older branch of the same item number.
 - **Suggestions**: none.
+
+### 2026-11-23 · 13.21 the proof follows the action · mid-grade worker
+- **Task**: a ticket from a failed result closes after a later pass; the revival after the last act; DEMO.md in that order (J-156).
+- **Opened**: `CLAUDE.md`, `docs/paths/product.md`, `docs/CONTRACT.md`, `solarpunk/project/causes.py`, `solarpunk/project/tickets.py`, `solarpunk/project/attribution.py`, `solarpunk/project/trail.py`, `solarpunk/remote/results.py`, `solarpunk/ui/demo.py`, `DEMO.md`.
+- **Complaints**: DEMO.md named result 1, a pass since 13.20; one `Tcl_AsyncDelete` abort of the window tests, not reproduced.
+- **Suggestions**: none.

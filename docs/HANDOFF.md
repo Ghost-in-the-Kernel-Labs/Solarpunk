@@ -207,6 +207,11 @@ email on the asset, a mailer to those engineers on degradation, and the Save/Can
    fields count as bindings (they do); (d) `ticket ack` and `resolve` as one project call each, touching `access.py`
    and `attribution.py` (13.15). Each a roadmap line or a decision; none acted on.
 
+26. An intermittent `Tcl_AsyncDelete: async handler deleted by the wrong thread` abort of the window tests under xvfb,
+   seen once each by the workers of 13.20, 13.21 and 13.22 (J-153, J-155, J-156), never reproduced in re-runs nor in the
+   coordinator's fifteen combined runs: a Tk object freed off the main thread somewhere (the feed's daemon threads,
+   J-146). A roadmap line to find it, or leave it watched.
+
 ## Advisories under the gate's threshold (Tune-up commit 7, 2026-11-21; unchanged since pass 0)
 
 The Python stack's gate runs no audit step (`pip-audit` is not in the lock; `stacks/python/README.md` names it for a

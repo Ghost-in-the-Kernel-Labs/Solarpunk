@@ -75,6 +75,7 @@ class Streaks(unittest.TestCase):
         first = self.run_at(T[0], False)
         order = self.open(first).ticket
         project.write_fault_cause(self.conn, project.work_orders_for(self.conn, SEN)[0].fault_id, "loose cable", ENGINEER, at(2026, 6, 2, 9))
+        self.run_at(at(2026, 6, 2, 8), True)  # 13.21: a pass after the failure lets the ticket close
         project.close_work_order(self.conn, order.wo_id, at(2026, 6, 2, 9))
         second = self.run_at(at(2026, 6, 2, 10), False)  # a recurrence: a new fault, no join
         self.assertIsNone(ticket_results.ticket_of(self.conn, second))
