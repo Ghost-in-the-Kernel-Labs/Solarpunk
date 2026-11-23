@@ -6,6 +6,7 @@ import sqlite3
 import unittest
 
 from solarpunk import project
+from solarpunk.accounts import passwords
 from solarpunk.leaf.assets import Asset
 from solarpunk.leaf.clock import at
 from solarpunk.leaf.codes import AssetKind
@@ -147,7 +148,7 @@ class ThePasswords(Store):
 
     def test_the_stored_line_carries_its_parameters(self) -> None:
         parts = self.stored(SITE).split("$")
-        self.assertEqual(parts[:4], ["scrypt", "16384", "8", "1"])
+        self.assertEqual(parts[:4], ["scrypt", str(passwords.SCRYPT_COST), "8", "1"])
         self.assertEqual((len(bytes.fromhex(parts[4])), len(bytes.fromhex(parts[5]))), (16, 32))
         self.assertNotIn(passphrase(), self.stored(SITE))
 
