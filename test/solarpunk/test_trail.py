@@ -1,5 +1,5 @@
 """The closed trail read back (13.17, SP-053): from a failed result to a closed ticket (open from the result, comment, two
-causes, resolve, a passing re-run), project.ticket_trail holds every part, trail_text words it, `ticket show` prints it,
+causes, a passing re-run, resolve), project.ticket_trail holds every part, trail_text words it, `ticket show` prints it,
 and an engineer's fault has the empty parts. Over the OAHE fleet in memory, the weather station's reachable."""
 import io
 import sqlite3
@@ -17,7 +17,7 @@ SEN = "OAHE-SEN-001"
 ENGINEER = "site@oahe.example"
 OPERATOR = "ops@oahe.example"
 REACHABLE_CLAUSES = next(found.clauses for found in project.remote_tests() if found.name == "reachable")
-FAILED, OPENED, COMMENTED, CAUSED, CORRECTED, RESOLVED, PASSED = (at(2026, 6, 1, hour) for hour in (10, 11, 12, 13, 14, 15, 16))
+FAILED, OPENED, COMMENTED, CAUSED, CORRECTED, PASSED, RESOLVED = (at(2026, 6, 1, hour) for hour in (10, 11, 12, 13, 14, 15, 16))
 
 
 def run_at(conn: sqlite3.Connection, moment: datetime, passed: bool) -> int:
@@ -38,8 +38,8 @@ def closed_ticket(db: str) -> int:
     fault_id = project.work_orders_for(conn, SEN)[0].fault_id
     project.write_fault_cause(conn, fault_id, "loose antenna", ENGINEER, CAUSED)
     project.write_fault_cause(conn, fault_id, "antenna cable corroded", ENGINEER, CORRECTED)
+    run_at(conn, PASSED, True)  # 13.21: the proof stored before the close
     project.resolve_ticket(conn, wo_id, "cable replaced", RESOLVED, actor=ENGINEER)
-    run_at(conn, PASSED, True)
     conn.close()
     return wo_id
 

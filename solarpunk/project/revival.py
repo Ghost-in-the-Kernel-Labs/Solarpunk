@@ -1,15 +1,19 @@
 """A dead feed brought back, and its tests re-run (13.16, SP-053): the two calls the demo's window makes through
 project: a feed server for samples on a chosen port, and one asset's pass of the scheduled run's own steps."""
 import sqlite3
-from datetime import datetime
+from datetime import datetime, timedelta
 
+from solarpunk.faults import ledger as fault_ledger
 from solarpunk.feed import simulate
 from solarpunk.leaf.codes import AssetStatus
 from solarpunk.leaf.telemetry import Sample
-from solarpunk.project.orchestrator import fleet_assets, open_outages
+from solarpunk.project.orchestrator import fleet_assets, open_outages, work_orders_for
 from solarpunk.project.run import Acquirer, fed_only, ping_all, remote, stamped, window
 from solarpunk.project.suggest import faults_from_run
 from solarpunk.telemetry import samples as sample_table
+from solarpunk.workorders import tickets as ticket_ledger
+
+AFTER_THE_LAST_ACT = timedelta(minutes=1)
 
 
 def feed_server_on(samples: tuple[Sample, ...], host: str, port: int) -> simulate.FeedServer:
@@ -33,3 +37,17 @@ def run_asset_tests(conn: sqlite3.Connection, asset_id: str, run_at: datetime,
     statuses = stamped(remote.run_suite(conn, assets, samples, flags, run_at, acquirer), pinged.unreachable)
     faults_from_run(conn, tuple(asset.asset_id for asset in assets), run_at)
     return AssetStatus.RED if asset_id in open_outages(conn) else statuses.get(asset_id, AssetStatus.GREEN)
+
+
+def last_ticket_act(conn: sqlite3.Connection, asset_id: str) -> datetime | None:
+    """The latest act stored on an asset's tickets, a move, a comment or a root cause, or None for an asset with no
+    ticket: a ticket moved at 13:30 and 13:35, commented at 13:40 and its fault's cause written at 13:50, closed at 13:55,
+    gives 13:55."""
+    # Decision: SP-055 (the proof follows the action: a run is stamped after the last act it proves)
+    found: list[datetime] = []
+    for order in work_orders_for(conn, asset_id):
+        found += [move.moment for move in ticket_ledger.moves(conn, order.wo_id)]
+        found += [comment.moment for comment in ticket_ledger.comments(conn, order.wo_id)]
+        if order.fault_id is not None:
+            found += [cause.written_at for cause in fault_ledger.causes_of(conn, order.fault_id)]
+    return max(found, default=None)

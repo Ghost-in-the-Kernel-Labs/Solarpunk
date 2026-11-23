@@ -44,6 +44,9 @@ PREVIOUS = (f"SELECT {WITH_ID} FROM results WHERE asset_id = ? AND test_name = ?
 # The first result of a test on an asset in one suite strictly after an instant (13.17): the next result read back.
 NEXT_AFTER = (f"SELECT {WITH_ID} FROM results WHERE asset_id = ? AND test_name = ? AND suite = ? AND run_at > ?"
               " ORDER BY run_at, result_id LIMIT 1")
+# The first passing result of a test on an asset in one suite strictly after an instant (13.21): the proof of a repair.
+PASS_AFTER = (f"SELECT {WITH_ID} FROM results WHERE asset_id = ? AND test_name = ? AND suite = ? AND passed = 1"
+              " AND run_at > ? ORDER BY run_at, result_id LIMIT 1")
 BY_ID = f"SELECT {WITH_ID} FROM results WHERE result_id = ?"
 LAST_OF_SUITE = "SELECT max(run_at) FROM results WHERE suite = ?"
 # Failures first, then no data, then passes (a no-data row stores passed 0), each by test name, then in the order
@@ -230,6 +233,13 @@ def next_after(conn: sqlite3.Connection, found: Recorded, suite: str = ALL) -> R
     """The first stored result of the same test on the same asset in the suite, strictly after this one's run instant,
     or None: after a failure at 11:00 and a pass at 12:00, the failure's next is the pass; the newest result has none."""
     row = conn.execute(NEXT_AFTER, (found.asset_id, found.test_name, suite, utc(found.run_at).isoformat())).fetchone()
+    return None if row is None else _recorded(row)
+
+
+def pass_after(conn: sqlite3.Connection, found: Recorded, suite: str = ALL) -> Recorded | None:
+    """The first passing result of the same test on the same asset in the suite, strictly after this one's run instant,
+    or None: after a failure at 13:00 and a pass at 13:25 it is the 13:25 pass; with only a failure after it, None."""
+    row = conn.execute(PASS_AFTER, (found.asset_id, found.test_name, suite, utc(found.run_at).isoformat())).fetchone()
     return None if row is None else _recorded(row)
 
 

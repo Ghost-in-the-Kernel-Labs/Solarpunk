@@ -255,6 +255,20 @@ back-filled. A ticket is
 past a target when, at the instant asked, a target is `late` or `overdue`. Closing the fault alone (`solarpunk fault
 close`) ends the downtime and leaves the ticket open, to be closed once its root cause is written.
 
+The proof follows the action (13.21, SP-055): a ticket opened from a failed test result closes only after a later pass.
+For every failed result linked to it, a passing result of the same test on the same asset must be stored strictly after
+that failure's run instant (any result of the default suite `all`; the ping's `reachable` pass, "answered: N new records",
+counts). Until then resolving is refused, after the root-cause check (a ticket with neither is refused for the cause),
+naming the test and the asset: "ticket 4 waits for a pass: reachable on OAHE-INV-002 has not passed since its failure at
+2026-06-01T13:00:00+00:00". Nothing is written; the Tickets window's panel and `solarpunk ticket resolve` (exit 2) say the
+same words as they say the root-cause refusal. A ticket with no linked result (an engineer's fault, a preventive order) is
+unchanged. Hand-checked: a ticket opened from `reachable` on OAHE-INV-002 failed at 13:00, its cause written; resolving
+at 13:20 is refused (no pass after 13:00); a pass of `reachable` is stored at 13:25; resolving at 13:30 closes it. A
+pass stored at 13:00 itself, or before, would not count. The demo's revival is stamped no earlier than one minute after
+the latest move, comment or root cause stored on that asset's tickets, so its pass always follows the last act. Held by
+`solarpunk/project/causes.py` (`require_pass`), `solarpunk/project/revival.py` (`last_ticket_act`) and
+`test/solarpunk/test_proof.py`.
+
 When a remote tracker is joined behind an adapter (11.1), each field has one owner, and the other side's copy is for
 display only:
 
