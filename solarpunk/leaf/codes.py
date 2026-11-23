@@ -65,6 +65,7 @@ CATALOGUE: tuple[FaultCode, ...] = (
     FaultCode("INV-002", AssetKind.INVERTER, Severity.DERATE, "Inverter over-temperature derate"),
     FaultCode("INV-003", AssetKind.INVERTER, Severity.OUTAGE, "DC ground fault: the inverter has isolated itself"),
     FaultCode("INV-004", AssetKind.INVERTER, Severity.INFO, "Firmware update pending"),
+    FaultCode("INV-005", AssetKind.INVERTER, Severity.DERATE, "Output under the performance floor: the performance ratio fell below its floor"),
     FaultCode("STR-001", AssetKind.STRING, Severity.DERATE, "String open: zero current while sibling strings produce"),
     FaultCode("STR-002", AssetKind.STRING, Severity.DERATE, "String under-performing: current below 80 % of its siblings' median"),
     FaultCode("TRK-001", AssetKind.TRACKER, Severity.DERATE, "Tracker stalled: angle unchanged while the sun moved"),

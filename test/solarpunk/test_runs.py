@@ -51,7 +51,8 @@ class TheExamples(unittest.TestCase):
     def test_the_error_counts(self) -> None:
         self.assertEqual(project.asset_code_counts(self.conn, SEN, DAY), (project.CodeCount("SEN-001", 1, 0),))  # SP-046: a fault, not a suggestion
         self.assertEqual(project.asset_code_counts(self.conn, INV2, DAY),
-                         (project.CodeCount("INV-001", 1, 0), project.CodeCount("SIT-004", 1, 0)))  # SP-047: the lost link raises the generic code
+                         (project.CodeCount("INV-001", 1, 0), project.CodeCount("INV-005", 1, 0),
+                          project.CodeCount("SIT-004", 1, 0)))  # SP-047, SP-054: the lost link raises the generic code, the zeros their own
         self.assertEqual(project.asset_code_counts(self.conn, INV1, DAY), (project.CodeCount("INV-002", 1, 0),))
         self.assertEqual(project.code_counts_by_asset(self.conn, "INV-001", DAY), (project.AssetCount(INV2, 1, 0),))
 

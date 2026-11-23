@@ -88,8 +88,8 @@ class TheDemoStore(DemoFixture):
         conn = self.opened()
         faults = project.faults_listing(conn, False)
         self.assertEqual([f.assigned_by for f in faults], [demo.SITE_ENGINEER, demo.INVERTER_ENGINEER, demo.INVERTER_ENGINEER,
-                          "test:performance_above_floor", "test:reachable"])  # SP-046, SP-047: the inverter's SIT-004 (13.15: its zero output fails performance_above_floor first) and the sensor's SEN-001
-        outage, _lost_link, sensor_fault = project.faults_listing(conn, True)  # SP-047: the inverter's SIT-004 and the sensor's SEN-001 are open too
+                          "test:performance_above_floor", "test:reachable", "test:reachable"])  # SP-046, SP-047, SP-054: the inverter's INV-005 (its zero output fails performance_above_floor) and its SIT-004 (reachable), each by its own test, and the sensor's SEN-001
+        outage, _floor, _lost_link, sensor_fault = project.faults_listing(conn, True)  # SP-047: the inverter's SIT-004 and the sensor's SEN-001 are open too
         self.assertEqual((sensor_fault.asset_id, sensor_fault.recorded_by), (demo.SENSOR, None))
         self.assertEqual((outage.asset_id, outage.recorded_by, project.is_cover(conn, outage)),
                          (demo.DOWN, demo.OPERATOR, True))
@@ -134,6 +134,7 @@ class TheDemoStore(DemoFixture):
             ("OAHE-SIT-001", "SIT-002", at(2026, 6, 1, 12), at(2026, 6, 1, 13)),
             (INV1, "INV-002", at(2026, 6, 1, 10, 5), at(2026, 6, 1, 10, 45)),
             (INV2, "INV-001", at(2026, 6, 1, 11, 30), None),
+            (INV2, "INV-005", RUN_AT, None),  # SP-054: the zero output's failing performance_above_floor, a derate of its own
             (INV2, "SIT-004", RUN_AT, None),  # SP-047: the dead feed's failing reachable, the generic code beside the operator's INV-001
             (demo.SENSOR, "SEN-001", RUN_AT, None),  # SP-046: raised by the run's failing reachable
         ])
@@ -174,7 +175,7 @@ class TheDemoStore(DemoFixture):
         again = demo.build_demo_store(self.path, self.port, self.dead)
         self.assertIs(again.run_report.statuses[INV2], AssetStatus.RED)
         with closing(project.open_or_create(self.path)) as conn:
-            self.assertEqual(len(project.faults_listing(conn, False)), 5)  # SP-046, SP-047: the sensor's SEN-001 and the inverter's SIT-004 too
+            self.assertEqual(len(project.faults_listing(conn, False)), 6)  # SP-046, SP-047, SP-054: the sensor's SEN-001 and the inverter's INV-005 and SIT-004 too
             self.assertEqual(conn.execute("SELECT count(*) FROM samples").fetchone()[0], 576)
 
 

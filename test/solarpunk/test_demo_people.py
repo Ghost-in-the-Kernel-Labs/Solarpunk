@@ -65,6 +65,29 @@ class ThePeopleAndTheDay(test_demo.DemoFixture):
         after = {d.test_name: d.state for d in project.asset_detail(conn, INV2).diagnostics}
         self.assertEqual((after["reachable"], after["power_ripple"], after["performance_above_floor"]), ("pass", "pass", "fail"))
 
+    def test_the_floor_and_the_lost_link_are_each_their_own_fault_through_the_revivals(self) -> None:
+        """13.18, SP-054: the run raises INV-005 (test:performance_above_floor) and SIT-004 (test:reachable) beside the
+        outage; a revival closes nothing; SIT-004's ticket closes it; INV-005 stays, and a second revival raises no new SIT-004."""
+        demo.build_demo_store(self.path, self.port, self.dead)
+        conn = self.opened()
+
+        def open_faults() -> list[tuple[str, str]]:
+            """OAHE-INV-002's open faults as (code, assigned_by): [("INV-001", "inverter@oahe.example"), ...]."""
+            return [(f.code, f.assigned_by) for f in project.faults_listing(conn, True) if f.asset_id == INV2]
+        floor, lost = ("INV-005", "test:performance_above_floor"), ("SIT-004", "test:reachable")
+        self.assertEqual(open_faults(), [("INV-001", demo.INVERTER_ENGINEER), floor, lost])
+        revival = demo.Revival(self.dead, lambda: at(2026, 6, 1, 13, 2))
+        self.addCleanup(revival.close)
+        revival.bring_back(conn, INV2)
+        self.assertEqual(open_faults(), [("INV-001", demo.INVERTER_ENGINEER), floor, lost])  # a passing test closes no fault
+        link = next(f for f in project.faults_listing(conn, True) if f.code == "SIT-004")
+        order = project.open_work_order_from_fault(conn, link.fault_id, at(2026, 6, 1, 13, 10), "feed restored")
+        project.write_fault_cause(conn, link.fault_id, "feed process stopped", demo.ACCOUNTS[0][0], at(2026, 6, 1, 13, 11))
+        project.resolve_ticket(conn, order.wo_id, "feed restarted", at(2026, 6, 1, 13, 12))
+        self.assertEqual(open_faults(), [("INV-001", demo.INVERTER_ENGINEER), floor])
+        revival.bring_back(conn, INV2)
+        self.assertEqual(open_faults(), [("INV-001", demo.INVERTER_ENGINEER), floor])
+
 
 if __name__ == "__main__":
     unittest.main()
