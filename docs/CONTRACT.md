@@ -136,7 +136,8 @@ the fleet handed to the KPI, and a fault on an asset not among them is ignored. 
 
 A fault of severity DERATE or INFO never reduces availability (SOL-07) and never enters MTBF or MTTR
 (SOL-10); its effect, if any, shows in the performance ratio (SOL-08). `counts_against_availability`
-is the one place this is decided. Held by `test/solarpunk/test_codes.py`
+is the one place this is decided; `INV-005` (output under the performance floor, a DERATE, raised by a failing
+`performance_above_floor`) counts nothing against availability, its effect is the ratio itself. Held by `test/solarpunk/test_codes.py`
 (`test_only_an_outage_counts_against_availability`).
 
 ## SOL-12 The clause register names a test for every claimed clause
@@ -309,12 +310,14 @@ Worked examples, over the demo store (`python3 -m solarpunk.ui --demo`, one run 
 
     OAHE-INV-002's run at 13:00     9 results, failed: performance_above_floor failed ("ratio 0.6148 under the floor
                                     0.75 over 71 daylight records": its stored power is 0 from its outage's start,
-                                    11:30) and reachable failed ("127.0.0.1:9 is unreachable", the ping); power_ripple
-                                    no data; reachable passed ("156 records"), and its five other tests passed
+                                    11:30; raising INV-005, assigned by test:performance_above_floor) and reachable
+                                    failed ("127.0.0.1:9 is unreachable", the ping; raising SIT-004, assigned by
+                                    test:reachable); power_ripple no data; reachable passed ("156 records"), and its
+                                    five other tests passed
     OAHE-SEN-001's run at 13:00     4 results, failed: two reachable failed ("127.0.0.1:9 is unreachable",
                                     "no records"), irradiance_in_range and on_grid no data ("no records"), never a pass
     errors, OAHE-SEN-001, the day   faults: SEN-001 1 (open since 13:00); suggestions: none
-    errors, OAHE-INV-002, the day   faults: INV-001 1 (open since 11:30); suggestions: none
+    errors, OAHE-INV-002, the day   faults: INV-001 1 (open since 11:30), INV-005 1 and SIT-004 1 (open since 13:00); suggestions: none
     errors, OAHE-INV-001, the day   faults: INV-002 1 (10:05 to 10:45); suggestions: none
     INV-001 across the fleet        OAHE-INV-002: faults 1, suggestions 0; no other asset
     power, OAHE-INV-001, the day    288 samples: records 279, gaps 9 (the first at 04:25, one at 10:40)

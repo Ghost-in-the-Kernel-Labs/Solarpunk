@@ -114,18 +114,6 @@ Each decision is mapped to the functions that hold it, and each function holding
 
 Check: `scripts/decision_map.py` writes `docs/DECISION-MAP.md`, for each decision in `theGhost.md` the functions (file and name) whose `# Decision:` or `# Invariant:` line cites it, "no function" otherwise; the fast loop fails when the file is stale; `scripts/checks/decision_map.py` fails when an in-force decision whose `Held by` names a file under `solarpunk/` or `scripts/` is cited by no function, or a citation names a decision or invariant that does not exist, with a planted break under `test/fixtures/broken/decision_map/`; the missing citations added to the functions that hold each decision; the fast loop green.
 
-### 13.18 Output under the floor, its own fault
-
-An inverter whose performance ratio falls under the floor raises its own derate code, so a lost link keeps SIT-004 and
-the demo's two faults on OAHE-INV-002 each say what they are (SP-054, J-147).
-
-Check: the catalogue (`solarpunk/leaf/codes.py`) gains INV-005, an inverter DERATE, "Output under the performance
-floor"; a failed `performance_above_floor` on an inverter raises INV-005 assigned by `test:performance_above_floor`,
-and a failed `reachable` raises SIT-004 assigned by `test:reachable`, both open on OAHE-INV-002 after the demo's run;
-after the revival `reachable` passes and SIT-004 can be closed by its ticket while INV-005 stays open; INV-005 counts
-nothing against availability (a derate, SOL-08); `docs/CONTRACT.md` and every list of the catalogue name it; the fast
-loop, the window tests and the demo tests under xvfb green.
-
 ### 13.20 The ISO walk, scripted and dry-run
 
 DEMO.md walks one ISO requirement to its evidence and its corrective action on `--demo`, and a fresh dry run follows

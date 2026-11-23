@@ -22,7 +22,7 @@ class TheCatalogue(unittest.TestCase):
 
     def test_codes_for_keeps_catalogue_order(self) -> None:
         self.assertEqual([f.code for f in codes.codes_for(AssetKind.TRACKER)], ["TRK-001", "TRK-002"])
-        self.assertEqual([f.code for f in codes.codes_for(AssetKind.INVERTER)], ["INV-001", "INV-002", "INV-003", "INV-004"])
+        self.assertEqual([f.code for f in codes.codes_for(AssetKind.INVERTER)], ["INV-001", "INV-002", "INV-003", "INV-004", "INV-005"])
 
     def test_lookup_returns_the_row_itself(self) -> None:
         row = codes.lookup("INV-001")
@@ -48,6 +48,11 @@ class TheSeverity(unittest.TestCase):
     def test_only_an_outage_counts_against_availability(self) -> None:
         by_severity = {s: FaultCode("XXX-001", AssetKind.SITE, s, "x").counts_against_availability() for s in Severity}
         self.assertEqual(by_severity, {Severity.INFO: False, Severity.DERATE: False, Severity.OUTAGE: True})
+
+    def test_output_under_the_floor_is_an_inverter_derate_that_counts_nothing_against_availability(self) -> None:
+        row = codes.lookup("INV-005")  # SP-054
+        self.assertEqual((row.kind, row.severity, row.counts_against_availability()), (AssetKind.INVERTER, Severity.DERATE, False))
+        self.assertTrue(row.meaning.startswith("Output under the performance floor"))
 
     def test_severities_order_lowest_first(self) -> None:
         self.assertEqual([s.value for s in Severity], [1, 2, 3])

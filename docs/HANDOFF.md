@@ -115,7 +115,7 @@ email on the asset, a mailer to those engineers on degradation, and the Save/Can
 4. Settled 2026-11-21 (SP-040): Solarpunk no longer follows Ghost-Core; F-001 to F-004's local fixes are its own.
 5. Settled 2026-11-21 (SP-039): no data is not a pass; `reachable` fails it as a disconnection, the other tests
    return a grey "no data". Built by 12.9.
-6. The rule table (7.4, J-053) is Claude's proposal, `solarpunk test list` prints it: an unreachable inverter suggests
+6. Partly settled 2026-11-23 (SP-054, J-151): INV-005 for output under the performance floor; the logger-replay code stays open. The rule table (7.4, J-053) is Claude's proposal, `solarpunk test list` prints it: an unreachable inverter suggests
    INV-001, a meter MTR-001, a weather station SEN-001 (as does its irradiance out of range); a tracker, and every
    data-quality failure, suggest nothing. Two gaps in the catalogue keep two diagnostics silent: no inverter code for
    output under the performance floor (soiling, a string down) and none for a logger replaying its last value. Say

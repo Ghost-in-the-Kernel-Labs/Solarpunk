@@ -23,3 +23,9 @@ An entry is `### <date> · <task> · <who>`, then four bullets: **Task**, **Open
 - **Opened**: `CLAUDE.md`, `docs/paths/process.md`, `docs/AGENT.md`, `solarpunk/accounts/passwords.py`, `test/solarpunk/test_accounts.py`, `scripts/fast.sh`.
 - **Complaints**: none.
 - **Suggestions**: none.
+
+### 2026-11-23 · 13.18 output under the floor, its own fault · mid-grade worker
+- **Task**: INV-005 for a performance ratio under the floor; SIT-004 kept for a lost link (J-151).
+- **Opened**: `CLAUDE.md`, `docs/paths/product.md`, `docs/CONTRACT.md`, `solarpunk/leaf/codes.py`, `solarpunk/project/suggest.py`, `solarpunk/remote/tests/performance_above_floor.py`, `solarpunk/remote/tests/reachable.py`.
+- **Complaints**: none.
+- **Suggestions**: none.

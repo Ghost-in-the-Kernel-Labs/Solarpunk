@@ -149,7 +149,7 @@ class PureTest(unittest.TestCase):
 
     def test_code_labels(self) -> None:
         labels = asset_text.code_labels(codes_for(AssetKind.INVERTER))
-        self.assertEqual(len(labels), 4)
+        self.assertEqual(len(labels), 5)  # SP-054: INV-005 is the fifth
         self.assertEqual(labels[3], "INV-004 — Firmware update pending")
         self.assertEqual(asset_text.code_labels(()), ())
 
@@ -158,7 +158,8 @@ class PureTest(unittest.TestCase):
         self.assertEqual(asset_text.chosen_code(codes, 0), "INV-001")
         self.assertEqual(asset_text.chosen_code(codes, 3), "INV-004")
         self.assertIsNone(asset_text.chosen_code(codes, -1))
-        self.assertIsNone(asset_text.chosen_code(codes, 4))
+        self.assertEqual(asset_text.chosen_code(codes, 4), "INV-005")
+        self.assertIsNone(asset_text.chosen_code(codes, 5))
 
     def test_refusal_text(self) -> None:
         self.assertEqual(asset_text.refusal_text(ValueError("bad address")), "Refused: bad address")
