@@ -17,6 +17,8 @@ WAITING = "{state}, due {due}"
 MOVE_LINE = "{at} · {status} · {who}"
 NOBODY_SIGNED_IN = "nobody signed in"
 NO_MOVES = "No move yet"
+CHOICE = "{wo_id} {code} {priority} {status}"
+PREVENTIVE = "preventive"
 
 
 def target_cell(state: TargetState | None, due: datetime | None) -> str:
@@ -49,6 +51,15 @@ def panel_line(view: TicketView | None) -> str:
     return TICKET_LINE.format(wo_id=found.wo_id, priority=NO_TARGET if found.priority is None else found.priority.value,
                               status=found.status.value, acknowledge=target_cell(view.acknowledge, view.acknowledge_due),
                               respond=target_cell(view.respond, view.respond_due))
+
+
+def choice_text(view: TicketView, code: str | None) -> str:
+    """One open ticket in the panel's chooser: "4 SIT-004 P1 open"; an order with no fault (code None) says "preventive",
+    "7 preventive P3 open"."""
+    # Decision: SP-053 (the presenter chooses the ticket the panel acts on)
+    found = view.ticket
+    return CHOICE.format(wo_id=found.wo_id, code=code or PREVENTIVE, status=found.status.value,
+                         priority=NO_TARGET if found.priority is None else found.priority.value)
 
 
 def move_line(found: Move) -> str:

@@ -120,6 +120,22 @@ class TheWindows(unittest.TestCase):
         self.assertIs(project.asset_status(self.conn, demo.DOWN), AssetStatus.YELLOW)  # outage closed; ping still fails
         self.assertEqual(len(changes), 4)
 
+    def test_the_chooser_names_each_open_ticket_and_the_acts_follow_the_ticket_chosen(self) -> None:
+        engineer = project.account_of(self.conn, demo.ENGINEER)
+        failed = next(d.result_id for d in project.asset_detail(self.conn, demo.DOWN).diagnostics if d.state == "fail" and d.test_name == "reachable")
+        project.open_ticket_from_result_as(self.conn, engineer, failed, ONE, None, None, None)
+        window = asset_window.AssetWindow(self.root, self.conn, demo.DOWN, account=engineer, now=lambda: ONE)
+        panel = window.ticket_panel
+        self.assertEqual(tuple(panel.chooser.cget("values")), ("3 INV-001 P1 open", "4 SIT-004 P3 open"))
+        self.assertEqual(panel.chooser.get(), "3 INV-001 P1 open")  # the nearest target while none is chosen
+        panel.choose(4)
+        panel.ack_button.invoke()
+        self.assertEqual((project.ticket_of(self.conn, 4).acknowledged, project.ticket_of(self.conn, 3).acknowledged), (ONE, None))
+        self.assertEqual(panel.chooser.get(), "4 SIT-004 P3 acknowledged")  # a move keeps the ticket chosen
+        panel.done_box.insert(0, "done")
+        panel.resolve_button.invoke()
+        self.assertEqual(panel.message.cget("text"), "fault 5 has no root cause written: an engineer writes it before its ticket closes")
+
     def test_the_program_opens_the_tickets_window(self) -> None:
         top = tkinter.Toplevel(self.root)
         fleet = entry.open_fleet(top, self.conn)

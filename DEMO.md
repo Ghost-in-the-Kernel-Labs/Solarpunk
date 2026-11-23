@@ -73,8 +73,10 @@ for the password the demo printed:
     python -m solarpunk.cli --db DB <command> --as engineer@oahe.example      (Windows: py -3.12 -m solarpunk.cli ...)
 
 `--db` goes before the command here (the one word `solarpunk` sends a leading `--db` to the window). The window stamps its
-acts on the demo's day; the terminal stamps the real clock unless given `--at`, so each terminal act below carries an `--at`
-on the demo's day, each later than the one before (a ticket cannot move before its last move).
+acts on the demo's day (the run's 13:00 plus the seconds since the demo started); the terminal stamps the real clock unless
+given `--at`, so each terminal act below carries an `--at` on 2026-06-01, each later than the one before (a ticket cannot move
+before its last move). A presenter who mixes the two clicks first and gives the terminal instants after the window's acts
+(the window's clock reads about 13:00 plus the minutes the demo has run, so 13:30 and later are safe in a short demo).
 
 **1. The requirement.** *Say:* "Clause 9.1 asks that the asset's performance is monitored and the results kept. Here is the
 clause, and the tests that are its evidence." *Click:* **Tests** in the fleet window; read the **Clauses** column:
@@ -96,47 +98,52 @@ is evidence and not noise; SIT-004 ("remote test failed: its cause is not yet kn
 *Terminal:* `fault list --open` prints `5 OAHE-INV-002 SIT-004 2026-06-01T13:00:00+00:00 open by test:reachable`.
 
 **4. Corrective action.** *Say:* "A person owns it: a ticket on the failed result, acknowledged, commented, and it cannot
-close without a root cause." *Click:* in the Diagnostics select the red `reachable` row and press **Open a ticket**; the
-line at the foot says "Ticket 4 opened on the failed result: 1 failed result in it". *Terminal (the same):*
-`ticket open --result 1 --as engineer@oahe.example --at 2026-06-01T13:30:00+00:00` prints
-`4 opened on result 1 (1 failed results: 1)`.
+close without a root cause." Everything here is clicked in OAHE-INV-002's window. *Click:* in the Diagnostics select the red
+`reachable` row and press **Open a ticket**; the line at the foot says "Ticket 4 opened on the failed result: 1 failed result
+in it", and the **Ticket** panel at the foot of the window now shows ticket 4. Its list at the top of the panel
+names each open ticket of the asset ("3 INV-001 P1 open", "4 SIT-004 P3 open"); the panel acts on the one chosen, so to
+act on the overdue INV-001 ticket instead pick it in the list. Then press **Acknowledge**; type "Feed down since 11:30;
+datalogger link being traced." beside it and press **Comment**; type "Reseated the uplink cable" in **What was done** and
+press **Resolve**: the panel says "fault 5 has no root cause written: an engineer writes it before its ticket closes", and
+writes nothing. *Say:* "ISO 9001 10.2.1: no closure without the root cause. The refusal is the control." *Click:* in the
+asset window's Open faults select the SIT-004 row, type in **Root cause of the selected fault** "Datalogger uplink cable
+unplugged during the 11:30 inverter outage" and press **Write**: the row's cause column now holds the words. Press
+**Resolve** again: the ticket closes and drops out of the list.
 
-The window's **Ticket** panel acts on the asset's nearest ticket, which is OAHE-INV-002's overdue INV-001 ticket (3), not the
-one just opened, so the next acts on ticket 4 are made in the terminal:
+*Terminal (the same, each later than the last):*
 
-    ... ticket ack 4 --as engineer@oahe.example --at 2026-06-01T13:35:00+00:00        4 acknowledged
+    ... ticket open --result 1 --as engineer@oahe.example --at 2026-06-01T13:30:00+00:00      4 opened on result 1 (1 failed results: 1)
+    ... ticket ack 4 --as engineer@oahe.example --at 2026-06-01T13:35:00+00:00                4 acknowledged
     ... ticket comment 4 "Feed down since 11:30; datalogger link being traced." --as engineer@oahe.example --at 2026-06-01T13:40:00+00:00
-                                                                                     4 comment 1 by engineer@oahe.example
+                                                                                             4 comment 1 by engineer@oahe.example
     ... ticket resolve 4 --done "Reseated the uplink cable" --as engineer@oahe.example --at 2026-06-01T13:45:00+00:00
     error: fault 5 has no root cause written: an engineer writes it before its ticket closes
-
-*Say:* "ISO 9001 10.2.1: no closure without the root cause. The refusal is the control." (The window's Resolve button
-refuses the same way: on ticket 3 it reads "fault 3 has no root cause written: ...", and writes nothing.) *Click:* in the
-asset window's Open faults select the SIT-004 row, type in **Root cause of the selected fault** "Datalogger uplink cable
-unplugged during the 11:30 inverter outage" and press **Write**: the row's cause column now holds the words. *Terminal:*
-`fault cause 5 "<the words>" --as engineer@oahe.example` does the same but takes no `--at` and stamps the real clock, so
-write the cause in the window. Then the same resolve prints `4 closed`.
+    ... fault cause 5 "Datalogger uplink cable unplugged during the 11:30 inverter outage" --as engineer@oahe.example --at 2026-06-01T13:50:00+00:00
+    5 cause Datalogger uplink cable unplugged during the 11:30 inverter outage by engineer@oahe.example at 2026-06-01T13:50:00+00:00
+    ... ticket resolve 4 --done "Reseated the uplink cable" --as engineer@oahe.example --at 2026-06-01T13:55:00+00:00
+    4 closed
 
 **5. Closing the loop.** *Say:* "The corrective action is done; now the proof that it held." *Click:* in OAHE-INV-002's window
-press **Bring the feed back (demo)** (beside **Open a ticket**): all eight tests are listed and `reachable` reads **pass**,
-"156 records"; `power_ripple` passes too. `performance_above_floor` still fails: the INV-001 outage is open, and it should.
-Then **Tickets** in the fleet window, tick **Show closed**, select ticket 4: the trail pane reads (times of the window's acts
-follow the demo's clock):
+press **Bring the feed back (demo)** (beside **Open a ticket**; a window control, so it has no terminal equivalent): all
+eight tests are listed and `reachable` reads **pass**, "156 records"; `power_ripple` passes too. `performance_above_floor`
+still fails: the INV-001 outage is open, and it should. Then **Tickets** in the fleet window, tick **Show closed**, select
+ticket 4: the trail pane reads (times of the window's acts follow the demo's clock):
 
-    Fault      fault 5  SIT-004  ... opened 2026-06-01T13:00:00+00:00  closed 2026-06-01T13:45:00+00:00
+    Fault      fault 5  SIT-004  ... opened 2026-06-01T13:00:00+00:00  closed <the resolve's instant>
                assigned by test:reachable
     Causes     ... engineer@oahe.example  Datalogger uplink cable unplugged during the 11:30 inverter outage  (stands)
-    Comments   2026-06-01T13:40:00+00:00  engineer@oahe.example  Feed down since 11:30; datalogger link being traced.
-    Moves      open, acknowledged, in progress, resolved, closed, each with who and when
-    Closeout   closed 2026-06-01T13:45:00+00:00  Reseated the uplink cable
+    Comments   <instant>  engineer@oahe.example  Feed down since 11:30; datalogger link being traced.
+    Moves      open, acknowledged, in progress, resolved, closed, each with who and when, in time order
+    Closeout   closed <the resolve's instant>  Reseated the uplink cable
     Results    result 1  reachable  2026-06-01T13:00:00+00:00  127.0.0.1:<port> is unreachable
                  clauses 55000-9.1
                  next result <id>  ...  pass  156 records
 
 *Say:* "Clause, failed result, fault, cause, comments, closeout, and the next result of the same test passing: one chain."
-*Terminal:* `ticket show 4 --as engineer@oahe.example --at 2026-06-01T14:00:00+00:00` prints the same trail; `test results
---asset OAHE-INV-002` lists the new `reachable` pass first. The trail shows the passing next result whether the feed comes
-back before or after the resolve; it comes back after here, so the pass is the check made after the action.
+*Terminal:* `ticket show 4 --as engineer@oahe.example --at 2026-06-01T14:00:00+00:00` prints the same trail (its last line
+reads "next result none" until the feed is brought back in the window); `test results --asset OAHE-INV-002` lists the new
+`reachable` pass first. The trail shows the passing next result whether the feed comes back before or after the resolve; it
+comes back after here, so the pass is the check made after the action.
 
 ## What to click, in order
 

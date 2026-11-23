@@ -114,20 +114,6 @@ Each decision is mapped to the functions that hold it, and each function holding
 
 Check: `scripts/decision_map.py` writes `docs/DECISION-MAP.md`, for each decision in `theGhost.md` the functions (file and name) whose `# Decision:` or `# Invariant:` line cites it, "no function" otherwise; the fast loop fails when the file is stale; `scripts/checks/decision_map.py` fails when an in-force decision whose `Held by` names a file under `solarpunk/` or `scripts/` is cited by no function, or a citation names a decision or invariant that does not exist, with a planted break under `test/fixtures/broken/decision_map/`; the missing citations added to the functions that hold each decision; the fast loop green.
 
-### 13.22 The walk clicked end to end
-
-Every corrective act of the demo's ISO walk can be done in the windows on the ticket the presenter chose, on the demo's
-clock, so nothing in the middle of the walk falls back to a terminal (SP-053, J-152).
-
-Check: the asset window's ticket panel (`solarpunk/ui/ticket_panel.py`) acts on a ticket the presenter chooses from
-the asset's open tickets (today it takes the nearest target, `views[0]`, so OAHE-INV-002's overdue INV-001 ticket hides
-the one just opened from its failed result); opening a ticket from a failed result selects that ticket; acknowledge,
-comment and resolve act on the chosen ticket, and the resolve refusal without a root cause shows on it; `solarpunk
-fault cause` stamps its `--at` when given, as the other acting commands do; DEMO.md's walk (J-152) does steps 1 to 5
-wholly in the windows, the terminal equivalents kept beside them with `--at` instants on the demo's day; a test drives
-the walk's window steps on the demo store and holds the closed trail's moves in time order; the fast loop, the window
-tests and the demo tests under xvfb green.
-
 ### 13.23 The ISO walk, scripted and dry-run
 
 DEMO.md walks one ISO requirement to its evidence and its corrective action on `--demo`, and a fresh dry run follows

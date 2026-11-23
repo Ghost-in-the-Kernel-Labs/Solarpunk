@@ -156,3 +156,4 @@ Written from `docs/journal/` by `scripts/journal_index.py`; do not edit by hand.
 | J-150 | 13.19: cheaper password hashing in the tests | feature | `J-100-199.md` |
 | J-151 | 13.18: output under the floor, its own fault | feature | `J-100-199.md` |
 | J-152 | 13.20's walk scripted in DEMO.md; 13.22 placed for what it found | feature | `J-100-199.md` |
+| J-153 | 13.22: the walk clicked end to end | feature | `J-100-199.md` |

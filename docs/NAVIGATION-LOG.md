@@ -35,3 +35,9 @@ An entry is `### <date> · <task> · <who>`, then four bullets: **Task**, **Open
 - **Opened**: `CLAUDE.md`, `docs/paths/product.md`, `DEMO.md`, `docs/CLAUSE-REGISTER.md`, `scripts/checks/clauses.py`, `test/test_clauses.py`, `solarpunk/ui/__main__.py`, then the windows' code to confirm their words.
 - **Complaints**: the asset window's ticket panel acts on the nearest-target ticket, not the one just opened; `pkill` was refused for a stray demo process.
 - **Suggestions**: a ticket chooser in the panel.
+
+### 2026-11-23 · 13.22 the walk clicked end to end · mid-grade worker
+- **Task**: a ticket chooser in the asset window's panel; the walk's corrective acts all clicked (J-153).
+- **Opened**: `CLAUDE.md`, `docs/paths/product.md`, `solarpunk/ui/ticket_panel.py`, `solarpunk/ui/open_ticket.py`, `solarpunk/ui/asset_window.py`, `solarpunk/ui/ticket_text.py`, `solarpunk/cli/main.py`, `DEMO.md`.
+- **Complaints**: the demo's clock in whole seconds puts quick acts at one instant, refusing a close at its opening instant.
+- **Suggestions**: none.
