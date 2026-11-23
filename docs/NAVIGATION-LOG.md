@@ -17,3 +17,9 @@ Last review: 12f9a6c (2026-11-23, Tune-up commit 8)
 
 An entry is `### <date> · <task> · <who>`, then four bullets: **Task**, **Opened** (files, in order), **Complaints**,
 **Suggestions**.
+
+### 2026-11-23 · 13.19 cheaper password hashing in the tests · mid-grade worker
+- **Task**: a low scrypt cost in the tests alone, the product's held by a test (J-150).
+- **Opened**: `CLAUDE.md`, `docs/paths/process.md`, `docs/AGENT.md`, `solarpunk/accounts/passwords.py`, `test/solarpunk/test_accounts.py`, `scripts/fast.sh`.
+- **Complaints**: none.
+- **Suggestions**: none.

@@ -126,17 +126,6 @@ after the revival `reachable` passes and SIT-004 can be closed by its ticket whi
 nothing against availability (a derate, SOL-08); `docs/CONTRACT.md` and every list of the catalogue name it; the fast
 loop, the window tests and the demo tests under xvfb green.
 
-### 13.19 Cheaper password hashing in the tests
-
-The tests hash passwords at a low scrypt cost while the product keeps its full strength, so the fast loop comes back
-under its 30 s target with every test still in it (SP-054, J-147).
-
-Check: the product's scrypt parameters in `solarpunk/accounts/passwords.py` are unchanged (cost 16384), held by a test
-that reads them; every other test, the demo store's build in tests included, hashes at a low cost by a test-side
-setting the product never reads from the environment; a line stored at either cost still verifies (its parameters are
-in the line); no test removed or moved out of the fast loop; the fast loop under 30 s on an idle machine (31.3 s
-before), measured twice.
-
 ### 13.20 The ISO walk, scripted and dry-run
 
 DEMO.md walks one ISO requirement to its evidence and its corrective action on `--demo`, and a fresh dry run follows

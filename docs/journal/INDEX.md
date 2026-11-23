@@ -153,3 +153,4 @@ Written from `docs/journal/` by `scripts/journal_index.py`; do not edit by hand.
 | J-147 | 13.15: the demo's people, day and outage | feature | `J-100-199.md` |
 | J-148 | SP-054: INV-005 for output under the floor; cheaper hashing in the tests | decision | `J-100-199.md` |
 | J-149 | Tune-up commit 8 | measurement | `J-100-199.md` |
+| J-150 | 13.19: cheaper password hashing in the tests | feature | `J-100-199.md` |
