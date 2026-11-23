@@ -1,4 +1,4 @@
-"""The asset window's ticket panel (11.2, SOL-14): the asset's open ticket in one line (its priority, status and two
+"""The asset window's ticket panel (11.2, SOL-14): the asset's open tickets in a chooser (13.22) and the chosen one in one line (its priority, status and two
 targets) and its history, one line per move with who made it (SP-035), then Acknowledge; a comment with its author
 and Comment; what was done and Resolve, which resolves and closes in one act and closes the fault once its root cause is written (project.resolve_ticket; the cause is written in the asset window, SP-046). A refusal is said in
 the panel's own line, never swallowed. Each act names the version of the ticket the panel drew (12.2, SOL-16): one
@@ -32,18 +32,29 @@ class TicketPanel(ttk.Frame):
     def __init__(self, parent: tk.Misc, conn: sqlite3.Connection, asset_id: str, changed: Callable[[], None],
                  now: Callable[[], datetime] = lambda: datetime.now(timezone.utc),
                  account: project.Account | None = None) -> None:
-        """Lays out the line and the three rows of acts."""
+        """Lays out the chooser, the line, the history and the results, then the rows of acts."""
         super().__init__(parent)
         self.conn, self.asset_id, self.changed, self.now = conn, asset_id, changed, now
         self.account = account
         self.view: project.TicketView | None = None
+        self.chosen_id: int | None = None  # the ticket the presenter chose; None: the nearest target (SP-053)
+        self.views: tuple[project.TicketView, ...] = ()
         ttk.Label(self, text=TITLE).pack(fill="x")
+        self.chooser = ttk.Combobox(self, state="readonly")
+        self.chooser.pack(fill="x")
+        self.chooser.bind("<<ComboboxSelected>>", lambda _event: self.choose(self.views[self.chooser.current()].ticket.wo_id))
         self.line = ttk.Label(self)
         self.line.pack(fill="x")
         self.history = ttk.Label(self, justify="left", anchor="w")
         self.history.pack(fill="x")
         self.results = ttk.Label(self, justify="left", anchor="w")
         self.results.pack(fill="x")
+        self.build_acts(account)
+
+    def build_acts(self, account: project.Account | None) -> None:
+        """Lays out the three rows of acts: Acknowledge and Comment (with By where no account is signed in), What was done and
+        Resolve, then the message line and Refresh."""
+        conn = self.conn
         first = self.row()
         self.ack_button = ttk.Button(first, text=ACKNOWLEDGE, command=lambda: self.act(self.acknowledge))
         self.ack_button.pack(side="left")
@@ -75,14 +86,31 @@ class TicketPanel(ttk.Frame):
         return frame
 
     def refresh(self) -> None:
-        """Rereads the asset's open ticket and writes its line and its history (none with no open ticket)."""
-        views = [view for view in project.tickets_by_target(self.conn, self.now()) if view.ticket.asset_id == self.asset_id]
-        self.view = views[0] if views else None
+        """Rereads the asset's open tickets, lists them in the chooser and shows the chosen one (the nearest target while
+        none is chosen or the chosen one has closed; none with no open ticket)."""
+        # Decision: SP-053 (the panel acts on the ticket the presenter chose, not always the nearest target)
+        self.views = tuple(view for view in project.tickets_by_target(self.conn, self.now()) if view.ticket.asset_id == self.asset_id)
+        self.view = next((view for view in self.views if view.ticket.wo_id == self.chosen_id), self.views[0] if self.views else None)
+        self.chosen_id = None if self.view is None else self.view.ticket.wo_id
+        labels = [ticket_text.choice_text(view, self.code_of(view)) for view in self.views]
+        self.chooser.configure(values=labels)
+        self.chooser.set("" if self.view is None else labels[self.views.index(self.view)])
         self.line.configure(text=ticket_text.panel_line(self.view))
         moves = () if self.view is None else project.ticket_moves(self.conn, self.view.ticket.wo_id)
         self.history.configure(text="" if self.view is None else ticket_text.history_text(moves))
         held = () if self.view is None else project.results_of_ticket(self.conn, self.view.ticket.wo_id)
         self.results.configure(text="" if self.view is None else ticket_text.results_text(held))  # 7.9
+
+    def code_of(self, view: project.TicketView) -> str | None:
+        """The code of the fault the ticket was opened on, None for a preventive order: ticket 4's is "SIT-004"."""
+        found = project.ticket_trail(self.conn, view.ticket.wo_id).fault
+        return None if found is None else found.code
+
+    def choose(self, wo_id: int) -> None:
+        """Chooses an open ticket of the asset: the panel's line, history and acts follow it; the message line clears."""
+        self.chosen_id = wo_id
+        self.message.configure(text="")
+        self.refresh()
 
     def reload(self) -> None:
         """Refresh (12.2): clears the message line, rereads the ticket and calls changed, so the window redraws too;

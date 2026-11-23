@@ -144,6 +144,7 @@ class AssetWindow(tk.Toplevel):
 
     def ticket_opened(self, found: project.ResultTicket) -> None:
         """After a ticket opened or shown from a result: the window rereads (its ticket panel shows it) and says so."""
+        self.ticket_panel.chosen_id = found.ticket.wo_id  # 13.22: the ticket opened is the one chosen
         self.fill(project.asset_detail(self.conn, self.asset_id))
         self.on_change()
         self.message.configure(text=ticket_text.opened_text(found), foreground=GREEN_TEXT)
