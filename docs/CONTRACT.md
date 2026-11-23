@@ -285,9 +285,10 @@ is a reading of the results, the faults, the suggestions and the samples the sto
 asked for, so it cannot disagree with them; nothing is deleted to make it, and a window shows the newest 100 where
 more are kept (SP-016).
 
-**A run** of an asset is every result stored for it at one instant: one per remote test its kind runs, and, when its
-feed did not answer, the ping's failed `reachable` beside the test's own (two `reachable` results in one run is
-right: one says the feed was down, the other what the stored samples showed). A result is a pass, a failure or **no
+**A run** of an asset is every result stored for it at one instant: one per remote test its kind runs, and the ping's
+own `reachable` beside the test's own: a failure when the feed did not answer, and a pass, "answered: N new records"
+(N the samples that ping stored, 0 included), when it did, both untimed and in suite `all` (SP-055; two `reachable`
+results in one run is right: one says what the feed did, the other what the stored samples showed). A result is a pass, a failure or **no
 data** (SP-039): a test with no stored record that is not a gap has nothing to check, so `reachable` fails it, a
 disconnection, and every other test returns no data, shown grey like "not run", never a pass and never a failure. A
 day of real records with none of the kind a test needs (no daylight record, no night record) is judged, not no data.

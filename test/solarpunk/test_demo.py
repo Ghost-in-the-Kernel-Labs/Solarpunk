@@ -120,9 +120,10 @@ class TheDemoStore(DemoFixture):
 
     def test_the_run_report(self) -> None:
         report = demo.build_demo_store(self.path, self.port, self.dead).run_report
-        # Every test of each pinged asset's kind, and a failed ping's reachable beside them for the two dead feeds (SP-017).
+        # Every test of each pinged asset's kind, and each ping's reachable beside them: a failure for the two dead
+        # feeds (SP-017), a pass for the live one (SP-055).
         per_run = (2 * len(remote_registry.tests_for(AssetKind.INVERTER)) + len(remote_registry.tests_for(AssetKind.SENSOR))
-                   + 2)
+                   + 3)
         self.assertEqual((report.pinged, report.records, report.results, report.mails), (3, 0, per_run, 0))
         self.assertEqual(report.errors, tuple(f"{a}: 127.0.0.1:{self.dead} is unreachable" for a in (INV2, SENSOR)))
 
@@ -355,3 +356,14 @@ class TheRevivalButton(DemoFixture):
         self.assertEqual(len(rows()), 8)
         self.assertEqual(int(window.result_tree.cget("height")), 8)
         self.assertEqual(changes, [1])
+
+    def test_after_the_revival_the_pings_own_pass_follows_its_failure_at_13_00(self) -> None:
+        window = AssetWindow(self.root, self.conn, INV2, revival=self.revival)
+        self.addCleanup(window.destroy)
+        window.revive_button.invoke()
+        pings = [found for found, _ in project.asset_results(self.conn, INV2) if found.test_name == "reachable"]
+        pings = sorted(pings, key=lambda found: found.result_id)  # the demo stored the day already: nothing is new
+        ping_failure, ping_pass = pings[0], next(found for found in pings if found.reason.startswith("answered:"))
+        self.assertEqual((ping_failure.failed, ping_failure.run_at), (True, at(2026, 6, 1, 13)))  # SP-055: the 13:00 failure
+        self.assertEqual((ping_pass.passed, ping_pass.reason), (True, "answered: 0 new records"))
+        self.assertGreater(ping_pass.run_at, ping_failure.run_at)

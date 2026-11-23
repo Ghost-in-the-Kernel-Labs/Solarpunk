@@ -114,18 +114,6 @@ Each decision is mapped to the functions that hold it, and each function holding
 
 Check: `scripts/decision_map.py` writes `docs/DECISION-MAP.md`, for each decision in `theGhost.md` the functions (file and name) whose `# Decision:` or `# Invariant:` line cites it, "no function" otherwise; the fast loop fails when the file is stale; `scripts/checks/decision_map.py` fails when an in-force decision whose `Held by` names a file under `solarpunk/` or `scripts/` is cited by no function, or a citation names a decision or invariant that does not exist, with a planted break under `test/fixtures/broken/decision_map/`; the missing citations added to the functions that hold each decision; the fast loop green.
 
-### 13.20 A ping that answers records its pass
-
-A successful ping stores its own `reachable` pass, so the check that failed at 13:00 is the check that passes after the
-feed comes back (SP-055, J-154).
-
-Check: `ping_all` (`solarpunk/project/run.py`) stores a `reachable` pass for every asset whose feed answers, its
-reason naming what answered (e.g. "answered, 156 records" or the ping's own words), beside the failure it stores
-today, timed as the failure is; the scheduled run, `test run` and the demo's revival all go through it; every run
-count, the Tests and Runs windows' counts and CONTRACT's examples that move by it are updated, each listed old and new
-in the journal; the demo after the revival shows the ping's own `reachable` pass after its 13:00 failure; the fast
-loop, the window tests and the demo tests under xvfb green.
-
 ### 13.21 The proof follows the action, and closing waits for it
 
 A ticket opened from a failed result closes only after a later pass of the same test on the same asset, and the demo's

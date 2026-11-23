@@ -1,5 +1,5 @@
 """The scheduled run (2.7, SP-006): the job the clock runs. It pings every asset with an endpoint and stores the new
-samples, records a feed that fails as a failing `reachable` result, runs the remote suite over every asset with an
+samples, records each ping as a `reachable` result (a pass naming what answered, or the failure), runs the remote suite over every asset with an
 endpoint with the ledger's open-outage flags, gives an asset with no endpoint (no feed to test) its status from its
 faults alone, stamps each status, and mails the engineers of every RED or YELLOW asset when a settings
 path is given, recording each mail sent. Project's own reads go through the owning lanes' modules (fleet, ledger,
@@ -37,6 +37,7 @@ from solarpunk.telemetry import samples as sample_table
 REACHABLE = "reachable"
 WINDOW = timedelta(days=1)
 ALERTING = (AssetStatus.RED, AssetStatus.YELLOW)
+ANSWERED = "answered: {count} new records"
 ERROR_LINE = "{asset_id}: {error}"
 
 
@@ -57,12 +58,14 @@ class RunReport:
 
 @dataclass(frozen=True)
 class Pinged:
-    """The pings' outcome: Pinged(3, 24, ("OAHE-INV-002",), ("OAHE-INV-002: 127.0.0.1:9 is unreachable",))."""
+    """The pings' outcome: Pinged(3, 24, ("OAHE-INV-002",), ("OAHE-INV-002: 127.0.0.1:9 is unreachable",), 3); stored is
+    the reachable results the pings wrote, one per asset pinged (SP-055)."""
 
     pinged: int
     records: int
     unreachable: tuple[str, ...]
     errors: tuple[str, ...]
+    stored: int = 0  # the ping results stored: a pass for each asset that answered, a failure for each that did not
 
 
 def feed_acquirer(clock: Clock, shorten_to_s: float | None = None) -> Acquirer:
@@ -112,9 +115,11 @@ def new_samples(conn: sqlite3.Connection, samples: tuple[Sample, ...]) -> tuple[
 
 def ping_all(conn: sqlite3.Connection, assets: tuple[Asset, ...], run_at: datetime) -> Pinged:
     """Pings every asset with an endpoint and stores its new samples; a FeedError is recorded at run_at as a failing
-    reachable result whose reason is the error's message: a simulator for one inverter serving 24 records and a closed
-    port for another give Pinged(2, 24, (the other,), ("<the other>: 127.0.0.1:<port> is unreachable",))."""
-    pinged, records = 0, 0
+    reachable result whose reason is the error's message, and an answer as a passing one, "answered: N new records"
+    (SP-055), both untimed: a simulator for one inverter serving 24 records and a closed port for another give
+    Pinged(2, 24, (the other,), ("<the other>: 127.0.0.1:<port> is unreachable",), 2) with the pass and the failure stored."""
+    # Decision: SP-055 (a ping that answers records its own reachable pass, beside the failure it records)
+    pinged, records, stored = 0, 0, 0
     unreachable: list[str] = []
     errors: list[str] = []
     for asset in assets:
@@ -125,12 +130,16 @@ def ping_all(conn: sqlite3.Connection, assets: tuple[Asset, ...], run_at: dateti
             fresh = new_samples(conn, feed.ping(asset))
         except feed.FeedError as error:
             result_table.record(conn, REACHABLE, asset.asset_id, run_at, result_table.Result(False, str(error)))
+            stored += 1
             unreachable.append(asset.asset_id)
             errors.append(ERROR_LINE.format(asset_id=asset.asset_id, error=error))
             continue
         sample_table.store(conn, fresh)
+        result_table.record(conn, REACHABLE, asset.asset_id, run_at,
+                            result_table.Result(True, ANSWERED.format(count=len(fresh))))
+        stored += 1
         records += len(fresh)
-    return Pinged(pinged, records, tuple(unreachable), tuple(errors))
+    return Pinged(pinged, records, tuple(unreachable), tuple(errors), stored)
 
 
 def stamped(statuses: dict[str, AssetStatus], unreachable: tuple[str, ...]) -> dict[str, AssetStatus]:
@@ -232,7 +241,7 @@ def scheduled_run(conn: sqlite3.Connection, run_at: datetime, settings_path: Pat
     statuses = suggested_yellow(conn, statuses)
     sent, mail_errors = (0, ()) if settings is None else mail_all(conn, assets, statuses, settings, run_at)
     sent += reaction_mails
-    written = len(pinged.unreachable) + sum(len(tests_for(asset.kind)) for asset in fed) + named_written
+    written = pinged.stored + sum(len(tests_for(asset.kind)) for asset in fed) + named_written
     # Decision: SP-027 (the run drains the ticket outbox into the tracker; a tracker down is an error line, not a stop)
     drained = drain_outbox(conn, local_tracker(conn), run_at)
     down = () if drained.stopped_by is None else (f"tracker: {drained.stopped_by}; {drained.waiting} changes wait",)

@@ -41,3 +41,9 @@ An entry is `### <date> · <task> · <who>`, then four bullets: **Task**, **Open
 - **Opened**: `CLAUDE.md`, `docs/paths/product.md`, `solarpunk/ui/ticket_panel.py`, `solarpunk/ui/open_ticket.py`, `solarpunk/ui/asset_window.py`, `solarpunk/ui/ticket_text.py`, `solarpunk/cli/main.py`, `DEMO.md`.
 - **Complaints**: the demo's clock in whole seconds puts quick acts at one instant, refusing a close at its opening instant.
 - **Suggestions**: none.
+
+### 2026-11-23 · 13.20 a ping that answers records its pass · mid-grade worker
+- **Task**: `ping_all` stores a `reachable` pass for a feed that answers (J-155).
+- **Opened**: `CLAUDE.md`, `docs/paths/product.md`, `docs/CONTRACT.md`, `solarpunk/project/run.py`, `solarpunk/remote/results.py`, `solarpunk/remote/tests/reachable.py`, `solarpunk/project/revival.py`.
+- **Complaints**: `save.sh` refused the push: the branch name was taken by an older branch of the same item number.
+- **Suggestions**: none.

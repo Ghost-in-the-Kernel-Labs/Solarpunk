@@ -46,11 +46,13 @@ NEXT_AFTER = (f"SELECT {WITH_ID} FROM results WHERE asset_id = ? AND test_name =
               " ORDER BY run_at, result_id LIMIT 1")
 BY_ID = f"SELECT {WITH_ID} FROM results WHERE result_id = ?"
 LAST_OF_SUITE = "SELECT max(run_at) FROM results WHERE suite = ?"
-# Failures first, then no data, then passes (a no-data row stores passed 0), each by test name.
+# Failures first, then no data, then passes (a no-data row stores passed 0), each by test name, then in the order
+# written, so of two results of one test at one instant the first written leads: the ping's `reachable` before the
+# suite's (SP-055).
 LATEST = (
     f"SELECT {WITH_ID} FROM results"
     " WHERE asset_id = ? AND run_at = (SELECT max(run_at) FROM results WHERE asset_id = ?)"
-    " ORDER BY passed, no_data, test_name"
+    " ORDER BY passed, no_data, test_name, result_id"
 )
 LAST_RUN = "SELECT max(run_at) FROM results"
 # 13.5: per test over one suite, the counts; the assets it ran on; its newest result's instant and duration.

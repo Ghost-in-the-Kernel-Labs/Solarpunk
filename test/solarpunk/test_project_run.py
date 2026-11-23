@@ -145,7 +145,8 @@ class RunFixture(unittest.TestCase):
         return path
 
 
-RESULTS_PER_RUN = 3 * len(remote_registry.tests_for(AssetKind.INVERTER)) + 2  # 3 inverters' tests, 2 dead pings (SP-017)
+# 3 inverters' tests, and a ping's reachable for each of the 3 fed assets: 2 failures (SP-017), 1 pass (SP-055)
+RESULTS_PER_RUN = 3 * len(remote_registry.tests_for(AssetKind.INVERTER)) + 3
 
 
 class TheScheduledRun(RunFixture):
@@ -303,7 +304,7 @@ class TheHelpers(unittest.TestCase):
             self.addCleanup(server.shutdown)
             fleet.append(replace(inverter, port=server.server_address[1]))
         found = run.ping_all(conn, (SITE, *fleet, STRINGS[0]), RUN_AT)
-        self.assertEqual(found, run.Pinged(2, 48, (), ()))
+        self.assertEqual(found, run.Pinged(2, 48, (), (), 2))
         self.assertEqual(count(conn, "samples"), 48)
 
     def test_stamped_never_leaves_an_unreachable_asset_green(self) -> None:
