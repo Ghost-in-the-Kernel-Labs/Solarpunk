@@ -201,6 +201,12 @@ email on the asset, a mailer to those engineers on degradation, and the Save/Can
    OAHE-INV-002's outage; (5) the clause register's sentences reworded to cover every remote test that cites them (14.1);
    (6) the SOL-14 hours, still a proposal, and whether a result's ticket clock starts at the failure.
 
+25. From Tune-up commit 8 (J-149), four open questions: (a) split `solarpunk/cli/main.py`'s `test` commands out (it is
+   399 lines) and keep each command's help line beside its command (13.12, 13.17); (b) the unclosed-store
+   ResourceWarning (J-033, 13d) as a roadmap item; (c) whether `scripts/checks/names.py`'s docstring says dataclass
+   fields count as bindings (they do); (d) `ticket ack` and `resolve` as one project call each, touching `access.py`
+   and `attribution.py` (13.15). Each a roadmap line or a decision; none acted on.
+
 ## Advisories under the gate's threshold (Tune-up commit 7, 2026-11-21; unchanged since pass 0)
 
 The Python stack's gate runs no audit step (`pip-audit` is not in the lock; `stacks/python/README.md` names it for a

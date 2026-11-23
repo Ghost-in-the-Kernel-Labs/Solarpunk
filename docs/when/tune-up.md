@@ -33,6 +33,8 @@ structure half (below) moves code with a proof that nothing it does changed.
    armed metric has regressed: a question for step 6, never a number or a target to edit. Step
    times come from build/gate-times.txt, one `<seconds> <step>` line per step of the last warm
    gate (`scripts/gate.sh`'s header): a tune-up commit reports them from there, without rerunning.
+   The gate's `python3` has no tkinter, so its window tests skip: run them too, `xvfb-run -a python3.12 -m unittest
+   discover -s test -t . -p "test_ui*.py"` (`-t .` is needed), and quote the count.
    Every advisory the stack's audit reports under the gate's threshold (a moderate or low one the
    gate lets through) is listed in `docs/HANDOFF.md` each pass, the package and the advisory's link,
    never silently left; a stack with no packages lists none (`docs/DEPENDENCY-REVIEW.md`, layer 3).
