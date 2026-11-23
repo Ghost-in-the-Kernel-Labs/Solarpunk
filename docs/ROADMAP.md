@@ -504,6 +504,9 @@ result kept. It adds to `docs/GOAL.md`'s SCADA analytics (2) and quality managem
   a test, so the fast loop is under 30 s with every test in it.
 - **13.22 The walk clicked end to end (SP-053).** The ticket panel acts on the ticket the presenter chose; `fault
   cause --at`; the walk wholly in the windows on the demo's clock.
+- **13.20 A ping that answers records its pass (SP-055).** The check that failed is the check that passes.
+- **13.21 The proof follows the action, and closing waits for it (SP-055).** A ticket from a failed result closes
+  after a later pass; the demo's revival never stamped before the last act.
 - **13.23 The ISO walk, scripted and dry-run (SP-052, SP-053).** DEMO.md walks 55000-9.1 from requirement to evidence
   to corrective action, the register's sentence fixed, and a fresh dry run finds nothing missing.
 - **13.24 Tune-up pass 13.** (The asset's history, 13.8 before SP-024, is Phase 10.)

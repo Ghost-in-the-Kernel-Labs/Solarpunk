@@ -987,3 +987,13 @@ The core decisions above are inherited (Core C-001 to C-040); this project's beg
 - **Status:** in force
 - **See also:** SP-053, SP-025, SOL-08
 - **subject:** demo
+
+### SP-055: The check that failed is the check that passes, after the action, before the close
+- **Decision:** A successful ping stores its own `reachable` pass, so the failed check and the passing check are one check. A ticket opened from a failed result resolves only after a later passing result of the same test on the same asset; the refusal names them, as the root-cause refusal does. The demo's revival run is stamped no earlier than one minute after the latest act on the asset's tickets, so the proof always follows the action. The register's 55000-9.1 row keeps one cited test until 14.1 gives the register a control column. Built as 13.20 and 13.21, before 13.23's dry run again.
+- **Why:** Ghost, 2026-11-23, choosing the coordinator's recommendations after the second dry run (J-154) found two blockers in the walk's verification: the later `reachable` pass was the stored-records script, which had already passed at 13:00 beside the ping's failure, so it proved nothing an auditor could see; and on the terminal track the proof was stamped before the acts. Closing before any pass leaves a corrective action's effectiveness unchecked (ISO 9001 10.2.1, clause number only).
+- **Supersedes:** none; amends SOL-14's closing rule for tickets from results, and SP-050's reading that the ping's `reachable` stores only failures.
+- **Held by:** `TODO.md` and `docs/ROADMAP.md` 13.20 and 13.21; their code once built.
+- **Source:** Ghost, in chat, 2026-11-23.
+- **Status:** in force
+- **See also:** SP-053, SP-054, SP-050, SP-046
+- **subject:** demo
