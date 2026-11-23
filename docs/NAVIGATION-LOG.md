@@ -29,3 +29,9 @@ An entry is `### <date> · <task> · <who>`, then four bullets: **Task**, **Open
 - **Opened**: `CLAUDE.md`, `docs/paths/product.md`, `docs/CONTRACT.md`, `solarpunk/leaf/codes.py`, `solarpunk/project/suggest.py`, `solarpunk/remote/tests/performance_above_floor.py`, `solarpunk/remote/tests/reachable.py`.
 - **Complaints**: none.
 - **Suggestions**: none.
+
+### 2026-11-23 · 13.20 the ISO walk scripted · mid-grade worker
+- **Task**: DEMO.md's walk of 55000-9.1 from requirement to corrective action, verified on a live `--demo`; the register's sentence (J-152).
+- **Opened**: `CLAUDE.md`, `docs/paths/product.md`, `DEMO.md`, `docs/CLAUSE-REGISTER.md`, `scripts/checks/clauses.py`, `test/test_clauses.py`, `solarpunk/ui/__main__.py`, then the windows' code to confirm their words.
+- **Complaints**: the asset window's ticket panel acts on the nearest-target ticket, not the one just opened; `pkill` was refused for a stray demo process.
+- **Suggestions**: a ticket chooser in the panel.

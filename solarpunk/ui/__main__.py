@@ -111,7 +111,7 @@ def run_demo(root: tkinter.Tk, out: TextIO) -> sqlite3.Connection:
     """Starts the simulator, rebuilds demo.db in a new folder of the system's temporary files, opens the fleet window on it
     titled "Solarpunk fleet — demo (OAHE, 2026-06-01)" and returns the open store; writes "demo: simulator on
     127.0.0.1:<port>", "demo: dead feeds on 127.0.0.1:<port>" (a port reserved for this run, 13.16), "demo: store /tmp/solarpunk-demo-k2j9/demo.db rebuilt" (the full path, to pass to --db from a
-    second terminal), "demo: run - 8 green, 1 yellow, 1 red" and one "demo: account engineer@oahe.example password oahe-demo-engineer"
+    second terminal), "demo: run - 9 green, 1 yellow, 1 red" and one "demo: account engineer@oahe.example password oahe-demo-engineer"
     line for each of the demo's two accounts (13.15), one line each, as it goes; the window is signed in as the engineer and
     stamps its acts on the demo's day (demo.demo_clock). The folder is removed by
     remove_demo_folder; a build that fails removes it here."""

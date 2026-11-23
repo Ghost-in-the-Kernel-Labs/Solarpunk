@@ -502,9 +502,11 @@ result kept. It adds to `docs/GOAL.md`'s SCADA analytics (2) and quality managem
   the floor, so a lost link keeps SIT-004.
 - **13.19 Cheaper password hashing in the tests (SP-054).** A low scrypt cost in the tests alone, the product's held by
   a test, so the fast loop is under 30 s with every test in it.
-- **13.20 The ISO walk, scripted and dry-run (SP-052, SP-053).** DEMO.md walks 55000-9.1 from requirement to evidence
+- **13.22 The walk clicked end to end (SP-053).** The ticket panel acts on the ticket the presenter chose; `fault
+  cause --at`; the walk wholly in the windows on the demo's clock.
+- **13.23 The ISO walk, scripted and dry-run (SP-052, SP-053).** DEMO.md walks 55000-9.1 from requirement to evidence
   to corrective action, the register's sentence fixed, and a fresh dry run finds nothing missing.
-- **13.21 Tune-up pass 13.** (The asset's history, 13.8 before SP-024, is Phase 10.)
+- **13.24 Tune-up pass 13.** (The asset's history, 13.8 before SP-024, is Phase 10.)
 
 ### Phase 14: the traceability matrix
 
