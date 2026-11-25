@@ -209,8 +209,14 @@ email on the asset, a mailer to those engineers on degradation, and the Save/Can
 
 26. An intermittent `Tcl_AsyncDelete: async handler deleted by the wrong thread` abort of the window tests under xvfb,
    seen once each by the workers of 13.20, 13.21 and 13.22 (J-153, J-155, J-156), never reproduced in re-runs nor in the
-   coordinator's fifteen combined runs: a Tk object freed off the main thread somewhere (the feed's daemon threads,
-   J-146). A roadmap line to find it, or leave it watched.
+   coordinator's fifteen combined runs; since then once in 13.25's baseline before any change and once in the
+   coordinator's next three runs, then six verbose runs clean (J-158): about one run in ten to twenty, near the 77th
+   window test. A Tk object freed off the main thread somewhere (the feed's daemon threads, J-146); the live demo runs
+   those threads too. A roadmap line to find it, or leave it watched.
+
+27. `solarpunk test add reachable` is refused only as "in no kind's maintenance list", not as the live ping's name, so a
+   script named `reachable` could bring back the two-checks clash SP-056 removed (J-158). A one-line refusal in the
+   scaffold, if wanted.
 
 ## Advisories under the gate's threshold (Tune-up commit 7, 2026-11-21; unchanged since pass 0)
 

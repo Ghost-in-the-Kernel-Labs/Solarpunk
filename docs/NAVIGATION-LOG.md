@@ -53,3 +53,9 @@ An entry is `### <date> · <task> · <who>`, then four bullets: **Task**, **Open
 - **Opened**: `CLAUDE.md`, `docs/paths/product.md`, `docs/CONTRACT.md`, `solarpunk/project/causes.py`, `solarpunk/project/tickets.py`, `solarpunk/project/attribution.py`, `solarpunk/project/trail.py`, `solarpunk/remote/results.py`, `solarpunk/ui/demo.py`, `DEMO.md`.
 - **Complaints**: DEMO.md named result 1, a pass since 13.20; one `Tcl_AsyncDelete` abort of the window tests, not reproduced.
 - **Suggestions**: none.
+
+### 2026-11-25 · 13.25 one name, one check · mid-grade worker
+- **Task**: the stored-records script renamed `records_stored`; `reachable` the ping alone (J-158).
+- **Opened**: `CLAUDE.md`, `docs/paths/product.md`, `solarpunk/remote/tests/reachable.py`, `solarpunk/remote/registry.py`, `solarpunk/project/run.py`, `solarpunk/project/suggest.py`, `solarpunk/project/result_tickets.py`, `solarpunk/project/reactions.py`, the documents naming the test.
+- **Complaints**: `scripts/checks/asset_types.py` fails run directly (`No module named 'scripts'`); its test passes. The window tests abort now and then with `Tcl_AsyncDelete`.
+- **Suggestions**: the scaffold refuses the ping's name.

@@ -14,7 +14,7 @@ DEFAULT_CADENCE = "every run"
 
 def suite_list(args: argparse.Namespace, out: TextIO) -> None:
     """suite list: one line per suite, its tests and its cadence: with no suite of its own, "all  <every test, commas>
-    every run"; a suite of reachable, hourly, is "hourly_check  reachable  hourly"."""
+    every run"; a suite of records_stored, hourly, is "hourly_check  records_stored  hourly"."""
     for suite in project.test_suites():
         out.write(LINE.format(name=suite.name, tests=",".join(suite.tests), cadence=suite.cadence) + "\n")
 
@@ -28,7 +28,7 @@ def suite_run(conn: sqlite3.Connection, args: argparse.Namespace, out: TextIO) -
 
 
 def suite_add(args: argparse.Namespace, out: TextIO) -> None:
-    """suite add hourly_check --test reachable [--kind INVERTER] [--cadence hourly]: writes the suite's module and prints
+    """suite add hourly_check --test records_stored [--kind INVERTER] [--cadence hourly]: writes the suite's module and prints
     "wrote <its path>"; an unknown test, kind or cadence, or a name taken, is "error: ...", exit 2."""
     path = project.add_suite(args.name, tuple(args.test), tuple(args.kind), args.cadence)
     out.write(f"wrote {path}\n")

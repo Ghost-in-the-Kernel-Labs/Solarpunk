@@ -114,20 +114,6 @@ Each decision is mapped to the functions that hold it, and each function holding
 
 Check: `scripts/decision_map.py` writes `docs/DECISION-MAP.md`, for each decision in `theGhost.md` the functions (file and name) whose `# Decision:` or `# Invariant:` line cites it, "no function" otherwise; the fast loop fails when the file is stale; `scripts/checks/decision_map.py` fails when an in-force decision whose `Held by` names a file under `solarpunk/` or `scripts/` is cited by no function, or a citation names a decision or invariant that does not exist, with a planted break under `test/fixtures/broken/decision_map/`; the missing citations added to the functions that hold each decision; the fast loop green.
 
-### 13.25 One name, one check: the stored-records script renamed
-
-The remote-test script that counts stored records is renamed `records_stored`, so `reachable` names the live ping
-alone and the check that failed is the only check that can prove the ticket (SP-056, J-157).
-
-Check: the script `solarpunk/remote/tests/reachable.py` becomes `solarpunk/remote/tests/records_stored.py`, its test
-name `records_stored`, its clauses and reactions kept (its meter and sensor faults, its SIT-004 for an inverter, if it
-still raises them: say which in the journal); the ping's `reachable` (`ping_all`, `solarpunk/project/run.py`) keeps
-its name; a ticket from a failed `reachable` cannot close on a `records_stored` pass (a test with the feed still dead
-and a later run holds it refused); every count, window, CONTRACT example and DEMO.md line naming the script follows,
-each listed old and new in the journal; a store made before keeps its old rows readable (results stored under the old
-name stay as they are; say how the windows show them); the fast loop, the window tests and the demo tests under xvfb
-green.
-
 ### 13.26 The close follows its proof
 
 A ticket from a failed result never closes at an instant before the pass that proves it, on the window track as on

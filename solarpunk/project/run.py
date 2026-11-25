@@ -30,11 +30,11 @@ from solarpunk.remote import suggestions as suggestion_table
 from solarpunk.remote import registry as test_registry
 from solarpunk.remote import suite_registry
 from solarpunk.remote.acquire import Acquirer, Burst, Clock, ReadFailed, take, wall_clock
-from solarpunk.remote.registry import RemoteTest, Surveyed, discover, tests_for
+from solarpunk.remote.registry import PING, RemoteTest, Surveyed, discover, tests_for
 from solarpunk.remote.suite_registry import Suite
 from solarpunk.telemetry import samples as sample_table
 
-REACHABLE = "reachable"
+REACHABLE = PING
 WINDOW = timedelta(days=1)
 ALERTING = (AssetStatus.RED, AssetStatus.YELLOW)
 ANSWERED = "answered: {count} new records"
@@ -154,7 +154,7 @@ def stamped(statuses: dict[str, AssetStatus], unreachable: tuple[str, ...]) -> d
 
 def cause_of(conn: sqlite3.Connection, asset_id: str, outages: dict[str, Fault]) -> Fault | mailer.RemoteFailure:
     """What a degradation mail is about: the asset's open outage when it has one, else its first failing latest result:
-    an open INV-001 gives that Fault; a failing reachable "no records" gives RemoteFailure("reachable", "no records")."""
+    an open INV-001 gives that Fault; a failing records_stored "no records" gives RemoteFailure("records_stored", "no records")."""
     if asset_id in outages:
         return outages[asset_id]
     failing = next(found for found in result_table.latest_for(conn, asset_id) if found.failed)  # never no data
@@ -251,7 +251,7 @@ def scheduled_run(conn: sqlite3.Connection, run_at: datetime, settings_path: Pat
 
 
 def remote_tests() -> tuple[RemoteTest, ...]:
-    """Every remote test the registry finds, in name order: the names are ("on_grid", "power_under_rated", "reachable")
+    """Every remote test the registry finds, in name order: the names are ("on_grid", "power_under_rated", "records_stored")
     while those three are the folder's modules."""
     return tuple(discover().values())
 

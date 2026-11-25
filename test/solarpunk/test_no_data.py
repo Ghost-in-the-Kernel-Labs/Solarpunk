@@ -18,7 +18,7 @@ from solarpunk.project.runs import Run, matches
 from solarpunk.remote import results, run
 from solarpunk.remote.results import NotAVerdict, Recorded, Result, no_data, nothing_to_check
 from solarpunk.remote.tests import (irradiance_in_range, night_power_near_zero, on_grid, performance_above_floor,
-                                    power_not_frozen, power_under_rated, reachable)
+                                    power_not_frozen, power_under_rated, records_stored)
 from solarpunk.ui import asset_text, runs_text, timeline
 from test.solarpunk.test_remote import INV1, SEN, T0, T1, UNRATED, fresh, reading
 
@@ -26,7 +26,7 @@ NIGHT = at(2026, 6, 1, 2, 0)
 GAPS = (gap(INV1.asset_id, T0), gap(INV1.asset_id, T1))
 NOTHING = Result(False, "no records", no_data=True)
 TWO_GAPS = Result(False, "no records: 2 gaps", no_data=True)
-# Every remote test but reachable, each over an inverter (irradiance_in_range and on_grid run on the sensor too).
+# Every remote test but records_stored, each over an inverter (irradiance_in_range and on_grid run on the sensor too).
 OTHERS = (irradiance_in_range, night_power_near_zero, on_grid, performance_above_floor, power_not_frozen,
           power_under_rated)
 
@@ -48,11 +48,11 @@ class TheThirdResult(unittest.TestCase):
 
 
 class TheTests(unittest.TestCase):
-    def test_reachable_fails_when_every_record_is_a_gap(self) -> None:
+    def test_records_stored_fails_when_every_record_is_a_gap(self) -> None:
         """SP-039 call 4: J-101's six empty channels passed because a gap counted as a record."""
-        self.assertEqual(reachable.run(INV1, GAPS), Result(False, "no records: 2 gaps"))
-        self.assertEqual(reachable.run(INV1, ()), Result(False, "no records"))
-        self.assertEqual(reachable.run(INV1, (reading(INV1, T0, 800.0, 60.0), gap(INV1.asset_id, T1))),
+        self.assertEqual(records_stored.run(INV1, GAPS), Result(False, "no records: 2 gaps"))
+        self.assertEqual(records_stored.run(INV1, ()), Result(False, "no records"))
+        self.assertEqual(records_stored.run(INV1, (reading(INV1, T0, 800.0, 60.0), gap(INV1.asset_id, T1))),
                          Result(True, "2 records"))
 
     def test_every_other_test_has_no_data_over_nothing_or_gaps(self) -> None:
@@ -133,17 +133,17 @@ class TheReaders(unittest.TestCase):
         self.assertEqual(project.faults_from_run(self.conn, (SEN.asset_id,), T1), ())
         self.assertIs(run.status_of(False, (NOTHING,)), AssetStatus.GREEN)
 
-    def test_the_colour_and_the_cause_come_from_reachables_failure(self) -> None:
+    def test_the_colour_and_the_cause_come_from_records_stored_failure(self) -> None:
         self.record("irradiance_in_range", NOTHING)
-        self.record("reachable", Result(False, "no records"))
+        self.record("records_stored", Result(False, "no records"))
         self.assertIs(project.asset_status(self.conn, SEN.asset_id), AssetStatus.YELLOW)
-        self.assertEqual(cause_of(self.conn, SEN.asset_id, {}).test_name, "reachable")
+        self.assertEqual(cause_of(self.conn, SEN.asset_id, {}).test_name, "records_stored")
         self.assertEqual([(f.code, f.assigned_by) for f in project.faults_from_run(self.conn, (SEN.asset_id,), T1)],
-                         [("SEN-001", "test:reachable")])  # SP-046
+                         [("SEN-001", "test:records_stored")])  # SP-046
         self.assertEqual([(d.test_name, d.state) for d in project.asset_detail(self.conn, SEN.asset_id).diagnostics],
-                         [("reachable", "fail"), ("irradiance_in_range", "no data"), ("on_grid", "not run")])
+                         [("records_stored", "fail"), ("irradiance_in_range", "no data"), ("on_grid", "not run")])
         row = next(found for found in project.asset_rows(self.conn) if found.asset_id == SEN.asset_id)
-        self.assertEqual(row.failing, "reachable")
+        self.assertEqual(row.failing, "records_stored")
 
     def test_the_runs_read_no_data_apart(self) -> None:
         self.record("on_grid", NOTHING)

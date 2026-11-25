@@ -23,7 +23,7 @@ from solarpunk.remote.suite_registry import Suite, discover_suites, due
 
 SUITE = '''from solarpunk.leaf.codes import AssetKind
 
-TESTS = ("reachable",)
+TESTS = ("records_stored",)
 KINDS = (AssetKind.INVERTER,)
 SITES = ()
 CADENCE = "hourly"
@@ -66,7 +66,7 @@ class TheRegistry(Folder):
     def test_a_suite_file_is_found_after_all(self) -> None:
         self.put("hourly_check")
         found = discover_suites()
-        self.assertEqual(found["hourly_check"], Suite("hourly_check", ("reachable",), (AssetKind.INVERTER,), (), "hourly"))
+        self.assertEqual(found["hourly_check"], Suite("hourly_check", ("records_stored",), (AssetKind.INVERTER,), (), "hourly"))
         self.assertEqual(list(found), ["all", "hourly_check"])
 
     def refused(self, text: str, words: str) -> None:
@@ -76,7 +76,7 @@ class TheRegistry(Folder):
             discover_suites()
 
     def test_a_test_the_registry_lacks_is_refused(self) -> None:
-        self.refused(SUITE.replace('"reachable"', '"nope"'), "nope")
+        self.refused(SUITE.replace('"records_stored"', '"nope"'), "nope")
 
     def test_a_kind_none_of_its_tests_runs_on_is_refused(self) -> None:
         self.refused(SUITE.replace("INVERTER", "SITE"), "SITE")
@@ -100,11 +100,11 @@ class TheRegistry(Folder):
     def test_a_suite_reaches_its_kinds_and_sites(self) -> None:
         inverter = Asset("OAHE-INV-001", AssetKind.INVERTER, "OAHE", None, "I", 1.0)
         meter = Asset("OAHE-MTR-001", AssetKind.METER, "OAHE", None, "M", None)
-        suite = Suite("x", ("reachable",), (AssetKind.INVERTER,), ("OAHE",), "hourly")
+        suite = Suite("x", ("records_stored",), (AssetKind.INVERTER,), ("OAHE",), "hourly")
         self.assertTrue(suite.reaches(inverter))
         self.assertFalse(suite.reaches(meter))
-        self.assertFalse(Suite("x", ("reachable",), (), ("BIGS",), "hourly").reaches(inverter))
-        self.assertTrue(Suite("x", ("reachable",), (), (), "hourly").reaches(meter))
+        self.assertFalse(Suite("x", ("records_stored",), (), ("BIGS",), "hourly").reaches(inverter))
+        self.assertTrue(Suite("x", ("records_stored",), (), (), "hourly").reaches(meter))
 
 
 class TheCadence(unittest.TestCase):
@@ -112,7 +112,7 @@ class TheCadence(unittest.TestCase):
 
     def suite(self, cadence: str) -> Suite:
         """A suite of that cadence."""
-        return Suite("x", ("reachable",), (), (), cadence)
+        return Suite("x", ("records_stored",), (), (), cadence)
 
     def test_every_run_and_a_suite_never_run_are_always_due(self) -> None:
         self.assertTrue(due(self.suite("every run"), RUN_AT, RUN_AT))
@@ -178,7 +178,7 @@ class TheStoreRuns(Folder):
         old.execute("CREATE TABLE results (result_id INTEGER PRIMARY KEY, test_name TEXT NOT NULL, asset_id TEXT NOT NULL,"
                     " run_at TEXT NOT NULL, passed INTEGER NOT NULL, reason TEXT NOT NULL, no_data INTEGER NOT NULL DEFAULT 0)")
         old.execute("INSERT INTO results (test_name, asset_id, run_at, passed, reason) VALUES"
-                    " ('reachable', 'A', '2026-06-01T10:00:00+00:00', 1, 'ok')")
+                    " ('records_stored', 'A', '2026-06-01T10:00:00+00:00', 1, 'ok')")
         results.upgrade(old)
         self.assertEqual(results.results_of(old, "A")[0].suite, "all")
 
@@ -197,25 +197,25 @@ class TheCommands(Folder):
         lines = out.splitlines()
         self.assertEqual(code, 0)
         self.assertTrue(lines[0].startswith("all  irradiance_in_range,") and lines[0].endswith("  every run"))
-        self.assertEqual(lines[1], "hourly_check  reachable  hourly")
+        self.assertEqual(lines[1], "hourly_check  records_stored  hourly")
 
     def test_add_writes_a_suite_the_registry_then_finds(self) -> None:
-        code, out, _ = self.run_cli(["suite", "add", "daily_check", "--test", "reachable", "--test", "on_grid",
+        code, out, _ = self.run_cli(["suite", "add", "daily_check", "--test", "records_stored", "--test", "on_grid",
                                     "--kind", "INVERTER", "--cadence", "daily at 06"])
         self.assertEqual(code, 0)
         self.assertEqual(out, f"wrote {self.folder / 'daily_check.py'}\n")
         self.assertEqual(discover_suites()["daily_check"],
-                         Suite("daily_check", ("reachable", "on_grid"), (AssetKind.INVERTER,), (), "daily at 06"))
+                         Suite("daily_check", ("records_stored", "on_grid"), (AssetKind.INVERTER,), (), "daily at 06"))
 
     def test_add_refuses_what_the_registry_would_and_writes_nothing(self) -> None:
-        for argv in (("bad", "--test", "nope"), ("bad", "--test", "reachable", "--cadence", "weekly"),
-                     ("bad", "--test", "reachable", "--kind", "PANEL"), ("all", "--test", "reachable"),
-                     ("Bad-Name", "--test", "reachable")):
+        for argv in (("bad", "--test", "nope"), ("bad", "--test", "records_stored", "--cadence", "weekly"),
+                     ("bad", "--test", "records_stored", "--kind", "PANEL"), ("all", "--test", "records_stored"),
+                     ("Bad-Name", "--test", "records_stored")):
             code, _, err = self.run_cli(["suite", "add", *argv])
             self.assertEqual((code, err.startswith("error: ")), (2, True), argv)
         self.assertEqual(list(self.folder.iterdir()), [])
         self.put("taken")
-        self.assertEqual(self.run_cli(["suite", "add", "taken", "--test", "reachable"])[0], 2)
+        self.assertEqual(self.run_cli(["suite", "add", "taken", "--test", "records_stored"])[0], 2)
 
     def test_run_runs_one_suite_over_the_store(self) -> None:
         self.put("hourly_check")

@@ -42,15 +42,15 @@ RUN_AT = at(2026, 6, 1, 12)
 UNSERVICED = Asset(INV2, AssetKind.INVERTER, "OAHE", SITE_ID, "Inverter 2", 100.0)
 OFF_GRID = "10:05: off the grid"
 NEVER = "no result yet: the scheduled run has not tested this asset"
-# The inverter's diagnostics (6.4): its last run failed on_grid and passed reachable; every other inverter test the
+# The inverter's diagnostics (6.4): its last run failed on_grid and passed records_stored; every other inverter test the
 # registry holds never ran on it, so it follows the folder (SP-017).
 NEVER_RUN = sorted(test.name for test in remote_registry.tests_for(AssetKind.INVERTER)
-                   if test.name not in ("on_grid", "reachable"))
-# 13.6: on_grid ran at 12:00 taking 42 ms; reachable ran then untimed (duration "—"); the others never ran ("never", "—").
+                   if test.name not in ("on_grid", "records_stored"))
+# 13.6: on_grid ran at 12:00 taking 42 ms; records_stored ran then untimed (duration "—"); the others never ran ("never", "—").
 LAST_RUN = "2026-06-01 12:00 UTC"
 DIAGNOSTIC_ROWS = (("on_grid", "FAIL", LAST_RUN, "42 ms", OFF_GRID),
                    *[(name, "not run", "never", "—", NEVER) for name in NEVER_RUN],
-                   ("reachable", "pass", LAST_RUN, "—", "3 records"))
+                   ("records_stored", "pass", LAST_RUN, "—", "3 records"))
 
 
 def display_available() -> bool:
@@ -67,14 +67,14 @@ def display_available() -> bool:
 
 def fixture_store() -> sqlite3.Connection:
     """The site and inverter, an open INV-001 on the inverter and a run at 12:00 where on_grid failed: its detail's
-    status is RED and its latest (on_grid failed, reachable passed)."""
+    status is RED and its latest (on_grid failed, records_stored passed)."""
     conn = project.open_store()
     project.register_asset(conn, SITE)
     project.register_asset(conn, INVERTER)
     project.register_asset(conn, UNSERVICED)
     project.assign_fault(conn, INV1, "INV-001", OPENED, ENGINEER)
-    results.record(conn, "reachable", INV1, RUN_AT - timedelta(hours=1), results.Result(False, "stale"))
-    results.record(conn, "reachable", INV1, RUN_AT, results.Result(True, "3 records"))
+    results.record(conn, "records_stored", INV1, RUN_AT - timedelta(hours=1), results.Result(False, "stale"))
+    results.record(conn, "records_stored", INV1, RUN_AT, results.Result(True, "3 records"))
     results.record(conn, "on_grid", INV1, RUN_AT, results.Result(False, OFF_GRID), duration_ms=42)
     return conn
 
@@ -145,7 +145,7 @@ class PureTest(unittest.TestCase):
     def test_row_tags(self) -> None:
         self.assertEqual(asset_text.row_tags(("on_grid", "FAIL", LAST_RUN, "42 ms", OFF_GRID)), ("failing",))
         self.assertEqual(asset_text.row_tags((NEVER_RUN[0], "not run", "never", "—", NEVER)), ("notrun",))
-        self.assertEqual(asset_text.row_tags(("reachable", "pass", LAST_RUN, "—", "3 records")), ())
+        self.assertEqual(asset_text.row_tags(("records_stored", "pass", LAST_RUN, "—", "3 records")), ())
 
     def test_code_labels(self) -> None:
         labels = asset_text.code_labels(codes_for(AssetKind.INVERTER))
@@ -330,7 +330,9 @@ class TheDemosDiagnostics(unittest.TestCase):
 
     def test_the_fed_inverter_passes_every_inverter_test(self) -> None:
         found = project.asset_detail(self.conn, demo.FED).diagnostics
-        self.assertEqual(len(found), len(remote_registry.tests_for(AssetKind.INVERTER)))
+        # every script of the kind, and the ping's own `reachable` beside them (SP-056)
+        self.assertEqual(sorted(d.test_name for d in found),
+                         sorted([*(t.name for t in remote_registry.tests_for(AssetKind.INVERTER)), "reachable"]))
         # power_ripple is judged on the five reads the demo's run takes from the simulator (13.13, SP-049)
         self.assertEqual({d.state for d in found}, {"pass"}, found)
 
@@ -339,13 +341,15 @@ class TheDemosDiagnostics(unittest.TestCase):
         self.assertIn(("reachable", "fail"), [(d.test_name, d.state) for d in found])
         order = ("fail", "no data", "not run", "pass")
         self.assertEqual(list(found), sorted(found, key=lambda d: (order.index(d.state), d.test_name)))  # failing first
-        # SP-039: reachable fails first, the sensor's other two tests had nothing to check: no data, never a pass
+        # SP-039: the ping and records_stored fail first, the sensor's other two tests had nothing to check: no data, never a pass
         self.assertEqual([(d.test_name, d.state) for d in found],
-                         [("reachable", "fail"), ("irradiance_in_range", "no data"), ("on_grid", "no data")])
-        self.assertEqual(sorted(d.test_name for d in found), sorted(t.name for t in remote_registry.tests_for(AssetKind.SENSOR)))
+                         [("reachable", "fail"), ("records_stored", "fail"), ("irradiance_in_range", "no data"),
+                          ("on_grid", "no data")])
+        self.assertEqual(sorted(d.test_name for d in found),
+                         sorted([*(t.name for t in remote_registry.tests_for(AssetKind.SENSOR)), "reachable"]))
 
     def test_the_dead_inverters_failed_reachable_is_not_hidden_by_the_suites_pass(self) -> None:
-        """OAHE-INV-002's run stores reachable twice at one instant, the ping's failure and a pass over its stored samples;
+        """OAHE-INV-002's run stores the ping's `reachable` failure and a `records_stored` pass over its stored samples at one instant;
         the diagnostics show the failure, first (J-050)."""
         found = project.asset_detail(self.conn, demo.DOWN).diagnostics
         self.assertEqual((found[0].test_name, found[0].state), ("performance_above_floor", "fail"))  # 13.15: zero output

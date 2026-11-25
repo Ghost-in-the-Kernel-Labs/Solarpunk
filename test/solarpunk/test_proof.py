@@ -13,6 +13,8 @@ from pathlib import Path
 from solarpunk import project
 from solarpunk.cli.main import main
 from solarpunk.leaf.clock import at
+from solarpunk.leaf.codes import AssetKind
+from solarpunk.project.result_tickets import fault_code
 from solarpunk.remote import results
 from solarpunk.ui import demo
 
@@ -55,6 +57,30 @@ class TheProof(unittest.TestCase):
         run_at(self.conn, PASSED, True)
         closed = project.resolve_ticket(self.conn, self.wo_id, "cable replaced", CLOSED)
         self.assertEqual(closed.status, project.TicketStatus.CLOSED)
+
+    def test_a_records_stored_pass_with_the_feed_still_dead_is_no_proof_of_the_ping(self) -> None:
+        """13.25 (SP-056, J-157): a later run with the feed still dead stores the ping's failure and the script's pass over
+        the samples already stored; the ticket from the failed `reachable` stays refused until the ping itself passes."""
+        self.cause()
+        results.record(self.conn, "reachable", SEN, REFUSED, results.Result(False, "feed still dead"))
+        results.record(self.conn, "records_stored", SEN, REFUSED, results.Result(True, "165 records"))
+        project.faults_from_run(self.conn, (SEN,), REFUSED)
+        with self.assertRaises(project.NoPassSince) as caught:
+            project.resolve_ticket(self.conn, self.wo_id, "cable replaced", REFUSED + timedelta(minutes=1))
+        self.assertEqual(str(caught.exception), WAITS)
+        self.assertEqual(project.ticket_moves(self.conn, self.wo_id)[-1].status.value, "open")
+        results.record(self.conn, "reachable", SEN, PASSED, results.Result(True, "answered: 12 new records"))
+        closed = project.resolve_ticket(self.conn, self.wo_id, "cable replaced", CLOSED)
+        self.assertEqual(closed.status, project.TicketStatus.CLOSED)
+
+    def test_the_lost_link_reactions_belong_to_the_ping_and_the_script_alike(self) -> None:
+        """A failed `reachable` and a failed `records_stored` raise MTR-001 on a meter, SEN-001 on a sensor and the generic
+        SIT-004 on an inverter, each assigned by its own test name (SP-056)."""
+        for name in ("reachable", "records_stored"):
+            with self.subTest(test=name):
+                self.assertEqual([fault_code(kind, name) for kind in (AssetKind.METER, AssetKind.SENSOR, AssetKind.INVERTER)],
+                                 ["MTR-001", "SEN-001", "SIT-004"])
+        self.assertEqual(project.faults_listing(self.conn, True)[0].assigned_by, "test:reachable")
 
     def test_the_root_cause_is_refused_first(self) -> None:
         with self.assertRaises(project.NoRootCause):

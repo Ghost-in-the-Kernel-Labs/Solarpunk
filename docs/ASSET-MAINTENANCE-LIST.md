@@ -17,10 +17,11 @@ The irradiance minimum of -5 W/m2 is a sensor's night offset: J-101's pyranomete
 -4.39 W/m2 at night, while a failed cell reads about -296 W/m2 (SP-039). A kind with no feed (a site, a string) has no
 fields and no tests.
 
-A test passes only over data (SP-039). When an asset's window holds no record that is not a gap, `reachable` fails, a
+A test passes only over data (SP-039). When an asset's window holds no record that is not a gap, `records_stored` fails, a
 disconnection, its rule suggesting the kind's equipment code ("no records", or "no records: N gaps"); every other test
 returns a third result, "no data", shown grey like "not run" and counted neither as a pass nor as a failure, so the
-asset's colour comes from `reachable`'s failure alone. A window of real records with none of the kind a test needs (no
+asset's colour comes from `records_stored`'s failure alone (or the ping's `reachable`, the live check of the feed, which is no script
+of this list, SP-056). A window of real records with none of the kind a test needs (no
 daylight record for `performance_above_floor`, no night record for `night_power_near_zero`) is judged as it is, not no
 data: an overcast day is not a disconnection.
 
@@ -45,7 +46,7 @@ Turns its strings' direct current into grid alternating current; the asset whose
 | power_kw | kW | 0 | — |
 | temperature_c | °C | -40 | 90 |
 
-Tests: `reachable`, `on_grid`, `irradiance_in_range`, `power_under_rated`, `night_power_near_zero`, `performance_above_floor`, `power_not_frozen`, `power_ripple`.
+Tests: `records_stored`, `on_grid`, `irradiance_in_range`, `power_under_rated`, `night_power_near_zero`, `performance_above_floor`, `power_not_frozen`, `power_ripple`.
 
 Passing: the endpoint answers within the timeout with a sample whose every field is in range, power at or under the
 inverter's rated_kw with 1% over allowed, near zero at night, at least 0.75 of what its rating and the sun promise in
@@ -70,7 +71,7 @@ A single-axis tracker turning a row of panels to follow the sun, stowing flat in
 | --- | --- | --- | --- |
 | angle_deg | deg | -60 | 60 |
 
-Tests: `reachable`, `on_grid`, `tracker_moving`.
+Tests: `records_stored`, `on_grid`, `tracker_moving`.
 
 Passing: the endpoint answers within the timeout with an angle in range that changes over the day.
 
@@ -82,7 +83,7 @@ The revenue meter at the point of interconnection: the energy the plant is paid 
 | --- | --- | --- | --- |
 | energy_kwh | kWh | 0 | — |
 
-Tests: `reachable`, `on_grid`, `energy_monotonic`.
+Tests: `records_stored`, `on_grid`, `energy_monotonic`.
 
 Passing: the endpoint answers within the timeout with an energy count at or above zero that never falls from one
 sample to the next.
@@ -96,6 +97,6 @@ A weather station: plane-of-array irradiance and temperature, the denominator of
 | irradiance_w_m2 | W/m2 | -5 | 1500 |
 | temperature_c | °C | -40 | 90 |
 
-Tests: `reachable`, `on_grid`, `irradiance_in_range`.
+Tests: `records_stored`, `on_grid`, `irradiance_in_range`.
 
 Passing: the endpoint answers within the timeout with irradiance and temperature both in range.

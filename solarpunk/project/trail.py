@@ -14,7 +14,7 @@ from solarpunk.leaf.codes import lookup
 from solarpunk.project.result_tickets import results_of_ticket
 from solarpunk.project.runs import verdict_of
 from solarpunk.remote import results as result_table
-from solarpunk.remote.registry import discover
+from solarpunk.remote.registry import discover, with_ping
 from solarpunk.remote.results import Recorded
 from solarpunk.workorders import ledger as work_ledger
 from solarpunk.workorders import tickets as ticket_ledger
@@ -106,7 +106,7 @@ def trail_causes(conn: sqlite3.Connection, fault_id: int | None) -> tuple[TrailC
 
 def trail_results(conn: sqlite3.Connection, wo_id: int) -> tuple[TrailResult, ...]:
     """The failed results the ticket holds, each with its test's clauses and next result."""
-    found = discover()
+    found = with_ping(discover())  # SP-056: the ping's failed `reachable` keeps its clause
     return tuple(TrailResult(held, found[held.test_name].clauses if held.test_name in found else (),
                              result_table.next_after(conn, held))
                  for held in results_of_ticket(conn, wo_id))

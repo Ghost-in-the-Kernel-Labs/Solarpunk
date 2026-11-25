@@ -338,7 +338,7 @@ class TheRevivalButton(DemoFixture):
         self.assertIsNone(button(INV1, self.revival))
         self.assertIsNone(button(INV2, None))  # a store that is not the demo's
 
-    def test_pressing_it_passes_reachable_refreshes_the_row_and_shows_all_eight_tests(self) -> None:
+    def test_pressing_it_passes_reachable_refreshes_the_row_and_shows_the_eight_tests_and_the_ping(self) -> None:
         changes: list[int] = []
         window = AssetWindow(self.root, self.conn, INV2, lambda: changes.append(1), revival=self.revival)
         self.addCleanup(window.destroy)
@@ -353,8 +353,8 @@ class TheRevivalButton(DemoFixture):
         window.revive_button.invoke()
         self.root.update()
         self.assertEqual(rows()["reachable"].lower(), "pass")
-        self.assertEqual(len(rows()), 8)
-        self.assertEqual(int(window.result_tree.cget("height")), 8)
+        self.assertEqual(len(rows()), 9)  # SP-056: the eight tests of the kind and the ping's own `reachable`
+        self.assertEqual(int(window.result_tree.cget("height")), 9)
         self.assertEqual(changes, [1])
 
     def test_after_the_revival_the_pings_own_pass_follows_its_failure_at_13_00(self) -> None:

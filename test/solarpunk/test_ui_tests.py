@@ -86,9 +86,9 @@ class TheSurvey(unittest.TestCase):
 
 class TheWords(unittest.TestCase):
     def test_a_rows_words(self) -> None:
-        reachable = next(s for s in project.survey_remote_tests() if s.name == "reachable")
-        self.assertEqual(tests_text.row_of(reachable),
-                         ("reachable", "INVERTER, METER, SENSOR, TRACKER", "55000-9.1",
+        records_stored = next(s for s in project.survey_remote_tests() if s.name == "records_stored")
+        self.assertEqual(tests_text.row_of(records_stored),
+                         ("records_stored", "INVERTER, METER, SENSOR, TRACKER", "55000-9.1",
                           "MTR-001, SEN-001", ""))
         broken = project.Surveyed("broken", None, "broken has no CLAUSES")
         self.assertEqual(tests_text.row_of(broken), ("broken", "", "", "", "broken has no CLAUSES"))

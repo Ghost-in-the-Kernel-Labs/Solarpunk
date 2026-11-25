@@ -9,7 +9,7 @@ from solarpunk import project
 
 
 def rules_text(test: project.RemoteTest) -> str:
-    """A test's reactions in words (13.4, SP-020), each kind its own: reachable's begins "INV: Fault(SIT-004); MTR:
+    """A test's reactions in words (13.4, SP-020), each kind its own: records_stored's begins "INV: Fault(SIT-004); MTR:
     Fault(MTR-001)", a kind that names none reacting with the generic fault alone."""
     return "; ".join(f"{kind.value}: {', '.join(project.reaction_text(item) for item in test.reactions_for(kind))}"
                      for kind in test.kinds)
@@ -17,7 +17,7 @@ def rules_text(test: project.RemoteTest) -> str:
 
 def test_list(args: argparse.Namespace, out: TextIO) -> None:
     """test list: one line per remote test with its kinds, clauses and reactions,
-    "reachable  INV,MTR,SEN,TRK  55000-9.1  INV: Fault(SIT-004); MTR: Fault(MTR-001); ..."."""
+    "records_stored  INV,MTR,SEN,TRK  55000-9.1  INV: Fault(SIT-004); MTR: Fault(MTR-001); ..."."""
     for test in project.remote_tests():
         kinds = ",".join(kind.value for kind in test.kinds)
         out.write(f"{test.name}  {kinds}  {','.join(test.clauses)}  {rules_text(test)}\n")

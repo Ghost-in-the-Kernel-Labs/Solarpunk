@@ -1,7 +1,8 @@
-"""Reachable: the asset's feed answered at least one record that is not a gap (the maintenance list's first test for
-every kind with a feed). Evidences ISO 55000 9.1, the asset is monitored. A feed whose every stored sample is a gap
-answered nothing: a disconnection, said once here as a failure while every other test says "no data" (SP-039). The
-feed (2.2) pulls the samples, this test never opens a socket (MOD-05)."""
+"""Records stored: it judges the stored records, the asset's window holds at least one that is not a gap (the maintenance
+list's first test for every kind with a feed). `reachable` is the live ping (SP-056), a different check with its own
+results. Evidences ISO 55000 9.1, the asset is monitored. A feed whose every stored sample is a gap answered nothing: a
+disconnection, said once here as a failure while every other test says "no data" (SP-039). The feed (2.2) pulls the
+samples, this test never opens a socket (MOD-05)."""
 from solarpunk.leaf.assets import Asset
 from solarpunk.leaf.codes import AssetKind
 from solarpunk.leaf.telemetry import Sample
@@ -22,7 +23,7 @@ def run(asset: Asset, samples: tuple[Sample, ...]) -> Result:
     """Passes when the feed answered at least one record that is not a gap, counting every stored sample as before:
     run(inverter, (s1, s2, s3)) is Result(True, "3 records"); run(inverter, ()) is Result(False, "no records"); three
     gaps alone give Result(False, "no records: 3 gaps")."""
-    # Decision: SP-039 (call 4: reachable fails when every record is a gap)
+    # Decision: SP-039 (call 4: records_stored fails when every record is a gap)
     missing = nothing_to_check(samples)
     if missing is not None:
         return Result(False, missing)

@@ -170,10 +170,10 @@ class TheBaseline(unittest.TestCase):
     def test_each_test_that_applies_runs_each_day_and_nothing_is_recorded(self) -> None:
         found = project.field_baseline(self.conn, DAY, date(2023, 2, 2))
         self.assertEqual(self.conn.execute("SELECT count(*) FROM results").fetchone()[0], 0)
-        per_kind = {"SEN": 3, "INV": 8}  # reachable, on_grid, irradiance_in_range; and the inverter's eight (power_ripple says no data)
+        per_kind = {"SEN": 3, "INV": 8}  # records_stored, on_grid, irradiance_in_range; and the inverter's eight (power_ripple says no data)
         self.assertEqual(len(found.results), 2 * (2 * per_kind["SEN"] + 2 * per_kind["INV"]))
         tally = {(t.test, t.asset_id): (t.days_run, t.days_alarmed) for t in found.tallies}
-        self.assertEqual(tally[("reachable", "PV1-INV-001")], (2, 1))  # the second day has no samples
+        self.assertEqual(tally[("records_stored", "PV1-INV-001")], (2, 1))  # the second day has no samples
         self.assertEqual(tally[("night_power_near_zero", "PV1-INV-001")], (2, 1))  # 905 kW under -3 W/m2
         self.assertEqual(tally[("performance_above_floor", "PV1-INV-001")], (2, 0))
         self.assertEqual(tally[("power_under_rated", "PV1-INV-002")], (2, 2))  # no rating
@@ -183,7 +183,7 @@ class TheBaseline(unittest.TestCase):
         alarms = project.field_baseline(self.conn, DAY, DAY).alarms()
         self.assertIn(DayResult("irradiance_in_range", "PV1-SEN-002", DAY, False,
                                 "2023-02-01T17:20:00+00:00: irradiance 1600.0 W/m2 out of range"), alarms)
-        self.assertNotIn("reachable", {alarm.test for alarm in alarms})
+        self.assertNotIn("records_stored", {alarm.test for alarm in alarms})
 
 
 class TheDays(unittest.TestCase):
