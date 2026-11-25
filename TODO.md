@@ -114,17 +114,6 @@ Each decision is mapped to the functions that hold it, and each function holding
 
 Check: `scripts/decision_map.py` writes `docs/DECISION-MAP.md`, for each decision in `theGhost.md` the functions (file and name) whose `# Decision:` or `# Invariant:` line cites it, "no function" otherwise; the fast loop fails when the file is stale; `scripts/checks/decision_map.py` fails when an in-force decision whose `Held by` names a file under `solarpunk/` or `scripts/` is cited by no function, or a citation names a decision or invariant that does not exist, with a planted break under `test/fixtures/broken/decision_map/`; the missing citations added to the functions that hold each decision; the fast loop green.
 
-### 13.27 The ISO walk, scripted and dry-run
-
-DEMO.md walks one ISO requirement to its evidence and its corrective action on `--demo`, and a fresh dry run follows
-it with nothing missing (SP-052, SP-053).
-
-Check: DEMO.md's walk takes 55000-9.1 through `reachable` on OAHE-INV-002: the clause, the failed result, the fault, a
-ticket opened from the result, acknowledge, comment, resolve refused without a root cause (9001-10.2.1), the cause,
-resolve, the feed brought back, the re-run passing, the closed trail read back; DEMO.md's six stale places (J-141 b)
-corrected; the register's 55000-9.1 sentence covers every control its row names (`docs/CLAUSE-REGISTER.md`, its check
-green); a fresh ruling-grade dry run of DEMO.md's walk, read-only, reports no blocker; the fast loop green.
-
 ### 13.28 Tune-up pass 13
 
 Check: `docs/when/tune-up.md` followed in full; the metrics table written; the navigation log's "Last review" set.

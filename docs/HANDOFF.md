@@ -4,8 +4,9 @@ Read `CLAUDE.md` first, then this. `TODO.md` is the chain in order; `docs/DONE.m
 
 ## Start here (2026-11-21, the session that landed 13.5 to 13.7)
 
-**Next: 13.8, Ghost's human maintainability pass (SP-042), names of three characters or more, then 13.9 to 13.11 in
-parallel. 13.5 to 13.7 landed this session; `main` is clean and pushed.** `scripts/score.py` places 13.8 to 13.11
+**The demo's ISO walk is ready (13.14 to 13.27, SP-052 to SP-056; J-141 to J-160): DEMO.md's "The ISO walk", dry-run
+three times, the third with no blocker. Next: 13.8's parts 4 and 5 (the names under `test/`; parts 1 to 3 landed,
+J-137 to J-142), then 13.9 to 13.11 in parallel, then 13.28 the pass.** Earlier in Phase 13: 13.5 to 13.7. `scripts/score.py` places 13.8 to 13.11
 strong: they read most of the tree. Then 13.14 the pass. After Phase 13 comes Phase 14, the traceability matrix, now with historical mode inside it (SP-048:
 14.5 historical import, 14.6 the historical run, 14.7 the replay's speed, 14.8 the matrix over a live or historical
 store, 14.9 its window, 14.10 the pass), then 15 to 20, and last 21 security with company sign-in and 22 the server
@@ -217,6 +218,14 @@ email on the asset, a mailer to those engineers on degradation, and the Save/Can
 27. `solarpunk test add reachable` is refused only as "in no kind's maintenance list", not as the live ping's name, so a
    script named `reachable` could bring back the two-checks clash SP-056 removed (J-158). A one-line refusal in the
    scaffold, if wanted.
+
+28. From the demo walk's third dry run, which found no blocker (J-160): (a) the clause register gains a row, or 9001-10.2.1's
+   sentence grows, for "no close without a later pass of the same check" (perhaps in 14.1); (b) should the closing rule
+   also require the proving pass to follow the written cause (a feed brought back before the cause lets the pass predate
+   the acts; DEMO.md's order never does); (c) the window's rough edges (no confirmation on comment and final resolve,
+   stale red refusals, truncated columns, a 1160 by 1020 px asset window, `ticket show` printing "closed open", the
+   fleet's Failing column naming one test, `test list` omitting `reachable`) as one roadmap item; (d) the demo store
+   holding the dead feed's samples to 23:55 and the seeded tickets' moves with no actor. None blocks the demo.
 
 ## Advisories under the gate's threshold (Tune-up commit 7, 2026-11-21; unchanged since pass 0)
 

@@ -129,8 +129,8 @@ between the last two):*
 **5. Closing the loop.** *Say:* "The corrective action is done; now the proof that it held." *Click:* in OAHE-INV-002's window
 press **Bring the feed back (demo)** (beside **Open a ticket**; a window control, so it has no terminal equivalent): the
 ping that failed at 13:00 now reads "answered: 0 new records", the very check that failed, passing (the demo store already
-holds the day, so none is new); `reachable` reads **pass** in the list and the run is stamped at least a minute after the
-ticket's last act (13:47 after the cause at 13:46). `performance_above_floor` still fails: the INV-001 outage is open, and
+holds the day, so none is new); `reachable` reads **pass** in the list and the run is stamped after the ticket's last
+act (on the window's clock; on the terminal track, a minute after the last `--at` act: 13:47 after the cause at 13:46). `performance_above_floor` still fails: the INV-001 outage is open, and
 it should. Press **Resolve** again: the ticket closes and drops out of the list. Then **Tickets** in the fleet window, tick
 **Show closed**, select ticket 4: the trail pane reads (times of the window's acts follow the demo's clock):
 
