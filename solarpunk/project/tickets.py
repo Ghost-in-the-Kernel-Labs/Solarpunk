@@ -136,7 +136,7 @@ def resolve_ticket(conn: sqlite3.Connection, wo_id: int, done: str, moment: date
     (SP-035)."""
     # Decision: SP-028 (a write from a screen names the version it read)
     # Decision: SP-046 (a ticket on a fault closes only once the fault's root cause is written)
-    require_proof(conn, work_ledger.get(conn, wo_id))
+    require_proof(conn, work_ledger.get(conn, wo_id), moment)
     if not done.strip():
         raise WorkOrderError(f"work order {wo_id} resolves with evidence of what was done")
     if ticket_ledger.ticket(conn, wo_id).status in (TicketStatus.OPEN, TicketStatus.ACKNOWLEDGED):

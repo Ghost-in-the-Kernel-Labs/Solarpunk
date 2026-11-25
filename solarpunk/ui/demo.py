@@ -225,13 +225,15 @@ class Revival:
 
     def run_instant(self, last_act: datetime | None = None) -> datetime:
         """The instant of this press's run: the demo's clock, never at or before the last press's run (the scheduled run's,
-        13:00, before the first) and, once last_act is given, never less than a minute after it (SP-055: the proof follows
-        the action); with no clock, RUN_AT plus five minutes per press (the first press gives 13:05): with the last act at
-        13:55 the run is stamped 13:56 at the earliest."""
+        13:00, before the first) and, once last_act is given, after it (SP-055: the proof follows the action): the clock
+        itself when it is already a second past last_act, else a minute after last_act (the terminal track's `--at` acts run
+        ahead of the clock); with no clock, RUN_AT plus five minutes per press (the first press gives 13:05): with the last
+        act at 13:55 and the clock at 13:55:10 the run is 13:55:10, with the clock at 13:05 it is 13:56."""
         # Decision: SP-055 (the revival is never stamped before the asset's last ticket act)
+        # Decision: SP-056 (the window's clock stays the stamp, so a close never precedes the pass that proves it)
         found = RUN_AT + timedelta(minutes=5 * self.runs) if self.now is None else self.now()
-        if last_act is not None:
-            found = max(found, last_act + project.AFTER_THE_LAST_ACT)
+        if last_act is not None and found < last_act + timedelta(seconds=1):
+            found = last_act + project.AFTER_THE_LAST_ACT
         if self.now is not None and found <= self.last_run:
             found = self.last_run + timedelta(seconds=1)
         self.last_run = found

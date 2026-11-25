@@ -257,7 +257,7 @@ close`) ends the downtime and leaves the ticket open, to be closed once its root
 
 The proof follows the action (13.21, SP-055): a ticket opened from a failed test result closes only after a later pass.
 For every failed result linked to it, a passing result of the same test on the same asset must be stored strictly after
-that failure's run instant (any result of the default suite `all`; the ping's `reachable` pass, "answered: N new records",
+that failure's run instant and at or before the close's instant (SP-056: a close never precedes the pass that proves it; any result of the default suite `all`; the ping's `reachable` pass, "answered: N new records",
 counts). The test is matched by name (SP-056): a failed `reachable` is proved by a `reachable` pass alone, never by a
 `records_stored` pass, the script that judges the stored records. Until then resolving is refused, after the root-cause check (a ticket with neither is refused for the cause),
 naming the test and the asset: "ticket 4 waits for a pass: reachable on OAHE-INV-002 has not passed since its failure at
@@ -267,8 +267,11 @@ unchanged. Hand-checked: a ticket opened from `reachable` on OAHE-INV-002 failed
 at 13:20 is refused (no pass after 13:00); a later run with the feed still dead stores a `records_stored` pass and
 another `reachable` failure, and resolving is still refused; a pass of `reachable` is stored at 13:25; resolving at 13:30
 closes it. A
-pass stored at 13:00 itself, or before, would not count. The demo's revival is stamped no earlier than one minute after
-the latest move, comment or root cause stored on that asset's tickets, so its pass always follows the last act. Held by
+pass stored at 13:35 does not prove a close at 13:30 (refused as before), and one stored at 13:30 itself does. A
+pass stored at 13:00 itself, or before, would not count. The demo's revival is stamped at the window's clock when that is
+already after the latest move, comment or root cause stored on that asset's tickets, and one minute after that act only
+when the clock is behind it (the terminal track's `--at` acts), so its pass always follows the last act and a Resolve
+pressed after it closes at or after the pass. Held by
 `solarpunk/project/causes.py` (`require_pass`), `solarpunk/project/revival.py` (`last_ticket_act`) and
 `test/solarpunk/test_proof.py`.
 

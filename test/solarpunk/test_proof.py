@@ -93,6 +93,18 @@ class TheProof(unittest.TestCase):
         with self.assertRaises(project.NoPassSince):
             project.resolve_ticket(self.conn, self.wo_id, "x", CLOSED)
 
+    def test_a_pass_after_the_close_does_not_prove_it_and_one_at_the_close_does(self) -> None:
+        """13.26 (SP-056): a pass at 13:35 does not prove a close at 13:30; a pass at the close's own instant does."""
+        self.cause()
+        run_at(self.conn, PASSED + timedelta(minutes=10), True)
+        with self.assertRaises(project.NoPassSince) as caught:
+            project.resolve_ticket(self.conn, self.wo_id, "cable replaced", CLOSED)
+        self.assertEqual(str(caught.exception), WAITS)
+        self.assertEqual(project.ticket_moves(self.conn, self.wo_id)[-1].status.value, "open")
+        run_at(self.conn, CLOSED, True)
+        closed = project.resolve_ticket(self.conn, self.wo_id, "cable replaced", CLOSED)
+        self.assertEqual(closed.status, project.TicketStatus.CLOSED)
+
     def test_a_ticket_from_an_engineers_fault_needs_no_pass(self) -> None:
         order = project.assign_fault(self.conn, "OAHE-INV-001", "INV-001", OPENED, ENGINEER)
         project.write_fault_cause(self.conn, order.fault_id, "worn fuse", ENGINEER, CAUSED)
@@ -115,6 +127,11 @@ class TheProof(unittest.TestCase):
         revival = demo.Revival(5021, lambda: at(2026, 6, 1, 13, 5))
         self.assertEqual(revival.run_instant(project.last_ticket_act(self.conn, SEN)), at(2026, 6, 1, 13, 56))
         self.assertEqual(revival.run_instant(None), at(2026, 6, 1, 13, 56) + timedelta(seconds=1))
+
+    def test_the_revival_keeps_the_windows_clock_when_it_is_already_past_the_last_act(self) -> None:
+        """13.26 (SP-056): the clock at 13:55:10 with the last act at 13:55 stamps 13:55:10, not 13:56."""
+        revival = demo.Revival(5021, lambda: at(2026, 6, 1, 13, 55) + timedelta(seconds=10))
+        self.assertEqual(revival.run_instant(at(2026, 6, 1, 13, 55)), at(2026, 6, 1, 13, 55) + timedelta(seconds=10))
 
 
 if __name__ == "__main__":
