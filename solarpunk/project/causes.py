@@ -43,21 +43,24 @@ def require_cause(conn: sqlite3.Connection, order: WorkOrder) -> None:
         raise NoRootCause(f"fault {order.fault_id} has no root cause written: an engineer writes it before its ticket closes")
 
 
-def require_pass(conn: sqlite3.Connection, order: WorkOrder) -> None:
+def require_pass(conn: sqlite3.Connection, order: WorkOrder, closed: datetime) -> None:
     """Refuses a close of a ticket until each failed result it holds has a passing result of the same test on the same
-    asset after it (any suite `all` result, the ping's included): ticket 4 on a reachable failed at 13:00 with no pass
-    gives NoPassSince naming the test and the asset; a pass at 13:25 lets a close at 13:30 through; a ticket holding no
-    result (an engineer's fault, a preventive order) passes."""
+    asset after it and at or before the close's instant (any suite `all` result, the ping's included): ticket 4 on a
+    reachable failed at 13:00 with no pass gives NoPassSince naming the test and the asset; a pass at 13:25 lets a close
+    at 13:30 through, a pass at 13:35 does not; a ticket holding no result (an engineer's fault, a preventive order)
+    passes."""
     # Decision: SP-055 (the proof follows the action: a ticket from a failed result closes after a later pass)
+    # Decision: SP-056 (and the close follows the proof: the pass is at or before the close's instant)
     for result_id in ticket_results.results_of(conn, order.wo_id):
         failed = result_table.get(conn, result_id)
-        if failed is not None and result_table.pass_after(conn, failed) is None:
+        if failed is not None and result_table.pass_after(conn, failed, closed) is None:
             raise NoPassSince(f"ticket {order.wo_id} waits for a pass: {failed.test_name} on {failed.asset_id} has not "
                               f"passed since its failure at {failed.run_at.isoformat()}")
 
 
-def require_proof(conn: sqlite3.Connection, order: WorkOrder) -> None:
-    """Both close rules in their order: the root cause first (NoRootCause), then the pass (NoPassSince)."""
+def require_proof(conn: sqlite3.Connection, order: WorkOrder, closed: datetime) -> None:
+    """Both close rules in their order, for a close at an instant: the root cause first (NoRootCause), then the pass
+    (NoPassSince)."""
     # Decision: SP-046 (the cause first); SP-055 (then the proof)
     require_cause(conn, order)
-    require_pass(conn, order)
+    require_pass(conn, order, closed)

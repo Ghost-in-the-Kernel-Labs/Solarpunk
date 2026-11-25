@@ -88,7 +88,7 @@ row OAHE-INV-002, then in its window the Diagnostics list: `reachable` **FAIL**,
 "127.0.0.1:<the dead port> is unreachable" (its duration reads "—": a refused connection has no timed read). Beside it
 `performance_above_floor` is red too: "ratio 0.6148 under the floor 0.75 over 71 daylight records". Its **Runs** link shows the
 run: "9 results", "2 failed". *Terminal:* `test results --asset OAHE-INV-002 --failed` prints, among others,
-`1  2026-06-01T13:00:00+00:00  reachable  fail  127.0.0.1:<port> is unreachable`.
+`2  2026-06-01T13:00:00+00:00  reachable  fail  127.0.0.1:<port> is unreachable`.
 
 **3. The nonconformity.** *Say:* "The failure raised its own fault, naming the test that found it, with no person in
 between; nothing is a free-text note." *See:* in the window's **Open faults**: INV-001 (11:30, the outage an engineer

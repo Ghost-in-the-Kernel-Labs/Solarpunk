@@ -5,7 +5,7 @@ assets, by name, so `python3 -m solarpunk.remote.run` can run one test against o
 importing another lane's module (MOD-05)."""
 import sqlite3
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 
 from solarpunk.leaf.assets import Asset
 from solarpunk.leaf.clock import utc
@@ -46,7 +46,7 @@ NEXT_AFTER = (f"SELECT {WITH_ID} FROM results WHERE asset_id = ? AND test_name =
               " ORDER BY run_at, result_id LIMIT 1")
 # The first passing result of a test on an asset in one suite strictly after an instant (13.21): the proof of a repair.
 PASS_AFTER = (f"SELECT {WITH_ID} FROM results WHERE asset_id = ? AND test_name = ? AND suite = ? AND passed = 1"
-              " AND run_at > ? ORDER BY run_at, result_id LIMIT 1")
+              " AND run_at > ? AND run_at <= ? ORDER BY run_at, result_id LIMIT 1")
 BY_ID = f"SELECT {WITH_ID} FROM results WHERE result_id = ?"
 LAST_OF_SUITE = "SELECT max(run_at) FROM results WHERE suite = ?"
 # Failures first, then no data, then passes (a no-data row stores passed 0), each by test name, then in the order
@@ -236,10 +236,15 @@ def next_after(conn: sqlite3.Connection, found: Recorded, suite: str = ALL) -> R
     return None if row is None else _recorded(row)
 
 
-def pass_after(conn: sqlite3.Connection, found: Recorded, suite: str = ALL) -> Recorded | None:
-    """The first passing result of the same test on the same asset in the suite, strictly after this one's run instant,
-    or None: after a failure at 13:00 and a pass at 13:25 it is the 13:25 pass; with only a failure after it, None."""
-    row = conn.execute(PASS_AFTER, (found.asset_id, found.test_name, suite, utc(found.run_at).isoformat())).fetchone()
+def pass_after(conn: sqlite3.Connection, found: Recorded, until: datetime | None = None,
+               suite: str = ALL) -> Recorded | None:
+    """The first passing result of the same test on the same asset in the suite, strictly after this one's run instant
+    and, when until is given, at or before it, or None: after a failure at 13:00 and a pass at 13:25 it is the 13:25
+    pass (until 13:30); until 13:20 or with only a failure after it, None."""
+    # Decision: SP-056 (a close never precedes the pass that proves it)
+    last = datetime.max.replace(tzinfo=timezone.utc) if until is None else until
+    row = conn.execute(PASS_AFTER, (found.asset_id, found.test_name, suite, utc(found.run_at).isoformat(),
+                                    utc(last).isoformat())).fetchone()
     return None if row is None else _recorded(row)
 
 

@@ -114,19 +114,6 @@ Each decision is mapped to the functions that hold it, and each function holding
 
 Check: `scripts/decision_map.py` writes `docs/DECISION-MAP.md`, for each decision in `theGhost.md` the functions (file and name) whose `# Decision:` or `# Invariant:` line cites it, "no function" otherwise; the fast loop fails when the file is stale; `scripts/checks/decision_map.py` fails when an in-force decision whose `Held by` names a file under `solarpunk/` or `scripts/` is cited by no function, or a citation names a decision or invariant that does not exist, with a planted break under `test/fixtures/broken/decision_map/`; the missing citations added to the functions that hold each decision; the fast loop green.
 
-### 13.26 The close follows its proof
-
-A ticket from a failed result never closes at an instant before the pass that proves it, on the window track as on
-the terminal track (SP-056, J-157).
-
-Check: the closing rule (`require_pass`, `solarpunk/project/causes.py`) accepts only a pass after the failure and at or
-before the close's instant, `docs/CONTRACT.md`'s rule beside SOL-14 saying so with its example; the demo's revival
-(`Revival.run_instant`, `solarpunk/ui/demo.py`) stamps at the window's clock when that is already after the asset's
-last ticket act, and one minute after the last act only when the clock is behind it (the terminal track's `--at`
-acts); the demo walk test presses Resolve within a minute of the cause and holds the trail's close after the pass;
-DEMO.md's step 2 sample prints the failed result's id as the store gives it (2); the fast loop, the window tests and
-the demo tests under xvfb green.
-
 ### 13.27 The ISO walk, scripted and dry-run
 
 DEMO.md walks one ISO requirement to its evidence and its corrective action on `--demo`, and a fresh dry run follows

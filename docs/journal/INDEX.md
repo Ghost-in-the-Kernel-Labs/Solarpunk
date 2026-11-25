@@ -162,3 +162,4 @@ Written from `docs/journal/` by `scripts/journal_index.py`; do not edit by hand.
 | J-156 | 13.21: the proof follows the action, and closing waits for it | feature | `J-100-199.md` |
 | J-157 | 13.23's second dry run: two blockers in the proof; SP-056 | measurement | `J-100-199.md` |
 | J-158 | 13.25: one name, one check | feature | `J-100-199.md` |
+| J-159 | 13.26: the close follows its proof | feature | `J-100-199.md` |

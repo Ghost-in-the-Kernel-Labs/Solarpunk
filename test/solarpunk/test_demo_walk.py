@@ -50,11 +50,11 @@ class TheWalkInTheWindows(test_demo.DemoFixture):
         window = frame.on_open_asset(INV2)
         root.update()
         panel = window.ticket_panel
-        minutes = itertools.count(5)  # the wall seconds of a real walk, made minutes so each act is later than the last
+        seconds = itertools.count(300, 3)  # a few wall seconds a call, so Resolve falls within a minute of the cause
 
         def step() -> datetime:
-            """The next instant of the walk: 13:05 on the demo's day, then a minute later at each call."""
-            return at(2026, 6, 1, 13) + timedelta(minutes=next(minutes))
+            """The next instant of the walk: 13:05 on the demo's day, then three seconds later at each call."""
+            return at(2026, 6, 1, 13) + timedelta(seconds=next(seconds))
 
         window.now = panel.now = window.open_ticket_button.now = root.demo_revival.now = step
         self.seen["first"] = panel.view.ticket.wo_id  # the overdue INV-001 ticket stands nearest
@@ -87,6 +87,7 @@ class TheWalkInTheWindows(test_demo.DemoFixture):
         window.cause_button.invoke()
         panel.resolve_button.invoke()
         self.seen["no pass"] = panel.message.cget("text")
+        self.seen["cause"] = project.last_ticket_act(window.conn, INV2)
 
     def test_the_corrective_acts_are_clicked_on_the_ticket_chosen_and_the_trail_reads_in_order(self) -> None:
         self.seen: dict[str, object] = {}
@@ -109,8 +110,8 @@ class TheWalkInTheWindows(test_demo.DemoFixture):
         self.assertTrue(held.next_result is not None and held.next_result.passed)
         self.assertEqual((held.next_result.test_name, held.next_result.reason), ("reachable", "answered: 0 new records"))
         self.assertGreater(held.next_result.run_at, seen["acts"])  # the pass follows the last act stored before it
-        self.assertGreaterEqual(held.next_result.run_at, seen["acts"] + timedelta(minutes=1))
-        self.assertGreater(trail.ticket.closed, held.next_result.run_at)  # and the close follows the pass
+        self.assertLess(trail.ticket.closed - seen["cause"], timedelta(minutes=1))  # Resolve within a minute of the cause
+        self.assertGreaterEqual(trail.ticket.closed, held.next_result.run_at)  # and the close follows the pass
 
 
 if __name__ == "__main__":

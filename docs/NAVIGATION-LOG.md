@@ -59,3 +59,9 @@ An entry is `### <date> · <task> · <who>`, then four bullets: **Task**, **Open
 - **Opened**: `CLAUDE.md`, `docs/paths/product.md`, `solarpunk/remote/tests/reachable.py`, `solarpunk/remote/registry.py`, `solarpunk/project/run.py`, `solarpunk/project/suggest.py`, `solarpunk/project/result_tickets.py`, `solarpunk/project/reactions.py`, the documents naming the test.
 - **Complaints**: `scripts/checks/asset_types.py` fails run directly (`No module named 'scripts'`); its test passes. The window tests abort now and then with `Tcl_AsyncDelete`.
 - **Suggestions**: the scaffold refuses the ping's name.
+
+### 2026-11-25 · 13.26 the close follows its proof · mid-grade worker
+- **Task**: a close accepted only on a pass at or before it; the revival at the window's clock (J-159).
+- **Opened**: `CLAUDE.md`, `docs/CONTRACT.md`, `solarpunk/project/causes.py`, `solarpunk/remote/results.py`, `solarpunk/project/revival.py`, `solarpunk/ui/demo.py`, `test/solarpunk/test_proof.py`, `test/solarpunk/test_demo_walk.py`.
+- **Complaints**: `docs/CONTRACT.md` is 473 lines; the window tests aborted once with `Tcl_AsyncDelete`.
+- **Suggestions**: none.
