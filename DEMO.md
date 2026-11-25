@@ -54,7 +54,7 @@ demo (OAHE, 2026-06-01)", lists the eleven assets of the Oahe site near Pierre:
 
 - **OAHE-INV-001 green**: a feed simulator inside the demo serves its day of telemetry; every remote test passed, `power_ripple` among them, judged on five quick reads the run took from the simulator.
 - **OAHE-INV-002 red**: an open INV-001 outage (inverter offline) since 11:30 with no output from then, and its feed does not answer.
-- **OAHE-SEN-001 yellow**: the irradiance sensor's feed does not answer, so its `reachable` test failed; its other
+- **OAHE-SEN-001 yellow**: the irradiance sensor's feed does not answer, so the ping (`reachable`) and `records_stored` failed; its other
   two tests had nothing to check and read "no data", grey, never a pass (SP-039).
 - The site, the strings, the trackers and the meter are green: they have no feed configured, so the suite leaves
   them alone and only their faults decide their colour.
@@ -80,7 +80,7 @@ before its last move). A presenter who mixes the two clicks first and gives the 
 
 **1. The requirement.** *Say:* "Clause 9.1 asks that the asset's performance is monitored and the results kept. Here is the
 clause, and the tests that are its evidence." *Click:* **Tests** in the fleet window; read the **Clauses** column:
-`reachable` and `performance_above_floor` read `55000-9.1`. *Terminal:* `python -m solarpunk.cli clauses` prints
+`records_stored`, `performance_above_floor` and the ping's `reachable` row read `55000-9.1`. *Terminal:* `python -m solarpunk.cli clauses` prints
 `55000-9.1    held     <the register's sentence>`, and `test list` the clause beside each test.
 
 **2. The evidence.** *Say:* "Its feed stopped answering; the run at 13:00 recorded it, with time and reason." *Click:* the red
@@ -174,7 +174,7 @@ the pass that let it close."
    Its **Runs** link (the blue word at the row's end) opens its runs instead: one run at 13:00 UTC, "9 results",
    "2 failed", in red; below it the run's results: `performance_above_floor` and the ping's `reachable` failed, first and
    red ("127.0.0.1:<the dead port> is unreachable"), `power_ripple` "no data" in grey (its five quick reads failed), then
-   the six that passed, the test's own `reachable` among them. Type "fail" or a test's name to narrow the list.
+   the six that passed, `records_stored` (the stored records' own test, never the ping) among them. Type "fail" or a test's name to narrow the list.
    Its **By test** tab draws the runs as a timeline: a row per test, a green, red or grey (no data) mark per run,
    the hours in UTC.
    OAHE-INV-001's **Power** tab draws its day: "288 samples: records 279, gaps 9; peak 94.35 kW", the line broken at
@@ -188,8 +188,8 @@ the pass that let it close."
    INV-001: the fleet row turns red at once (the asset window refreshes the fleet window; Refresh does the same by
    hand). OAHE-INV-002's open outage shows who assigned it: inverter@oahe.example, entered by the operator, marked
    cover, since that engineer is not INV-002's own.
-5. **A fault a test raises (SP-046).** Close it and click OAHE-SEN-001, the yellow weather station. Its `reachable` failed,
-   first and in red; `irradiance_in_range` and `on_grid` read "no data" in grey, since with no record there was
+5. **A fault a test raises (SP-046).** Close it and click OAHE-SEN-001, the yellow weather station. Its ping, `reachable`, failed,
+   first and in red, and `records_stored` beside it; `irradiance_in_range` and `on_grid` read "no data" in grey, since with no record there was
    nothing to check, which is never a pass (SP-039), and so raise nothing. The failure's rule raises SEN-001 (readings
    unreliable) itself, under "Open faults", assigned by `test:reachable`: nobody accepts or dismisses it, and a later
    failure of the same test joins it. Where a test's rule names no code the fault is SIT-004, "Remote test failed: its
@@ -218,7 +218,7 @@ the pass that let it close."
    (9001-10.2.1); until then Resolve is refused. **Show closed** lists the closed tickets too, and a ticket selected
    there shows its whole trail (see the walk).
 
-   **Tests** (beside Tickets) opens the Tests window: one row per remote test with its kinds, the count of assets it ran
+   **Tests** (beside Tickets) opens the Tests window: one row per remote test (and the ping's `reachable`, the live check of the feed, once it has results) with its kinds, the count of assets it ran
    on, its last run and duration, passes, failures and no data. Select `reachable`: its log lists its newest runs, the
    failures (OAHE-SEN-001, and OAHE-INV-002's unreachable feed) in red, a duration "—" where none was timed. The last
    column, **Clauses**, names the ISO clauses each test is evidence for.

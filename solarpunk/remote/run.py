@@ -26,7 +26,7 @@ NO_DATA_EXIT = 3
 
 
 def run_test(name: str, asset: Asset, samples: tuple[Sample, ...]) -> Result:
-    """One discovered test against one asset's samples: run_test("reachable", inverter, ()) is
+    """One discovered test against one asset's samples: run_test("records_stored", inverter, ()) is
     Result(False, "no records"); a name no module provides, or an asset not of the test's kinds, raises BadRemoteTest."""
     found = discover()
     if name not in found:
@@ -59,7 +59,7 @@ def timed(test: RemoteTest, asset: Asset, samples: tuple[Sample, ...],
 def status_of(open_outage: bool, results: tuple[Result, ...]) -> AssetStatus:
     """The asset's glyph: RED with an open OUTAGE fault whatever the results, YELLOW when a result failed, GREEN
     otherwise: status_of(False, (Result(True, "a"), Result(False, "b"))) is AssetStatus.YELLOW; status_of(False, ())
-    is AssetStatus.GREEN; no data is no failure, and its colour comes from reachable's failure (SP-039)."""
+    is AssetStatus.GREEN; no data is no failure, and its colour comes from records_stored's failure (SP-039)."""
     if open_outage:
         return AssetStatus.RED
     if any(result.failed for result in results):
@@ -101,7 +101,7 @@ def run_named(
     acquirer: Acquirer | None = None,
 ) -> int:
     """One suite's tests against the assets in its reach, each result recorded at run_at carrying the suite's name
-    (13.2) and its duration (13.5), and the count of results written: a suite of reachable over two inverters and a meter, its KINDS the
+    (13.2) and its duration (13.5), and the count of results written: a suite of records_stored over two inverters and a meter, its KINDS the
     INVERTER, writes 2; an asset a test does not run on is passed over."""
     found = discover()
     written = 0
@@ -117,7 +117,7 @@ def run_named(
 
 
 def parser() -> argparse.ArgumentParser:
-    """The command line: parser().parse_args(["reachable", "OAHE-INV-001", "--db", "f.db"]).db is "f.db"."""
+    """The command line: parser().parse_args(["records_stored", "OAHE-INV-001", "--db", "f.db"]).db is "f.db"."""
     built = argparse.ArgumentParser()
     built.add_argument("test")
     built.add_argument("asset_id")

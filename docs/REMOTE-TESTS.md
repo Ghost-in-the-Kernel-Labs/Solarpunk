@@ -81,8 +81,9 @@ A test says one of three things (SP-039, J-107):
   refused (`NotAVerdict`).
 
 Every test calls `nothing_to_check` first and returns `no_data` for what it names, so an asset that sent nothing is
-never green; the check looks for the call. `reachable` is the one exception in effect: a feed that answered nothing is
-a disconnection, said once there as a failure (SP-039, call 4). A test with no rating to judge against says
+never green; the check looks for the call. `records_stored` is the one exception in effect: a feed that answered nothing is
+a disconnection, said once there as a failure (SP-039, call 4). `reachable` is not a script: it is the live ping's own
+result (SP-056), its lost-link reactions held by `ping_test()` in the registry. A test with no rating to judge against says
 `Result(False, "no rating")`. A record that has none of the fields a test needs is not no data: a day of real records is
 judged (SP-039).
 

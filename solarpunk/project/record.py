@@ -9,7 +9,7 @@ from datetime import datetime
 from solarpunk.leaf.codes import AssetKind
 from solarpunk.project.runs import SHOWN, verdict_of
 from solarpunk.remote import results as result_table
-from solarpunk.remote.registry import discover
+from solarpunk.remote.registry import discover, with_ping
 
 
 @dataclass(frozen=True)
@@ -54,10 +54,11 @@ def tests_overview(conn: sqlite3.Connection) -> tuple[TestRecord, ...]:
     a pass nor a failure (SP-039). An empty store gives the discovered tests, all unrun."""
     # Decision: SP-016 (the tests' record is shown at the root, and kept whole)
     found = discover()
+    known = with_ping(found)  # SP-056: a stored `reachable` (the ping's, or an old store's) reads with the ping's kinds and clause
     tallies = {tally.test_name: tally for tally in result_table.tally(conn)}
     return tuple(
-        TestRecord(name, found[name].kinds if name in found else (), *_counted(tallies.get(name)),
-                   found[name].clauses if name in found else ())
+        TestRecord(name, known[name].kinds if name in known else (), *_counted(tallies.get(name)),
+                   known[name].clauses if name in known else ())
         for name in sorted(set(found) | set(tallies)))
 
 

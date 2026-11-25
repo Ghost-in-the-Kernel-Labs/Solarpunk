@@ -28,7 +28,7 @@ IMPORTED = ("AssetKind",)  # the one name a suite may import, to write its KINDS
 
 @dataclass(frozen=True)
 class Suite:
-    """One suite: Suite("hourly_check", ("reachable",), (AssetKind.INVERTER,), (), "hourly"); KINDS and SITES empty
+    """One suite: Suite("hourly_check", ("records_stored",), (AssetKind.INVERTER,), (), "hourly"); KINDS and SITES empty
     reach every kind and every site."""
 
     name: str

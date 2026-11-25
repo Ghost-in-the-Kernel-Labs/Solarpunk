@@ -1,5 +1,5 @@
 """Reactions (13.4, SP-020, SP-049): what a failing test does is declared from a closed set, checked at load, carried out by
-the scheduled run and recorded. One test per action, each over a store of one inverter whose `reachable` result was stored
+the scheduled run and recorded. One test per action, each over a store of one inverter whose `records_stored` result was stored
 by hand, the held test a hand-made RemoteTest, and any suite a file in a scratch folder the registry is pointed at."""
 import dataclasses
 import gc
@@ -28,17 +28,17 @@ RUN_AT = at(2026, 6, 1, 12)
 SITE = Asset("OAHE-SIT-001", AssetKind.SITE, "OAHE", None, "Oahe", None, engineer_email="site@oahe.example")
 INVERTER = Asset("OAHE-INV-001", AssetKind.INVERTER, "OAHE", "OAHE-SIT-001", "Inverter 1", 100.0)
 SETTINGS = Settings("127.0.0.1", 1, "ops@oahe.example", False, None, None)
-SUITE = 'from solarpunk.leaf.codes import AssetKind\n\nTESTS = ("reachable",)\nKINDS = ()\nSITES = ()\nCADENCE = "hourly"\n'
+SUITE = 'from solarpunk.leaf.codes import AssetKind\n\nTESTS = ("records_stored",)\nKINDS = ()\nSITES = ()\nCADENCE = "hourly"\n'
 
 
-def held(declared: tuple, name: str = "reachable") -> dict[str, RemoteTest]:
-    """The held tests: a hand-made `reachable` whose INVERTER reactions are those declared."""
+def held(declared: tuple, name: str = "records_stored") -> dict[str, RemoteTest]:
+    """The held tests: a hand-made `records_stored` whose INVERTER reactions are those declared."""
     real = registry.discover()[name]
     return {name: dataclasses.replace(real, reactions={AssetKind.INVERTER: declared})}
 
 
 class Store(unittest.TestCase):
-    """A store of the site and one inverter with a scratch suites folder; failing(at) stores a failed reachable."""
+    """A store of the site and one inverter with a scratch suites folder; failing(at) stores a failed records_stored."""
 
     def setUp(self) -> None:
         """self.conn holds the fleet and no result; self.folder is the empty suites folder the registry reads."""
@@ -53,7 +53,7 @@ class Store(unittest.TestCase):
             patched.start()
             self.addCleanup(patched.stop)
 
-    def failing(self, run_at: datetime = RUN_AT, test: str = "reachable") -> None:
+    def failing(self, run_at: datetime = RUN_AT, test: str = "records_stored") -> None:
         """Stores one failed result of the test on the inverter at the instant."""
         results.record(self.conn, test, INVERTER.asset_id, run_at, results.Result(False, "no records"))
 
@@ -74,8 +74,8 @@ class TheSet(unittest.TestCase):
 
     def test_the_tests_in_the_folder_declare_their_faults_as_they_suggested_them(self) -> None:
         found = registry.discover()
-        self.assertEqual(found["reachable"].fault_code(AssetKind.METER), "MTR-001")
-        self.assertEqual(found["reachable"].fault_code(AssetKind.INVERTER), "SIT-004")
+        self.assertEqual(found["records_stored"].fault_code(AssetKind.METER), "MTR-001")
+        self.assertEqual(found["records_stored"].fault_code(AssetKind.INVERTER), "SIT-004")
         self.assertEqual(found["irradiance_in_range"].fault_code(AssetKind.SENSOR), "SEN-001")
         self.assertEqual(found["on_grid"].reactions_for(AssetKind.INVERTER), (Fault("SIT-004"),))
 
@@ -136,9 +136,9 @@ class TheLoadChecksTheChain(Store):
     def test_a_suite_holding_the_test_that_starts_it_is_refused_in_the_folder(self) -> None:
         (self.folder / "probe.py").write_text(SUITE, encoding="utf-8")
         found = registry.discover()
-        starting = dataclasses.replace(found["reachable"], reactions={AssetKind.INVERTER: (RunSuite("probe"),)})
+        starting = dataclasses.replace(found["records_stored"], reactions={AssetKind.INVERTER: (RunSuite("probe"),)})
         with self.assertRaisesRegex(BadRemoteTest, "suite probe starts itself"):
-            registry.checked_chains({**found, "reachable": starting})
+            registry.checked_chains({**found, "records_stored": starting})
         registry.checked_chains(found)
 
 
@@ -150,7 +150,7 @@ class TheFaultReaction(Store):
         self.assertEqual([fault.code for fault in ledger.by_asset(self.conn, INVERTER.asset_id)], ["INV-001"])
 
     def test_a_kind_naming_none_raises_the_generic_one_and_no_data_and_a_pass_react_not_at_all(self) -> None:
-        self.failing(test="reachable")
+        self.failing(test="records_stored")
         results.record(self.conn, "on_grid", INVERTER.asset_id, RUN_AT, results.no_data("no records"))
         results.record(self.conn, "power_under_rated", INVERTER.asset_id, RUN_AT, results.Result(True, "fine"))
         self.carry(registry.discover())
@@ -168,7 +168,7 @@ class TheMailReaction(Store):
         self.assertEqual(sent.call_count, 1)
         mail = sent.call_args.args[0]
         self.assertEqual(mail.recipients, ("site@oahe.example",))
-        self.assertIn("reachable", mail.subject)
+        self.assertIn("records_stored", mail.subject)
         self.assertIn("no records", mail.body)
         self.assertEqual(len(mailer.sent_for(self.conn, INVERTER.asset_id)), 1)
         self.assertEqual([detail for action, detail in self.rows() if action == "Mail"],
@@ -177,7 +177,7 @@ class TheMailReaction(Store):
     def test_a_recovery_ends_the_streak_so_the_next_failure_mails_again(self) -> None:
         with mock.patch.object(carrying.transport, "send") as sent:
             self.failing()
-            results.record(self.conn, "reachable", INVERTER.asset_id, RUN_AT + timedelta(hours=1), results.Result(True, "ok"))
+            results.record(self.conn, "records_stored", INVERTER.asset_id, RUN_AT + timedelta(hours=1), results.Result(True, "ok"))
             later = RUN_AT + timedelta(hours=2)
             self.failing(later)
             self.carry(held((Mail(),)), RUN_AT, SETTINGS)
@@ -196,16 +196,16 @@ class TheMailReaction(Store):
 class TheRunSuiteReaction(Store):
     def test_the_suite_runs_on_the_asset_at_once_with_its_results_under_its_name(self) -> None:
         (self.folder / "probe.py").write_text(SUITE, encoding="utf-8")
-        self.failing(test="power_under_rated")  # the suite's own test, reachable, has no RunSuite here
+        self.failing(test="power_under_rated")  # the suite's own test, records_stored, has no RunSuite here
         self.carry(held((RunSuite("probe"),), "power_under_rated"))
         stored = [found for found in results.results_of(self.conn, INVERTER.asset_id) if found.suite == "probe"]
-        self.assertEqual([(found.test_name, found.failed) for found in stored], [("reachable", True)])
+        self.assertEqual([(found.test_name, found.failed) for found in stored], [("records_stored", True)])
         self.assertIn(("RunSuite", "ran probe: 1 results"), self.rows())
 
     def test_its_own_failures_react_in_turn_down_to_the_chain_limit(self) -> None:
         (self.folder / "probe.py").write_text(SUITE, encoding="utf-8")
         self.failing()
-        self.carry(held((RunSuite("probe"),)))  # probe's reachable failure starts probe again: held() bypasses the load check
+        self.carry(held((RunSuite("probe"),)))  # probe's records_stored failure starts probe again: held() bypasses the load check
         ran = [detail for action, detail in self.rows() if action == "RunSuite"]
         # The deepest reaction is recorded first, the one that started the chain last.
         self.assertEqual(ran, ["skipped: the chain is 3 suites deep"] + ["ran probe: 1 results"] * reactions.MAX_CHAIN)

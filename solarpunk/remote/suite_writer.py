@@ -21,7 +21,7 @@ CADENCE = "{cadence}"
 def write(name: str, tests: tuple[str, ...], kind_names: tuple[str, ...], cadence: str = EVERY_RUN,
           where: Path | None = None) -> Path:
     """Writes the suite beside the others (or in the folder given) and returns its path: write("hourly_check",
-    ("reachable",), ("INVERTER",), "hourly") is solarpunk/remote/suites/hourly_check.py; a name that is not a lower-case
+    ("records_stored",), ("INVERTER",), "hourly") is solarpunk/remote/suites/hourly_check.py; a name that is not a lower-case
     module name or is taken, an unknown test, kind or cadence raises BadRemoteTest and writes nothing."""
     where = where or suite_registry.folder()
     if not name.isidentifier() or keyword.iskeyword(name) or name != name.lower():

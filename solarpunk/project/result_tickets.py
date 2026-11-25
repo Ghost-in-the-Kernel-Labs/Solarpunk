@@ -16,7 +16,7 @@ from solarpunk.project.engineers import check_engineer
 from solarpunk.project.orchestrator import known
 from solarpunk.project.runs import verdict_of
 from solarpunk.remote import results as result_table
-from solarpunk.remote.registry import discover
+from solarpunk.remote.registry import discover, with_ping
 from solarpunk.remote.results import Recorded
 from solarpunk.workorders import ledger as work_ledger
 from solarpunk.workorders import ticket_results
@@ -45,9 +45,10 @@ class ResultTicket:
 
 def fault_code(kind: AssetKind, test_name: str) -> str:
     """The code a failing test raises on an asset kind: the test's Fault reaction's, else the catalogue's generic SIT-004
-    (7.7, 13.4): fault_code(AssetKind.SENSOR, "reachable") is "SEN-001"; a test the folder lacks gives SIT-004."""
+    (7.7, 13.4): fault_code(AssetKind.SENSOR, "reachable") is "SEN-001", the ping's (SP-056), and "records_stored" gives the same;
+    a test the folder lacks gives SIT-004."""
     # Decision: SP-046 (a failing remote test raises its fault by its Fault reaction's code or the generic one)
-    test = discover().get(test_name)
+    test = with_ping(discover()).get(test_name)
     return GENERIC_TEST_FAILURE if test is None else test.fault_code(kind)
 
 

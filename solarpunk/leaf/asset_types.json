@@ -14,7 +14,7 @@
       "power_kw": {"unit": "kW", "min": 0, "max": null},
       "temperature_c": {"unit": "°C", "min": -40, "max": 90}
     },
-    "tests": ["reachable", "on_grid", "irradiance_in_range", "power_under_rated", "night_power_near_zero", "performance_above_floor", "power_not_frozen", "power_ripple"],
+    "tests": ["records_stored", "on_grid", "irradiance_in_range", "power_under_rated", "night_power_near_zero", "performance_above_floor", "power_not_frozen", "power_ripple"],
     "passing": "The endpoint answers within the timeout with a sample whose every field is in range, power at or under the inverter's rated_kw with 1% over allowed, near zero at night, at least 0.75 of what its rating and the sun promise in daylight, and never the same non-zero value for half an hour."
   },
   {
@@ -30,7 +30,7 @@
     "fields": {
       "angle_deg": {"unit": "deg", "min": -60, "max": 60}
     },
-    "tests": ["reachable", "on_grid", "tracker_moving"],
+    "tests": ["records_stored", "on_grid", "tracker_moving"],
     "passing": "The endpoint answers within the timeout with an angle in range that changes over the day."
   },
   {
@@ -39,7 +39,7 @@
     "fields": {
       "energy_kwh": {"unit": "kWh", "min": 0, "max": null}
     },
-    "tests": ["reachable", "on_grid", "energy_monotonic"],
+    "tests": ["records_stored", "on_grid", "energy_monotonic"],
     "passing": "The endpoint answers within the timeout with an energy count at or above zero that never falls from one sample to the next."
   },
   {
@@ -49,7 +49,7 @@
       "irradiance_w_m2": {"unit": "W/m2", "min": -5, "max": 1500},
       "temperature_c": {"unit": "°C", "min": -40, "max": 90}
     },
-    "tests": ["reachable", "on_grid", "irradiance_in_range"],
+    "tests": ["records_stored", "on_grid", "irradiance_in_range"],
     "passing": "The endpoint answers within the timeout with irradiance and temperature both in range."
   }
 ]

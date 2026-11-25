@@ -322,8 +322,8 @@ def open_outages(conn: sqlite3.Connection) -> dict[str, Fault]:
 def asset_status(conn: sqlite3.Connection, asset_id: str) -> AssetStatus:
     """The three-colour rule (SP-007): RED while the asset carries an open OUTAGE fault, else YELLOW when its latest
     remote results hold a failure or it has an open suggestion (SP-015), else GREEN: with an open INV-001 on OAHE-INV-001 its status is RED, with only an open
-    INV-002 (a derate) GREEN, with a failing latest reachable YELLOW; no data is no failure, the colour coming from
-    reachable's (SP-039); an id the fleet lacks raises UnknownAsset."""
+    INV-002 (a derate) GREEN, with a failing latest records_stored YELLOW; no data is no failure, the colour coming from
+    records_stored's (SP-039); an id the fleet lacks raises UnknownAsset."""
     # Invariant: SOL-11 (a derate is not an outage)
     known(conn, asset_id)
     if asset_id in open_outages(conn):

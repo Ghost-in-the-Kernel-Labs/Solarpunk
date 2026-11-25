@@ -67,18 +67,18 @@ class TheExamples(unittest.TestCase):
         self.assertEqual(len(run), 9)
         self.assertEqual(run[0], ("performance_above_floor", False, "ratio 0.6148 under the floor 0.75 over 71 daylight records"))
         self.assertEqual(run[1], ("reachable", False, f"127.0.0.1:{self.dead} is unreachable"))
-        self.assertIn(("reachable", True, "156 records"), run)
+        self.assertIn(("records_stored", True, "156 records"), run)
         self.assertEqual(sum(passed is True for _, passed, _ in run), 6)  # 13.15: zero output fails performance_above_floor
         self.has("OAHE-INV-002's run at 13:00 9 results, failed: performance_above_floor failed (\"ratio 0.6148 under the floor")
 
     def test_the_sensors_run(self) -> None:
         run = run_of(self.conn, demo.SENSOR, RUN_AT)
         self.assertEqual([(name, passed) for name, passed, _ in run],
-                         [("reachable", False), ("reachable", False), ("irradiance_in_range", None), ("on_grid", None)])
+                         [("reachable", False), ("records_stored", False), ("irradiance_in_range", None), ("on_grid", None)])
         self.assertEqual({reason for name, passed, reason in run if passed is False},
                          {f"127.0.0.1:{self.dead} is unreachable", "no records"})
         self.assertEqual({reason for name, passed, reason in run if passed is None}, {"no records"})
-        self.has("OAHE-SEN-001's run at 13:00 4 results, failed: two reachable failed")
+        self.has("OAHE-SEN-001's run at 13:00 4 results, failed: the ping's reachable and records_stored failed")
         self.has("irradiance_in_range and on_grid no data (\"no records\"), never a pass")
 
     def test_the_error_counts(self) -> None:

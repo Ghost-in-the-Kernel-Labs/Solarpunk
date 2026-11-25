@@ -97,7 +97,9 @@ class TheWindow(unittest.TestCase):
         self.assertEqual([row[0] for row in rows], [r.name for r in found])
         reachable = next(row for row in rows if row[0] == "reachable")
         self.assertEqual(reachable[3], "2026-06-01 13:00 UTC")
-        self.assertEqual(reachable[6], "3")  # SEN-001 twice, INV-002 once (a dead feed adds the ping's own result)
+        self.assertEqual(reachable[6], "2")  # the ping's own failures only (SP-056): SEN-001 once, INV-002 once
+        stored = next(row for row in rows if row[0] == "records_stored")
+        self.assertEqual(stored[6], "1")  # the script's: SEN-001's feed gave no record
 
     def test_the_selected_tests_log_with_failures_red(self) -> None:
         window = record_window.RecordWindow(self.root, self.conn)

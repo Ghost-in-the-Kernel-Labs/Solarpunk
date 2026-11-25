@@ -4,4 +4,4 @@ INVERTER does not name the test `broken` on its Tests line, so the list's line i
 
 ## INVERTER
 
-Tests: `reachable`.
+Tests: `records_stored`.

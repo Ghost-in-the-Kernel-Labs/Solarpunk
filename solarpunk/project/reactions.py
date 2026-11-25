@@ -23,7 +23,7 @@ from solarpunk.remote import run as remote
 from solarpunk.remote import suite_registry
 from solarpunk.remote.acquire import Acquirer
 from solarpunk.remote.reactions import MAX_CHAIN, Fault, Mail, OpenPreventive, RunSuite
-from solarpunk.remote.registry import BadRemoteTest, RemoteTest, discover
+from solarpunk.remote.registry import BadRemoteTest, RemoteTest, discover, with_ping
 from solarpunk.remote.results import Recorded
 from solarpunk.workorders import ledger as work_ledger
 
@@ -138,7 +138,7 @@ def carry_out(conn: sqlite3.Connection, fed: tuple[Asset, ...], samples: dict[st
     mails sent: one failing reachable on a sensor with the default reactions records one Fault row; a no data result
     and a pass record none. held is the tests whose reactions count, the registry's unless a test hands its own."""
     doing = Carrying(conn, run_at, {asset.asset_id: asset for asset in fed}, samples, settings, acquirer,
-                     discover() if held is None else held)
+                     with_ping(discover()) if held is None else held)
     for asset in fed:
         for found in failed_at(doing, asset.asset_id):
             react(doing, found)

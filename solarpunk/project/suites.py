@@ -22,7 +22,7 @@ def test_suites() -> tuple[Suite, ...]:
 def add_suite(name: str, tests: tuple[str, ...], kind_names: tuple[str, ...], cadence: str,
               folder: Path | None = None) -> Path:
     """Writes a new suite beside the others (or in the folder given) and returns its file: add_suite("hourly_check",
-    ("reachable",), ("INVERTER",), "hourly") is solarpunk/remote/suites/hourly_check.py; a refusal raises BadRemoteTest."""
+    ("records_stored",), ("INVERTER",), "hourly") is solarpunk/remote/suites/hourly_check.py; a refusal raises BadRemoteTest."""
     return suite_writer.write(name, tests, kind_names, cadence, folder)
 
 

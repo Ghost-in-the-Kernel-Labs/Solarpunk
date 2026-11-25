@@ -258,12 +258,15 @@ close`) ends the downtime and leaves the ticket open, to be closed once its root
 The proof follows the action (13.21, SP-055): a ticket opened from a failed test result closes only after a later pass.
 For every failed result linked to it, a passing result of the same test on the same asset must be stored strictly after
 that failure's run instant (any result of the default suite `all`; the ping's `reachable` pass, "answered: N new records",
-counts). Until then resolving is refused, after the root-cause check (a ticket with neither is refused for the cause),
+counts). The test is matched by name (SP-056): a failed `reachable` is proved by a `reachable` pass alone, never by a
+`records_stored` pass, the script that judges the stored records. Until then resolving is refused, after the root-cause check (a ticket with neither is refused for the cause),
 naming the test and the asset: "ticket 4 waits for a pass: reachable on OAHE-INV-002 has not passed since its failure at
 2026-06-01T13:00:00+00:00". Nothing is written; the Tickets window's panel and `solarpunk ticket resolve` (exit 2) say the
 same words as they say the root-cause refusal. A ticket with no linked result (an engineer's fault, a preventive order) is
 unchanged. Hand-checked: a ticket opened from `reachable` on OAHE-INV-002 failed at 13:00, its cause written; resolving
-at 13:20 is refused (no pass after 13:00); a pass of `reachable` is stored at 13:25; resolving at 13:30 closes it. A
+at 13:20 is refused (no pass after 13:00); a later run with the feed still dead stores a `records_stored` pass and
+another `reachable` failure, and resolving is still refused; a pass of `reachable` is stored at 13:25; resolving at 13:30
+closes it. A
 pass stored at 13:00 itself, or before, would not count. The demo's revival is stamped no earlier than one minute after
 the latest move, comment or root cause stored on that asset's tickets, so its pass always follows the last act. Held by
 `solarpunk/project/causes.py` (`require_pass`), `solarpunk/project/revival.py` (`last_ticket_act`) and
@@ -301,9 +304,11 @@ more are kept (SP-016).
 
 **A run** of an asset is every result stored for it at one instant: one per remote test its kind runs, and the ping's
 own `reachable` beside the test's own: a failure when the feed did not answer, and a pass, "answered: N new records"
-(N the samples that ping stored, 0 included), when it did, both untimed and in suite `all` (SP-055; two `reachable`
-results in one run is right: one says what the feed did, the other what the stored samples showed). A result is a pass, a failure or **no
-data** (SP-039): a test with no stored record that is not a gap has nothing to check, so `reachable` fails it, a
+(N the samples that ping stored, 0 included), when it did, both untimed and in suite `all` (SP-055, SP-056: `reachable`
+is the live ping alone; the script that judges the stored records is `records_stored`, so one run holds a result of
+each: one says what the feed did, the other what the stored samples showed; a store made before SP-056 keeps its old
+`reachable` rows, read as the ping's history). A result is a pass, a failure or **no
+data** (SP-039): a test with no stored record that is not a gap has nothing to check, so `records_stored` fails it, a
 disconnection, and every other test returns no data, shown grey like "not run", never a pass and never a failure. A
 day of real records with none of the kind a test needs (no daylight record, no night record) is judged, not no data.
 A run **failed** when any of its results failed. An asset's runs are listed newest first; a run's results failures
@@ -327,10 +332,10 @@ Worked examples, over the demo store (`python3 -m solarpunk.ui --demo`, one run 
                                     0.75 over 71 daylight records": its stored power is 0 from its outage's start,
                                     11:30; raising INV-005, assigned by test:performance_above_floor) and reachable
                                     failed ("127.0.0.1:9 is unreachable", the ping; raising SIT-004, assigned by
-                                    test:reachable); power_ripple no data; reachable passed ("156 records"), and its
+                                    test:reachable); power_ripple no data; records_stored passed ("156 records"), and its
                                     five other tests passed
-    OAHE-SEN-001's run at 13:00     4 results, failed: two reachable failed ("127.0.0.1:9 is unreachable",
-                                    "no records"), irradiance_in_range and on_grid no data ("no records"), never a pass
+    OAHE-SEN-001's run at 13:00     4 results, failed: the ping's reachable and records_stored failed
+                                    ("127.0.0.1:9 is unreachable", "no records"), irradiance_in_range and on_grid no data ("no records"), never a pass
     errors, OAHE-SEN-001, the day   faults: SEN-001 1 (open since 13:00); suggestions: none
     errors, OAHE-INV-002, the day   faults: INV-001 1 (open since 11:30), INV-005 1 and SIT-004 1 (open since 13:00); suggestions: none
     errors, OAHE-INV-001, the day   faults: INV-002 1 (10:05 to 10:45); suggestions: none

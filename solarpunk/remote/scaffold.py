@@ -57,7 +57,7 @@ def source(name: str, kinds: tuple[AssetKind, ...], clauses: tuple[str, ...]) ->
 
 def check(folder: Path, name: str, kinds: tuple[AssetKind, ...], clauses: tuple[str, ...]) -> None:
     """Refuses what cannot become a test, each with its reason: a name that is not a lower-case module name ("Bad-Name"
-    is not a lower-case Python module name), one a file already holds (reachable already exists), no kind, no clause."""
+    is not a lower-case Python module name), one a file already holds (records_stored already exists), no kind, no clause."""
     if not name.isidentifier() or keyword.iskeyword(name) or name != name.lower():
         raise BadRemoteTest(f"{name} is not a lower-case Python module name")
     if (folder / f"{name}.py").exists():

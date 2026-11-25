@@ -24,6 +24,8 @@ from solarpunk.remote import suites, tests
 from solarpunk.remote.acquire import ACQUISITIONS, reads_only
 from solarpunk.remote.results import ALL, Result
 
+PING = "reachable"
+FEED_KINDS = (AssetKind.INVERTER, AssetKind.METER, AssetKind.SENSOR, AssetKind.TRACKER)
 REQUIRED = ("KINDS", "CLAUSES", "REACTIONS", "run")
 SURVEY_PACKAGE = "solarpunk_survey"
 
@@ -35,7 +37,7 @@ class BadRemoteTest(ValueError):
 
 @dataclass(frozen=True)
 class RemoteTest:
-    """One discovered test: RemoteTest("reachable", (AssetKind.INVERTER, …), ("55000-9.1",), reachable.run,
+    """One discovered test: RemoteTest("records_stored", (AssetKind.INVERTER, …), ("55000-9.1",), records_stored.run,
     {AssetKind.INVERTER: (Fault("INV-001"),), …}); reactions maps each kind to what a failure does (13.4)."""
 
     name: str
@@ -46,18 +48,37 @@ class RemoteTest:
     acquire: object | None = None  # a value of acquire.ACQUISITIONS: what the runner reads for this test (13.3)
 
     def reactions_for(self, kind: AssetKind) -> tuple:
-        """What a failure on an asset of this kind does, a Fault always among it: reachable's for a METER is
+        """What a failure on an asset of this kind does, a Fault always among it: records_stored's for a METER is
         (Fault("MTR-001"),); a kind the test names none for is (Fault("SIT-004"),)."""
         return reaction_set.with_fault(self.reactions.get(kind, ()))
 
     def fault_code(self, kind: AssetKind) -> str:
-        """The code a failure on this kind raises: reachable's for a METER is "MTR-001", for an INVERTER the generic
+        """The code a failure on this kind raises: records_stored's for a METER is "MTR-001", for an INVERTER the generic
         "SIT-004" (SP-047: a lost link is no OUTAGE or DERATE)."""
         return reaction_set.fault_code_of(self.reactions_for(kind))
 
 
+def ping_run(asset: Asset, samples: tuple[Sample, ...]) -> Result:
+    """The ping is no script: ping_run(asset, ()) raises BadRemoteTest; the scheduled run stores its results."""
+    raise BadRemoteTest("reachable is the live ping, not a script of the tests' folder")
+
+
+def ping_test() -> RemoteTest:
+    """The ping as the registry knows it, for its reactions alone: ping_test().fault_code(AssetKind.METER) is "MTR-001",
+    for an INVERTER the generic "SIT-004"; it is in no suite and in no list of scripts (SP-056)."""
+    # Decision: SP-056 (a failed ping `reachable` keeps the lost-link reactions the script of that name held)
+    lost_link = {AssetKind.METER: (reaction_set.Fault("MTR-001"),), AssetKind.SENSOR: (reaction_set.Fault("SEN-001"),)}
+    return RemoteTest(PING, FEED_KINDS, ("55000-9.1",), ping_run, lost_link)
+
+
+def with_ping(found: dict[str, RemoteTest]) -> dict[str, RemoteTest]:
+    """The tests whose failures react: the scripts and the ping; sorted(with_ping(discover())) holds "reachable"
+    beside "records_stored"."""
+    return {**found, PING: ping_test()}
+
+
 def from_module(name: str, module: ModuleType) -> RemoteTest:
-    """A module's test, checked: from_module("reachable", reachable).clauses is ("55000-9.1",); a module with no
+    """A module's test, checked: from_module("records_stored", records_stored).clauses is ("55000-9.1",); a module with no
     CLAUSES raises BadRemoteTest naming the module and CLAUSES; KINDS ["INV"] raises it naming KINDS."""
     for field in REQUIRED:
         if not hasattr(module, field):
@@ -126,7 +147,7 @@ def checked_chains(found: dict[str, RemoteTest]) -> None:
 
 def load(package: str, paths: list[str]) -> dict[str, RemoteTest]:
     """Every module in the package's folders, imported and checked, by name in name order: load("solarpunk.remote.tests",
-    tests.__path__) has the keys "on_grid", "power_under_rated", "reachable"; a broken module raises BadRemoteTest."""
+    tests.__path__) has the keys "on_grid", "power_under_rated", "records_stored"; a broken module raises BadRemoteTest."""
     found: dict[str, RemoteTest] = {}
     importlib.invalidate_caches()  # a script added since the last look is found
     # pkgutil lists a folder's modules in sorted file-name order, so the dict is in name order.
@@ -139,19 +160,19 @@ def load(package: str, paths: list[str]) -> dict[str, RemoteTest]:
 
 def discover() -> dict[str, RemoteTest]:
     """Every test under solarpunk/remote/tests/ by name: sorted(discover()) is ["on_grid", "power_under_rated",
-    "reachable"] while those three are the folder's modules."""
+    "records_stored"] while those three are the folder's modules."""
     return load(tests.__name__, list(tests.__path__))
 
 
 def tests_for(kind: AssetKind) -> tuple[RemoteTest, ...]:
     """The discovered tests that run against a kind, in name order: tests_for(AssetKind.INVERTER) names on_grid,
-    power_under_rated, reachable; tests_for(AssetKind.SITE) is ()."""
+    power_under_rated, records_stored; tests_for(AssetKind.SITE) is ()."""
     return tuple(test for test in discover().values() if kind in test.kinds)
 
 
 @dataclass(frozen=True)
 class Surveyed:
-    """One script in the tests' folder as the Manage tests window lists it (9.8): Surveyed("reachable", <its test>,
+    """One script in the tests' folder as the Manage tests window lists it (9.8): Surveyed("records_stored", <its test>,
     None) loads; Surveyed("broken", None, "broken has no CLAUSES") does not, and says why."""
 
     name: str
@@ -189,7 +210,7 @@ def surveyed(path: Path) -> Surveyed:
 
 def survey(folder: Path) -> tuple[Surveyed, ...]:
     """Every script in a folder, in name order, each loaded afresh so an edit or a new file shows at once:
-    survey(the tests' folder) lists reachable among the seven, each with its test and no problem."""
+    survey(the tests' folder) lists records_stored among the seven, each with its test and no problem."""
     return tuple(surveyed(path) for path in sorted(folder.glob("*.py")) if path.stem != "__init__")
 
 

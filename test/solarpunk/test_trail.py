@@ -16,7 +16,7 @@ from solarpunk.remote import results
 SEN = "OAHE-SEN-001"
 ENGINEER = "site@oahe.example"
 OPERATOR = "ops@oahe.example"
-REACHABLE_CLAUSES = next(found.clauses for found in project.remote_tests() if found.name == "reachable")
+REACHABLE_CLAUSES = next(found.clauses for found in project.remote_tests() if found.name == "records_stored")
 FAILED, OPENED, COMMENTED, CAUSED, CORRECTED, PASSED, RESOLVED = (at(2026, 6, 1, hour) for hour in (10, 11, 12, 13, 14, 15, 16))
 
 

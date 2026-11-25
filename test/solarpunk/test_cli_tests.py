@@ -86,7 +86,7 @@ class ListAndAdd(TestCommands):
         self.assertEqual((code, out.splitlines(), err), (0, TEST_LIST, ""))
         self.assertFalse(Path(self.db).exists())
         # The reactions Ghost reviews, held as written (SP-020): an unreachable asset raises its kind's fault.
-        self.assertIn("reachable  INV,MTR,SEN,TRK  55000-9.1  INV: Fault(SIT-004); MTR: Fault(MTR-001); SEN: Fault(SEN-001); TRK: Fault(SIT-004)", out.splitlines())
+        self.assertIn("records_stored  INV,MTR,SEN,TRK  55000-9.1  INV: Fault(SIT-004); MTR: Fault(MTR-001); SEN: Fault(SEN-001); TRK: Fault(SIT-004)", out.splitlines())
 
     def test_add_calls_project_and_says_what_it_wrote(self) -> None:
         with mock.patch.object(cli.project, "add_remote_test", return_value=Path("tests/tracker_moving.py")) as add:
@@ -104,8 +104,8 @@ class ListAndAdd(TestCommands):
         add.assert_called_once_with("tracker_moving", (), ("55000-9.1",))
 
     def test_a_refused_add_is_an_error(self) -> None:
-        code, out, err = self.run_cli(["test", "add", "reachable", "--clause", "55000-9.1"])
-        self.assertEqual((code, out, err), (2, "", "error: reachable already exists\n"))
+        code, out, err = self.run_cli(["test", "add", "records_stored", "--clause", "55000-9.1"])
+        self.assertEqual((code, out, err), (2, "", "error: records_stored already exists\n"))
 
     def test_add_needs_a_clause_and_test_needs_a_subcommand(self) -> None:
         for argv in (["test", "add", "tracker_moving"], ["test"]):

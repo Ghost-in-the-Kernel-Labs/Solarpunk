@@ -58,7 +58,8 @@ class ThePeopleAndTheDay(test_demo.DemoFixture):
         conn = self.opened()
         self.assertEqual({d.test_name: d.state for d in project.asset_detail(conn, INV2).diagnostics},
                          {"performance_above_floor": "fail", "reachable": "fail", "power_ripple": "no data", "irradiance_in_range": "pass",
-                          "night_power_near_zero": "pass", "on_grid": "pass", "power_not_frozen": "pass", "power_under_rated": "pass"})
+                          "night_power_near_zero": "pass", "on_grid": "pass", "power_not_frozen": "pass", "power_under_rated": "pass",
+                          "records_stored": "pass"})
         revival = demo.Revival(self.dead, lambda: at(2026, 6, 1, 13, 2))
         self.addCleanup(revival.close)
         revival.bring_back(conn, INV2)

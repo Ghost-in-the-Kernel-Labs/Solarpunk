@@ -39,13 +39,13 @@ class TheExamples(unittest.TestCase):
         self.assertEqual((first.test_name, first.passed, first.reason),
                          ("performance_above_floor", False, "ratio 0.6148 under the floor 0.75 over 71 daylight records"))  # 13.15: zero output
         self.assertEqual((second.test_name, second.passed, second.reason), ("reachable", False, f"127.0.0.1:{self.dead} is unreachable"))
-        self.assertIn(("reachable", True, "156 records"), [(r.test_name, r.passed, r.reason) for r in run.results])
+        self.assertIn(("records_stored", True, "156 records"), [(r.test_name, r.passed, r.reason) for r in run.results])
         self.assertEqual([r.passed for r in run.results], [False, False, False] + [True] * 6)  # power_ripple, with no live reads taken, says no data (13.3)
 
     def test_the_sensors_run(self) -> None:
         (run,) = project.asset_runs(self.conn, SEN)
         self.assertEqual([(r.test_name, r.passed, r.no_data) for r in run.results],
-                         [("reachable", False, False), ("reachable", False, False),
+                         [("reachable", False, False), ("records_stored", False, False),
                           ("irradiance_in_range", False, True), ("on_grid", False, True)])  # SP-039: no data, not a pass
 
     def test_the_error_counts(self) -> None:

@@ -21,7 +21,7 @@ from solarpunk.leaf.telemetry import Sample, gap
 from solarpunk.remote import registry, results, run
 from solarpunk.remote.registry import BadRemoteTest
 from solarpunk.remote.results import NotStored, Recorded, Result
-from solarpunk.remote.tests import on_grid, power_under_rated, reachable
+from solarpunk.remote.tests import on_grid, power_under_rated, records_stored
 from solarpunk.telemetry import samples as telemetry
 
 SITE = Asset("OAHE-SIT-001", AssetKind.SITE, "OAHE", None, "Oahe", None)
@@ -85,7 +85,7 @@ class TheRegistry(unittest.TestCase):
     def test_discover_finds_every_module_in_the_folder(self) -> None:
         found = registry.discover()
         self.assertEqual(list(found), EVERY_TEST)
-        self.assertEqual(found["reachable"].kinds, reachable.KINDS)
+        self.assertEqual(found["records_stored"].kinds, records_stored.KINDS)
         self.assertEqual(found["on_grid"].clauses, ("55000-7.5", "9001-9.1.3"))
         self.assertIs(found["power_under_rated"].run, power_under_rated.run)
         self.assertEqual(found["power_under_rated"].name, "power_under_rated")
@@ -93,10 +93,10 @@ class TheRegistry(unittest.TestCase):
     def test_tests_for_a_kind_in_name_order(self) -> None:
         names = [test.name for test in registry.tests_for(AssetKind.INVERTER)]
         self.assertEqual(names, [name for name in EVERY_TEST if AssetKind.INVERTER in registry.discover()[name].kinds])
-        self.assertIn("reachable", names)
+        self.assertIn("records_stored", names)
         sensor = [test.name for test in registry.tests_for(AssetKind.SENSOR)]
         self.assertEqual(sensor, [name for name in EVERY_TEST if AssetKind.SENSOR in registry.discover()[name].kinds])
-        self.assertLess({"on_grid", "reachable"}, set(sensor))
+        self.assertLess({"on_grid", "records_stored"}, set(sensor))
         self.assertEqual(registry.tests_for(AssetKind.SITE), ())
 
     def test_each_test_names_register_clauses(self) -> None:
@@ -166,14 +166,14 @@ class TheRegistry(unittest.TestCase):
 class Reachable(unittest.TestCase):
     def test_passes_with_records(self) -> None:
         samples = (reading(INV1, T0, 800.0, 60.0), gap(INV1.asset_id, T1))
-        self.assertEqual(reachable.run(INV1, samples), Result(True, "2 records"))
+        self.assertEqual(records_stored.run(INV1, samples), Result(True, "2 records"))
 
     def test_fails_with_none(self) -> None:
-        self.assertEqual(reachable.run(INV1, ()), Result(False, "no records"))
+        self.assertEqual(records_stored.run(INV1, ()), Result(False, "no records"))
 
     def test_kinds_and_clauses(self) -> None:
         kinds = (AssetKind.INVERTER, AssetKind.METER, AssetKind.SENSOR, AssetKind.TRACKER)
-        self.assertEqual((reachable.KINDS, reachable.CLAUSES), (kinds, ("55000-9.1",)))
+        self.assertEqual((records_stored.KINDS, records_stored.CLAUSES), (kinds, ("55000-9.1",)))
 
 
 class OnGrid(unittest.TestCase):
@@ -305,7 +305,7 @@ class TheResultsTable(unittest.TestCase):
 
 class RunningTests(unittest.TestCase):
     def test_run_test_runs_a_discovered_test(self) -> None:
-        self.assertEqual(run.run_test("reachable", INV1, ()), Result(False, "no records"))
+        self.assertEqual(run.run_test("records_stored", INV1, ()), Result(False, "no records"))
 
     def test_run_test_refuses_an_unknown_name(self) -> None:
         with self.assertRaises(BadRemoteTest) as caught:
@@ -339,7 +339,7 @@ class RunningTests(unittest.TestCase):
         self.assertEqual(sorted(r.test_name for r in latest), sorted(t.name for t in registry.tests_for(AssetKind.SENSOR)))
         # failing first, then no data, each by name (SP-039)
         self.assertEqual(latest, tuple(sorted(latest, key=lambda r: (r.passed, r.no_data, r.test_name))))
-        self.assertFalse(next(r for r in latest if r.test_name == "reachable").passed)
+        self.assertFalse(next(r for r in latest if r.test_name == "records_stored").passed)
         per_run = 2 * len(registry.tests_for(AssetKind.INVERTER)) + len(registry.tests_for(AssetKind.SENSOR))
         self.assertEqual(conn.execute("SELECT count(*) FROM results").fetchone()[0], per_run)  # every test of each kind
         self.assertEqual(results.last_run_at(conn), T1)
@@ -369,8 +369,8 @@ class TheCommandLine(unittest.TestCase):
     def test_pass_and_fail(self) -> None:
         with tempfile.TemporaryDirectory() as root:
             db = self.stored(root)
-            self.assertEqual(self.verdict(["reachable", INV1.asset_id, "--db", db]), (0, "pass\n"))
-            self.assertEqual(self.verdict(["reachable", INV2.asset_id, "--db", db]), (1, "fail no records\n"))
+            self.assertEqual(self.verdict(["records_stored", INV1.asset_id, "--db", db]), (0, "pass\n"))
+            self.assertEqual(self.verdict(["records_stored", INV2.asset_id, "--db", db]), (1, "fail no records\n"))
             self.assertEqual(self.verdict(["power_under_rated", INV1.asset_id, "--db", db]),
                              (1, f"fail {STAMP}: power 101.5 kW over rated 100.0 kW + 1%\n"))
 
@@ -378,13 +378,13 @@ class TheCommandLine(unittest.TestCase):
         with tempfile.TemporaryDirectory() as root:
             db = self.stored(root)
             self.assertEqual(self.verdict(["nope", INV1.asset_id, "--db", db]), (2, "error no remote test nope\n"))
-            self.assertEqual(self.verdict(["reachable", SEN.asset_id, "--db", db]),
+            self.assertEqual(self.verdict(["records_stored", SEN.asset_id, "--db", db]),
                              (2, "error OAHE-SEN-001 is not stored\n"))
             missing = str(Path(root) / "absent.db")
-            self.assertEqual(self.verdict(["reachable", INV1.asset_id, "--db", missing]),
+            self.assertEqual(self.verdict(["records_stored", INV1.asset_id, "--db", missing]),
                              (2, f"error no store at {missing}\n"))
             self.assertFalse(Path(missing).exists())
 
     def test_the_store_is_required(self) -> None:
         with self.assertRaises(SystemExit), unittest.mock.patch("sys.stderr", io.StringIO()):
-            run.main(["reachable", INV1.asset_id], io.StringIO())
+            run.main(["records_stored", INV1.asset_id], io.StringIO())

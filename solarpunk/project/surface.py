@@ -165,8 +165,8 @@ def asset_detail(conn: sqlite3.Connection, asset_id: str) -> AssetDetail:
 def diagnostics_of(conn: sqlite3.Connection, asset: Asset) -> tuple[Diagnostic, ...]:
     """Every remote test the registry holds for the asset's kind, with its result from the asset's latest run, failing
     first, then no data, then never run, then passing, each group by name; a stored result of a test the folder no longer holds is
-    kept, so nothing the run recorded is hidden: an inverter whose last run failed on_grid and passed reachable gives
-    on_grid "fail", the five other inverter tests "not run", reachable "pass"; a string, which no test runs on, ()."""
+    kept, so nothing the run recorded is hidden: an inverter whose last run failed on_grid and passed records_stored gives
+    on_grid "fail", the five other inverter tests "not run", records_stored "pass"; a string, which no test runs on, ()."""
     latest: dict[str, Recorded] = {}
     # latest_for orders failing first, and one run can store two results of a test (a ping that failed beside the suite
     # run over stored samples): the first kept is the failure, so a failure is never hidden by a pass (J-050).
