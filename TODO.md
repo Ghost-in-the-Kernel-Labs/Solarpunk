@@ -85,7 +85,7 @@ SP-022; 12.1 split in two by SP-028 (accounts, then versions); 12.6 added on Gho
 
 ## Phase 13: the tests' record, at the root and per asset
 
-Lanes (P-15): 13.1 and 13.2 first (SP-019: what a test is, and the suites), then 13.3 (a test's own reads) and 13.4 (reactions, which need suites; SP-020), then 13.5 (the surface every window reads), then 13.6 and 13.7 in parallel, then the human maintainability pass (SP-042): 13.8, then 13.9, 13.10 and 13.11 in parallel, then 13.24 the pass; the demo's ISO walk first, on Ghost's word (SP-053): 13.14, then 13.15, 13.16 and 13.17, then 13.18 and 13.19 in parallel (SP-054), then 13.20's script (J-152), then 13.22 (the walk clicked end to end), then 13.20 and 13.21 (SP-055, the dry run's blockers), then 13.23 (its dry run again), ahead of 13.8's parts 4 and 5; 13.12 (Phase 7's loose ends, SP-047) beside 13.3, in its own clone; 13.13 (bursts in the demo, SP-049) after 13.4; the asset's history went to Phase 10 (SP-024). Moved after tickets and accounts by SP-022, after the fleet window and the ticket windows by SP-023, and after runs per asset (Phase 10) by SP-024. Moved after Phase 8 by SP-018. Ghost's direction, SP-016.
+Lanes (P-15): 13.1 and 13.2 first (SP-019: what a test is, and the suites), then 13.3 (a test's own reads) and 13.4 (reactions, which need suites; SP-020), then 13.5 (the surface every window reads), then 13.6 and 13.7 in parallel, then the human maintainability pass (SP-042): 13.8, then 13.9, 13.10 and 13.11 in parallel, then 13.28 the pass; the demo's ISO walk first, on Ghost's word (SP-053): 13.14, then 13.15, 13.16 and 13.17, then 13.18 and 13.19 in parallel (SP-054), then 13.20's script (J-152), then 13.22 (the walk clicked end to end), then 13.20 and 13.21 (SP-055, the dry run's blockers), then 13.25, then 13.26 (SP-056, the second dry run's blockers), then 13.27 (its dry run again), ahead of 13.8's parts 4 and 5; 13.12 (Phase 7's loose ends, SP-047) beside 13.3, in its own clone; 13.13 (bursts in the demo, SP-049) after 13.4; the asset's history went to Phase 10 (SP-024). Moved after tickets and accounts by SP-022, after the fleet window and the ticket windows by SP-023, and after runs per asset (Phase 10) by SP-024. Moved after Phase 8 by SP-018. Ghost's direction, SP-016.
 
 ### 13.8 Names of three characters or more
 
@@ -114,7 +114,34 @@ Each decision is mapped to the functions that hold it, and each function holding
 
 Check: `scripts/decision_map.py` writes `docs/DECISION-MAP.md`, for each decision in `theGhost.md` the functions (file and name) whose `# Decision:` or `# Invariant:` line cites it, "no function" otherwise; the fast loop fails when the file is stale; `scripts/checks/decision_map.py` fails when an in-force decision whose `Held by` names a file under `solarpunk/` or `scripts/` is cited by no function, or a citation names a decision or invariant that does not exist, with a planted break under `test/fixtures/broken/decision_map/`; the missing citations added to the functions that hold each decision; the fast loop green.
 
-### 13.23 The ISO walk, scripted and dry-run
+### 13.25 One name, one check: the stored-records script renamed
+
+The remote-test script that counts stored records is renamed `records_stored`, so `reachable` names the live ping
+alone and the check that failed is the only check that can prove the ticket (SP-056, J-157).
+
+Check: the script `solarpunk/remote/tests/reachable.py` becomes `solarpunk/remote/tests/records_stored.py`, its test
+name `records_stored`, its clauses and reactions kept (its meter and sensor faults, its SIT-004 for an inverter, if it
+still raises them: say which in the journal); the ping's `reachable` (`ping_all`, `solarpunk/project/run.py`) keeps
+its name; a ticket from a failed `reachable` cannot close on a `records_stored` pass (a test with the feed still dead
+and a later run holds it refused); every count, window, CONTRACT example and DEMO.md line naming the script follows,
+each listed old and new in the journal; a store made before keeps its old rows readable (results stored under the old
+name stay as they are; say how the windows show them); the fast loop, the window tests and the demo tests under xvfb
+green.
+
+### 13.26 The close follows its proof
+
+A ticket from a failed result never closes at an instant before the pass that proves it, on the window track as on
+the terminal track (SP-056, J-157).
+
+Check: the closing rule (`require_pass`, `solarpunk/project/causes.py`) accepts only a pass after the failure and at or
+before the close's instant, `docs/CONTRACT.md`'s rule beside SOL-14 saying so with its example; the demo's revival
+(`Revival.run_instant`, `solarpunk/ui/demo.py`) stamps at the window's clock when that is already after the asset's
+last ticket act, and one minute after the last act only when the clock is behind it (the terminal track's `--at`
+acts); the demo walk test presses Resolve within a minute of the cause and holds the trail's close after the pass;
+DEMO.md's step 2 sample prints the failed result's id as the store gives it (2); the fast loop, the window tests and
+the demo tests under xvfb green.
+
+### 13.27 The ISO walk, scripted and dry-run
 
 DEMO.md walks one ISO requirement to its evidence and its corrective action on `--demo`, and a fresh dry run follows
 it with nothing missing (SP-052, SP-053).
@@ -125,7 +152,7 @@ resolve, the feed brought back, the re-run passing, the closed trail read back; 
 corrected; the register's 55000-9.1 sentence covers every control its row names (`docs/CLAUSE-REGISTER.md`, its check
 green); a fresh ruling-grade dry run of DEMO.md's walk, read-only, reports no blocker; the fast loop green.
 
-### 13.24 Tune-up pass 13
+### 13.28 Tune-up pass 13
 
 Check: `docs/when/tune-up.md` followed in full; the metrics table written; the navigation log's "Last review" set.
 

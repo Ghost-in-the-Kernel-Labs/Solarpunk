@@ -507,9 +507,13 @@ result kept. It adds to `docs/GOAL.md`'s SCADA analytics (2) and quality managem
 - **13.20 A ping that answers records its pass (SP-055).** The check that failed is the check that passes.
 - **13.21 The proof follows the action, and closing waits for it (SP-055).** A ticket from a failed result closes
   after a later pass; the demo's revival never stamped before the last act.
-- **13.23 The ISO walk, scripted and dry-run (SP-052, SP-053).** DEMO.md walks 55000-9.1 from requirement to evidence
+- **13.25 One name, one check (SP-056).** The stored-records script renamed `records_stored`; `reachable` is the ping
+  alone.
+- **13.26 The close follows its proof (SP-056).** No close before its proving pass; the revival at the window's clock
+  when that is already past the last act.
+- **13.27 The ISO walk, scripted and dry-run (SP-052, SP-053).** DEMO.md walks 55000-9.1 from requirement to evidence
   to corrective action, the register's sentence fixed, and a fresh dry run finds nothing missing.
-- **13.24 Tune-up pass 13.** (The asset's history, 13.8 before SP-024, is Phase 10.)
+- **13.28 Tune-up pass 13.** (The asset's history, 13.8 before SP-024, is Phase 10.)
 
 ### Phase 14: the traceability matrix
 

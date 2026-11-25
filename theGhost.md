@@ -997,3 +997,13 @@ The core decisions above are inherited (Core C-001 to C-040); this project's beg
 - **Status:** in force
 - **See also:** SP-053, SP-054, SP-050, SP-046
 - **subject:** demo
+
+### SP-056: One name, one check; the close follows its proof
+- **Decision:** The remote-test script that counts stored records is renamed `records_stored`; `reachable` names the live ping alone, so a ticket from a failed `reachable` can be proved only by the ping answering. A ticket from a failed result closes only on a pass after the failure and at or before the close's instant. The demo's revival stamps at the window's clock when that is already after the asset's last ticket act, pushing to one minute after the last act only when the clock is behind it. Built as 13.25 and 13.26; the dry run moves to 13.27 and the pass to 13.28.
+- **Why:** Ghost, 2026-11-25, choosing the coordinator's recommendation after the third dry run (J-157): two checks shared the name `reachable`, so a ticket closed on the stored-records script's pass with the feed still dead and the windows read one name passing and failing at one instant; and on the window track the revival's one-minute push put the proving pass after a close pressed at presenter pace. The close-before-proof fix carries out SP-055's intent and is the coordinator's.
+- **Supersedes:** none; amends SP-055's closing rule (a pass at or before the close) and its revival stamp.
+- **Held by:** `TODO.md` and `docs/ROADMAP.md` 13.25 and 13.26; their code once built.
+- **Source:** Ghost, in chat, 2026-11-25 (the rename); the coordinator, carrying out SP-055 (the close's order).
+- **Status:** in force
+- **See also:** SP-055, SP-053, SP-047
+- **subject:** demo

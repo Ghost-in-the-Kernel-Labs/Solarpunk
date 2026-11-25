@@ -99,3 +99,4 @@ Written by `scripts/decisions_index.py` from `theGhost.md`; do not edit here. Se
 | SP-053 | The demo's ISO walk: the loop on OAHE-INV-002, people in the store, the demo's day, the trail read back | in force | demo |
 | SP-054 | Output under the floor is its own inverter fault; the tests hash passwords cheaply | in force | demo |
 | SP-055 | The check that failed is the check that passes, after the action, before the close | in force | demo |
+| SP-056 | One name, one check; the close follows its proof | in force | demo |
